@@ -1,0 +1,32 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.9.34616.47
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "XLAIR", "XLAIR\XLAIR.vcxproj", "{6A09FD3C-5A99-41D1-8D75-009B30E1558D}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{BE1A6DEF-32F7-43C8-9064-A1C96979968B}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+		.gitignore = .gitignore
+		README.md = README.md
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{6A09FD3C-5A99-41D1-8D75-009B30E1558D}.Debug|x64.ActiveCfg = Debug|x64
+		{6A09FD3C-5A99-41D1-8D75-009B30E1558D}.Debug|x64.Build.0 = Debug|x64
+		{6A09FD3C-5A99-41D1-8D75-009B30E1558D}.Release|x64.ActiveCfg = Release|x64
+		{6A09FD3C-5A99-41D1-8D75-009B30E1558D}.Release|x64.Build.0 = Release|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {FCE746E5-B556-44CD-999A-F97E02DFE77F}
+	EndGlobalSection
+EndGlobal
