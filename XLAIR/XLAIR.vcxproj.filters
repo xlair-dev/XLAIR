@@ -142,6 +142,30 @@
     <Filter Include="Header Files\consts">
       <UniqueIdentifier>{7009a287-85db-4bc7-87a9-8e57ffe2560d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\core">
+      <UniqueIdentifier>{a65a0bb9-9ba7-4a9b-bdde-604194ce8376}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\app">
+      <UniqueIdentifier>{6e632085-0516-4cb8-a280-24c37e3f2faf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\ui">
+      <UniqueIdentifier>{2947bed9-67b1-4dfc-99d9-74dbba9934b9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\infra">
+      <UniqueIdentifier>{eb3e287c-a45d-463f-b01d-38c9b7744bba}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\core">
+      <UniqueIdentifier>{31df5790-d9cf-44a2-8d63-42e67f558cc9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\app">
+      <UniqueIdentifier>{e9c887f8-b122-4406-ae6e-98528f0c4868}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\ui">
+      <UniqueIdentifier>{d44c8468-a4ca-4339-8d5b-fd6ea8ea3bc0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\infra">
+      <UniqueIdentifier>{78df9826-6b45-4bc2-85f3-cd1a90b854e5}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp">
