@@ -1,6 +1,6 @@
 ﻿#include "Common.hpp"
 
-void Main() {	
+void Main() {
     while (System::Update()) {
     }
 }

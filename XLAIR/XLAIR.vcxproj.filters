@@ -136,12 +136,6 @@
     <Filter Include="Resource Files\engine\font\min">
       <UniqueIdentifier>{1b103960-f11a-4515-b4f1-f59333ce00d9}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\consts">
-      <UniqueIdentifier>{a3edab2d-e152-421d-b897-b84f8de196a4}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\consts">
-      <UniqueIdentifier>{7009a287-85db-4bc7-87a9-8e57ffe2560d}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\core">
       <UniqueIdentifier>{a65a0bb9-9ba7-4a9b-bdde-604194ce8376}</UniqueIdentifier>
     </Filter>
@@ -165,6 +159,9 @@
     </Filter>
     <Filter Include="Header Files\infra">
       <UniqueIdentifier>{78df9826-6b45-4bc2-85f3-cd1a90b854e5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\app\consts">
+      <UniqueIdentifier>{7009a287-85db-4bc7-87a9-8e57ffe2560d}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -841,8 +838,8 @@
     <ClInclude Include="src\Common.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\consts\Version.hpp">
-      <Filter>Header Files\consts</Filter>
+    <ClInclude Include="src\app\consts\Version.hpp">
+      <Filter>Header Files\app\consts</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
