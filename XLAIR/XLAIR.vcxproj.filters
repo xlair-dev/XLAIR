@@ -163,6 +163,27 @@
     <Filter Include="Header Files\app\consts">
       <UniqueIdentifier>{7009a287-85db-4bc7-87a9-8e57ffe2560d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\ui\scenes">
+      <UniqueIdentifier>{8f112ce1-b33a-4798-b5d2-7ba0b2775920}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\ui\scenes">
+      <UniqueIdentifier>{17bf9a30-8411-4605-a29f-c70ebc33944d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\core\types">
+      <UniqueIdentifier>{78dd5729-9507-4423-b17c-5468dae95045}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\app\usecases">
+      <UniqueIdentifier>{5f8e2411-67a4-44f2-95ab-c9c4289644ae}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\app\usecases">
+      <UniqueIdentifier>{a978c4c8-d2e8-4d8a-91ea-48b240600c52}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\app\di">
+      <UniqueIdentifier>{d064344e-26f3-4569-a83e-635b3f152af3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\app\di">
+      <UniqueIdentifier>{2130a45e-1a3b-42c0-b1a5-45d95479548a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp">
@@ -170,6 +191,18 @@
     </ClCompile>
     <ClCompile Include="stdafx.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ui\scenes\Title.cpp">
+      <Filter>Source Files\ui\scenes</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\usecases\InitializeApp.cpp">
+      <Filter>Source Files\app\usecases</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\di\SceneController.cpp">
+      <Filter>Source Files\app\di</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ui\scenes\Login.cpp">
+      <Filter>Source Files\ui\scenes</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -840,6 +873,24 @@
     </ClInclude>
     <ClInclude Include="src\app\consts\Version.hpp">
       <Filter>Header Files\app\consts</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ui\scenes\Title.hpp">
+      <Filter>Header Files\ui\scenes</Filter>
+    </ClInclude>
+    <ClInclude Include="src\core\types\Scene.hpp">
+      <Filter>Header Files\core\types</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\usecases\InitializeApp.hpp">
+      <Filter>Header Files\app\usecases</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\usecases\App.hpp">
+      <Filter>Header Files\app\usecases</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\di\SceneController.hpp">
+      <Filter>Header Files\app\di</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ui\scenes\Login.hpp">
+      <Filter>Header Files\ui\scenes</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
