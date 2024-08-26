@@ -1,5 +1,5 @@
 ﻿#include "Common.hpp"
-#include "App/usecases/App.hpp"
+#include "app/usecases/App.hpp"
 #include "app/usecases/InitializeApp.hpp"
 
 void Main() {
