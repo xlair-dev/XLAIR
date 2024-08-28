@@ -118,6 +118,10 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp" />
+    <ClCompile Include="src\app\di\SceneController.cpp" />
+    <ClCompile Include="src\app\usecases\InitializeApp.cpp" />
+    <ClCompile Include="src\ui\scenes\Login.cpp" />
+    <ClCompile Include="src\ui\scenes\Title.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
@@ -327,7 +331,13 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\app\consts\Version.hpp" />
+    <ClInclude Include="src\app\di\SceneController.hpp" />
+    <ClInclude Include="src\app\usecases\App.hpp" />
+    <ClInclude Include="src\app\usecases\InitializeApp.hpp" />
     <ClInclude Include="src\Common.hpp" />
+    <ClInclude Include="src\core\types\Scene.hpp" />
+    <ClInclude Include="src\ui\scenes\Login.hpp" />
+    <ClInclude Include="src\ui\scenes\Title.hpp" />
     <ClInclude Include="stdafx.h" />
   </ItemGroup>
   <ItemGroup>
