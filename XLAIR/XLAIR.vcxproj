@@ -332,6 +332,7 @@
   <ItemGroup>
     <ClInclude Include="src\app\consts\Version.hpp" />
     <ClInclude Include="src\app\di\SceneController.hpp" />
+    <ClInclude Include="src\app\interfaces\Controller.hpp" />
     <ClInclude Include="src\app\usecases\App.hpp" />
     <ClInclude Include="src\app\usecases\InitializeApp.hpp" />
     <ClInclude Include="src\Common.hpp" />
