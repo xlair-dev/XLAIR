@@ -184,6 +184,21 @@
     <Filter Include="Source Files\app\di">
       <UniqueIdentifier>{2130a45e-1a3b-42c0-b1a5-45d95479548a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\app\interfaces">
+      <UniqueIdentifier>{8be22689-8c54-4889-b980-6f78a68565de}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\infra\controller">
+      <UniqueIdentifier>{cf286b9e-8686-457c-b631-a096d5602d20}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\infra\controller">
+      <UniqueIdentifier>{b29e9146-02c8-422a-8d89-f155331802b1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\infra\api">
+      <UniqueIdentifier>{87826677-cc7a-492c-a89e-4e4bf34ca0da}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\infra\api">
+      <UniqueIdentifier>{88f7637d-74be-4718-a7bd-78c50e4b5abe}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp">
@@ -203,6 +218,12 @@
     </ClCompile>
     <ClCompile Include="src\ui\scenes\Login.cpp">
       <Filter>Source Files\ui\scenes</Filter>
+    </ClCompile>
+    <ClCompile Include="src\infra\controller\ControllerMock.cpp">
+      <Filter>Source Files\infra\controller</Filter>
+    </ClCompile>
+    <ClCompile Include="src\infra\api\ApiClientMock.cpp">
+      <Filter>Source Files\infra\api</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -891,6 +912,18 @@
     </ClInclude>
     <ClInclude Include="src\ui\scenes\Login.hpp">
       <Filter>Header Files\ui\scenes</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\interfaces\IController.hpp">
+      <Filter>Header Files\app\interfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="src\infra\controller\ControllerMock.hpp">
+      <Filter>Header Files\infra\controller</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\interfaces\IApiClient.hpp">
+      <Filter>Header Files\app\interfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="src\infra\api\ApiClientMock.hpp">
+      <Filter>Header Files\infra\api</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
