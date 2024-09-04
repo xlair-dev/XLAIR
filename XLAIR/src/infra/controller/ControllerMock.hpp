@@ -1,8 +1,8 @@
 ﻿#pragma once
-#include "app/interfaces/Controller.hpp"
+#include "app/interfaces/IController.hpp"
 
 namespace infra {
-    class ControllerMock : IController {
+    class ControllerMock : app::IController {
     public:
         void update() override;
     private:
