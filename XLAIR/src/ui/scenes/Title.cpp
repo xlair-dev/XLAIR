@@ -1,7 +1,9 @@
 ﻿#include "Title.hpp"
+#include "app/consts/Version.hpp"
 
 namespace ui {
     Title::Title(const InitData& init) : IScene(init) {
+        Print << XLAIR_VERSION_STRING;
         Print << U"Title Scene";
     }
     Title::~Title() {}
