@@ -26,6 +26,7 @@ foreach ($resource in $resources) {
     if (-Not(Test-Path -Path $soundtouchPath)) {
         Write-Host "${soundtouchPath} does not exist." -ForegroundColor Red
         Write-Host "Download..." -ForegroundColor Cyan
+        New-Item -ItemType "directory" -Path ([System.IO.Path]::GetDirectoryName($soundtouchPath)) -Force | Out-Null
         Invoke-WebRequest -Uri "https://github.com/Siv3D/OpenSiv3D/raw/v${SIV3D_VERSION}/WindowsDesktop/App/dll/soundtouch/SoundTouch_x64.dll" -OutFile $soundtouchPath | Out-Null
     }
 }
