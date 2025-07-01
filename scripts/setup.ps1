@@ -1,4 +1,4 @@
-$SIV3D_VERSION = "0.6.14"
+$SIV3D_VERSION = "0.6.16"
 
 $resources = (Get-ChildItem -Recurse Resource.rc)
 
