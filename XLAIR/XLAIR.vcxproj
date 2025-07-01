@@ -117,11 +117,11 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Main.cpp" />
     <ClCompile Include="src\app\di\SceneController.cpp" />
     <ClCompile Include="src\app\usecases\InitializeApp.cpp" />
     <ClCompile Include="src\infra\api\ApiClientMock.cpp" />
     <ClCompile Include="src\infra\controller\ControllerMock.cpp" />
+    <ClCompile Include="src\Main.cpp" />
     <ClCompile Include="src\ui\scenes\Login.cpp" />
     <ClCompile Include="src\ui\scenes\Title.cpp" />
     <ClCompile Include="stdafx.cpp">
