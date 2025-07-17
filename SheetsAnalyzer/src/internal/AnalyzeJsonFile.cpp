@@ -51,7 +51,7 @@ namespace SheetsAnalyzer::internal {
                     }
                     helper(object, U"level", difficulty.level, 0.0);
                     helper(object, U"src", difficulty.src, U"");
-                    helper(object, U"desiner", difficulty.desiner, Constant::DefaultDesiner);
+                    helper(object, U"designer", difficulty.designer, Constant::DefaultDesigner);
                     metadata.difficulties[id] = difficulty;
                 }
             }

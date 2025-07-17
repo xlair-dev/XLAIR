@@ -9,8 +9,8 @@ namespace SheetsAnalyzer {
         const s3d::String DefaultTitle = U"Untitled";
         const s3d::String DefaultTitleSort = U"Untitled";
         const s3d::String DefaultArtist = U"Unknown Artist";
-        const s3d::String DefaultDesiner = U"Anonymous";
         const s3d::String DefaltGenre = U"Unspecified";
+        const s3d::String DefaultDesigner = U"Anonymous";
         constexpr double DefaultMusicOffset = 0.0;
         constexpr double DefaultBPM = 120.0;
 

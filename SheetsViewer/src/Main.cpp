@@ -22,7 +22,7 @@ void Main() {
             }
             Print << U"  Level: " << difficulty.level
                   << U", Source: " << difficulty.src
-                  << U", Designer: " << difficulty.desiner;
+                  << U", Designer: " << difficulty.designer;
         }
     }
     while (System::Update()) {
