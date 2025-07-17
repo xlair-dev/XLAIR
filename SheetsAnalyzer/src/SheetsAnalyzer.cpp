@@ -21,8 +21,9 @@ namespace SheetsAnalyzer {
         const auto extension = s3d::FileSystem::Extension(path);
         if (extension == U"json") {
             return internal::AnalyzeJsonFile(path);
-        }
-        else {
+        } else if (extension == U"toml") {
+            return internal::AnalyzeTomlFile(path);
+        } else {
             return s3d::none; // Unsupported file type
         }
     }
