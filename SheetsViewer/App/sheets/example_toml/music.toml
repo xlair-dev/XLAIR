@@ -1,0 +1,15 @@
+version = 1
+id = "example"
+title = "Example Title"
+title_sort = "example title"
+artist = "Example Artist"
+genre = "example"
+audio = "audio.wav"
+jacket = "jacket.png"
+url = "https://example.com"
+
+[[difficulties]]
+id = 0
+level = 2.0
+src = "0.sus"
+designer = "Example Designer"

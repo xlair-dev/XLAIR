@@ -1,24 +1,19 @@
 {
-  "id": 0,
-  "title": "Example",
-  "sort": "Example",
+  "version": 1,
+  "id": "example",
+  "title": "Example Title",
+  "title_sort": "Example Title",
   "artist": "Artist",
-  "genre": "genre",
-  "wave": "wave file",
-  "jacket": "jacket file",
+  "genre": "example",
+  "audio": "audio.wav",
+  "jacket": "jacket.png",
   "url": "https://example.com",
-  "difficulty": {
-    "0": {
-      "src": "",
-      "notesDesigner": "example"
-    },
-    "1": {
-      "src": "",
-      "notesDesigner": "example"
-    },
-    "2": {
-      "src": "",
-      "notesDesigner": "example"
+  "difficulties": [
+    {
+      "id": 0,
+      "level": 2.0,
+      "src": "0.sus",
+      "designer": "Example Designer"
     }
-  }
+  ]
 }
