@@ -9,10 +9,28 @@
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
     </Filter>
+    <Filter Include="Header Files\SUSAnalyzer">
+      <UniqueIdentifier>{e81fcda1-bd6e-4320-894a-fd66e15760db}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\internal">
+      <UniqueIdentifier>{b39df470-476c-4275-8cf9-dca5561af34c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\internal">
+      <UniqueIdentifier>{6f338939-41ec-4083-b4fb-9e2017d86acc}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\SheetsAnalyzer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\internal\AnalyzeJsonFile.cpp">
+      <Filter>Source Files\internal</Filter>
+    </ClCompile>
+    <ClCompile Include="src\internal\AnalyzeTomlFile.cpp">
+      <Filter>Source Files\internal</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -21,6 +39,18 @@
     </ClInclude>
     <ClInclude Include="include\SheetsAnalyzer.hpp">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SUSAnalyzer\SUSAnalyzer.hpp">
+      <Filter>Header Files\SUSAnalyzer</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Metadata.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Constant.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\internal\AnalyzeFile.hpp">
+      <Filter>Header Files\internal</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

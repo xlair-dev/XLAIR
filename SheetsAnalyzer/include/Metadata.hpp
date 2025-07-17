@@ -7,20 +7,20 @@ namespace SheetsAnalyzer {
     struct Difficulty {
         double level = 0.0;
         s3d::FilePath src;
-        s3d::String desiner { Constant::DefaultDesiner };
+        s3d::String desiner;
     };
 
     struct Metadata {
         s3d::String id;
-        s3d::String title { Constant::DefaultTitle };
-        s3d::String title_sort { Constant::DefaultTitleSort };
-        s3d::String artist { Constant::DefaultArtist };
-        s3d::String genre { Constant::DefaltGenre };
+        s3d::String title;
+        s3d::String title_sort;
+        s3d::String artist;
+        s3d::String genre;
         s3d::String music;
         s3d::String jacket;
         s3d::URL url;
-        double music_offset { Constant::DefaultMusicOffset };
-        double bpm { Constant::DefaultBPM };
+        double music_offset;
+        double bpm;
 
         std::array<Difficulty, Constant::MaxDifficulties> difficulties;
     };
