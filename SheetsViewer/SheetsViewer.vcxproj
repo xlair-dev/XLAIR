@@ -12,9 +12,9 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
-    <ProjectGuid>{6a09fd3c-5a99-41d1-8d75-009b30e1558d}</ProjectGuid>
+    <ProjectGuid>{fd96e24e-cc4f-4b39-8a2b-a4d9c9cff97f}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>XLAIR</RootNamespace>
+    <RootNamespace>SheetsViewer</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -121,13 +121,7 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="src\app\di\SceneController.cpp" />
-    <ClCompile Include="src\app\usecases\InitializeApp.cpp" />
-    <ClCompile Include="src\infra\api\ApiClientMock.cpp" />
-    <ClCompile Include="src\infra\controller\ControllerMock.cpp" />
     <ClCompile Include="src\Main.cpp" />
-    <ClCompile Include="src\ui\scenes\Login.cpp" />
-    <ClCompile Include="src\ui\scenes\Title.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
@@ -336,18 +330,6 @@
     <Xml Include="App\example\xml\test.xml" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\app\consts\Version.hpp" />
-    <ClInclude Include="src\app\di\SceneController.hpp" />
-    <ClInclude Include="src\app\interfaces\IApiClient.hpp" />
-    <ClInclude Include="src\app\interfaces\IController.hpp" />
-    <ClInclude Include="src\app\usecases\App.hpp" />
-    <ClInclude Include="src\app\usecases\InitializeApp.hpp" />
-    <ClInclude Include="src\Common.hpp" />
-    <ClInclude Include="src\core\types\Scene.hpp" />
-    <ClInclude Include="src\infra\api\ApiClientMock.hpp" />
-    <ClInclude Include="src\infra\controller\ControllerMock.hpp" />
-    <ClInclude Include="src\ui\scenes\Login.hpp" />
-    <ClInclude Include="src\ui\scenes\Title.hpp" />
     <ClInclude Include="stdafx.h" />
   </ItemGroup>
   <ItemGroup>

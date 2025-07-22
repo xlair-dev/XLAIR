@@ -4,12 +4,22 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 17.9.34616.47
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "XLAIR", "XLAIR\XLAIR.vcxproj", "{6A09FD3C-5A99-41D1-8D75-009B30E1558D}"
+	ProjectSection(ProjectDependencies) = postProject
+		{4A1069EB-5420-4846-89E8-A4421BA23252} = {4A1069EB-5420-4846-89E8-A4421BA23252}
+	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{BE1A6DEF-32F7-43C8-9064-A1C96979968B}"
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
 		.gitignore = .gitignore
 		README.md = README.md
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SheetsAnalyzer", "SheetsAnalyzer\SheetsAnalyzer.vcxproj", "{4A1069EB-5420-4846-89E8-A4421BA23252}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SheetsViewer", "SheetsViewer\SheetsViewer.vcxproj", "{FD96E24E-CC4F-4B39-8A2B-A4D9C9CFF97F}"
+	ProjectSection(ProjectDependencies) = postProject
+		{4A1069EB-5420-4846-89E8-A4421BA23252} = {4A1069EB-5420-4846-89E8-A4421BA23252}
 	EndProjectSection
 EndProject
 Global
@@ -22,6 +32,14 @@ Global
 		{6A09FD3C-5A99-41D1-8D75-009B30E1558D}.Debug|x64.Build.0 = Debug|x64
 		{6A09FD3C-5A99-41D1-8D75-009B30E1558D}.Release|x64.ActiveCfg = Release|x64
 		{6A09FD3C-5A99-41D1-8D75-009B30E1558D}.Release|x64.Build.0 = Release|x64
+		{4A1069EB-5420-4846-89E8-A4421BA23252}.Debug|x64.ActiveCfg = Debug|x64
+		{4A1069EB-5420-4846-89E8-A4421BA23252}.Debug|x64.Build.0 = Debug|x64
+		{4A1069EB-5420-4846-89E8-A4421BA23252}.Release|x64.ActiveCfg = Release|x64
+		{4A1069EB-5420-4846-89E8-A4421BA23252}.Release|x64.Build.0 = Release|x64
+		{FD96E24E-CC4F-4B39-8A2B-A4D9C9CFF97F}.Debug|x64.ActiveCfg = Debug|x64
+		{FD96E24E-CC4F-4B39-8A2B-A4D9C9CFF97F}.Debug|x64.Build.0 = Debug|x64
+		{FD96E24E-CC4F-4B39-8A2B-A4D9C9CFF97F}.Release|x64.ActiveCfg = Release|x64
+		{FD96E24E-CC4F-4B39-8A2B-A4D9C9CFF97F}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
