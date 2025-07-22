@@ -6,5 +6,5 @@
 namespace SheetsAnalyzer {
     s3d::Array<Metadata> AnalyzeAll(const s3d::FilePath& directory);
 
-    s3d::Optional<Metadata> Analyze(const s3d::FilePath& filePath);
+    s3d::Optional<Metadata> Analyze(const s3d::FilePath& path);
 }

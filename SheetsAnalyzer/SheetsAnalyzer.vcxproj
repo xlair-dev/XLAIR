@@ -120,6 +120,10 @@
     <ClCompile Include="src\internal\AnalyzeJsonFile.cpp" />
     <ClCompile Include="src\internal\AnalyzeTomlFile.cpp" />
     <ClCompile Include="src\SheetsAnalyzer.cpp" />
+    <ClCompile Include="src\SUSAnalyzer\internal\AnalyzeCommandLine.cpp" />
+    <ClCompile Include="src\SUSAnalyzer\internal\AnalyzeDataLine.cpp" />
+    <ClCompile Include="src\SUSAnalyzer\internal\Utils.cpp" />
+    <ClCompile Include="src\SUSAnalyzer\SUSAnalyzer.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
@@ -130,7 +134,11 @@
     <ClInclude Include="include\internal\AnalyzeFile.hpp" />
     <ClInclude Include="include\Metadata.hpp" />
     <ClInclude Include="include\SheetsAnalyzer.hpp" />
+    <ClInclude Include="include\SUSAnalyzer\internal\AnalyzeCommandLine.hpp" />
+    <ClInclude Include="include\SUSAnalyzer\internal\AnalyzeDataLine.hpp" />
+    <ClInclude Include="include\SUSAnalyzer\internal\Utils.hpp" />
     <ClInclude Include="include\SUSAnalyzer\SUSAnalyzer.hpp" />
+    <ClInclude Include="include\SUSAnalyzer\SUSData.hpp" />
     <ClInclude Include="stdafx.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
