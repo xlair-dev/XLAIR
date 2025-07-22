@@ -5,9 +5,9 @@
   "title_sort": "Example Title",
   "artist": "Artist",
   "genre": "example",
-  "music": "music.wav",
-  "music_offset": -100,
-  "bpm": 175,
+  "music": "example.wav",
+  "music_offset": 0,
+  "bpm": 120,
   "jacket": "jacket.png",
   "url": "https://example.com",
   "difficulties": [
