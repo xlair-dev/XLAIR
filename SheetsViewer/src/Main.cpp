@@ -5,6 +5,7 @@ void Main() {
     const auto metadata = SheetsAnalyzer::Analyze(U"sheets/example/music.json");
     if (metadata) {
         const auto result = *metadata;
+        Print << U"Path: " << result.path;
         Print << U"ID: " << result.id;
         Print << U"Title: " << result.title;
         Print << U"Title (Sort): " << result.title_sort;

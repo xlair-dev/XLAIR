@@ -26,6 +26,7 @@ namespace SheetsAnalyzer::internal {
         }
 
         Metadata metadata;
+        metadata.path = s3d::FileSystem::FullPath(path);
         helper(json, U"id", metadata.id, U"");
         helper(json, U"title", metadata.title, Constant::DefaultTitle);
         helper(json, U"title_sort", metadata.title_sort, Constant::DefaultTitleSort);
@@ -36,6 +37,23 @@ namespace SheetsAnalyzer::internal {
         helper(json, U"url", metadata.url, s3d::URL {});
         helper(json, U"music_offset", metadata.music_offset, Constant::DefaultMusicOffset);
         helper(json, U"bpm", metadata.bpm, Constant::DefaultBPM);
+
+        const auto current_path = s3d::FileSystem::CurrentDirectory();
+        const auto parent_path = s3d::FileSystem::ParentPath(path);
+        if (not metadata.music.empty()) {
+            if (metadata.music.starts_with(U"/")) {
+                metadata.music = s3d::FileSystem::PathAppend(current_path, metadata.music.substrView(1));
+            } else {
+                metadata.music = s3d::FileSystem::PathAppend(parent_path, metadata.music);
+            }
+        }
+        if (not metadata.jacket.empty()) {
+            if (metadata.jacket.starts_with(U"/")) {
+                metadata.jacket = s3d::FileSystem::PathAppend(current_path, metadata.jacket.substrView(1));
+            } else {
+                metadata.jacket = s3d::FileSystem::PathAppend(parent_path, metadata.jacket);
+            }
+        }
 
         if (json.hasElement(U"difficulties")) {
             const auto& difficulties = json[U"difficulties"];

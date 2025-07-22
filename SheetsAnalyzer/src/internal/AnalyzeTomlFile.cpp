@@ -25,6 +25,7 @@ namespace SheetsAnalyzer::internal {
         }
 
         Metadata metadata;
+        metadata.path = s3d::FileSystem::FullPath(path);
         helper(toml, U"id", metadata.id, U"");
         helper(toml, U"title", metadata.title, Constant::DefaultTitle);
         helper(toml, U"title_sort", metadata.title_sort, Constant::DefaultTitleSort);

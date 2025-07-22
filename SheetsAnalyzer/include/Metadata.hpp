@@ -11,6 +11,7 @@ namespace SheetsAnalyzer {
     };
 
     struct Metadata {
+        s3d::FilePath path;
         s3d::String id;
         s3d::String title;
         s3d::String title_sort;
