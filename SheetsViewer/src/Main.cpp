@@ -1,7 +1,10 @@
 ﻿#include <Siv3D.hpp> // Siv3D v0.6.16
 #include "SheetsAnalyzer.hpp"
 
+#include "SUSAnalyzer/SUSAnalyzer.hpp"
+
 void Main() {
+    Window::SetStyle(WindowStyle::Sizable);
     const auto metadata = SheetsAnalyzer::Analyze(U"sheets/example/music.json");
     if (metadata) {
         const auto result = *metadata;
@@ -26,6 +29,14 @@ void Main() {
                   << U", Designer: " << difficulty.designer;
         }
     }
+
+    const auto sus_data = SheetsAnalyzer::SUSAnalyzer::Analyze(U"sheets/example/0.sus");
+    if (sus_data) {
+        Print << U"SUS Data Analyzed Successfully";
+    } else {
+        Print << U"Failed to Analyze SUS Data";
+    }
+
     while (System::Update()) {
     }
 }

@@ -1,7 +1,8 @@
-﻿#include "SUSAnalyzer/internal/Utils.hpp"
+﻿#pragma once
+#include "SUSAnalyzer/SUSAnalyzer.hpp"
 
 namespace SheetsAnalyzer::SUSAnalyzer::internal {
-    bool IsCommandLine(const s3d::String& line) {
+    inline bool IsCommandLine(const s3d::String& line) {
         // Check if the line matches the expected format:
         // ^#[A-Za-z0-9]+(?: +[^\n]+)?$
 
@@ -49,7 +50,7 @@ namespace SheetsAnalyzer::SUSAnalyzer::internal {
         return true;
     }
 
-    bool IsDataLine(const s3d::String& line) {
+    inline bool IsDataLine(const s3d::String& line) {
         // Check if the line matches the expected format:
         // ^#[A-Za-z0-9]{3}[A-Za-z0-9]{2,3}:\s*[^\n]+$
 
@@ -106,6 +107,15 @@ namespace SheetsAnalyzer::SUSAnalyzer::internal {
         }
 
         // If we reach here, the line is valid
+        return true;
+    }
+
+    inline bool IsNoteData(s3d::StringView meas) {
+        for (const auto& c : meas) {
+            if (not s3d::IsDigit(c)) {
+                return false;
+            }
+        }
         return true;
     }
 }

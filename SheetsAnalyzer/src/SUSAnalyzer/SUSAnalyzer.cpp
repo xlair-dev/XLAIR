@@ -1,5 +1,7 @@
 ﻿#include "SUSAnalyzer/SUSAnalyzer.hpp"
-#include "SUSAnalyzer/internal/Utils.hpp"
+#include "SUSAnalyzer/internal/AnalyzeCommandLine.hpp"
+#include "SUSAnalyzer/internal/AnalyzeDataLine.hpp"
+#include "SUSAnalyzer/internal/Utils.ipp"
 
 namespace SheetsAnalyzer::SUSAnalyzer {
     s3d::Optional<SUSData> Analyze(const s3d::FilePath& path) {
@@ -22,9 +24,11 @@ namespace SheetsAnalyzer::SUSAnalyzer {
                 continue; // Skip comments
             }
             if (IsCommandLine(line)) {
+                AnalyzeCommandLine(data, line);
                 continue;
             }
             if (IsDataLine(line)) {
+                AnalyzeDataLine(data, line);
                 continue;
             }
             // Error: Invalid SUS line.

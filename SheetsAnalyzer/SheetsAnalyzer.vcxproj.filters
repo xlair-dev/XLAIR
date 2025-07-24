@@ -44,9 +44,6 @@
     <ClCompile Include="src\SUSAnalyzer\SUSAnalyzer.cpp">
       <Filter>Source Files\SUSAnalyzer</Filter>
     </ClCompile>
-    <ClCompile Include="src\SUSAnalyzer\internal\Utils.cpp">
-      <Filter>Source Files\SUSAnalyzer\internal</Filter>
-    </ClCompile>
     <ClCompile Include="src\SUSAnalyzer\internal\AnalyzeCommandLine.cpp">
       <Filter>Source Files\SUSAnalyzer\internal</Filter>
     </ClCompile>
@@ -73,9 +70,6 @@
     <ClInclude Include="include\internal\AnalyzeFile.hpp">
       <Filter>Header Files\internal</Filter>
     </ClInclude>
-    <ClInclude Include="include\SUSAnalyzer\internal\Utils.hpp">
-      <Filter>Header Files\SUSAnalyzer\internal</Filter>
-    </ClInclude>
     <ClInclude Include="include\SUSAnalyzer\internal\AnalyzeCommandLine.hpp">
       <Filter>Header Files\SUSAnalyzer\internal</Filter>
     </ClInclude>
@@ -84,6 +78,12 @@
     </ClInclude>
     <ClInclude Include="include\SUSAnalyzer\SUSData.hpp">
       <Filter>Header Files\SUSAnalyzer</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SUSAnalyzer\internal\Utils.ipp">
+      <Filter>Header Files\SUSAnalyzer\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SUSAnalyzer\internal\AnalyzeNotes.ipp">
+      <Filter>Header Files\SUSAnalyzer\internal</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
