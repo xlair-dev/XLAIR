@@ -16,7 +16,9 @@ void Main() {
 
     enum class State {
         Unselected,
-        Loading,
+        LoadingMetadata,
+        LoadingAssets,
+        Loaded,
     } state = State::Unselected;
 
     const Array<std::pair<String, Array<String>>> menu_items = {
@@ -53,13 +55,18 @@ void Main() {
                 System::Exit();
             }
 
-            if (state != State::Loading) {
+            if (state != State::LoadingMetadata and state != State::LoadingAssets) {
                 // Open
                 if (item == MenuBarItemIndex { 0, 0 }) {
                     const auto path = Dialog::OpenFile({ FileFilter::JSON() });
                     if (path) {
                         task = Async(Load, *path);
-                        state = State::Loading;
+                        state = State::LoadingMetadata;
+
+                        if (state == State::Loaded) {
+                            AudioAsset(U"music").stop();
+                            AudioAsset::Unregister(U"music");
+                        }
                     }
                 }
             }
@@ -92,7 +99,7 @@ void Main() {
             side_menu_items.each_index([&](size_t index, const auto& item) {
                 const auto rect = Rect { 10, 50 + index * 27, 200, 25 };
                 if (rect.leftClicked()) {
-                    if (state == State::Loading) {
+                    if (state == State::LoadingMetadata or state == State::LoadingAssets) {
                         return;
                     }
                     // Handle click on side menu item
@@ -101,20 +108,34 @@ void Main() {
                 font(icon).draw(20, Arg::leftCenter = rect.pos, ColorF { 0.7 });
                 font(text).draw(15, Arg::leftCenter = rect.pos.movedBy(25, 0), ColorF { 0.7 });
 
-                if (state != State::Loading && not metadata.path.isEmpty()) {
+                if (state == State::Loaded && not metadata.path.isEmpty()) {
                     font(indexed_data[index]).draw(15, Arg::leftCenter = rect.pos.movedBy(80, 0), ColorF { 0.95 });
                 }
             });
         }
 
-        if (task.isReady()) {
-            metadata = task.get().value_or(SheetsAnalyzer::Metadata {});
-            state = State::Unselected; // Reset state after loading
+        if (state == State::LoadingMetadata) {
+            if (task.isReady()) {
+                if (const auto result = task.get()) {
+                    metadata = *result;
+                    state = State::LoadingAssets;
+
+                    AudioAsset::Register(U"music", metadata.music);
+                    AudioAsset::LoadAsync(U"music");
+                } else {
+                    metadata = SheetsAnalyzer::Metadata {};
+                    state = State::Unselected;
+                }
+            }
         }
 
-        // Rect { 300, 0, Scene::Width() - 300, Scene::Height() }.draw(ColorF { 0.9 });
+        if (state == State::LoadingAssets) {
+            if (AudioAsset::IsReady(U"music")) {
+                state = State::Loaded;
+            }
+        }
 
-        if (state == State::Loading) {
+        if (state == State::LoadingMetadata or state == State::LoadingAssets) {
             Rect { 0, 0, Scene::Width(), Scene::Height() }.draw(ColorF { 0, 0.5 });
         }
 
