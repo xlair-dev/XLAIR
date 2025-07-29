@@ -1,6 +1,8 @@
 ﻿#include <Siv3D.hpp> // Siv3D v0.6.16
-#include "SheetsAnalyzer.hpp"
 
+#include "addon/NotificationAddon.hpp"
+
+#include "SheetsAnalyzer.hpp"
 #include "SUSAnalyzer/SUSAnalyzer.hpp"
 
 Optional<SheetsAnalyzer::Metadata> Load(const FilePath& path) {
@@ -8,6 +10,8 @@ Optional<SheetsAnalyzer::Metadata> Load(const FilePath& path) {
 }
 
 void Main() {
+    Addon::Register<NotificationAddon>(U"NotificationAddon");
+    
     Window::SetStyle(WindowStyle::Sizable);
     Window::Resize(1280, 720);
     Scene::SetBackground(Color { 20 });
@@ -132,7 +136,9 @@ void Main() {
                     state = State::LoadingAssets;
 
                     if (not (AudioAsset::Register(U"music", metadata.music) and TextureAsset::Register(U"jacket", metadata.jacket))) {
-                        // failed
+
+                        NotificationAddon::Show(U"Failed to load assets", NotificationAddon::Type::Error);
+
                         metadata = SheetsAnalyzer::Metadata {};
                         state = State::Unselected;
                     } else {
@@ -140,6 +146,8 @@ void Main() {
                         TextureAsset::LoadAsync(U"jacket");
                     }
                 } else {
+                    NotificationAddon::Show(U"Failed to load file", NotificationAddon::Type::Error);
+
                     metadata = SheetsAnalyzer::Metadata {};
                     state = State::Unselected;
                 }
@@ -157,6 +165,10 @@ void Main() {
         }
 
         menu_bar.draw();
+
+        if (SimpleGUI::Button(U"information", Vec2 { 600, 80 }, 160)) {
+            NotificationAddon::Show(U"information", NotificationAddon::Type::Information);
+        }
     }
 
     if (task.isValid()) {

@@ -136,6 +136,12 @@
     <Filter Include="Resource Files\engine\font\min">
       <UniqueIdentifier>{1b103960-f11a-4515-b4f1-f59333ce00d9}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\addon">
+      <UniqueIdentifier>{f9dc54d6-f3a3-4bbb-9219-cc8b408c04b3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\addon">
+      <UniqueIdentifier>{e2e2a9ac-c8e2-4ca4-9e64-716645bde0cf}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -143,6 +149,9 @@
     </ClCompile>
     <ClCompile Include="src\Main.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\addon\NotificationAddon.cpp">
+      <Filter>Source Files\addon</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -807,6 +816,9 @@
   <ItemGroup>
     <ClInclude Include="stdafx.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\addon\NotificationAddon.hpp">
+      <Filter>Header Files\addon</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
