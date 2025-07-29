@@ -66,16 +66,27 @@ void Main() {
                         if (state == State::Loaded) {
                             AudioAsset(U"music").stop();
                             AudioAsset::Unregister(U"music");
+
+                            TextureAsset::Unregister(U"jacket");
                         }
                     }
                 }
             }
         }
 
-        SimpleGUI::Button(U"\U000F040A", Vec2 { 300, 685 }, 50, true);
-        SimpleGUI::Button(U"\U000F04DB", Vec2 { 350, 685 }, 50, true);
-        SimpleGUI::Slider(pos, 0.0, 1.0, Vec2 { 400, 685 }, 830, true);
-        SimpleGUI::Button(U"\U000F0453", Vec2 { 1230, 685 }, 50, true);
+        const auto enabled = state == State::Loaded;
+        const auto playing_label = enabled and AudioAsset(U"music").isPlaying() ? U"\U000F03E4" : U"\U000F040A";
+
+        if (SimpleGUI::Button(playing_label, Vec2 { 300, 685 }, 50, enabled)) {
+            if (AudioAsset(U"music").isPlaying()) {
+                AudioAsset(U"music").pause();
+            } else {
+                AudioAsset(U"music").play();
+            }
+        }
+        SimpleGUI::Button(U"\U000F04DB", Vec2 { 350, 685 }, 50, enabled);
+        SimpleGUI::Slider(pos, 0.0, 1.0, Vec2 { 400, 685 }, 830, enabled);
+        SimpleGUI::Button(U"\U000F0453", Vec2 { 1230, 685 }, 50, enabled);
 
         // Side menu
         {
@@ -120,8 +131,14 @@ void Main() {
                     metadata = *result;
                     state = State::LoadingAssets;
 
-                    AudioAsset::Register(U"music", metadata.music);
-                    AudioAsset::LoadAsync(U"music");
+                    if (not (AudioAsset::Register(U"music", metadata.music) and TextureAsset::Register(U"jacket", metadata.jacket))) {
+                        // failed
+                        metadata = SheetsAnalyzer::Metadata {};
+                        state = State::Unselected;
+                    } else {
+                        AudioAsset::LoadAsync(U"music");
+                        TextureAsset::LoadAsync(U"jacket");
+                    }
                 } else {
                     metadata = SheetsAnalyzer::Metadata {};
                     state = State::Unselected;
@@ -130,7 +147,7 @@ void Main() {
         }
 
         if (state == State::LoadingAssets) {
-            if (AudioAsset::IsReady(U"music")) {
+            if (AudioAsset::IsReady(U"music") and TextureAsset::IsReady(U"jacket")) {
                 state = State::Loaded;
             }
         }
