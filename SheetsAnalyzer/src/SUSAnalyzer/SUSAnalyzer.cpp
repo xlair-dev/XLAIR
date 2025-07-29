@@ -4,7 +4,7 @@
 #include "SUSAnalyzer/internal/Utils.ipp"
 
 namespace SheetsAnalyzer::SUSAnalyzer {
-    s3d::Optional<SUSData> Analyze(const s3d::FilePath& path) {
+    s3d::Optional<SheetData> Analyze(const s3d::FilePath& path) {
         using namespace internal;
 
         s3d::TextReader reader(path);
@@ -15,7 +15,7 @@ namespace SheetsAnalyzer::SUSAnalyzer {
         const auto content = reader.readLines();
         reader.close();
 
-        SUSData data;
+        SheetData data;
         for (const auto& line : content) {
             if (line.empty()) {
                 continue; // Skip empty lines

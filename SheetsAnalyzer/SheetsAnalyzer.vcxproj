@@ -132,13 +132,13 @@
     <ClInclude Include="include\Constant.hpp" />
     <ClInclude Include="include\internal\AnalyzeFile.hpp" />
     <ClInclude Include="include\Metadata.hpp" />
+    <ClInclude Include="include\SheetData.hpp" />
     <ClInclude Include="include\SheetsAnalyzer.hpp" />
     <ClInclude Include="include\SUSAnalyzer\internal\AnalyzeCommandLine.hpp" />
     <ClInclude Include="include\SUSAnalyzer\internal\AnalyzeDataLine.hpp" />
     <ClInclude Include="include\SUSAnalyzer\internal\AnalyzeNotes.ipp" />
     <ClInclude Include="include\SUSAnalyzer\internal\Utils.ipp" />
     <ClInclude Include="include\SUSAnalyzer\SUSAnalyzer.hpp" />
-    <ClInclude Include="include\SUSAnalyzer\SUSData.hpp" />
     <ClInclude Include="stdafx.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

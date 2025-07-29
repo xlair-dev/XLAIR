@@ -1,8 +1,8 @@
 ﻿#pragma once
-#include "SUSAnalyzer/SUSData.hpp"
+#include "SheetData.hpp"
 
 namespace SheetsAnalyzer::SUSAnalyzer::internal {
-    inline void AnalyzeSpecialNotes(SUSData& data, s3d::uint32 meas, s3d::StringView lane, s3d::StringView pattern) {
+    inline void AnalyzeSpecialNotes(SheetData& data, const s3d::uint32 meas, s3d::StringView lane, s3d::StringView pattern) {
         const auto kind = lane[0];
 
         switch (kind) {
@@ -20,7 +20,7 @@ namespace SheetsAnalyzer::SUSAnalyzer::internal {
         }
     }
 
-    inline void AnalyzeShortNotes(SUSData& data, const s3d::uint32 meas, s3d::StringView lane, s3d::StringView pattern) {
+    inline void AnalyzeShortNotes(SheetData& data, const s3d::uint32 meas, s3d::StringView lane, s3d::StringView pattern) {
         const auto note_count = pattern.length() / 2;
         const auto start_lane = s3d::ParseInt<uint32>(lane, 16);
 
@@ -51,7 +51,7 @@ namespace SheetsAnalyzer::SUSAnalyzer::internal {
         }
     }
 
-    inline void AnalyzeHoldNotes(SUSData& data, const s3d::uint32 meas, s3d::StringView lane, s3d::StringView pattern) {
+    inline void AnalyzeHoldNotes(SheetData& data, const s3d::uint32 meas, s3d::StringView lane, s3d::StringView pattern) {
         const auto note_count = pattern.length() / 2;
         const auto start_lane = s3d::ParseInt<uint32>(lane, 16);
 

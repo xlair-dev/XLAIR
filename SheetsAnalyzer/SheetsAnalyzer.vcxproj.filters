@@ -76,14 +76,14 @@
     <ClInclude Include="include\SUSAnalyzer\internal\AnalyzeDataLine.hpp">
       <Filter>Header Files\SUSAnalyzer\internal</Filter>
     </ClInclude>
-    <ClInclude Include="include\SUSAnalyzer\SUSData.hpp">
-      <Filter>Header Files\SUSAnalyzer</Filter>
-    </ClInclude>
     <ClInclude Include="include\SUSAnalyzer\internal\Utils.ipp">
       <Filter>Header Files\SUSAnalyzer\internal</Filter>
     </ClInclude>
     <ClInclude Include="include\SUSAnalyzer\internal\AnalyzeNotes.ipp">
       <Filter>Header Files\SUSAnalyzer\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SheetData.hpp">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

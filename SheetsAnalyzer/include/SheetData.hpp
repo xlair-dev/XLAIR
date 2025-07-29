@@ -1,9 +1,10 @@
 ﻿#pragma once
 #define NO_S3D_USING
 #include <Siv3D.hpp>
+
 #include "Constant.hpp"
 
-namespace SheetsAnalyzer::SUSAnalyzer {
-    struct SUSData {
+namespace SheetsAnalyzer {
+    struct SheetData {
     };
 }

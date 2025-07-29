@@ -2,7 +2,7 @@
 #include "SUSAnalyzer/internal/Utils.ipp"
 
 namespace SheetsAnalyzer::SUSAnalyzer::internal {
-    void AnalyzeDataLine(SUSData& data, const s3d::String& line) {
+    void AnalyzeDataLine(SheetData& data, const s3d::String& line) {
         const auto separator = line.indexOf(U':');
         if (separator == s3d::String::npos) {
             // Error: Invalid SUS data line.

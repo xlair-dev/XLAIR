@@ -1,8 +1,8 @@
 ﻿#pragma once
-#include "SUSAnalyzer/SUSData.hpp"
+#include "SheetData.hpp"
 
 namespace SheetsAnalyzer::SUSAnalyzer::internal {
-    void AnalyzeDataLine(SUSData& data, const s3d::String& line);
+    void AnalyzeDataLine(SheetData& data, const s3d::String& line);
 }
 
 #include "SUSAnalyzer/internal/AnalyzeNotes.ipp"
