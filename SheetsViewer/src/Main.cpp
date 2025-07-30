@@ -1,66 +1,11 @@
 ﻿#include <Siv3D.hpp> // Siv3D v0.6.16
 
 #include "SheetManager.hpp"
+#include "SideMenu.hpp"
+
 #include "addon/NotificationAddon.hpp"
 #include "addon/LoadingAnimationAddon.hpp"
 
-#include "SheetsAnalyzer.hpp"
-#include "SUSAnalyzer/SUSAnalyzer.hpp"
-
-class SideMenu {
-public:
-    SideMenu() = default;
-    ~SideMenu() = default;
-
-    void draw(const SheetManager& sheet_manager) const {
-        const auto& font = SimpleGUI::GetFont();
-        const auto& metadata = sheet_manager.getMetadata();
-
-        const Rect viewport_rect { 0, 0, 300, Scene::Height() };
-        const ScopedViewport2D viewport { viewport_rect };
-
-        viewport_rect.draw(Color { 50 });
-
-        const auto indexed_metadata = std::array {
-            metadata.id,
-            metadata.title,
-            metadata.title_sort,
-            metadata.artist,
-            metadata.genre,
-            FileSystem::RelativePath(metadata.music),
-            FileSystem::RelativePath(metadata.jacket),
-            metadata.url,
-            Format(metadata.music_offset),
-            Format(metadata.bpm),
-        };
-
-        for (const auto& [index, item] : IndexedRef(SideMenuItems)) {
-            const auto rect = Rect { 10, 50 + index * 27, 200, 25 };
-            const auto& [icon, text] = item;
-
-            font(icon).draw(20, Arg::leftCenter = rect.pos, ColorF { 0.7 });
-            font(text).draw(15, Arg::leftCenter = rect.pos.movedBy(25, 0), ColorF { 0.7 });
-
-            if (sheet_manager.isLoaded() and not metadata.path.isEmpty()) {
-                font(indexed_metadata[index]).draw(15, Arg::leftCenter = rect.pos.movedBy(80, 0), ColorF { 0.95 });
-            }
-        }
-    }
-
-private:
-    static constexpr auto SideMenuItems = std::array {
-        std::pair{ U"\U000F0EFE", U"ID" },
-        std::pair{ U"\U000F0CB8", U"Title" },
-        std::pair{ U"\U000F04BA", U"Sort" },
-        std::pair{ U"\U000F0803", U"Artist" },
-        std::pair{ U"\U000F0770", U"Genre" },
-        std::pair{ U"\U000F0E2A", U"Music" },
-        std::pair{ U"\U000F021F", U"Jacket" },
-        std::pair{ U"\U000F0337", U"URL" },
-        std::pair{ U"\U000F05B7", U"Offset" },
-        std::pair{ U"\U000F07DA", U"BPM" },
-    };
-};
 
 void Main() {
     Addon::Register<NotificationAddon>(NotificationAddon::Name);

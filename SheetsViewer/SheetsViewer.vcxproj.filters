@@ -159,6 +159,9 @@
     <ClCompile Include="src\addon\LoadingAnimationAddon.cpp">
       <Filter>Source Files\addon</Filter>
     </ClCompile>
+    <ClCompile Include="src\SideMenu.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Image Include="App\icon.ico">
@@ -831,6 +834,9 @@
     </ClInclude>
     <ClInclude Include="src\addon\LoadingAnimationAddon.hpp">
       <Filter>Header Files\addon</Filter>
+    </ClInclude>
+    <ClInclude Include="src\SideMenu.hpp">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
