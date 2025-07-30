@@ -153,6 +153,9 @@
     <ClCompile Include="src\addon\NotificationAddon.cpp">
       <Filter>Source Files\addon</Filter>
     </ClCompile>
+    <ClCompile Include="src\SheetManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Image Include="App\icon.ico">
@@ -819,6 +822,9 @@
     </ClInclude>
     <ClInclude Include="src\addon\NotificationAddon.hpp">
       <Filter>Header Files\addon</Filter>
+    </ClInclude>
+    <ClInclude Include="src\SheetManager.hpp">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

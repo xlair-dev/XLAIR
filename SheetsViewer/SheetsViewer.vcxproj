@@ -123,6 +123,7 @@
   <ItemGroup>
     <ClCompile Include="src\addon\NotificationAddon.cpp" />
     <ClCompile Include="src\Main.cpp" />
+    <ClCompile Include="src\SheetManager.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
@@ -332,6 +333,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\addon\NotificationAddon.hpp" />
+    <ClInclude Include="src\SheetManager.hpp" />
     <ClInclude Include="stdafx.h" />
   </ItemGroup>
   <ItemGroup>
