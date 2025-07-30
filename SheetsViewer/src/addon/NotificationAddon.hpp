@@ -4,6 +4,8 @@
 class NotificationAddon : public IAddon {
 public:
 
+    static constexpr StringView Name = U"NotificationAddon";
+
     enum class Type {
         Information,
         Success,
@@ -24,19 +26,19 @@ public:
     };
 
     inline static void Show(const StringView message, const Type type = Type::Information) {
-        if (auto p = Addon::GetAddon<NotificationAddon>(U"NotificationAddon")) {
+        if (auto p = Addon::GetAddon<NotificationAddon>(Name)) {
             p->show(message, type);
         }
     }
 
     inline static void SetLifeTime(const double life_time) {
-        if (auto p = Addon::GetAddon<NotificationAddon>(U"NotificationAddon")) {
+        if (auto p = Addon::GetAddon<NotificationAddon>(Name)) {
             p->m_life_time = life_time;
         }
     }
 
     static void SetStyle(const Style& style) {
-        if (auto p = Addon::GetAddon<NotificationAddon>(U"NotificationAddon")) {
+        if (auto p = Addon::GetAddon<NotificationAddon>(Name)) {
             p->m_style = style;
         }
     }

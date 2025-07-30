@@ -33,7 +33,7 @@ public:
         return m_state == State::Loaded;
     }
 
-    inline const SheetsAnalyzer::Metadata& getMetadata() {
+    inline const SheetsAnalyzer::Metadata& getMetadata() const noexcept {
         return m_metadata;
     }
 

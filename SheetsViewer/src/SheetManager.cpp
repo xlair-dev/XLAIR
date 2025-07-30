@@ -1,5 +1,6 @@
 ﻿#include "SheetManager.hpp"
 #include "addon/NotificationAddon.hpp"
+#include "addon/LoadingAnimationAddon.hpp"
 
 SheetManager::SheetManager(const String& base)
     : MusicAssetName(base + U"_MusicAsset")
@@ -25,6 +26,8 @@ void SheetManager::loadAsync(const FilePath& path) {
     if (TextureAsset::IsRegistered(JacketAssetName)) {
         TextureAsset::Unregister(JacketAssetName);
     }
+
+    LoadingAnimationAddon::Begin(Circle { Scene::Center(), 80}, 10, ColorF {0.8, 0.9, 1.0});
 }
 
 void SheetManager::update() {
@@ -64,6 +67,7 @@ void SheetManager::update() {
         if (AudioAsset::IsReady(MusicAssetName) && TextureAsset::IsReady(JacketAssetName)) {
             NotificationAddon::Show(U"Loaded", NotificationAddon::Type::Success);
             m_state = State::Loaded;
+            LoadingAnimationAddon::End();
         }
     }
 }

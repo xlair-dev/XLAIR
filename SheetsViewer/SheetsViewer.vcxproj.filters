@@ -156,6 +156,9 @@
     <ClCompile Include="src\SheetManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\addon\LoadingAnimationAddon.cpp">
+      <Filter>Source Files\addon</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Image Include="App\icon.ico">
@@ -825,6 +828,9 @@
     </ClInclude>
     <ClInclude Include="src\SheetManager.hpp">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\addon\LoadingAnimationAddon.hpp">
+      <Filter>Header Files\addon</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

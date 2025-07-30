@@ -2,12 +2,69 @@
 
 #include "SheetManager.hpp"
 #include "addon/NotificationAddon.hpp"
+#include "addon/LoadingAnimationAddon.hpp"
 
 #include "SheetsAnalyzer.hpp"
 #include "SUSAnalyzer/SUSAnalyzer.hpp"
 
+class SideMenu {
+public:
+    SideMenu() = default;
+    ~SideMenu() = default;
+
+    void draw(const SheetManager& sheet_manager) const {
+        const auto& font = SimpleGUI::GetFont();
+        const auto& metadata = sheet_manager.getMetadata();
+
+        const Rect viewport_rect { 0, 0, 300, Scene::Height() };
+        const ScopedViewport2D viewport { viewport_rect };
+
+        viewport_rect.draw(Color { 50 });
+
+        const auto indexed_metadata = std::array {
+            metadata.id,
+            metadata.title,
+            metadata.title_sort,
+            metadata.artist,
+            metadata.genre,
+            FileSystem::RelativePath(metadata.music),
+            FileSystem::RelativePath(metadata.jacket),
+            metadata.url,
+            Format(metadata.music_offset),
+            Format(metadata.bpm),
+        };
+
+        for (const auto& [index, item] : IndexedRef(SideMenuItems)) {
+            const auto rect = Rect { 10, 50 + index * 27, 200, 25 };
+            const auto& [icon, text] = item;
+
+            font(icon).draw(20, Arg::leftCenter = rect.pos, ColorF { 0.7 });
+            font(text).draw(15, Arg::leftCenter = rect.pos.movedBy(25, 0), ColorF { 0.7 });
+
+            if (sheet_manager.isLoaded() and not metadata.path.isEmpty()) {
+                font(indexed_metadata[index]).draw(15, Arg::leftCenter = rect.pos.movedBy(80, 0), ColorF { 0.95 });
+            }
+        }
+    }
+
+private:
+    static constexpr auto SideMenuItems = std::array {
+        std::pair{ U"\U000F0EFE", U"ID" },
+        std::pair{ U"\U000F0CB8", U"Title" },
+        std::pair{ U"\U000F04BA", U"Sort" },
+        std::pair{ U"\U000F0803", U"Artist" },
+        std::pair{ U"\U000F0770", U"Genre" },
+        std::pair{ U"\U000F0E2A", U"Music" },
+        std::pair{ U"\U000F021F", U"Jacket" },
+        std::pair{ U"\U000F0337", U"URL" },
+        std::pair{ U"\U000F05B7", U"Offset" },
+        std::pair{ U"\U000F07DA", U"BPM" },
+    };
+};
+
 void Main() {
-    Addon::Register<NotificationAddon>(U"NotificationAddon");
+    Addon::Register<NotificationAddon>(NotificationAddon::Name);
+    Addon::Register<LoadingAnimationAddon>(LoadingAnimationAddon::Name);
 
     Window::SetStyle(WindowStyle::Sizable);
     Window::Resize(1280, 720);
@@ -19,24 +76,11 @@ void Main() {
         { U"File", { U"\U000F0214 Open", U"\U000F05AD Exit" } },
     };
 
-    const Array<std::pair<String, String>> side_menu_items = {
-        { U"\U000F0EFE", U"ID" },
-        { U"\U000F0CB8", U"Title" },
-        { U"\U000F04BA", U"Sort" },
-        { U"\U000F0803", U"Artist" },
-        { U"\U000F0770", U"Genre" },
-        { U"\U000F0E2A", U"Music" },
-        { U"\U000F021F", U"Jacket" },
-        { U"\U000F0337", U"URL" },
-        { U"\U000F05B7", U"Offset" },
-        { U"\U000F07DA", U"BPM" },
-    };
-
-    const auto font = SimpleGUI::GetFont();
-
     SimpleMenuBar menu_bar(menu_items);
 
-    SheetManager sheet_manager(U"viewr");
+    SheetManager sheet_manager(U"viewer");
+
+    SideMenu side_menu;
 
     double pos = 0.0;
 
@@ -75,43 +119,7 @@ void Main() {
         SimpleGUI::Button(U"\U000F0453", Vec2 { 1230, 685 }, 50, enabled);
 
         // Side menu
-        {
-            const Rect viewport_rect { 0, 0, 300, Scene::Height() };
-            const ScopedViewport2D viewport { viewport_rect };
-            const auto& metadata = sheet_manager.getMetadata();
-            const auto indexed_data = std::array {
-                metadata.id,
-                metadata.title,
-                metadata.title_sort,
-                metadata.artist,
-                metadata.genre,
-                FileSystem::RelativePath(metadata.music),
-                FileSystem::RelativePath(metadata.jacket),
-                metadata.url,
-                Format(metadata.music_offset),
-                Format(metadata.bpm),
-            };
-
-            viewport_rect.draw(Color { 50 });
-
-            side_menu_items.each_index([&](size_t index, const auto& item) {
-                const auto rect = Rect { 10, 50 + index * 27, 200, 25 };
-                if (rect.leftClicked()) {
-                    // Handle click on side menu item
-                }
-                const auto& [icon, text] = item;
-                font(icon).draw(20, Arg::leftCenter = rect.pos, ColorF { 0.7 });
-                font(text).draw(15, Arg::leftCenter = rect.pos.movedBy(25, 0), ColorF { 0.7 });
-
-                if (sheet_manager.isLoaded() && not metadata.path.isEmpty()) {
-                    font(indexed_data[index]).draw(15, Arg::leftCenter = rect.pos.movedBy(80, 0), ColorF { 0.95 });
-                }
-            });
-        }
-
-        if (sheet_manager.isLoading()) {
-            Rect { 0, 0, Scene::Width(), Scene::Height() }.draw(ColorF { 0, 0.5 });
-        }
+        side_menu.draw(sheet_manager);
 
         menu_bar.draw();
 
