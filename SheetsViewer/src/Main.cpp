@@ -6,10 +6,6 @@
 #include "SheetsAnalyzer.hpp"
 #include "SUSAnalyzer/SUSAnalyzer.hpp"
 
-Optional<SheetsAnalyzer::Metadata> Load(const FilePath& path) {
-    return SheetsAnalyzer::Analyze(path);
-}
-
 void Main() {
     Addon::Register<NotificationAddon>(U"NotificationAddon");
 
@@ -39,8 +35,6 @@ void Main() {
     const auto font = SimpleGUI::GetFont();
 
     SimpleMenuBar menu_bar(menu_items);
-
-    SheetsAnalyzer::Metadata metadata;
 
     SheetManager sheet_manager(U"viewr");
 
@@ -84,6 +78,7 @@ void Main() {
         {
             const Rect viewport_rect { 0, 0, 300, Scene::Height() };
             const ScopedViewport2D viewport { viewport_rect };
+            const auto& metadata = sheet_manager.getMetadata();
             const auto indexed_data = std::array {
                 metadata.id,
                 metadata.title,
