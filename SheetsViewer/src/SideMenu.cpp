@@ -1,4 +1,5 @@
 ﻿#include "SideMenu.hpp"
+#include "addon/NotificationAddon.hpp"
 
 void SideMenu::update(const SheetManager& sheet_manager) {
     const auto current_state = sheet_manager.getState();
@@ -28,6 +29,7 @@ void SideMenu::update(const SheetManager& sheet_manager) {
 
             if (is_valid and rect.leftClicked()) {
                 m_selected_index = index;
+                NotificationAddon::Show(U"Selected difficulty: {}"_fmt(index), NotificationAddon::Type::Information);
             }
         }
     } else {

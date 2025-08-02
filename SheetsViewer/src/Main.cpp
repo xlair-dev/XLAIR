@@ -26,8 +26,6 @@ void Main() {
 
     SideMenu side_menu;
 
-    double pos = 0.0;
-
     while (System::Update()) {
         sheet_manager.update();
         side_menu.update(sheet_manager);
@@ -49,19 +47,38 @@ void Main() {
             }
         }
 
-        const auto enabled = sheet_manager.isLoaded();
-        const auto playing_label = enabled and AudioAsset(U"music").isPlaying() ? U"\U000F03E4" : U"\U000F040A";
+        const String time = FormatTime(SecondsF { sheet_manager.posSec() }, U"M:ss")
+            + U" / " + FormatTime(SecondsF { sheet_manager.lengthSec() }, U"M:ss");
 
+        double progress = static_cast<double>(sheet_manager.posSec()) / sheet_manager.lengthSec();
+
+        const auto enabled = sheet_manager.isLoaded();
+        const auto playing_label = enabled and sheet_manager.isPlaying() ? U"\U000F03E4" : U"\U000F040A";
+
+        // play / pause
         if (SimpleGUI::Button(playing_label, Vec2 { 300, 685 }, 50, enabled)) {
-            //if (AudioAsset(U"music").isPlaying()) {
-            //    AudioAsset(U"music").pause();
-            //} else {
-            //    AudioAsset(U"music").play();
-            //}
+            if (sheet_manager.isPlaying()) {
+                sheet_manager.pause();
+            } else {
+                sheet_manager.play();
+            }
         }
-        SimpleGUI::Button(U"\U000F04DB", Vec2 { 350, 685 }, 50, enabled);
-        SimpleGUI::Slider(pos, 0.0, 1.0, Vec2 { 400, 685 }, 830, enabled);
-        SimpleGUI::Button(U"\U000F0453", Vec2 { 1230, 685 }, 50, enabled);
+
+        // stop
+        if (SimpleGUI::Button(U"\U000F04DB", Vec2 { 350, 685 }, 50, enabled)) {
+            sheet_manager.stop();
+        }
+
+        // seek bar
+        if (SimpleGUI::Slider(time, progress, 0.0, 1.0, Vec2 { 400, 685 }, 100, 730, enabled)) {
+            sheet_manager.seekTime(sheet_manager.lengthSec() * progress);
+        }
+
+        // reload
+        if (SimpleGUI::Button(U"\U000F0453", Vec2 { 1230, 685 }, 50, enabled)) {
+            const auto path = sheet_manager.getMetadata().path;
+            sheet_manager.loadAsync(path);
+        }
 
         // Side menu
         side_menu.draw(sheet_manager);

@@ -71,3 +71,37 @@ void SheetManager::update() {
         }
     }
 }
+
+void SheetManager::play() {
+    if (isLoaded()) {
+        AudioAsset(MusicAssetName).play();
+    }
+}
+
+void SheetManager::pause() {
+    if (isPlaying()) {
+        AudioAsset(MusicAssetName).pause();
+    }
+}
+
+void SheetManager::stop() {
+    AudioAsset(MusicAssetName).stop();
+}
+
+bool SheetManager::isPlaying() const {
+    return AudioAsset(MusicAssetName).isPlaying();
+}
+
+double SheetManager::posSec() const {
+    return AudioAsset(MusicAssetName).posSec();
+}
+
+double SheetManager::lengthSec() const {
+    return AudioAsset(MusicAssetName).lengthSec();
+}
+
+void SheetManager::seekTime(double time) {
+    if (isLoaded()) {
+        AudioAsset(MusicAssetName).seekTime(time);
+    }
+}

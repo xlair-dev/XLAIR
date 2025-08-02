@@ -21,6 +21,20 @@ public:
 
     void update();
 
+    void play();
+
+    void pause();
+
+    void stop();
+
+    bool isPlaying() const;
+
+    double posSec() const;
+
+    double lengthSec() const;
+
+    void seekTime(double time);
+
     inline State getState() const noexcept {
         return m_state;
     }
@@ -37,7 +51,7 @@ public:
         return m_metadata;
     }
 
-    Optional<TextureRegion> getJacket() const {
+    inline Optional<TextureRegion> getJacket() const {
         if (isLoaded()) {
             if (TextureAsset(JacketAssetName)) {
                 return TextureRegion { TextureAsset(JacketAssetName) };
