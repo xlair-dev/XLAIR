@@ -4,7 +4,7 @@
 namespace SheetsAnalyzer::internal {
 
     template<typename T>
-    void helper(const s3d::JSON& json, const s3d::String& key, T& entry, const auto& default_value) {
+    inline void helper(const s3d::JSON& json, const s3d::String& key, T& entry, const auto& default_value) {
         if (json.hasElement(key)) {
             entry = json[key].getOr<T>(default_value);
         } else {

@@ -3,7 +3,7 @@
 
 namespace SheetsAnalyzer::internal {
     template<typename T>
-    void helper(const s3d::TOMLValue& toml, const s3d::String& key, T& entry, const auto& default_value) {
+    inline void helper(const s3d::TOMLValue& toml, const s3d::String& key, T& entry, const auto& default_value) {
         if (toml.hasMember(key)) {
             entry = toml[key].getOr<T>(default_value);
         } else {
