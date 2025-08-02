@@ -54,6 +54,7 @@ void SheetManager::update() {
                 if (failed) {
                     m_metadata = SheetsAnalyzer::Metadata {};
                     m_state = State::Unselected;
+                    LoadingAnimationAddon::End();
                 } else {
                     AudioAsset::LoadAsync(MusicAssetName);
                     TextureAsset::LoadAsync(JacketAssetName);

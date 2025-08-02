@@ -1,4 +1,5 @@
 ﻿#include "internal/AnalyzeFile.hpp"
+#include "internal/Utils.ipp"
 
 namespace SheetsAnalyzer::internal {
 
@@ -38,22 +39,8 @@ namespace SheetsAnalyzer::internal {
         helper(json, U"music_offset", metadata.music_offset, Constant::DefaultMusicOffset);
         helper(json, U"bpm", metadata.bpm, Constant::DefaultBPM);
 
-        const auto current_path = s3d::FileSystem::CurrentDirectory();
-        const auto parent_path = s3d::FileSystem::ParentPath(path);
-        if (not metadata.music.empty()) {
-            if (metadata.music.starts_with(U"/")) {
-                metadata.music = s3d::FileSystem::PathAppend(current_path, metadata.music.substrView(1));
-            } else {
-                metadata.music = s3d::FileSystem::PathAppend(parent_path, metadata.music);
-            }
-        }
-        if (not metadata.jacket.empty()) {
-            if (metadata.jacket.starts_with(U"/")) {
-                metadata.jacket = s3d::FileSystem::PathAppend(current_path, metadata.jacket.substrView(1));
-            } else {
-                metadata.jacket = s3d::FileSystem::PathAppend(parent_path, metadata.jacket);
-            }
-        }
+        metadata.music = HandlePath(path, metadata.music);
+        metadata.jacket = HandlePath(path, metadata.jacket);
 
         if (json.hasElement(U"difficulties")) {
             const auto& difficulties = json[U"difficulties"];
@@ -70,6 +57,9 @@ namespace SheetsAnalyzer::internal {
                     helper(object, U"level", difficulty.level, 0.0);
                     helper(object, U"src", difficulty.src, U"");
                     helper(object, U"designer", difficulty.designer, Constant::DefaultDesigner);
+
+                    difficulty.src = HandlePath(path, difficulty.src);
+
                     metadata.difficulties[id] = difficulty;
                 }
             }

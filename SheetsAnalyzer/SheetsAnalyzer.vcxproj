@@ -131,6 +131,7 @@
   <ItemGroup>
     <ClInclude Include="include\Constant.hpp" />
     <ClInclude Include="include\internal\AnalyzeFile.hpp" />
+    <ClInclude Include="include\internal\Utils.ipp" />
     <ClInclude Include="include\Metadata.hpp" />
     <ClInclude Include="include\SheetData.hpp" />
     <ClInclude Include="include\SheetsAnalyzer.hpp" />

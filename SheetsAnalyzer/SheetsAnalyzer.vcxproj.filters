@@ -85,5 +85,8 @@
     <ClInclude Include="include\SheetData.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\internal\Utils.ipp">
+      <Filter>Header Files\internal</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

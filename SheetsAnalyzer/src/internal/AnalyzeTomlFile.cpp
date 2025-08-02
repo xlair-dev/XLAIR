@@ -1,4 +1,5 @@
 ﻿#include "internal/AnalyzeFile.hpp"
+#include "internal/Utils.ipp"
 
 namespace SheetsAnalyzer::internal {
     template<typename T>
@@ -37,6 +38,9 @@ namespace SheetsAnalyzer::internal {
         helper(toml, U"music_offset", metadata.music_offset, Constant::DefaultMusicOffset);
         helper(toml, U"bpm", metadata.bpm, Constant::DefaultBPM);
 
+        metadata.music = HandlePath(path, metadata.music);
+        metadata.jacket = HandlePath(path, metadata.jacket);
+
         if (toml.hasMember(U"difficulties")) {
             const auto& difficulties = toml[U"difficulties"];
             if (difficulties.isTableArray()) {
@@ -52,6 +56,9 @@ namespace SheetsAnalyzer::internal {
                     helper(object, U"level", difficulty.level, 0.0);
                     helper(object, U"src", difficulty.src, U"");
                     helper(object, U"designer", difficulty.designer, Constant::DefaultDesigner);
+
+                    difficulty.src = HandlePath(path, difficulty.src);
+
                     metadata.difficulties[id] = difficulty;
                 }
             }
