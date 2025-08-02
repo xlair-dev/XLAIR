@@ -6,7 +6,6 @@
 #include "addon/NotificationAddon.hpp"
 #include "addon/LoadingAnimationAddon.hpp"
 
-
 void Main() {
     Addon::Register<NotificationAddon>(NotificationAddon::Name);
     Addon::Register<LoadingAnimationAddon>(LoadingAnimationAddon::Name);
@@ -31,6 +30,7 @@ void Main() {
 
     while (System::Update()) {
         sheet_manager.update();
+        side_menu.update(sheet_manager);
 
         if (const auto item = menu_bar.update()) {
             // Exit

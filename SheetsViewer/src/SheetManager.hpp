@@ -37,6 +37,17 @@ public:
         return m_metadata;
     }
 
+    Optional<TextureRegion> getJacket() const {
+        if (isLoaded()) {
+            if (TextureAsset(JacketAssetName)) {
+                return TextureRegion { TextureAsset(JacketAssetName) };
+            } else {
+                return none;
+            }
+        }
+        return none;
+    }
+
 private:
     const AssetName MusicAssetName;
     const AssetName JacketAssetName;

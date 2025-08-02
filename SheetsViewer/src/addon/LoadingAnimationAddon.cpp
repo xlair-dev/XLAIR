@@ -28,7 +28,7 @@ void LoadingAnimationAddon::draw() const {
     if (not m_active) {
         return;
     }
-    Rect { 0, 0, Scene::Width(), Scene::Height() }.draw(ColorF { 0, 0.5 });
+    Scene::Rect().draw(ColorF { 0, 0.5 });
     m_trail.draw();
 }
 
