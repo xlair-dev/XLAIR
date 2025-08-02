@@ -6,5 +6,6 @@
 
 namespace SheetsAnalyzer {
     struct SheetData {
+        bool valid = false;
     };
 }

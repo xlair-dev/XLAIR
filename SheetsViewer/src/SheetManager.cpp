@@ -37,6 +37,8 @@ void SheetManager::update() {
                 m_metadata = *result;
                 m_state = State::LoadingAssets;
 
+                NotificationAddon::Show(U"Loaded metadata", NotificationAddon::Type::Success);
+
                 bool failed = false;
 
                 if (not AudioAsset::Register(MusicAssetName, m_metadata.music)) {
@@ -65,8 +67,48 @@ void SheetManager::update() {
         }
     } else if (m_state == State::LoadingAssets) {
         if (AudioAsset::IsReady(MusicAssetName) && TextureAsset::IsReady(JacketAssetName)) {
-            NotificationAddon::Show(U"Loaded", NotificationAddon::Type::Success);
+            NotificationAddon::Show(U"Loaded assets", NotificationAddon::Type::Success);
+            m_state = State::LoadingData;
+
+            for (const auto [index, difficulty] : Indexed(m_metadata.difficulties)) {
+                if (difficulty.src.isEmpty()) {
+                    m_loading_data_tasks[index] = AsyncTask<Optional<SheetsAnalyzer::SheetData>>([]() {
+                        return Optional<SheetsAnalyzer::SheetData> { none };
+                    });
+                } else {
+                    m_loading_data_tasks[index] = AsyncTask<Optional<SheetsAnalyzer::SheetData>>([difficulty]() {
+                        return SheetsAnalyzer::SUSAnalyzer::Analyze(difficulty.src);
+                    });
+                }
+            }
+        }
+    } else if (m_state == State::LoadingData) {
+        bool all_loaded = true;
+        for (const auto& task : m_loading_data_tasks) {
+            if (not task.isReady()) {
+                all_loaded = false;
+                break;
+            }
+        }
+        if (all_loaded) {
+            for (const auto& [index, difficulty] : Indexed(m_metadata.difficulties)) {
+                auto& task = m_loading_data_tasks[index];
+
+                if (difficulty.src.isEmpty()) {
+                    m_sheet_data[index] = SheetsAnalyzer::SheetData {};
+                    continue;
+                }
+
+                if (const auto result = task.get()) {
+                    m_sheet_data[index] = *result;
+                } else {
+                    m_sheet_data[index] = SheetsAnalyzer::SheetData {};
+                    NotificationAddon::Show(U"Failed to load difficulty: {}"_fmt(index), NotificationAddon::Type::Warning);
+                }
+            }
+
             m_state = State::Loaded;
+            NotificationAddon::Show(U"Loaded data", NotificationAddon::Type::Success);
             LoadingAnimationAddon::End();
         }
     }

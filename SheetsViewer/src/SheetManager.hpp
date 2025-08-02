@@ -11,6 +11,7 @@ public:
         Unselected,
         LoadingMetadata,
         LoadingAssets,
+        LoadingData,
         Loaded,
     };
 
@@ -40,7 +41,7 @@ public:
     }
 
     inline bool isLoading() const noexcept {
-        return m_state == State::LoadingMetadata or m_state == State::LoadingAssets;
+        return m_state == State::LoadingMetadata or m_state == State::LoadingAssets or m_state == State::LoadingData;
     }
 
     inline bool isLoaded() const noexcept {
@@ -49,6 +50,17 @@ public:
 
     inline const SheetsAnalyzer::Metadata& getMetadata() const noexcept {
         return m_metadata;
+    }
+
+    inline const std::array<SheetsAnalyzer::SheetData, SheetsAnalyzer::Constant::MaxDifficulties>& getSheetData() const noexcept {
+        return m_sheet_data;
+    }
+
+    inline const SheetsAnalyzer::SheetData& getSheetData(size_t index) const {
+        if (index < SheetsAnalyzer::Constant::MaxDifficulties) {
+            return m_sheet_data[index];
+        }
+        throw std::out_of_range("Index out of range");
     }
 
     inline Optional<TextureRegion> getJacket() const {
@@ -67,8 +79,10 @@ private:
     const AssetName JacketAssetName;
 
     AsyncTask<Optional<SheetsAnalyzer::Metadata>> m_loading_metadata_task;
+    std::array<AsyncTask<Optional<SheetsAnalyzer::SheetData>>, SheetsAnalyzer::Constant::MaxDifficulties> m_loading_data_tasks;
 
     SheetsAnalyzer::Metadata m_metadata;
 
     State m_state = State::Unselected;
+    std::array<SheetsAnalyzer::SheetData, SheetsAnalyzer::Constant::MaxDifficulties> m_sheet_data;
 };

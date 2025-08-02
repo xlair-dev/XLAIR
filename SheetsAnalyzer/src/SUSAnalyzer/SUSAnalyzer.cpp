@@ -36,6 +36,7 @@ namespace SheetsAnalyzer::SUSAnalyzer {
 
         // sort
 
+        data.valid = true;
         return data;
     }
 }

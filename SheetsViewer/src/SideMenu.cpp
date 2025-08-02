@@ -24,7 +24,8 @@ void SideMenu::update(const SheetManager& sheet_manager) {
 
         const auto offset = UI::ItemOffset + SideMenuItems.size() * UI::ItemHeight;
         for (const auto& [index, difficulty] : Indexed(metadata.difficulties)) {
-            const auto is_valid = sheet_manager.isLoaded() and not difficulty.src.isEmpty();
+            const auto& data = sheet_manager.getSheetData(index);
+            const auto is_valid = sheet_manager.isLoaded() and data.valid;
             const auto rect = Rect { UI::Margin, offset + UI::ItemDifficultyOffset + (index + 1) * UI::ItemDifficultyHeight, UI::ItemWidth, UI::ItemDifficultyHeight };
 
             if (is_valid and rect.leftClicked()) {
@@ -70,7 +71,8 @@ void SideMenu::draw(const SheetManager& sheet_manager) const {
     font(U"difficulties").draw(UI::ItemLabelSize, Arg::leftCenter = Vec2 { UI::Margin + UI::ItemLabelOffset, offset + UI::ItemIconSize }, ColorF { 0.7 });
 
     for (const auto& [index, difficulty] : Indexed(metadata.difficulties)) {
-        const auto is_valid = sheet_manager.isLoaded() and not difficulty.src.isEmpty();
+        const auto& data = sheet_manager.getSheetData(index);
+        const auto is_valid = sheet_manager.isLoaded() and data.valid;
         const auto rect = Rect { UI::Margin, offset + UI::ItemDifficultyOffset + (index + 1) * UI::ItemDifficultyHeight, UI::ItemWidth, UI::ItemDifficultyHeight };
         const auto left_center = rect.leftCenter();
         const auto color = is_valid ? ColorF { 0.95 } : ColorF { 0.5 };

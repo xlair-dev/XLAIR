@@ -84,9 +84,5 @@ void Main() {
         side_menu.draw(sheet_manager);
 
         menu_bar.draw();
-
-        if (SimpleGUI::Button(U"information", Vec2 { 600, 80 }, 160)) {
-            NotificationAddon::Show(U"information", NotificationAddon::Type::Information);
-        }
     }
 }
