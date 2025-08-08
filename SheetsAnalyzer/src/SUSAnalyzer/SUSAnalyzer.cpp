@@ -2,6 +2,7 @@
 #include "SUSAnalyzer/internal/AnalyzeCommandLine.hpp"
 #include "SUSAnalyzer/internal/AnalyzeDataLine.hpp"
 #include "SUSAnalyzer/internal/Utils.ipp"
+#include "SUSAnalyzer/SuSData.hpp"
 
 namespace SheetsAnalyzer::SUSAnalyzer {
     s3d::Optional<SheetData> Analyze(const s3d::FilePath& path) {
@@ -15,7 +16,7 @@ namespace SheetsAnalyzer::SUSAnalyzer {
         const auto content = reader.readLines();
         reader.close();
 
-        SheetData data;
+        SUSData data;
         for (const auto& line : content) {
             if (line.empty()) {
                 continue; // Skip empty lines
@@ -36,7 +37,12 @@ namespace SheetsAnalyzer::SUSAnalyzer {
 
         // sort
 
+        s3d::Print << data.bpm_difinitions;
+        for (const auto& [key, value] : data.bpm_difinitions) {
+            s3d::Print << U"BPM[" << key << U"]: " << value;
+        }
+
         data.valid = true;
-        return data;
+        return static_cast<SheetData>(data);
     }
 }

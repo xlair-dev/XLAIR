@@ -88,5 +88,8 @@
     <ClInclude Include="include\internal\Utils.ipp">
       <Filter>Header Files\internal</Filter>
     </ClInclude>
+    <ClInclude Include="include\SUSAnalyzer\SuSData.hpp">
+      <Filter>Header Files\SUSAnalyzer</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

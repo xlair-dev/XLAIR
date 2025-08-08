@@ -140,6 +140,7 @@
     <ClInclude Include="include\SUSAnalyzer\internal\AnalyzeNotes.ipp" />
     <ClInclude Include="include\SUSAnalyzer\internal\Utils.ipp" />
     <ClInclude Include="include\SUSAnalyzer\SUSAnalyzer.hpp" />
+    <ClInclude Include="include\SUSAnalyzer\SuSData.hpp" />
     <ClInclude Include="stdafx.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

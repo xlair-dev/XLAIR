@@ -10,6 +10,8 @@ void Main() {
     Addon::Register<NotificationAddon>(NotificationAddon::Name);
     Addon::Register<LoadingAnimationAddon>(LoadingAnimationAddon::Name);
 
+    // Consider: https://qiita.com/m4saka/items/5da6cd4b57bc894d35dd
+    // Graphics::SetVSyncEnabled(false);
     Window::SetStyle(WindowStyle::Sizable);
     Window::Resize(1280, 720);
     Scene::SetBackground(Color { 20 });

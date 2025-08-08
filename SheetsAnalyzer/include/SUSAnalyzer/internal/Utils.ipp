@@ -118,4 +118,26 @@ namespace SheetsAnalyzer::SUSAnalyzer::internal {
         }
         return true;
     }
+
+    inline s3d::String ParseRawString(s3d::StringView raw) {
+        if (raw.front() == '\"' and raw.back() == '\"') {
+            // TODO: process escaped characters
+            const auto length = raw.size();
+            return String { raw.substr(1, length - 2) };
+        } else {
+            return String { raw };
+        }
+    }
+
+    inline float GetBeatsAt(const SUSData& data, const s3d::uint32 meas) {
+        const auto it = data.beats_difinitions.upper_bound(meas);
+
+        if (it == data.beats_difinitions.begin()) {
+            // Default beat length if no definition found
+            return Constant::DefaultBeatLength;
+        }
+
+        // Return the last defined beat length before the given measure
+        return std::prev(it)->second;
+    }
 }

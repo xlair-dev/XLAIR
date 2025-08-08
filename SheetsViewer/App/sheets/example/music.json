@@ -16,6 +16,12 @@
       "level": 2.0,
       "src": "0.sus",
       "designer": "Example Designer"
+    },
+    {
+      "id": 1,
+      "level": 3.0,
+      "src": "hispeed.sus",
+      "designer": "Example Designer"
     }
   ]
 }

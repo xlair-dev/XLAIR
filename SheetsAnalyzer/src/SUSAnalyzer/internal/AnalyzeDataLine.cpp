@@ -2,7 +2,7 @@
 #include "SUSAnalyzer/internal/Utils.ipp"
 
 namespace SheetsAnalyzer::SUSAnalyzer::internal {
-    void AnalyzeDataLine(SheetData& data, const s3d::String& line) {
+    void AnalyzeDataLine(SUSData& data, const s3d::String& line) {
         const auto separator = line.indexOf(U':');
         if (separator == s3d::String::npos) {
             // Error: Invalid SUS data line.
@@ -32,10 +32,39 @@ namespace SheetsAnalyzer::SUSAnalyzer::internal {
             }
         } else {
             // Special data
+            // TODO: Error handling
             const auto attr = header.substrView(3);
+            const auto number = s3d::ParseInt<uint32>(attr, 36);
             if (cmd == U"BPM") {
+                // BPM definition
+                const auto bpm = s3d::ParseFloat<double>(value);
+                data.bpm_difinitions[number] = bpm;
             } else if (cmd == U"TIL") {
+                // Hispeed
+                const auto timeline = ParseRawString(value).removed_if([](const auto& c) {
+                    return s3d::IsSpace(c);
+                }).split(U',');
+                for (const auto& arg : timeline) {
+                    const auto params = arg.split(U':');
+                    if (params.size() != 2) {
+                        // Error: Invalid HISPEED format.
+                        continue;
+                    }
+                    const auto timing = params[0].split(U'\'');
+                    if (timing.size() != 2) {
+                        // Error: Invalid HISPEED timing format.
+                        continue;
+                    }
+                    SUSRelativeNoteTime time = {
+                        .measure = s3d::ParseInt<uint32>(timing[0], 10),
+                        .ticks = s3d::ParseInt<uint32>(timing[1], 10)
+                    };
+                    const auto speed = s3d::ParseFloat<double>(params[1]);
+
+                    // TODO: Handle HISPEED data
+                }
             } else if (cmd == U"ATR") {
+                // note attribute
             } else {
             }
         }
