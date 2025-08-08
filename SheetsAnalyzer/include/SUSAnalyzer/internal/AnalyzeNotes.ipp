@@ -1,5 +1,5 @@
 ﻿#pragma once
-#include "SUSAnalyzer/SuSData.hpp"
+#include "SUSAnalyzer/SUSData.hpp"
 #include "SUSAnalyzer/internal/Utils.ipp"
 
 namespace SheetsAnalyzer::SUSAnalyzer::internal {

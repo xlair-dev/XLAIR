@@ -2,7 +2,7 @@
 #include "SUSAnalyzer/internal/AnalyzeCommandLine.hpp"
 #include "SUSAnalyzer/internal/AnalyzeDataLine.hpp"
 #include "SUSAnalyzer/internal/Utils.ipp"
-#include "SUSAnalyzer/SuSData.hpp"
+#include "SUSAnalyzer/SUSData.hpp"
 
 namespace SheetsAnalyzer::SUSAnalyzer {
     s3d::Optional<SheetData> Analyze(const s3d::FilePath& path) {

@@ -1,5 +1,5 @@
 ﻿#pragma once
-#include "SUSAnalyzer/SuSData.hpp"
+#include "SUSAnalyzer/SUSData.hpp"
 
 namespace SheetsAnalyzer::SUSAnalyzer::internal {
     void AnalyzeDataLine(SUSData& data, const s3d::String& line);
