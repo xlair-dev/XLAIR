@@ -8,7 +8,7 @@ namespace SheetsAnalyzer::SUSAnalyzer::internal {
             // Error: Invalid SUS command line.
             return;
         }
-        const auto key = line.substr(1, separator - 1).trimmed().uppercase();
+        const auto key = line.substr(1, separator - 1).trimmed().uppercased();
         const auto value = line.substr(separator + 1).trimmed();
 
         // These keys are handled in metadata analyzer or ignored:
@@ -53,7 +53,9 @@ namespace SheetsAnalyzer::SUSAnalyzer::internal {
         } else if (key == U"ATTRIBUTE") {
         } else if (key == U"NOATTRIBUTE") {
         } else if (key == U"HISPEED") {
+            data.current_timeline = s3d::ParseInt<uint32>(value, 36);
         } else if (key == U"NOSPEED") {
+            data.current_timeline = Constant::DefaultHispeedNumber;
         } else if (key == U"MEASUREBS") {
         } else if (key == U"MEASUREHS") {
         } else {

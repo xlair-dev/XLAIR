@@ -9,7 +9,7 @@ namespace SheetsAnalyzer::SUSAnalyzer::internal {
             return;
         }
 
-        const auto header = line.substr(1, separator - 1).trimmed().uppercase();
+        const auto header = line.substr(1, separator - 1).trimmed().uppercased();
         const auto value = line.substr(separator + 1).filter([](const auto& c) {
             return not s3d::IsSpace(c);
         });
@@ -45,23 +45,12 @@ namespace SheetsAnalyzer::SUSAnalyzer::internal {
                     return s3d::IsSpace(c);
                 }).split(U',');
                 for (const auto& arg : timeline) {
-                    const auto params = arg.split(U':');
-                    if (params.size() != 2) {
+                    if (auto hispeed_data = ParseHispeedData(arg)) {
+                        data.hispeed_difinitions[number].addData(*hispeed_data);
+                    } else {
                         // Error: Invalid HISPEED format.
-                        continue;
+                        return;
                     }
-                    const auto timing = params[0].split(U'\'');
-                    if (timing.size() != 2) {
-                        // Error: Invalid HISPEED timing format.
-                        continue;
-                    }
-                    SUSRelativeNoteTime time = {
-                        .measure = s3d::ParseInt<uint32>(timing[0], 10),
-                        .ticks = s3d::ParseInt<uint32>(timing[1], 10)
-                    };
-                    const auto speed = s3d::ParseFloat<double>(params[1]);
-
-                    // TODO: Handle HISPEED data
                 }
             } else if (cmd == U"ATR") {
                 // note attribute

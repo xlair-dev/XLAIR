@@ -129,6 +129,32 @@ namespace SheetsAnalyzer::SUSAnalyzer::internal {
         }
     }
 
+    inline s3d::Optional<SUSHispeedData> ParseHispeedData(s3d::StringView raw) {
+        // Expected format: "measure'ticks:speed"
+        const auto separator = raw.indexOf(U':');
+        if (separator == s3d::String::npos) {
+            // Error: Invalid HISPEED format.
+            return none;
+        }
+        const auto timing = raw.substr(0, separator);
+        const auto speed_str = raw.substr(separator + 1);
+
+        const auto timing_separator = timing.indexOf(U'\'');
+        if (timing_separator == s3d::String::npos) {
+            // Error: Invalid HISPEED timing format.
+            return none;
+        }
+        SUSRelativeNoteTime time = {
+            .measure = s3d::ParseInt<uint32>(timing.substr(0, timing_separator), 10),
+            .ticks = s3d::ParseInt<uint32>(timing.substr(timing_separator + 1), 10)
+        };
+        auto speed = s3d::ParseFloat<double>(speed_str);
+        if (speed == 0.0) {
+            speed = 0.0000001; // Avoid zero speed
+        }
+        return SUSHispeedData { time, speed };
+    }
+
     inline float GetBeatsAt(const SUSData& data, const s3d::uint32 meas) {
         const auto it = data.beats_difinitions.upper_bound(meas);
 

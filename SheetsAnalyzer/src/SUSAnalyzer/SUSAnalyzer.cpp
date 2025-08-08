@@ -37,9 +37,12 @@ namespace SheetsAnalyzer::SUSAnalyzer {
 
         // sort
 
-        s3d::Print << data.bpm_difinitions;
-        for (const auto& [key, value] : data.bpm_difinitions) {
-            s3d::Print << U"BPM[" << key << U"]: " << value;
+        for (const auto& note : data.raw_notes) {
+            if (note.type == NoteType::TapNote) {
+                s3d::Print << U"Tap Note: " << note.time.measure << U":" << note.time.ticks
+                           << U" Lane: " << note.NotePosition.start_lane << U" Width: " << note.NotePosition.width
+                    << U" Timeline: " << note.timeline_index;
+            }
         }
 
         data.valid = true;

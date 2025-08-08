@@ -13,7 +13,7 @@ namespace SheetsAnalyzer::SUSAnalyzer::internal {
                 break;
             case U'8': {
                 // BPM
-                const auto note_count = pattern.length() / 2;
+                const auto note_count = static_cast<s3d::uint32>(pattern.length()) / 2;
                 const auto step = static_cast<s3d::uint32>(data.ticks_per_beat * GetBeatsAt(data, meas)) / (!note_count ? 1 : note_count);
 
                 for (size_t i = 0; i < note_count; i++) {
@@ -33,7 +33,7 @@ namespace SheetsAnalyzer::SUSAnalyzer::internal {
     }
 
     inline void AnalyzeShortNotes(SUSData& data, const s3d::uint32 meas, s3d::StringView lane, s3d::StringView pattern) {
-        const auto note_count = pattern.length() / 2;
+        const auto note_count = static_cast<s3d::uint32>(pattern.length()) / 2;
         const auto start_lane = s3d::ParseInt<uint8>(lane, 16);
 
         const auto step = static_cast<s3d::uint32>(data.ticks_per_beat * GetBeatsAt(data, meas)) / (!note_count ? 1 : note_count);
@@ -48,6 +48,7 @@ namespace SheetsAnalyzer::SUSAnalyzer::internal {
             note_data.time = { meas, ticks };
             note_data.NotePosition.start_lane = start_lane;
             note_data.NotePosition.width = width;
+            note_data.timeline_index = data.current_timeline;
 
             switch (kind) {
                 case U'0': // No placement
@@ -67,6 +68,8 @@ namespace SheetsAnalyzer::SUSAnalyzer::internal {
                 default: // Error: Unknown note type.
                     break;
             }
+
+            data.raw_notes.push_back(note_data);
 
         }
     }
