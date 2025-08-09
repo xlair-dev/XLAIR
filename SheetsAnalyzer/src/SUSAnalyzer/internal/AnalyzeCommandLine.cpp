@@ -57,6 +57,7 @@ namespace SheetsAnalyzer::SUSAnalyzer::internal {
         } else if (key == U"NOSPEED") {
             data.current_timeline = Constant::DefaultHispeedNumber;
         } else if (key == U"MEASUREBS") {
+            data.measure_base = s3d::ParseInt<uint32>(value, 10);
         } else if (key == U"MEASUREHS") {
         } else {
             // Error: Unknown

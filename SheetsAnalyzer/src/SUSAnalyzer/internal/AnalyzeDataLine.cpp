@@ -18,7 +18,7 @@ namespace SheetsAnalyzer::SUSAnalyzer::internal {
 
         if (IsNoteData(cmd)) {
             const auto note_type = header[3];
-            const auto meas = s3d::ParseInt<uint32>(cmd, 10);
+            const auto meas = s3d::ParseInt<uint32>(cmd, 10) + data.measure_base;
             const auto lane = header.substrView(4);
             switch (note_type) {
                 case U'0': AnalyzeSpecialNotes(data, meas, lane, value); break;

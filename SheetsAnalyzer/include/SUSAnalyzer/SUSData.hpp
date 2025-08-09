@@ -68,6 +68,7 @@ namespace SheetsAnalyzer::SUSAnalyzer {
             bpm_difinitions.clear();
             beats_difinitions.clear();
             hispeed_difinitions.clear();
+            measure_base = 0;
 
             bpm_difinitions[0] = 120.0; // Default BPM
             beats_difinitions[0] = Constant::DefaultBeatLength;
@@ -79,6 +80,7 @@ namespace SheetsAnalyzer::SUSAnalyzer {
         }
 
         s3d::uint32 current_timeline = Constant::DefaultHispeedNumber;
+        s3d::uint32 measure_base = 0;
         s3d::uint32 ticks_per_beat = 480;
         s3d::Array<SUSRawNoteData> raw_notes;
         s3d::HashTable<s3d::uint32, double> bpm_difinitions;
