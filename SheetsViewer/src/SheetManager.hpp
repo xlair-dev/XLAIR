@@ -22,11 +22,11 @@ public:
 
     void update();
 
-    void play();
+    void play() const;
 
-    void pause();
+    void pause() const;
 
-    void stop();
+    void stop() const;
 
     bool isPlaying() const;
 
@@ -34,7 +34,7 @@ public:
 
     double lengthSec() const;
 
-    void seekTime(double time);
+    void seekTime(double time) const;
 
     inline State getState() const noexcept {
         return m_state;

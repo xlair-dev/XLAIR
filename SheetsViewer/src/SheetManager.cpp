@@ -115,19 +115,19 @@ void SheetManager::update() {
     }
 }
 
-void SheetManager::play() {
+void SheetManager::play() const {
     if (isLoaded()) {
         AudioAsset(MusicAssetName).play();
     }
 }
 
-void SheetManager::pause() {
+void SheetManager::pause() const {
     if (isPlaying()) {
         AudioAsset(MusicAssetName).pause();
     }
 }
 
-void SheetManager::stop() {
+void SheetManager::stop() const {
     AudioAsset(MusicAssetName).stop();
 }
 
@@ -143,7 +143,7 @@ double SheetManager::lengthSec() const {
     return AudioAsset(MusicAssetName).lengthSec();
 }
 
-void SheetManager::seekTime(double time) {
+void SheetManager::seekTime(double time) const {
     if (isLoaded()) {
         AudioAsset(MusicAssetName).seekTime(time);
     }
