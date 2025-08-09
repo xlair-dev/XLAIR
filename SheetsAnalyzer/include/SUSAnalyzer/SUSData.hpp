@@ -77,10 +77,12 @@ namespace SheetsAnalyzer::SUSAnalyzer {
                 .speed = 1.0f // Default speed is 1.0x
             });
             current_timeline = Constant::DefaultHispeedNumber;
+            measure_timeline = Constant::DefaultHispeedNumber;
         }
 
         s3d::uint32 current_timeline = Constant::DefaultHispeedNumber;
         s3d::uint32 measure_base = 0;
+        s3d::uint32 measure_timeline = Constant::DefaultHispeedNumber;
         s3d::uint32 ticks_per_beat = 480;
         s3d::Array<SUSRawNoteData> raw_notes;
         s3d::HashTable<s3d::uint32, double> bpm_difinitions;

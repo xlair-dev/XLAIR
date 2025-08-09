@@ -59,6 +59,7 @@ namespace SheetsAnalyzer::SUSAnalyzer::internal {
         } else if (key == U"MEASUREBS") {
             data.measure_base = s3d::ParseInt<uint32>(value, 10);
         } else if (key == U"MEASUREHS") {
+            data.measure_timeline = s3d::ParseInt<uint32>(value, 36);
         } else {
             // Error: Unknown
             return;
