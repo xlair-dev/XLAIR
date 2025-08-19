@@ -47,9 +47,19 @@ namespace SheetsAnalyzer::SUSAnalyzer {
     };
 
     struct SUSHispeedTimeline {
+        size_t data_index = 0; // Use for mapping to SheetData's timelines
         s3d::Array<SUSHispeedData> hispeed_data;
+
+        SUSHispeedTimeline() {
+            reset();
+        }
+
         inline void reset() {
             hispeed_data.clear();
+            addData({
+                .time = { 0, 0 },
+                .speed = 1.0f // Default speed is 1.0x
+            });
         }
         inline void addData(const SUSHispeedData& data) {
             hispeed_data.push_back(data);
@@ -64,6 +74,9 @@ namespace SheetsAnalyzer::SUSAnalyzer {
 
         inline void reset() {
             valid = false;
+            timelines.clear();
+            notes.tap.clear();
+
             ticks_per_beat = 480;
             bpm_difinitions.clear();
             beats_difinitions.clear();
@@ -72,10 +85,8 @@ namespace SheetsAnalyzer::SUSAnalyzer {
 
             bpm_difinitions[0] = 120.0; // Default BPM
             beats_difinitions[0] = Constant::DefaultBeatLength;
-            hispeed_difinitions[Constant::DefaultHispeedNumber].addData({
-                .time = { 0, 0 },
-                .speed = 1.0f // Default speed is 1.0x
-            });
+            hispeed_difinitions[Constant::DefaultHispeedNumber] = SUSHispeedTimeline {};
+            hispeed_difinitions[Constant::DefaultHispeedNumber].data_index = 0;
             current_timeline = Constant::DefaultHispeedNumber;
             measure_timeline = Constant::DefaultHispeedNumber;
         }

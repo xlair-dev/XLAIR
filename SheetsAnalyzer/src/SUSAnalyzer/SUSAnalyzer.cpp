@@ -45,6 +45,31 @@ namespace SheetsAnalyzer::SUSAnalyzer {
             }
         }
 
+        // Convert SUSData to SheetData
+        data.timelines.resize(data.hispeed_difinitions.size());
+        for (const auto& [index, hispeed_difinition] : data.hispeed_difinitions) {
+            auto& timeline = data.timelines[hispeed_difinition.data_index];
+            timeline.hispeed_data.reserve(hispeed_difinition.hispeed_data.size());
+
+            for (const auto& hispeed : hispeed_difinition.hispeed_data) {
+                timeline.hispeed_data.push_back({
+                    .sample = 0, // TODO: Calculate sample based on measure and ticks
+                    .speed = hispeed.speed
+                });
+            }
+        }
+
+        for (const auto& note : data.raw_notes) {
+            if (note.type == NoteType::TapNote) {
+                data.notes.tap.push_back({
+                    .timeline_index = note.timeline_index,
+                    .sample = 0, // TODO: Calculate sample based on measure and ticks
+                    //.lane = note.NotePosition.start_lane,
+                    //.width = note.NotePosition.width
+                });
+            }
+        }
+
         data.valid = true;
         return static_cast<SheetData>(data);
     }

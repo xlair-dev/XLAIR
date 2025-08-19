@@ -18,7 +18,7 @@ namespace SheetsAnalyzer::SUSAnalyzer::internal {
 
         if (IsNoteData(cmd)) {
             const auto note_type = header[3];
-            const auto meas = s3d::ParseInt<uint32>(cmd, 10) + data.measure_base;
+            const auto meas = s3d::ParseInt<s3d::uint32>(cmd, 10) + data.measure_base;
             const auto lane = header.substrView(4);
             switch (note_type) {
                 case U'0': AnalyzeSpecialNotes(data, meas, lane, value); break;
@@ -34,7 +34,7 @@ namespace SheetsAnalyzer::SUSAnalyzer::internal {
             // Special data
             // TODO: Error handling
             const auto attr = header.substrView(3);
-            const auto number = s3d::ParseInt<uint32>(attr, 36);
+            const auto number = s3d::ParseInt<s3d::uint32>(attr, 36);
             if (cmd == U"BPM") {
                 // BPM definition
                 const auto bpm = s3d::ParseFloat<double>(value);
@@ -44,6 +44,10 @@ namespace SheetsAnalyzer::SUSAnalyzer::internal {
                 const auto timeline = ParseRawString(value).removed_if([](const auto& c) {
                     return s3d::IsSpace(c);
                 }).split(U',');
+                if (not data.hispeed_difinitions.contains(number)) {
+                    data.hispeed_difinitions[number] = SUSHispeedTimeline {};
+                    data.hispeed_difinitions[number].data_index = data.timelines.size() + 1;
+                }
                 for (const auto& arg : timeline) {
                     if (auto hispeed_data = ParseHispeedData(arg)) {
                         data.hispeed_difinitions[number].addData(*hispeed_data);
