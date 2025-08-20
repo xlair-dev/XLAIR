@@ -123,8 +123,8 @@
   <ItemGroup>
     <ClCompile Include="src\addon\LoadingAnimationAddon.cpp" />
     <ClCompile Include="src\addon\NotificationAddon.cpp" />
+    <ClCompile Include="src\addon\SheetManagerAddon.cpp" />
     <ClCompile Include="src\Main.cpp" />
-    <ClCompile Include="src\SheetManager.cpp" />
     <ClCompile Include="src\SheetViewer.cpp" />
     <ClCompile Include="src\SideMenu.cpp" />
     <ClCompile Include="stdafx.cpp">
@@ -335,9 +335,10 @@
     <Xml Include="App\example\xml\test.xml" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\addon\detail\SheetManagerAddon.ipp" />
     <ClInclude Include="src\addon\LoadingAnimationAddon.hpp" />
     <ClInclude Include="src\addon\NotificationAddon.hpp" />
-    <ClInclude Include="src\SheetManager.hpp" />
+    <ClInclude Include="src\addon\SheetManagerAddon.hpp" />
     <ClInclude Include="src\SheetViewer.hpp" />
     <ClInclude Include="src\SideMenu.hpp" />
     <ClInclude Include="stdafx.h" />

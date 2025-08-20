@@ -4,7 +4,7 @@
 class LoadingAnimationAddon : public IAddon {
 public:
 
-    static constexpr StringView Name = U"LoadingAnimationAddon";
+    inline static constexpr StringView Name = U"LoadingAnimationAddon";
 
     inline static void Begin(const Circle& circle, double thickness, const ColorF& color) {
         if (auto p = Addon::GetAddon<LoadingAnimationAddon>(Name)) {

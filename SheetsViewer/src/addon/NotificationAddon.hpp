@@ -4,7 +4,7 @@
 class NotificationAddon : public IAddon {
 public:
 
-    static constexpr StringView Name = U"NotificationAddon";
+    inline static constexpr StringView Name = U"NotificationAddon";
 
     enum class Type {
         Information,

@@ -45,20 +45,8 @@ namespace SheetsAnalyzer::SUSAnalyzer {
             return t.type == NoteType::BpmChange;
         }));
 
-        //for (const auto& note : data.raw_notes) {
-        //    if (note.type == NoteType::TapNote) {
-        //        s3d::Print << U"Tap Note: " << note.time.measure << U":" << note.time.ticks
-        //                   << U" Lane: " << note.note_position.start_lane << U" Width: " << note.note_position.width
-        //            << U" Timeline: " << note.timeline_index;
-        //    }
-        //}
-
         // Convert SUSData to SheetData
         data.convertToSheetData();
-        for (const auto& tapnote : data.notes.tap) {
-            s3d::Print << U"Tap Note: " << tapnote.sample << U" Lane: " << tapnote.start_lane
-                       << U" Width: " << tapnote.width << U" Timeline: " << tapnote.timeline_index;
-        }
         return static_cast<SheetData>(data);
     }
 }

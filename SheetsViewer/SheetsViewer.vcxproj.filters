@@ -142,6 +142,9 @@
     <Filter Include="Header Files\addon">
       <UniqueIdentifier>{e2e2a9ac-c8e2-4ca4-9e64-716645bde0cf}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\addon\detail">
+      <UniqueIdentifier>{260c027a-63c9-4ca1-9082-f9a7c7c91fc0}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -153,9 +156,6 @@
     <ClCompile Include="src\addon\NotificationAddon.cpp">
       <Filter>Source Files\addon</Filter>
     </ClCompile>
-    <ClCompile Include="src\SheetManager.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\addon\LoadingAnimationAddon.cpp">
       <Filter>Source Files\addon</Filter>
     </ClCompile>
@@ -164,6 +164,9 @@
     </ClCompile>
     <ClCompile Include="src\SheetViewer.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\addon\SheetManagerAddon.cpp">
+      <Filter>Source Files\addon</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -832,9 +835,6 @@
     <ClInclude Include="src\addon\NotificationAddon.hpp">
       <Filter>Header Files\addon</Filter>
     </ClInclude>
-    <ClInclude Include="src\SheetManager.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\addon\LoadingAnimationAddon.hpp">
       <Filter>Header Files\addon</Filter>
     </ClInclude>
@@ -843,6 +843,12 @@
     </ClInclude>
     <ClInclude Include="src\SheetViewer.hpp">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\addon\SheetManagerAddon.hpp">
+      <Filter>Header Files\addon</Filter>
+    </ClInclude>
+    <ClInclude Include="src\addon\detail\SheetManagerAddon.ipp">
+      <Filter>Header Files\addon\detail</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

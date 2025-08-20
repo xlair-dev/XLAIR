@@ -1,11 +1,11 @@
 ﻿#include "SideMenu.hpp"
 #include "addon/NotificationAddon.hpp"
 
-void SideMenu::update(const SheetManager& sheet_manager) {
-    const auto current_state = sheet_manager.getState();
-    const auto& metadata = sheet_manager.getMetadata();
+void SideMenu::update() {
+    const auto current_state = SheetManagerAddon::GetState();
+    const auto& metadata = SheetManagerAddon::GetMetadata();
 
-    if (sheet_manager.isLoaded()) {
+    if (SheetManagerAddon::IsLoaded()) {
         // update metadata
         if (m_previous_state != current_state) {
             m_indexed_metadata = std::array {
@@ -24,25 +24,23 @@ void SideMenu::update(const SheetManager& sheet_manager) {
 
         const auto offset = UI::ItemOffset + SideMenuItems.size() * UI::ItemHeight;
         for (const auto& [index, difficulty] : Indexed(metadata.difficulties)) {
-            const auto& data = sheet_manager.getSheetData(index);
-            const auto is_valid = sheet_manager.isLoaded() and data.valid;
+            const auto data = SheetManagerAddon::GetSheetData(index);
+            const auto is_valid = SheetManagerAddon::IsLoaded() and data.has_value() and data->valid;
             const auto rect = Rect { UI::Margin, offset + UI::ItemDifficultyOffset + (index + 1) * UI::ItemDifficultyHeight, UI::ItemWidth, UI::ItemDifficultyHeight };
 
             if (is_valid and rect.leftClicked()) {
-                m_selected_index = index;
+                SheetManagerAddon::SetSelectedDifficulty(index);
                 NotificationAddon::Show(U"Selected difficulty: {}"_fmt(index), NotificationAddon::Type::Information);
             }
         }
-    } else {
-        m_selected_index = none;
     }
 
     m_previous_state = current_state;
 }
 
-void SideMenu::draw(const SheetManager& sheet_manager) const {
+void SideMenu::draw() const {
     const auto& font = SimpleGUI::GetFont();
-    const auto& metadata = sheet_manager.getMetadata();
+    const auto& metadata = SheetManagerAddon::GetMetadata();
 
     const Rect viewport_rect { 0, 0, UI::Width, Scene::Height() };
     const ScopedViewport2D viewport { viewport_rect };
@@ -56,7 +54,7 @@ void SideMenu::draw(const SheetManager& sheet_manager) const {
         font(icon).draw(UI::ItemIconSize, Arg::leftCenter = pos, ColorF { 0.7 });
         font(text).draw(UI::ItemLabelSize, Arg::leftCenter = pos.movedBy(UI::ItemLabelOffset, 0), ColorF { 0.7 });
 
-        if (sheet_manager.isLoaded() and not metadata.path.isEmpty()) {
+        if (SheetManagerAddon::IsLoaded() and not metadata.path.isEmpty()) {
             font(m_indexed_metadata[index]).draw(UI::ItemTextSize, Arg::leftCenter = pos.movedBy(UI::ItemTextOffset, 0), ColorF { 0.95 });
         }
     }
@@ -71,8 +69,8 @@ void SideMenu::draw(const SheetManager& sheet_manager) const {
     font(U"difficulties").draw(UI::ItemLabelSize, Arg::leftCenter = Vec2 { UI::Margin + UI::ItemLabelOffset, offset + UI::ItemIconSize }, ColorF { 0.7 });
 
     for (const auto& [index, difficulty] : Indexed(metadata.difficulties)) {
-        const auto& data = sheet_manager.getSheetData(index);
-        const auto is_valid = sheet_manager.isLoaded() and data.valid;
+        const auto data = SheetManagerAddon::GetSheetData(index);
+        const auto is_valid = SheetManagerAddon::IsLoaded() and data.has_value() and data->valid;
         const auto rect = Rect { UI::Margin, offset + UI::ItemDifficultyOffset + (index + 1) * UI::ItemDifficultyHeight, UI::ItemWidth, UI::ItemDifficultyHeight };
         const auto left_center = rect.leftCenter();
         const auto color = is_valid ? ColorF { 0.95 } : ColorF { 0.5 };
@@ -82,7 +80,8 @@ void SideMenu::draw(const SheetManager& sheet_manager) const {
             rect.stretched(UI::Margin / 2, 0).rounded(2).draw(ColorF { 0.4 });
         }
 
-        const auto selected = m_selected_index and *m_selected_index == index;
+        const auto selected_difficulty = SheetManagerAddon::GetSelectedDifficulty();
+        const auto selected = selected_difficulty and *selected_difficulty == index;
 
         if (selected) {
             rect.stretched(UI::Margin / 2, 0).rounded(2).draw(ColorF { 0.3 });
@@ -97,7 +96,7 @@ void SideMenu::draw(const SheetManager& sheet_manager) const {
     }
 
     // jacket
-    if (const auto jacket = sheet_manager.getJacket()) {
+    if (const auto jacket = SheetManagerAddon::GetJacket()) {
         jacket->fitted(UI::JacketSize).draw(Arg::bottomLeft = Vec2 { UI::Margin, Scene::Height() - UI::Margin });
     }
 }
