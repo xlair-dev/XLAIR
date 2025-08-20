@@ -5,7 +5,7 @@
 #include "SUSAnalyzer/SUSData.hpp"
 
 namespace SheetsAnalyzer::SUSAnalyzer {
-    s3d::Optional<SheetData> Analyze(const s3d::FilePath& path, const s3d::uint64 sample_rate, const double offset_sec) {
+    s3d::Optional<SheetData> Analyze(const s3d::FilePath& path, const s3d::int64 sample_rate, const double offset_sec) {
         using namespace internal;
 
         s3d::TextReader reader(path);
@@ -16,7 +16,7 @@ namespace SheetsAnalyzer::SUSAnalyzer {
         const auto content = reader.readLines();
         reader.close();
 
-        const auto sample_offset = static_cast<s3d::uint64>(offset_sec * sample_rate);
+        const auto sample_offset = static_cast<s3d::int64>(offset_sec * sample_rate);
         SUSData data { sample_rate, sample_offset };
         for (const auto& line : content) {
             if (line.empty()) {

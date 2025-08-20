@@ -104,7 +104,7 @@ inline double SheetManagerAddon::LengthSec() {
     return 0.0;
 }
 
-inline uint64 SheetManagerAddon::PosSample() {
+inline int64 SheetManagerAddon::PosSample() {
     if (auto p = Addon::GetAddon<SheetManagerAddon>(Name)) {
         return p->posSample();
     }

@@ -34,7 +34,7 @@ public:
     static bool IsPlaying();
     static double PosSec();
     static double LengthSec();
-    static uint64 PosSample();
+    static int64 PosSample();
     static void SeekTime(double time);
 
     static void SetSelectedDifficulty(Optional<size_t> index);
@@ -63,7 +63,7 @@ private:
     bool isPlaying() const;
     double posSec() const;
     double lengthSec() const;
-    uint64 posSample() const;
+    int64 posSample() const;
     void seekTime(double time) const;
 };
 

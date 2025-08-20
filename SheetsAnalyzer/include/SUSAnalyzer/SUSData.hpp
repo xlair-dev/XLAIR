@@ -11,7 +11,7 @@ namespace SheetsAnalyzer::SUSAnalyzer {
         constexpr inline s3d::uint32 DefaultHispeedNumber = std::numeric_limits<s3d::uint32>::max();
         constexpr inline double DefaultBPM = 120.0;
         constexpr inline s3d::uint32 DefaultTicksPerBeat = 480;
-        constexpr inline s3d::uint64 DefaultSampleRate = 44100;
+        constexpr inline s3d::int64 DefaultSampleRate = 44100;
     }
 
     struct SUSRelativeNoteTime {
@@ -72,11 +72,11 @@ namespace SheetsAnalyzer::SUSAnalyzer {
     struct SUSData : SheetData {
 
         SUSData();
-        SUSData(const s3d::uint64 sample_rate, const s3d::uint64 sample_offset);
+        SUSData(const s3d::int64 sample_rate, const s3d::int64 sample_offset);
 
         void convertToSheetData();
         float getBeatsAt(const s3d::uint32 meas) const;
-        s3d::uint64 getSampleAt(const SUSRelativeNoteTime& time);
+        s3d::int64 getSampleAt(const SUSRelativeNoteTime& time);
 
         s3d::uint32 current_timeline = Constant::DefaultHispeedNumber;
         s3d::uint32 measure_base = 0;
@@ -88,7 +88,7 @@ namespace SheetsAnalyzer::SUSAnalyzer {
         s3d::HashTable<s3d::uint32, SUSHispeedTimeline> hispeed_difinitions;
         std::map<s3d::uint32, float> beats_difinitions;
 
-        s3d::uint64 sample_rate = Constant::DefaultSampleRate;
-        s3d::uint64 sample_offset = 0;
+        s3d::int64 sample_rate = Constant::DefaultSampleRate;
+        s3d::int64 sample_offset = 0;
     };
 }

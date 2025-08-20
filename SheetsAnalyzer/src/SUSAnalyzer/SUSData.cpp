@@ -6,7 +6,7 @@ namespace SheetsAnalyzer::SUSAnalyzer {
         SUSData { Constant::DefaultSampleRate, 0 };
     }
 
-    SUSData::SUSData(const s3d::uint64 rate, const s3d::uint64 offset) {
+    SUSData::SUSData(const s3d::int64 rate, const s3d::int64 offset) {
         sample_rate = rate;
         sample_offset = offset;
         bpm_difinitions[0] = Constant::DefaultBPM;
@@ -87,10 +87,10 @@ namespace SheetsAnalyzer::SUSAnalyzer {
         return std::prev(it)->second;
     }
 
-    s3d::uint64 SUSData::getSampleAt(const SUSRelativeNoteTime& time) {
+    s3d::int64 SUSData::getSampleAt(const SUSRelativeNoteTime& time) {
         s3d::uint32 meas = time.measure;
         s3d::uint32 tick = time.ticks;
-        s3d::uint64 sample = 0;
+        s3d::int64 sample = 0;
         double frames = 0.0;
         double last_bpm = Constant::DefaultBPM;
         const double inv_tpb = 1.0 / static_cast<double>(ticks_per_beat);
@@ -140,7 +140,7 @@ namespace SheetsAnalyzer::SUSAnalyzer {
 
         frames += sample_offset;
 
-        const auto result = static_cast<s3d::uint64>(frames + 0.5); // Round to nearest integer
+        const auto result = static_cast<s3d::int64>(frames + 0.5); // Round to nearest integer
         return result < 0 ? 0 : result; // Ensure non-negative sample
     }
 }

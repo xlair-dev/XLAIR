@@ -6,13 +6,13 @@
 
 namespace SheetsAnalyzer {
     struct HispeedData {
-        s3d::uint64 sample;
+        s3d::int64 sample;
         double speed = 1.0;
     };
 
     struct ShortNoteData {
         size_t timeline_index = 0;
-        s3d::uint64 sample;
+        s3d::int64 sample;
         s3d::uint8 start_lane = 0;
         s3d::uint8 width = 0;
     };
@@ -22,7 +22,7 @@ namespace SheetsAnalyzer {
     };
 
     struct BPMData {
-        s3d::uint64 sample;
+        s3d::int64 sample;
         double bpm = Constant::DefaultBPM;
     };
 

@@ -148,7 +148,7 @@ double SheetManagerAddon::lengthSec() const {
     return AudioAsset(MusicAssetName).lengthSec();
 }
 
-uint64 SheetManagerAddon::posSample() const {
+int64 SheetManagerAddon::posSample() const {
     return AudioAsset(MusicAssetName).posSample();
 }
 
