@@ -104,6 +104,13 @@ inline double SheetManagerAddon::LengthSec() {
     return 0.0;
 }
 
+inline uint64 SheetManagerAddon::PosSample() {
+    if (auto p = Addon::GetAddon<SheetManagerAddon>(Name)) {
+        return p->posSample();
+    }
+    return 0;
+}
+
 inline void SheetManagerAddon::SeekTime(double time) {
     if (auto p = Addon::GetAddon<SheetManagerAddon>(Name)) {
         p->seekTime(time);

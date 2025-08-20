@@ -27,7 +27,6 @@ private:
     // UI
     struct UI {
         static constexpr int32 Width = 300;
-        static constexpr int32 Height = 720;
         static constexpr int32 Margin = 10;
 
         static constexpr int32 ItemWidth = Width - Margin * 2;

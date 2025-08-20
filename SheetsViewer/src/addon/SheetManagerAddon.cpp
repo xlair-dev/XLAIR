@@ -148,6 +148,10 @@ double SheetManagerAddon::lengthSec() const {
     return AudioAsset(MusicAssetName).lengthSec();
 }
 
+uint64 SheetManagerAddon::posSample() const {
+    return AudioAsset(MusicAssetName).posSample();
+}
+
 void SheetManagerAddon::seekTime(double time) const {
     AudioAsset(MusicAssetName).seekTime(time);
 }
