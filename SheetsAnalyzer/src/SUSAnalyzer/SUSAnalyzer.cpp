@@ -5,7 +5,7 @@
 #include "SUSAnalyzer/SUSData.hpp"
 
 namespace SheetsAnalyzer::SUSAnalyzer {
-    s3d::Optional<SheetData> Analyze(const s3d::FilePath& path) {
+    s3d::Optional<SheetData> Analyze(const s3d::FilePath& path, const s3d::uint64 sample_rate, const double offset_sec) {
         using namespace internal;
 
         s3d::TextReader reader(path);
@@ -16,7 +16,8 @@ namespace SheetsAnalyzer::SUSAnalyzer {
         const auto content = reader.readLines();
         reader.close();
 
-        SUSData data;
+        const auto sample_offset = static_cast<s3d::uint64>(offset_sec * sample_rate);
+        SUSData data { sample_rate, sample_offset };
         for (const auto& line : content) {
             if (line.empty()) {
                 continue; // Skip empty lines
@@ -36,41 +37,28 @@ namespace SheetsAnalyzer::SUSAnalyzer {
         }
 
         // sort
+        data.raw_notes.sort_by([](const SUSRawNoteData& a, const SUSRawNoteData& b) {
+            return std::tie(a.time, a.type, a.timeline_index) < std::tie(b.time, b.type, b.timeline_index);
+        });
 
-        for (const auto& note : data.raw_notes) {
-            if (note.type == NoteType::TapNote) {
-                s3d::Print << U"Tap Note: " << note.time.measure << U":" << note.time.ticks
-                           << U" Lane: " << note.NotePosition.start_lane << U" Width: " << note.NotePosition.width
-                    << U" Timeline: " << note.timeline_index;
-            }
-        }
+        data.bpm_notes.append(data.raw_notes.filter([](const auto t) {
+            return t.type == NoteType::BpmChange;
+        }));
+
+        //for (const auto& note : data.raw_notes) {
+        //    if (note.type == NoteType::TapNote) {
+        //        s3d::Print << U"Tap Note: " << note.time.measure << U":" << note.time.ticks
+        //                   << U" Lane: " << note.note_position.start_lane << U" Width: " << note.note_position.width
+        //            << U" Timeline: " << note.timeline_index;
+        //    }
+        //}
 
         // Convert SUSData to SheetData
-        data.timelines.resize(data.hispeed_difinitions.size());
-        for (const auto& [index, hispeed_difinition] : data.hispeed_difinitions) {
-            auto& timeline = data.timelines[hispeed_difinition.data_index];
-            timeline.hispeed_data.reserve(hispeed_difinition.hispeed_data.size());
-
-            for (const auto& hispeed : hispeed_difinition.hispeed_data) {
-                timeline.hispeed_data.push_back({
-                    .sample = 0, // TODO: Calculate sample based on measure and ticks
-                    .speed = hispeed.speed
-                });
-            }
+        data.convertToSheetData();
+        for (const auto& tapnote : data.notes.tap) {
+            s3d::Print << U"Tap Note: " << tapnote.sample << U" Lane: " << tapnote.start_lane
+                       << U" Width: " << tapnote.width << U" Timeline: " << tapnote.timeline_index;
         }
-
-        for (const auto& note : data.raw_notes) {
-            if (note.type == NoteType::TapNote) {
-                data.notes.tap.push_back({
-                    .timeline_index = note.timeline_index,
-                    .sample = 0, // TODO: Calculate sample based on measure and ticks
-                    //.lane = note.NotePosition.start_lane,
-                    //.width = note.NotePosition.width
-                });
-            }
-        }
-
-        data.valid = true;
         return static_cast<SheetData>(data);
     }
 }

@@ -123,9 +123,9 @@ namespace SheetsAnalyzer::SUSAnalyzer::internal {
         if (raw.front() == '\"' and raw.back() == '\"') {
             // TODO: process escaped characters
             const auto length = raw.size();
-            return String { raw.substr(1, length - 2) };
+            return s3d::String { raw.substr(1, length - 2) };
         } else {
-            return String { raw };
+            return s3d::String { raw };
         }
     }
 
@@ -134,7 +134,7 @@ namespace SheetsAnalyzer::SUSAnalyzer::internal {
         const auto separator = raw.indexOf(U':');
         if (separator == s3d::String::npos) {
             // Error: Invalid HISPEED format.
-            return none;
+            return s3d::none;
         }
         const auto timing = raw.substr(0, separator);
         const auto speed_str = raw.substr(separator + 1);
@@ -142,28 +142,16 @@ namespace SheetsAnalyzer::SUSAnalyzer::internal {
         const auto timing_separator = timing.indexOf(U'\'');
         if (timing_separator == s3d::String::npos) {
             // Error: Invalid HISPEED timing format.
-            return none;
+            return s3d::none;
         }
         SUSRelativeNoteTime time = {
-            .measure = s3d::ParseInt<uint32>(timing.substr(0, timing_separator), 10),
-            .ticks = s3d::ParseInt<uint32>(timing.substr(timing_separator + 1), 10)
+            .measure = s3d::ParseInt<s3d::uint32>(timing.substr(0, timing_separator), 10),
+            .ticks = s3d::ParseInt<s3d::uint32>(timing.substr(timing_separator + 1), 10)
         };
         auto speed = s3d::ParseFloat<double>(speed_str);
         if (speed == 0.0) {
             speed = 0.0000001; // Avoid zero speed
         }
         return SUSHispeedData { time, speed };
-    }
-
-    inline float GetBeatsAt(const SUSData& data, const s3d::uint32 meas) {
-        const auto it = data.beats_difinitions.upper_bound(meas);
-
-        if (it == data.beats_difinitions.begin()) {
-            // Default beat length if no definition found
-            return Constant::DefaultBeatLength;
-        }
-
-        // Return the last defined beat length before the given measure
-        return std::prev(it)->second;
     }
 }

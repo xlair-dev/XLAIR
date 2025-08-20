@@ -50,6 +50,9 @@
     <ClCompile Include="src\SUSAnalyzer\internal\AnalyzeDataLine.cpp">
       <Filter>Source Files\SUSAnalyzer\internal</Filter>
     </ClCompile>
+    <ClCompile Include="src\SUSAnalyzer\SUSData.cpp">
+      <Filter>Source Files\SUSAnalyzer</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">

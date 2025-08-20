@@ -71,14 +71,16 @@ void SheetManager::update() {
             NotificationAddon::Show(U"Loaded assets", NotificationAddon::Type::Success);
             m_state = State::LoadingData;
 
+            const auto sample_rate = AudioAsset(MusicAssetName).sampleRate();
             for (const auto [index, difficulty] : Indexed(m_metadata.difficulties)) {
                 if (difficulty.src.isEmpty()) {
                     m_loading_data_tasks[index] = AsyncTask<Optional<SheetsAnalyzer::SheetData>>([]() {
                         return Optional<SheetsAnalyzer::SheetData> { none };
                     });
                 } else {
-                    m_loading_data_tasks[index] = AsyncTask<Optional<SheetsAnalyzer::SheetData>>([difficulty]() {
-                        return SheetsAnalyzer::SUSAnalyzer::Analyze(difficulty.src);
+                    const auto offset = m_metadata.music_offset;
+                    m_loading_data_tasks[index] = AsyncTask<Optional<SheetsAnalyzer::SheetData>>([difficulty, sample_rate, offset]() {
+                        return SheetsAnalyzer::SUSAnalyzer::Analyze(difficulty.src, sample_rate, offset);
                     });
                 }
             }

@@ -9,6 +9,9 @@ namespace SheetsAnalyzer::SUSAnalyzer {
     namespace Constant {
         constexpr inline float DefaultBeatLength = 4.0f;
         constexpr inline s3d::uint32 DefaultHispeedNumber = std::numeric_limits<s3d::uint32>::max();
+        constexpr inline double DefaultBPM = 120.0;
+        constexpr inline s3d::uint32 DefaultTicksPerBeat = 480;
+        constexpr inline s3d::uint64 DefaultSampleRate = 44100;
     }
 
     struct SUSRelativeNoteTime {
@@ -37,7 +40,7 @@ namespace SheetsAnalyzer::SUSAnalyzer {
             struct {
                 s3d::uint8 start_lane;
                 s3d::uint8 width;
-            } NotePosition;
+            } note_position;
         };
     };
 
@@ -68,36 +71,24 @@ namespace SheetsAnalyzer::SUSAnalyzer {
 
     struct SUSData : SheetData {
 
-        SUSData() {
-            reset();
-        }
+        SUSData();
+        SUSData(const s3d::uint64 sample_rate, const s3d::uint64 sample_offset);
 
-        inline void reset() {
-            valid = false;
-            timelines.clear();
-            notes.tap.clear();
-
-            ticks_per_beat = 480;
-            bpm_difinitions.clear();
-            beats_difinitions.clear();
-            hispeed_difinitions.clear();
-            measure_base = 0;
-
-            bpm_difinitions[0] = 120.0; // Default BPM
-            beats_difinitions[0] = Constant::DefaultBeatLength;
-            hispeed_difinitions[Constant::DefaultHispeedNumber] = SUSHispeedTimeline {};
-            hispeed_difinitions[Constant::DefaultHispeedNumber].data_index = 0;
-            current_timeline = Constant::DefaultHispeedNumber;
-            measure_timeline = Constant::DefaultHispeedNumber;
-        }
+        void convertToSheetData();
+        float getBeatsAt(const s3d::uint32 meas) const;
+        s3d::uint64 getSampleAt(const SUSRelativeNoteTime& time);
 
         s3d::uint32 current_timeline = Constant::DefaultHispeedNumber;
         s3d::uint32 measure_base = 0;
         s3d::uint32 measure_timeline = Constant::DefaultHispeedNumber;
-        s3d::uint32 ticks_per_beat = 480;
+        s3d::uint32 ticks_per_beat = Constant::DefaultTicksPerBeat;
         s3d::Array<SUSRawNoteData> raw_notes;
+        s3d::Array<SUSRawNoteData> bpm_notes;
         s3d::HashTable<s3d::uint32, double> bpm_difinitions;
         s3d::HashTable<s3d::uint32, SUSHispeedTimeline> hispeed_difinitions;
         std::map<s3d::uint32, float> beats_difinitions;
+
+        s3d::uint64 sample_rate = Constant::DefaultSampleRate;
+        s3d::uint64 sample_offset = 0;
     };
 }

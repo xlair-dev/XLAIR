@@ -53,13 +53,13 @@ namespace SheetsAnalyzer::SUSAnalyzer::internal {
         } else if (key == U"ATTRIBUTE") {
         } else if (key == U"NOATTRIBUTE") {
         } else if (key == U"HISPEED") {
-            data.current_timeline = s3d::ParseInt<uint32>(value, 36);
+            data.current_timeline = s3d::ParseInt<s3d::uint32>(value, 36);
         } else if (key == U"NOSPEED") {
             data.current_timeline = Constant::DefaultHispeedNumber;
         } else if (key == U"MEASUREBS") {
-            data.measure_base = s3d::ParseInt<uint32>(value, 10);
+            data.measure_base = s3d::ParseInt<s3d::uint32>(value, 10);
         } else if (key == U"MEASUREHS") {
-            data.measure_timeline = s3d::ParseInt<uint32>(value, 36);
+            data.measure_timeline = s3d::ParseInt<s3d::uint32>(value, 36);
         } else {
             // Error: Unknown
             return;
@@ -78,7 +78,7 @@ namespace SheetsAnalyzer::SUSAnalyzer::internal {
 
         // TODO: Handle error
         if (request == U"ticks_per_beat") {
-            data.ticks_per_beat = s3d::ParseInt<uint32>(arg);
+            data.ticks_per_beat = s3d::ParseInt<s3d::uint32>(arg);
         } else if (request == U"enable_priority") {
             // TBD
         } else if (request == U"metronome") {

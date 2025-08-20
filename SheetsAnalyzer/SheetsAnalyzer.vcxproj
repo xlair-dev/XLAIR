@@ -123,6 +123,7 @@
     <ClCompile Include="src\SUSAnalyzer\internal\AnalyzeCommandLine.cpp" />
     <ClCompile Include="src\SUSAnalyzer\internal\AnalyzeDataLine.cpp" />
     <ClCompile Include="src\SUSAnalyzer\SUSAnalyzer.cpp" />
+    <ClCompile Include="src\SUSAnalyzer\SUSData.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>

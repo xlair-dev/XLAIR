@@ -5,5 +5,5 @@
 #include "SheetData.hpp"
 
 namespace SheetsAnalyzer::SUSAnalyzer {
-    s3d::Optional<SheetData> Analyze(const s3d::FilePath& path);
+    s3d::Optional<SheetData> Analyze(const s3d::FilePath& path, const s3d::uint64 sample_rate, const double offset_sec);
 }
