@@ -1,6 +1,7 @@
 ﻿#include <Siv3D.hpp> // Siv3D v0.6.16
 
 #include "SideMenu.hpp"
+#include "SheetViewer.hpp"
 
 #include "addon/NotificationAddon.hpp"
 #include "addon/LoadingAnimationAddon.hpp"
@@ -17,8 +18,6 @@ void Main() {
     Window::Resize(1280, 720);
     Scene::SetBackground(Color { 20 });
 
-    Scene::SetResizeMode(ResizeMode::Keep);
-
     const Array<std::pair<String, Array<String>>> menu_items = {
         { U"File", { U"\U000F0214 Open", U"\U000F05AD Exit" } },
     };
@@ -27,8 +26,11 @@ void Main() {
 
     SideMenu side_menu;
 
+    SheetViewer sheet_viewer;
+
     while (System::Update()) {
         side_menu.update();
+        sheet_viewer.update();
 
         if (const auto item = menu_bar.update()) {
             // Exit
@@ -47,6 +49,12 @@ void Main() {
             }
         }
 
+        // sheet viewer
+        sheet_viewer.draw();
+
+        const auto width = Scene::Width();
+        const auto ui_y = Scene::Height() - 35;
+
         const String time = FormatTime(SecondsF { SheetManagerAddon::PosSec() }, U"M:ss")
             + U" / " + FormatTime(SecondsF { SheetManagerAddon::LengthSec() }, U"M:ss");
 
@@ -56,22 +64,22 @@ void Main() {
         const auto playing_label = enabled and SheetManagerAddon::IsPlaying() ? U"\U000F03E4" : U"\U000F040A";
 
         // play / pause
-        if (SimpleGUI::Button(playing_label, Vec2 { 300, 685 }, 50, enabled)) {
+        if (SimpleGUI::Button(playing_label, Vec2 { 300, ui_y }, 50, enabled)) {
             SheetManagerAddon::Toggle();
         }
 
         // stop
-        if (SimpleGUI::Button(U"\U000F04DB", Vec2 { 350, 685 }, 50, enabled)) {
+        if (SimpleGUI::Button(U"\U000F04DB", Vec2 { 350, ui_y }, 50, enabled)) {
             SheetManagerAddon::Stop();
         }
 
         // seek bar
-        if (SimpleGUI::Slider(time, progress, 0.0, 1.0, Vec2 { 400, 685 }, 100, 730, enabled)) {
+        if (SimpleGUI::Slider(time, progress, 0.0, 1.0, Vec2 { 400, ui_y }, 100, width - 550, enabled)) {
             SheetManagerAddon::SeekTime(SheetManagerAddon::LengthSec() * progress);
         }
 
         // reload
-        if (SimpleGUI::Button(U"\U000F0453", Vec2 { 1230, 685 }, 50, enabled)) {
+        if (SimpleGUI::Button(U"\U000F0453", Vec2 { width - 50, ui_y }, 50, enabled)) {
             const auto path = SheetManagerAddon::GetMetadata().path;
             SheetManagerAddon::LoadAsync(path);
         }
