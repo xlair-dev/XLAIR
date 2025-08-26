@@ -65,11 +65,25 @@ void SheetViewer::draw() const {
             if (sheet_data->valid) {
                 // Draw the sheet data
 
-                for (const auto tap : sheet_data->notes.tap) {
+                for (const auto& tap : sheet_data->notes.tap) {
                     const auto x = offset_left + 2 * UI::SideLaneWidth + tap.start_lane * UI::LaneWidth;
                     const auto note_width = tap.width * UI::LaneWidth;
                     const auto y = (height - 120) - static_cast<double>(tap.sample - pos_sample) * 0.005;
                     RectF { x, y, note_width, 20.0 }.draw(ColorF(0.8, 0.2, 0.2));
+                }
+
+                for (const auto& xtap : sheet_data->notes.xtap) {
+                    const auto x = offset_left + 2 * UI::SideLaneWidth + xtap.start_lane * UI::LaneWidth;
+                    const auto note_width = xtap.width * UI::LaneWidth;
+                    const auto y = (height - 120) - static_cast<double>(xtap.sample - pos_sample) * 0.005;
+                    RectF { x, y, note_width, 20.0 }.draw(ColorF(0.8, 0.8, 0.0));
+                }
+
+                for (const auto& flick : sheet_data->notes.flick) {
+                    const auto x = offset_left + 2 * UI::SideLaneWidth + flick.start_lane * UI::LaneWidth;
+                    const auto note_width = flick.width * UI::LaneWidth;
+                    const auto y = (height - 120) - static_cast<double>(flick.sample - pos_sample) * 0.005;
+                    RectF { x, y, note_width, 20.0 }.draw(ColorF(0.2, 0.2, 0.8));
                 }
             }
         }

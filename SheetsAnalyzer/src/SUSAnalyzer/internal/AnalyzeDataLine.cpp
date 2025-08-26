@@ -23,9 +23,14 @@ namespace SheetsAnalyzer::SUSAnalyzer::internal {
             switch (note_type) {
                 case U'0': AnalyzeSpecialNotes(data, meas, lane, value); break;
                 case U'1': AnalyzeShortNotes(data, meas, lane, value); break;
-                case U'2': // Side long notes
-                    break;
+                case U'2': AnalyzeSideLongNotes(data, meas, lane, value); break;
                 case U'3': AnalyzeHoldNotes(data, meas, lane, value); break;
+                case U'4': 
+                    // Hold2
+                    break;
+                case U'5': 
+                    // Side Notes
+                    break;
                 default:
                     // Error: Unknown note type.
                     break;

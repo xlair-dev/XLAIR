@@ -29,6 +29,13 @@ namespace SheetsAnalyzer::SUSAnalyzer {
         TapNote,
         XTapNote,
         FlickNote,
+
+        // Hold notes
+        HoldStartNote,
+        HoldEndNote,
+        HoldMidNote,
+        HoldControlPoint,
+        HoldMidUnvisibleNote,
     };
 
     struct SUSRawNoteData {
@@ -42,6 +49,7 @@ namespace SheetsAnalyzer::SUSAnalyzer {
                 s3d::uint8 width;
             } note_position;
         };
+        s3d::uint8 extra;
     };
 
     struct SUSHispeedData {
