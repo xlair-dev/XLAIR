@@ -1,0 +1,33 @@
+{
+  "version": 1,
+  "id": "example",
+  "title": "Example Title",
+  "title_sort": "Example Title",
+  "artist": "Artist",
+  "genre": "example",
+  "music": "example.wav",
+  "music_offset": 0,
+  "bpm": 120,
+  "jacket": "jacket.png",
+  "url": "https://example.com",
+  "difficulties": [
+    {
+      "id": 0,
+      "level": 2.0,
+      "src": "0.sus",
+      "designer": "Example Designer"
+    },
+    {
+      "id": 1,
+      "level": 3.0,
+      "src": "hispeed.sus",
+      "designer": "Example Designer"
+    },
+    {
+      "id": 2,
+      "level": 5.0,
+      "src": "hold.sus",
+      "designer": "Example Designer"
+    }
+  ]
+}

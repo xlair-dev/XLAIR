@@ -1,0 +1,98 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Header Files\SUSAnalyzer">
+      <UniqueIdentifier>{e81fcda1-bd6e-4320-894a-fd66e15760db}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\internal">
+      <UniqueIdentifier>{b39df470-476c-4275-8cf9-dca5561af34c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\internal">
+      <UniqueIdentifier>{6f338939-41ec-4083-b4fb-9e2017d86acc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\SUSAnalyzer">
+      <UniqueIdentifier>{8ff954a8-763e-41da-99b8-b3df9a6c70c4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\SUSAnalyzer\internal">
+      <UniqueIdentifier>{2c8fe4d5-f593-45f6-bb66-45ddad5511af}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\SUSAnalyzer\internal">
+      <UniqueIdentifier>{658e558d-06e8-4f7a-bea3-a2f95ffaa2f2}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="stdafx.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\SheetsAnalyzer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\internal\AnalyzeJsonFile.cpp">
+      <Filter>Source Files\internal</Filter>
+    </ClCompile>
+    <ClCompile Include="src\internal\AnalyzeTomlFile.cpp">
+      <Filter>Source Files\internal</Filter>
+    </ClCompile>
+    <ClCompile Include="src\SUSAnalyzer\SUSAnalyzer.cpp">
+      <Filter>Source Files\SUSAnalyzer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\SUSAnalyzer\internal\AnalyzeCommandLine.cpp">
+      <Filter>Source Files\SUSAnalyzer\internal</Filter>
+    </ClCompile>
+    <ClCompile Include="src\SUSAnalyzer\internal\AnalyzeDataLine.cpp">
+      <Filter>Source Files\SUSAnalyzer\internal</Filter>
+    </ClCompile>
+    <ClCompile Include="src\SUSAnalyzer\SUSData.cpp">
+      <Filter>Source Files\SUSAnalyzer</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="stdafx.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SheetsAnalyzer.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SUSAnalyzer\SUSAnalyzer.hpp">
+      <Filter>Header Files\SUSAnalyzer</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Metadata.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Constant.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\internal\AnalyzeFile.hpp">
+      <Filter>Header Files\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SUSAnalyzer\internal\AnalyzeCommandLine.hpp">
+      <Filter>Header Files\SUSAnalyzer\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SUSAnalyzer\internal\AnalyzeDataLine.hpp">
+      <Filter>Header Files\SUSAnalyzer\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SUSAnalyzer\internal\Utils.ipp">
+      <Filter>Header Files\SUSAnalyzer\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SUSAnalyzer\internal\AnalyzeNotes.ipp">
+      <Filter>Header Files\SUSAnalyzer\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SheetData.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\internal\Utils.ipp">
+      <Filter>Header Files\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SUSAnalyzer\SUSData.hpp">
+      <Filter>Header Files\SUSAnalyzer</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

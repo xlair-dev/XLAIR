@@ -1,0 +1,17 @@
+version = 1
+id = "example"
+title = "Example Title"
+title_sort = "example title"
+artist = "Example Artist"
+genre = "example"
+music = "music.wav"
+music_offset = -100
+bpm = 175
+jacket = "jacket.png"
+url = "https://example.com"
+
+[[difficulties]]
+id = 0
+level = 2.0
+src = "0.sus"
+designer = "Example Designer"
