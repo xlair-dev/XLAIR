@@ -1,5 +1,4 @@
 ﻿#include "InitializeApp.hpp"
-#include "app/di/SceneController.hpp"
 #include "app/consts/Scene.hpp"
 
 namespace app {
@@ -17,8 +16,6 @@ namespace app {
 
         Scene::Resize(consts::SceneSize);
         Scene::SetResizeMode(ResizeMode::Keep);
-
-        InitializeSceneController(app.sceneController);
 
     }
 }

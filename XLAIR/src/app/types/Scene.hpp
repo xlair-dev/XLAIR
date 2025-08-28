@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-namespace core::types {
+namespace app::types {
     enum class SceneState {
         Title,
         Login,

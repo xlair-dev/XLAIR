@@ -916,9 +916,6 @@
     <ClInclude Include="src\ui\scenes\Title.hpp">
       <Filter>Header Files\ui\scenes</Filter>
     </ClInclude>
-    <ClInclude Include="src\core\types\Scene.hpp">
-      <Filter>Header Files\core\types</Filter>
-    </ClInclude>
     <ClInclude Include="src\app\usecases\InitializeApp.hpp">
       <Filter>Header Files\app\usecases</Filter>
     </ClInclude>
@@ -959,6 +956,9 @@
       <Filter>Header Files\app\usecases</Filter>
     </ClInclude>
     <ClInclude Include="src\app\types\Config.hpp">
+      <Filter>Header Files\app\types</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\types\Scene.hpp">
       <Filter>Header Files\app\types</Filter>
     </ClInclude>
   </ItemGroup>

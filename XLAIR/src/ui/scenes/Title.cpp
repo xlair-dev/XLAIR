@@ -10,7 +10,7 @@ namespace ui {
     void Title::update() {
         // なにかキーを押すと遷移
         if (!Keyboard::GetAllInputs().empty()) {
-            changeScene(core::types::SceneState::Login);
+            changeScene(app::types::SceneState::Login);
         }
     }
     void Title::draw() const {}
