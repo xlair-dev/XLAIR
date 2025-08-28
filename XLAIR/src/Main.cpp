@@ -1,11 +1,20 @@
 ﻿#include "Common.hpp"
 #include "app/usecases/App.hpp"
 #include "app/usecases/InitializeApp.hpp"
+#include "app/usecases/LoadConfig.hpp"
+#include "app/consts/Config.hpp"
+#include "app/interfaces/IConfigProvider.hpp"
+#include "infra/config/TomlConfigProvider.hpp"
 
 void Main() {
-
     app::App app;
-    app::InitializeApp(app);
+
+    Array<std::shared_ptr<app::interfaces::IConfigProvider>> providers;
+    providers.emplace_back(std::make_shared<infra::config::TomlConfigProvider>(U"config.toml"));
+
+    const auto config = app::LoadConfig(providers);
+
+    app::InitializeApp(app, config);
 
     while (System::Update() and app.sceneController.update()) {
     }

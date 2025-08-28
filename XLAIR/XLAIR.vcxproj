@@ -123,7 +123,9 @@
   <ItemGroup>
     <ClCompile Include="src\app\di\SceneController.cpp" />
     <ClCompile Include="src\app\usecases\InitializeApp.cpp" />
+    <ClCompile Include="src\app\usecases\LoadConfig.cpp" />
     <ClCompile Include="src\infra\api\ApiClientMock.cpp" />
+    <ClCompile Include="src\infra\config\TomlConfigProvider.cpp" />
     <ClCompile Include="src\infra\controller\ControllerMock.cpp" />
     <ClCompile Include="src\Main.cpp" />
     <ClCompile Include="src\ui\scenes\Login.cpp" />
@@ -181,6 +183,7 @@
     <Text Include="App\example\video\river.txt" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="App\config.toml" />
     <None Include="App\dll\soundtouch\SoundTouch_x64.dll" />
     <None Include="App\engine\font\fontawesome\fontawesome-brands.otf.zstdcmp" />
     <None Include="App\engine\font\fontawesome\fontawesome-solid.otf.zstdcmp" />
@@ -336,15 +339,21 @@
     <Xml Include="App\example\xml\test.xml" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\app\consts\Scene.hpp" />
     <ClInclude Include="src\app\consts\Version.hpp" />
+    <ClInclude Include="src\app\consts\Config.hpp" />
     <ClInclude Include="src\app\di\SceneController.hpp" />
     <ClInclude Include="src\app\interfaces\IApiClient.hpp" />
+    <ClInclude Include="src\app\interfaces\IConfigProvider.hpp" />
     <ClInclude Include="src\app\interfaces\IController.hpp" />
     <ClInclude Include="src\app\usecases\App.hpp" />
     <ClInclude Include="src\app\usecases\InitializeApp.hpp" />
+    <ClInclude Include="src\app\usecases\LoadConfig.hpp" />
     <ClInclude Include="src\Common.hpp" />
+    <ClInclude Include="src\core\types\Config.hpp" />
     <ClInclude Include="src\core\types\Scene.hpp" />
     <ClInclude Include="src\infra\api\ApiClientMock.hpp" />
+    <ClInclude Include="src\infra\config\TomlConfigProvider.hpp" />
     <ClInclude Include="src\infra\controller\ControllerMock.hpp" />
     <ClInclude Include="src\ui\scenes\Login.hpp" />
     <ClInclude Include="src\ui\scenes\Title.hpp" />

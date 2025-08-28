@@ -1,7 +1,7 @@
 ﻿#pragma once
 
-namespace app {
-    struct IApiClient {
+namespace app::interfaces {
+    class IApiClient {
     public:
         virtual ~IApiClient() = default;
     };

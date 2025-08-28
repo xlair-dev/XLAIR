@@ -1,6 +1,6 @@
 ﻿#include "SceneController.hpp"
-#include "core/types/Scene.hpp"
 #include "app/usecases/App.hpp"
+#include "core/types/Scene.hpp"
 
 // di
 #include "ui/scenes/Title.hpp"
@@ -8,10 +8,11 @@
 
 namespace app {
     void InitializeSceneController(SceneController& controller) {
+        using SceneState = core::types::SceneState;
         controller
-            .add<ui::Title>(core::SceneState::Title)
-            .add<ui::Login>(core::SceneState::Login);
+            .add<ui::Title>(SceneState::Title)
+            .add<ui::Login>(SceneState::Login);
 
-        controller.init(core::SceneState::Title);
+        controller.init(SceneState::Title);
     }
 }
