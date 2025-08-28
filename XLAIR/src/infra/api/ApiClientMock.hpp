@@ -2,7 +2,7 @@
 #include "app/interfaces/IApiClient.hpp"
 
 namespace infra {
-    class ApiClientMock : app::IApiClient {
+    class ApiClientMock : public app::interfaces::IApiClient {
     public:
     private:
     };

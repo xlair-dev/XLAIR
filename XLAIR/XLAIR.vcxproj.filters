@@ -199,6 +199,15 @@
     <Filter Include="Source Files\infra\api">
       <UniqueIdentifier>{88f7637d-74be-4718-a7bd-78c50e4b5abe}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\infra\config">
+      <UniqueIdentifier>{a35e178a-8151-434b-bfb5-d04d48a59cab}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\infra\config">
+      <UniqueIdentifier>{eb1e23e2-97da-41bd-a142-f497e8435c28}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\app\types">
+      <UniqueIdentifier>{2c2f608f-5359-49a9-93c0-355937bc44a9}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -224,6 +233,15 @@
     </ClCompile>
     <ClCompile Include="src\Main.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\infra\config\TomlConfigProvider.cpp">
+      <Filter>Source Files\infra\config</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\usecases\LoadConfig.cpp">
+      <Filter>Source Files\app\usecases</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\di\Providers.cpp">
+      <Filter>Source Files\app\di</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -845,6 +863,9 @@
     <None Include="App\engine\shader\glsl\quad_warp.frag">
       <Filter>Resource Files\engine\shader\glsl</Filter>
     </None>
+    <None Include="App\config.toml">
+      <Filter>Resource Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Media Include="App\example\test.mp3">
@@ -898,9 +919,6 @@
     <ClInclude Include="src\ui\scenes\Title.hpp">
       <Filter>Header Files\ui\scenes</Filter>
     </ClInclude>
-    <ClInclude Include="src\core\types\Scene.hpp">
-      <Filter>Header Files\core\types</Filter>
-    </ClInclude>
     <ClInclude Include="src\app\usecases\InitializeApp.hpp">
       <Filter>Header Files\app\usecases</Filter>
     </ClInclude>
@@ -924,6 +942,30 @@
     </ClInclude>
     <ClInclude Include="src\infra\api\ApiClientMock.hpp">
       <Filter>Header Files\infra\api</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\consts\Config.hpp">
+      <Filter>Header Files\app\consts</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\interfaces\IConfigProvider.hpp">
+      <Filter>Header Files\app\interfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\consts\Scene.hpp">
+      <Filter>Header Files\app\consts</Filter>
+    </ClInclude>
+    <ClInclude Include="src\infra\config\TomlConfigProvider.hpp">
+      <Filter>Header Files\infra\config</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\usecases\LoadConfig.hpp">
+      <Filter>Header Files\app\usecases</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\types\Config.hpp">
+      <Filter>Header Files\app\types</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\types\Scene.hpp">
+      <Filter>Header Files\app\types</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\di\Providers.hpp">
+      <Filter>Header Files\app\di</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
