@@ -1,7 +1,7 @@
 ﻿#pragma once
 #include "App.hpp"
-#include "core/types/Config.hpp"
+#include "app/types/Config.hpp"
 
 namespace app {
-    void InitializeApp(App& app, const core::types::Config& config);
+    void InitializeApp(App& app, const app::types::Config& config);
 }

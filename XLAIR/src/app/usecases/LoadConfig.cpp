@@ -2,16 +2,17 @@
 #include "app/consts/Config.hpp"
 
 namespace app {
-    using Config = core::types::Config;
+    using Config = app::types::Config;
 
     Config LoadConfig(const Array<std::shared_ptr<interfaces::IConfigProvider>>& providers) {
-        Config result { app::consts::DefaultConfig };
+        Config config;
+
         for (auto& p : providers) {
-            result = p->load();
+            p->load(config);
         }
 
         // TODO: add validation
 
-        return result;
+        return config;
     }
 }

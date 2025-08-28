@@ -3,7 +3,7 @@
 #include "app/consts/Scene.hpp"
 
 namespace app {
-    void InitializeApp(App& app, const core::types::Config& config) {
+    void InitializeApp(App& app, const app::types::Config& config) {
         System::SetTerminationTriggers(UserAction::CloseButtonClicked);
 
 #if SIV3D_PLATFORM(WINDOWS)

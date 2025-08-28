@@ -1,7 +1,7 @@
 ﻿#pragma once
 #include "app/interfaces/IConfigProvider.hpp"
-#include "core/types/Config.hpp"
+#include "app/types/Config.hpp"
 
 namespace app {
-    core::types::Config LoadConfig(const Array<std::shared_ptr<interfaces::IConfigProvider>>& providers);
+    app::types::Config LoadConfig(const Array<std::shared_ptr<interfaces::IConfigProvider>>& providers);
 }

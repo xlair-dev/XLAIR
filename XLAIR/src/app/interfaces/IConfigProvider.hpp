@@ -1,11 +1,11 @@
 ﻿#pragma once
-#include "core/types/Config.hpp"
+#include "app/types/Config.hpp"
 
 namespace app::interfaces {
     class IConfigProvider {
     public:
         virtual ~IConfigProvider() = default;
 
-        virtual core::types::Config load() = 0;
+        virtual void load(types::Config& config) = 0;
     };
 }

@@ -205,6 +205,9 @@
     <Filter Include="Source Files\infra\config">
       <UniqueIdentifier>{eb1e23e2-97da-41bd-a142-f497e8435c28}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\app\types">
+      <UniqueIdentifier>{2c2f608f-5359-49a9-93c0-355937bc44a9}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -946,9 +949,6 @@
     <ClInclude Include="src\app\interfaces\IConfigProvider.hpp">
       <Filter>Header Files\app\interfaces</Filter>
     </ClInclude>
-    <ClInclude Include="src\core\types\Config.hpp">
-      <Filter>Header Files\core\types</Filter>
-    </ClInclude>
     <ClInclude Include="src\app\consts\Scene.hpp">
       <Filter>Header Files\app\consts</Filter>
     </ClInclude>
@@ -957,6 +957,9 @@
     </ClInclude>
     <ClInclude Include="src\app\usecases\LoadConfig.hpp">
       <Filter>Header Files\app\usecases</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\types\Config.hpp">
+      <Filter>Header Files\app\types</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

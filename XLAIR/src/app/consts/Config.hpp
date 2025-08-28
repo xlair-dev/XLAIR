@@ -1,6 +1,6 @@
 ﻿#pragma once
 #include <Common.hpp>
-#include "core/types/Config.hpp"
+#include "app/types/Config.hpp"
 
 namespace app::consts {
     namespace defaults {
@@ -12,18 +12,5 @@ namespace app::consts {
 
         static inline constexpr bool Arcade = false;
     }
-
-    static inline constexpr core::types::Config DefaultConfig {
-        .window = {
-            .width = defaults::Width,
-            .height = defaults::Height,
-            .sizable = defaults::Sizable,
-            .fullscreen = defaults::Fullscreen,
-            .letterbox_color = defaults::LetterboxColor,
-        },
-        .system = {
-            .arcade = defaults::Arcade,
-        },
-    };
 }
 

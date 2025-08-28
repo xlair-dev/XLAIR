@@ -346,11 +346,11 @@
     <ClInclude Include="src\app\interfaces\IApiClient.hpp" />
     <ClInclude Include="src\app\interfaces\IConfigProvider.hpp" />
     <ClInclude Include="src\app\interfaces\IController.hpp" />
+    <ClInclude Include="src\app\types\Config.hpp" />
     <ClInclude Include="src\app\usecases\App.hpp" />
     <ClInclude Include="src\app\usecases\InitializeApp.hpp" />
     <ClInclude Include="src\app\usecases\LoadConfig.hpp" />
     <ClInclude Include="src\Common.hpp" />
-    <ClInclude Include="src\core\types\Config.hpp" />
     <ClInclude Include="src\core\types\Scene.hpp" />
     <ClInclude Include="src\infra\api\ApiClientMock.hpp" />
     <ClInclude Include="src\infra\config\TomlConfigProvider.hpp" />
