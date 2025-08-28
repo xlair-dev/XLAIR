@@ -121,6 +121,7 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\app\di\Providers.cpp" />
     <ClCompile Include="src\app\di\SceneController.cpp" />
     <ClCompile Include="src\app\usecases\InitializeApp.cpp" />
     <ClCompile Include="src\app\usecases\LoadConfig.cpp" />
@@ -342,6 +343,7 @@
     <ClInclude Include="src\app\consts\Scene.hpp" />
     <ClInclude Include="src\app\consts\Version.hpp" />
     <ClInclude Include="src\app\consts\Config.hpp" />
+    <ClInclude Include="src\app\di\Providers.hpp" />
     <ClInclude Include="src\app\di\SceneController.hpp" />
     <ClInclude Include="src\app\interfaces\IApiClient.hpp" />
     <ClInclude Include="src\app\interfaces\IConfigProvider.hpp" />

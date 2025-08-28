@@ -3,5 +3,5 @@
 #include "app/types/Config.hpp"
 
 namespace app {
-    app::types::Config LoadConfig(const Array<std::shared_ptr<interfaces::IConfigProvider>>& providers);
+    app::types::Config LoadConfig(const Array<std::unique_ptr<interfaces::IConfigProvider>>& providers);
 }

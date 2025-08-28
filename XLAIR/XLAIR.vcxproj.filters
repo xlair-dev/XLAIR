@@ -240,6 +240,9 @@
     <ClCompile Include="src\app\usecases\LoadConfig.cpp">
       <Filter>Source Files\app\usecases</Filter>
     </ClCompile>
+    <ClCompile Include="src\app\di\Providers.cpp">
+      <Filter>Source Files\app\di</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Image Include="App\icon.ico">
@@ -960,6 +963,9 @@
     </ClInclude>
     <ClInclude Include="src\app\types\Scene.hpp">
       <Filter>Header Files\app\types</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\di\Providers.hpp">
+      <Filter>Header Files\app\di</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

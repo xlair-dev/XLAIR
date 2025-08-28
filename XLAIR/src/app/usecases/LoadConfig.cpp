@@ -1,10 +1,10 @@
-﻿#include "app/usecases/LoadConfig.hpp"
+﻿#include "LoadConfig.hpp"
 #include "app/consts/Config.hpp"
 
 namespace app {
     using Config = app::types::Config;
 
-    Config LoadConfig(const Array<std::shared_ptr<interfaces::IConfigProvider>>& providers) {
+    Config LoadConfig(const Array<std::unique_ptr<interfaces::IConfigProvider>>& providers) {
         Config config;
 
         for (auto& p : providers) {
