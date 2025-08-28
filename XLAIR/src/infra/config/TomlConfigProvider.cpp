@@ -11,6 +11,7 @@ namespace infra::config {
             return;
         }
 
+        // TODO: add error handling
         config.system.arcade = toml[U"System.arcade"].get<bool>();
 
         config.window.width = toml[U"Window.width"].get<int32>();
