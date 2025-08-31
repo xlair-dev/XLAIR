@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-namespace app {
+namespace app::interfaces {
     class IController {
     public:
         virtual ~IController() = default;

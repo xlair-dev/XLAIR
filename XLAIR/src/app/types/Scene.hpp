@@ -1,11 +1,9 @@
 ﻿#pragma once
 
-namespace core {
-
+namespace app::types {
     enum class SceneState {
         Title,
         Login,
         MapSelect,
     };
-
 }
