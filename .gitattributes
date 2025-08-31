@@ -1,0 +1,5 @@
+*                 text=auto
+
+*.sln             text eol=crlf merge=union linguist-generated=true
+*.vcxproj         text eol=crlf             linguist-generated=true
+*.vcxproj.filters text eol=crlf merge=union linguist-generated=true
