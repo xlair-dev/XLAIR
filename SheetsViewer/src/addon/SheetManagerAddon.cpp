@@ -1,5 +1,4 @@
 ﻿#include "SheetManagerAddon.hpp"
-#include "SUSAnalyzer/SUSAnalyzer.hpp"
 
 #include "addon/NotificationAddon.hpp"
 #include "addon/LoadingAnimationAddon.hpp"
@@ -62,7 +61,7 @@ bool SheetManagerAddon::update() {
                     } else {
                         const auto offset = m_metadata.music_offset;
                         m_loading_data_tasks[index] = AsyncTask<Optional<SheetsAnalyzer::SheetData>>([difficulty, sample_rate, offset]() {
-                            return SheetsAnalyzer::SUSAnalyzer::Analyze(difficulty.src, sample_rate, offset);
+                            return SheetsAnalyzer::AnalyzeData(difficulty.src, sample_rate, offset);
                         });
                     }
                 }
