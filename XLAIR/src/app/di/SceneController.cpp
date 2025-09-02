@@ -7,12 +7,13 @@
 #include "ui/scenes/Login.hpp"
 
 namespace app {
-    void InitializeSceneController(SceneController& controller) {
-        using SceneState = app::types::SceneState;
+    using SceneState = app::types::SceneState;
+
+    void InitializeSceneController(SceneController& controller, SceneState initial_scene) {
         controller
             .add<ui::Title>(SceneState::Title)
             .add<ui::Login>(SceneState::Login);
 
-        controller.init(SceneState::Title);
+        controller.init(initial_scene);
     }
 }
