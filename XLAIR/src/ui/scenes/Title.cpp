@@ -14,4 +14,4 @@ namespace ui {
         }
     }
     void Title::draw() const {}
-};
+}

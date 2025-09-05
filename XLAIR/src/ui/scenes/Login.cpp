@@ -7,4 +7,4 @@ namespace ui {
     Login::~Login() {}
     void Login::update() {}
     void Login::draw() const {}
-};
+}
