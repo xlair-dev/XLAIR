@@ -208,6 +208,18 @@
     <Filter Include="Header Files\app\types">
       <UniqueIdentifier>{2c2f608f-5359-49a9-93c0-355937bc44a9}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\core\features">
+      <UniqueIdentifier>{9abe2900-3c4e-486a-8d3d-5c418619d9ca}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\infra\sheet">
+      <UniqueIdentifier>{122f1e89-f3cd-4613-96c3-15d9aa503267}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\infra\sheet">
+      <UniqueIdentifier>{2f5712e3-f5dc-4e68-bb18-e5e6856d769e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\core\features">
+      <UniqueIdentifier>{97cab796-ff31-421b-a466-2a315e6f82ed}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -242,6 +254,15 @@
     </ClCompile>
     <ClCompile Include="src\app\di\Providers.cpp">
       <Filter>Source Files\app\di</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ui\scenes\MusicSelect.cpp">
+      <Filter>Source Files\ui\scenes</Filter>
+    </ClCompile>
+    <ClCompile Include="src\infra\sheet\SheetMock.cpp">
+      <Filter>Source Files\infra\sheet</Filter>
+    </ClCompile>
+    <ClCompile Include="src\core\features\SheetRepository.cpp">
+      <Filter>Source Files\core\features</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -966,6 +987,24 @@
     </ClInclude>
     <ClInclude Include="src\app\di\Providers.hpp">
       <Filter>Header Files\app\di</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ui\scenes\MusicSelect.hpp">
+      <Filter>Header Files\ui\scenes</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\interfaces\ISheetProvider.hpp">
+      <Filter>Header Files\app\interfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="src\core\types\Sheet.hpp">
+      <Filter>Header Files\core\types</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\usecases\LoadSheet.hpp">
+      <Filter>Header Files\app\usecases</Filter>
+    </ClInclude>
+    <ClInclude Include="src\core\features\SheetRepository.hpp">
+      <Filter>Header Files\core\features</Filter>
+    </ClInclude>
+    <ClInclude Include="src\infra\sheet\SheetMock.hpp">
+      <Filter>Header Files\infra\sheet</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -1,11 +1,13 @@
 ﻿#pragma once
 #include "Common.hpp"
 #include "app/types/Scene.hpp"
+#include "core/features/SheetRepository.hpp"
 
 namespace app {
 
-    // TODO: 仮のゲームのデータ
-    struct GameData {};
+    struct GameData {
+        core::features::SheetRepository sheetRepository;
+    };
 
     using SceneController = SceneManager<app::types::SceneState, GameData>;
 
