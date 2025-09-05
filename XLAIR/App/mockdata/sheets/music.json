@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "id": "mockdata",
+  "title": "Title",
+  "title_sort": "Title",
+  "artist": "Artist",
+  "genre": "mock",
+  "music": "music.wav",
+  "music_offset": 0,
+  "bpm": 120,
+  "jacket": "jacket.png",
+  "url": "https://example.com",
+  "difficulties": [
+    {
+      "id": 0,
+      "level": 1.0,
+      "src": "0.sus",
+      "designer": "Designer"
+    }
+  ]
+}
