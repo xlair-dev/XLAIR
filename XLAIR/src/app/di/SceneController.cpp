@@ -16,6 +16,9 @@ namespace app {
             .add<ui::Login>(SceneState::Login)
             .add<ui::MusicSelect>(SceneState::MusicSelect);
 
+        // TODO: asset management
+        ui::MusicSelect::RegisterAssets();
+
         controller.init(initial_scene, 0);
     }
 }

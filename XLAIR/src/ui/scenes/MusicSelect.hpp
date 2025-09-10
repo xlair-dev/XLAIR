@@ -14,7 +14,17 @@ namespace ui {
         void update() override;
         void draw() const override;
 
+        static void RegisterAssets();
+
     private:
         components::Tile m_tile;
+
+        struct Assets {
+            static constexpr AssetNameView MenuUITitle { U"MusicSelect.MenuUITitle" };
+        };
+
+        void drawBackground() const;
+        void drawUI() const;
+        void drawTiles() const;
     };
 }

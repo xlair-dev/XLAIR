@@ -17,7 +17,7 @@ void Main() {
     app.sceneController.get().get()->sheetRepository.loadJacket();
 
     // TODO: asset management
-    TextureAsset::Register(U"sparkle", U"assets/textures/s2.png");
+    TextureAsset::Register(U"sparkle", U"assets/textures/sparkle_x2.png");
     TextureAsset::Load(U"sparkle");
     FontAsset::Register(U"tile", FontMethod::Bitmap, 76, U"assets/fonts/Jost/Jost-Medium.ttf");
     FontAsset::Load(U"tile");
@@ -27,8 +27,11 @@ void Main() {
     const Font cjk { 150, Typeface::CJK_Regular_JP };
     FontAsset(U"tile.text").addFallback(cjk);
 
-    FontAsset::Register(U"BrunoAce", FontMethod::Bitmap, 70, U"assets/fonts/Bruno_Ace/BrunoAce-Regular.ttf");
+    FontAsset::Register(U"BrunoAce", FontMethod::Bitmap, 70, U"assets/fonts/BrunoAce/BrunoAce-Regular.ttf");
     FontAsset::Load(U"BrunoAce");
+
+    PixelShaderAsset::Register(U"grayscale", HLSL{ U"assets/shaders/grayscale.hlsl", U"PS" } | GLSL{ U"assets/shaders/grayscale.frag", {{U"PSConstants2D", 0}} });
+    PixelShaderAsset::Load(U"grayscale");
 
     app::InitializeSceneController(app.sceneController, app::types::SceneState::MusicSelect);
     while (System::Update() and app.sceneController.update()) {

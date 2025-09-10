@@ -220,6 +220,24 @@
     <Filter Include="Source Files\core\features">
       <UniqueIdentifier>{97cab796-ff31-421b-a466-2a315e6f82ed}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\ui\components">
+      <UniqueIdentifier>{62d5ff4e-093a-4c35-b871-eb40bdffe39e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\ui\components">
+      <UniqueIdentifier>{df90883b-50d7-41cb-8328-e342d5edfeb3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files\assets">
+      <UniqueIdentifier>{731a0a76-5389-4b5d-9d38-7612bd8010df}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files\assets\textures">
+      <UniqueIdentifier>{acd89db4-ba36-4ce5-9b00-a99b61f1295b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files\assets\fonts">
+      <UniqueIdentifier>{026b62e5-b3a9-4f48-83b1-301415233e99}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files\assets\fonts\Jost">
+      <UniqueIdentifier>{bcad3837-93dd-4193-bea9-4402e41adc6b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -263,6 +281,15 @@
     </ClCompile>
     <ClCompile Include="src\core\features\SheetRepository.cpp">
       <Filter>Source Files\core\features</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ui\components\Tile.cpp">
+      <Filter>Source Files\ui\components</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ui\components\PlayerNameplate.cpp">
+      <Filter>Source Files\ui\components</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ui\components\MenuTimerPlate.cpp">
+      <Filter>Source Files\ui\components</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -337,6 +364,12 @@
     </Image>
     <Image Include="App\example\obj\siv3d-kun-eye.png">
       <Filter>Resource Files\example\obj</Filter>
+    </Image>
+    <Image Include="App\assets\textures\sparkle.png">
+      <Filter>Resource Files\assets\textures</Filter>
+    </Image>
+    <Image Include="App\assets\textures\sparkle_x2.png">
+      <Filter>Resource Files\assets\textures</Filter>
     </Image>
   </ItemGroup>
   <ItemGroup>
@@ -1005,6 +1038,15 @@
     </ClInclude>
     <ClInclude Include="src\infra\sheet\SheetMock.hpp">
       <Filter>Header Files\infra\sheet</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ui\components\Tile.hpp">
+      <Filter>Header Files\ui\components</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ui\components\PlayerNameplate.hpp">
+      <Filter>Header Files\ui\components</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ui\components\MenuTimerPlate.hpp">
+      <Filter>Header Files\ui\components</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
