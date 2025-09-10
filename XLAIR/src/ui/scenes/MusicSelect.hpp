@@ -2,6 +2,8 @@
 #include "Common.hpp"
 #include "app/usecases/App.hpp"
 
+#include "ui/components/Tile.hpp"
+
 using app::App;
 
 namespace ui {
@@ -13,5 +15,6 @@ namespace ui {
         void draw() const override;
 
     private:
+        components::Tile m_tile;
     };
 }

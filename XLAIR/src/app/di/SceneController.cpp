@@ -16,6 +16,6 @@ namespace app {
             .add<ui::Login>(SceneState::Login)
             .add<ui::MusicSelect>(SceneState::MusicSelect);
 
-        controller.init(initial_scene);
+        controller.init(initial_scene, 0);
     }
 }

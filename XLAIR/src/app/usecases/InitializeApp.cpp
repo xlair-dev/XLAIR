@@ -16,6 +16,6 @@ namespace app {
 
         Scene::Resize(consts::SceneSize);
         Scene::SetResizeMode(ResizeMode::Keep);
-
+        // Scene::SetBackground(Palette::White);
     }
 }

@@ -33,10 +33,11 @@ namespace core::features {
         for (size_t i = 0; i < m_metadata.size(); ++i) {
             const auto name = GetJacketAssetName(i);
             const auto& path = m_metadata[i].jacket;
+
             if (TextureAsset::IsRegistered(name)) {
                 TextureAsset::Unregister(name);
             }
-            TextureAsset::Register(name, path);
+            TextureAsset::Register(name, path, TextureDesc::Mipped);
             TextureAsset::Load(name);
         }
         return true;
