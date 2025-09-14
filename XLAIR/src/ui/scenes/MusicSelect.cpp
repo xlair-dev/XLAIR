@@ -20,19 +20,24 @@ namespace ui {
             if (KeyRight.down()) {
                 ++m_selected_index;
                 m_scroll_offset = -1.0;
+                m_tile_offset_raw = -OffsetWait;
             }
         }
         if (m_selected_index > 0) {
             if (KeyLeft.down()) {
                 --m_selected_index;
                 m_scroll_offset = 1.0;
+                m_tile_offset_raw = -OffsetWait;
             }
         }
 
         m_scroll_offset = Math::SmoothDamp(m_scroll_offset, 0.0, m_scroll_velocity, 0.1);
+        m_tile_offset_raw += Scene::DeltaTime();
+        m_tile_offset = Math::Max(0.0, m_tile_offset_raw);
     }
 
     void MusicSelect::draw() const {
+
         // drawBackground();
 
         drawUI();
@@ -42,11 +47,6 @@ namespace ui {
         components::DrawPlayerNameplate(Point{ 59, 72 });
         components::DrawMenuTimerPlate(Point{ 1599, 72 }, 58, 1);
 
-        /*
-        RectF { TileSize }(
-            m_tile.get(getData().sheetRepository.getMetadata(0), *getData().sheetRepository.getJacket(0), 0)
-        ).draw(100, 300);
-        */
     }
 
     void MusicSelect::drawBackground() const {
@@ -102,7 +102,10 @@ namespace ui {
         const double selected_tile_x = center.x - neighbor_gap * s;
 
         const RectF selected_tile{ Arg::center = Vec2{ selected_tile_x, TileY }, selected_tile_size };
-        selected_tile.draw(Palette::Black);
+         
+        selected_tile(
+            m_tile.get(repo.getMetadata(m_selected_index), *repo.getJacket(m_selected_index), 0, m_tile_offset)
+        ).draw();
 
         const auto drawSide = [&](int32 dir) {
             const double ds = dir * s;
@@ -129,7 +132,9 @@ namespace ui {
                 }
 
                 RectF tile{ Arg::center = tile_pos.movedBy(dir * tile_size.x / 2, 0), tile_size};
-                tile.draw(Palette::Gray);
+                tile(
+                    m_tile.get(repo.getMetadata(i), *repo.getJacket(i), 0, m_tile_offset)
+                ).draw();
 
                 x += dir * (TileSpacing + TileSize.x);
             }
@@ -167,7 +172,7 @@ namespace ui {
 
             // TODO: define colors somewhere
             constexpr ColorF SubColor = ColorF{ U"#9B9FCF" };
-            font_sub(TextSub).stampAt(image, region_main.w / 2, 107, SubColor);
+            font_sub(TextSub).stampAt(image, region_main.w / 2.0, 107, SubColor);
 
             asset.texture = Texture{ image };
             return static_cast<bool>(asset.texture);

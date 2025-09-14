@@ -13,6 +13,7 @@ namespace ui {
         static constexpr double SelectedTileMargin = 50.0;
         static constexpr double TileSpacing = 50.0;
         static constexpr double TileY = 553.0;
+        static constexpr double OffsetWait = 1.0;
     }
 
     class MusicSelect : public App::Scene {
@@ -26,6 +27,8 @@ namespace ui {
 
     private:
         components::Tile m_tile;
+        double m_tile_offset_raw = -consts::OffsetWait;
+        double m_tile_offset = 0.0;
 
         size_t m_selected_index = 0;
         double m_scroll_offset = 0.0;
