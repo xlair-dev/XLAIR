@@ -2,6 +2,9 @@
 
 namespace ui::components {
     void DrawPlayerNameplate(const Point& pos) {
+        // TODO: user
+        constexpr StringView DisplayName{ U"Display Name" };
+        constexpr int32 rating = 200;
         ScopedViewport2D viewport{ pos, 600, 200 };
         constexpr ColorF BaseColor { U"#55C8FF" };
         constexpr ColorF AccentColor = ColorF { BaseColor, 0.44 };
@@ -30,8 +33,11 @@ namespace ui::components {
         Line { 35, 115, 35 + 179, 115 }.draw(LineStyle::RoundCap, 4, BaseColor);
 
         // name
-        FontAsset(U"tile.text")(U"Display Name").draw(32, Arg::bottomLeft = t4.movedBy(5, 10), TextColor);
+        FontAsset(U"tile.text")(DisplayName).draw(32, Arg::bottomLeft = t4.movedBy(5, 10), TextColor);
 
         // rating
+        FontAsset(U"tile")(U"RATE").draw(18, Arg::topLeft = t4.movedBy(5, 6), BaseColor);
+        FontAsset(U"tile.text")(rating).draw(18, Arg::topLeft = t4.movedBy(57, 6), TextColor);
+        Triangle{ 0, 0, 0, 11, 5.5, 5.5 }.movedBy(t4).movedBy(50, 13.5).draw(AccentColor);
     }
 }
