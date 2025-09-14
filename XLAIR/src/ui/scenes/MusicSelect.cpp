@@ -176,7 +176,7 @@ namespace ui {
 
             asset.texture = Texture{ image };
             return static_cast<bool>(asset.texture);
-            };
+        };
 
         return data;
     }
@@ -184,5 +184,6 @@ namespace ui {
     void MusicSelect::RegisterAssets() {
         TextureAsset::Register({ Assets::MenuUITitle }, MakeMenuUITitle());
         TextureAsset::Load({ Assets::MenuUITitle });
+        components::Tile::RegisterAssets();
     }
 }

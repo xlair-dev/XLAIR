@@ -1,7 +1,8 @@
 ﻿#include "Tile.hpp"
+#include "ui/primitives/SparkleShape.hpp"
 
 namespace ui::components {
-    Tile::Tile() : m_tile_rt{ Scale * TileSize } {}
+    Tile::Tile() : m_tile_rt{ TileSize } {}
 
     const MSRenderTexture& Tile::get(const core::types::SheetMetadata& data, const TextureRegion& jacket, size_t difficulty_index, const double offset) const {
         const auto difficulty = data.difficulties[difficulty_index];
@@ -20,55 +21,55 @@ namespace ui::components {
             // background
             {
                 constexpr ColorF BG = (AccentColor * 1.4).withA(0.25);
-                Circle{ Scale * Vec2{ 0, 0 }, Scale * 100 }.draw(BG, Palette::White);
-                Circle{ Scale * Vec2{ TileSize.x, 0 }, Scale * 100 }.draw(BG, Palette::White);
-                Circle{ Scale * Vec2{ 0, TileSize.y }, Scale * 100 }.draw(BG, Palette::White);
-                Circle{ Scale * Vec2{ TileSize.x, TileSize.y }, Scale * 100 }.draw(BG, Palette::White);
+                Circle{ Vec2{ 0, 0 }, 100 }.draw(BG, Palette::White);
+                Circle{ Vec2{ TileSize.x, 0 }, 100 }.draw(BG, Palette::White);
+                Circle{ Vec2{ 0, TileSize.y }, 100 }.draw(BG, Palette::White);
+                Circle{ Vec2{ TileSize.x, TileSize.y }, 100 }.draw(BG, Palette::White);
             }
 
             // frame
-            RectF{ Scale * TileSize }.drawFrame(Scale * 2, 0, AccentColor);
+            RectF{ TileSize }.drawFrame(2, 0, AccentColor);
 
             // jacket
-            RectF{ Scale * Vec2{ 58, 20 }, Scale * Size{ 338, 338 } }.draw(AccentColor);
-            RectF{ Scale * Vec2{ 64, 20 }, Scale * Size{ 332, 332 } }(jacket).draw();
+            RectF{ Vec2{ 58, 20 },  Size{ 338, 338 } }.draw(AccentColor);
+            RectF{ Vec2{ 64, 20 },  Size{ 332, 332 } }(jacket).draw();
 
             // decorations
-            Line{ Scale * Vec2{ 349, 10 }, Scale * Vec2{ 406, 10 } }.draw(Scale * 2, AccentColor);
-            Line{ Scale * Vec2{ 406, 10 }, Scale * Vec2{ 406, 67 } }.draw(Scale * 2, AccentColor);
+            Line{ Vec2{ 349, 10 },  Vec2{ 406, 10 } }.draw(2, AccentColor);
+            Line{ Vec2{ 406, 10 },  Vec2{ 406, 67 } }.draw(2, AccentColor);
 
-            Line{ Scale * Vec2{ 213, 534 }, Scale * Vec2{ 406, 534 } }.draw(Scale * 2, AccentColor);
-            Line{ Scale * Vec2{ 406, 496 }, Scale * Vec2{ 406, 534 } }.draw(Scale * 2, AccentColor);
+            Line{ Vec2{ 213, 534 },  Vec2{ 406, 534 } }.draw(2, AccentColor);
+            Line{ Vec2{ 406, 496 },  Vec2{ 406, 534 } }.draw(2, AccentColor);
 
-            TextureAsset(U"sparkle").resized(44, 60).scaled(Scale).draw(Scale * Vec2{ 8, 341 }, Arg::top = AccentColor, Arg::bottom = SubColor);
-            TextureAsset(U"sparkle").resized(44, 60).scaled(Scale).draw(Scale * Vec2{ 8, 396 }, Arg::top = AccentColor, Arg::bottom = SubColor);
-            TextureAsset(U"sparkle").resized(44, 60).scaled(Scale).draw(Scale * Vec2{ 8, 450 }, Arg::top = AccentColor, Arg::bottom = SubColor);
+            TextureAsset(Assets::Sparkle).draw(Vec2{ 8, 341 }, Arg::top = AccentColor, Arg::bottom = SubColor);
+            TextureAsset(Assets::Sparkle).draw(Vec2{ 8, 396 }, Arg::top = AccentColor, Arg::bottom = SubColor);
+            TextureAsset(Assets::Sparkle).draw(Vec2{ 8, 450 }, Arg::top = AccentColor, Arg::bottom = SubColor);
 
             // difficulty
             {
-                const Transformer2D tr{ Mat3x2::Rotate(90_deg, Scale * Vec2{0, 0}) };
-                FontAsset(U"tile")(DifficultyStr).draw(Scale * 36, Scale * Vec2{ 20, -57 }, AccentColor);
+                const Transformer2D tr{ Mat3x2::Rotate(90_deg, Vec2{0, 0}) };
+                FontAsset(U"tile")(DifficultyStr).draw(36, Vec2{ 20, -57 }, AccentColor);
             }
 
             // level
             {
-                const Transformer2D tr{ Mat3x2::Rotate(-90_deg, Scale * Vec2{0, 0}) };
-                FontAsset(U"tile")(U"LEVEL").draw(Scale * 23, Scale * Vec2{ -505, 50 }, AccentColor);
+                const Transformer2D tr{ Mat3x2::Rotate(-90_deg, Vec2{0, 0}) };
+                FontAsset(U"tile")(U"LEVEL").draw(23, Vec2{ -505, 50 }, AccentColor);
             }
             {
                 const double level_x = (difficulty.level < 10 ? 90 : 80);
-                FontAsset(U"tile.text")(difficulty.level).drawBase(Scale * 87, Scale * level_x, Scale * 503, TextColor);
+                FontAsset(U"tile.text")(difficulty.level).drawBase(87, level_x, 503, TextColor);
             }
 
             // title and artist
             {
-                constexpr Rect DescriptionRegion{ Scale * Point{ 58, 363 }, Scale * Point{ 338, 75 } };
-                constexpr double DescriptionOffsetMargin = Scale * 80;
-                constexpr double DescriptionVel = Scale * 50.0;
-                constexpr double TitleY = Scale * 50;
-                constexpr auto TitleFotntSize = Scale * 36;
-                constexpr double ArtistY = Scale * 75;
-                constexpr auto ArtistFontSize = Scale * 24;
+                constexpr Rect DescriptionRegion{ Point{ 58, 363 },  Point{ 338, 75 } };
+                constexpr double DescriptionOffsetMargin = 80;
+                constexpr double DescriptionVel = 50.0;
+                constexpr double TitleY = 50;
+                constexpr auto TitleFotntSize = 36;
+                constexpr double ArtistY = 75;
+                constexpr auto ArtistFontSize = 24;
 
                 const ScopedViewport2D viewport{ DescriptionRegion };
 
@@ -98,22 +99,22 @@ namespace ui::components {
 
             // high score
             {
-                FontAsset(U"tile")(U"HIGH").draw(Scale * 17, Scale * 177, Scale * 470, AccentColor);
-                FontAsset(U"tile")(U"SCORE").draw(Scale * 17, Scale * 177, Scale * 485, AccentColor);
+                FontAsset(U"tile")(U"HIGH").draw(17, 177, 470, AccentColor);
+                FontAsset(U"tile")(U"SCORE").draw(17, 177, 485, AccentColor);
 
-                FontAsset(U"tile.text")(Score).draw(Scale * 40, Arg::bottomRight = Scale * Vec2{ 395, 520 }, TextColor);
+                FontAsset(U"tile.text")(Score).draw(40, Arg::bottomRight = Vec2{ 395, 520 }, TextColor);
             }
 
             // badge
             {
                 // Rank
-                drawBadge(Scale * Vec2{ 177, 446 }, Scale * Vec2{ 74, 23 }, U"SSS");
+                drawBadge(Vec2{ 177, 446 }, Vec2{ 74, 23 }, U"SSS");
                 // Status
-                drawBadge(Scale * Vec2{ 255, 446 }, Scale * Vec2{ 140, 23 }, U"FULL COMBO");
+                drawBadge(Vec2{ 255, 446 }, Vec2{ 140, 23 }, U"FULL COMBO");
             }
 
             // notes designer
-            FontAsset(U"tile.text")(U"NOTES DESIGNER: {}"_fmt(difficulty.designer)).drawBase(Scale * 15, Scale * 16, Scale * 534, AccentColor);
+            FontAsset(U"tile.text")(U"NOTES DESIGNER: {}"_fmt(difficulty.designer)).drawBase(15, 16, 534, AccentColor);
         }
 
         Graphics2D::Flush();
@@ -129,6 +130,35 @@ namespace ui::components {
         RectF{ pos, mid }.draw(Arg::left = AccentColor, SubColor);
         RectF{ pos.movedBy(mid.x, 0), end }.draw(Arg::left = SubColor, Arg::right = AccentColor);
 
-        FontAsset(U"tile")(s).draw(Scale * 18, Arg::center = pos.movedBy(size.x / 2.0, size.y / 2.0), Palette::White);
+        FontAsset(U"tile")(s).draw(18, Arg::center = pos.movedBy(size.x / 2.0, size.y / 2.0), Palette::White);
+    }
+
+    std::unique_ptr<TextureAssetData> MakeSparkle() {
+        std::unique_ptr<TextureAssetData> data = std::make_unique<TextureAssetData>();
+
+        data->onLoad = [](TextureAssetData& asset, const String&) {
+            const int32 scale = 3;
+            static constexpr Size SparkleSize{ 44, 61 };
+            const auto [w, h] = SparkleSize;
+            Image image{ scale * SparkleSize };
+            primitives::Sparkle(scale * Vec2{ w / 2.0, h / 2.0 }, scale * w / 2.0, scale * h / 2.0, 0).asPolygon().overwrite(image, Palette::White);
+
+            for (int32 x = 0; x < image.width(); ++x) {
+                for (int32 y = 0; y < image.height(); ++y) {
+                    image[y][x] = Color{ Palette::White, image[y][x].a };
+                }
+            }
+
+            asset.texture = Texture{ image.scaled(1.0 / scale, InterpolationAlgorithm::Area), TextureDesc::Mipped };
+            return static_cast<bool>(asset.texture);
+            };
+
+        return data;
+    }
+
+
+    void Tile::RegisterAssets() {
+        TextureAsset::Register({ Assets::Sparkle }, MakeSparkle());
+        TextureAsset::Load({ Assets::Sparkle });
     }
 }

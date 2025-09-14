@@ -17,14 +17,12 @@ void Main() {
     app.sceneController.get().get()->sheetRepository.loadJacket();
 
     // TODO: asset management
-    TextureAsset::Register(U"sparkle", U"assets/textures/sparkle_x2.png");
-    TextureAsset::Load(U"sparkle");
-    FontAsset::Register(U"tile", FontMethod::Bitmap, 76, U"assets/fonts/Jost/Jost-Medium.ttf");
+    FontAsset::Register(U"tile", FontMethod::Bitmap, 38, U"assets/fonts/Jost/Jost-Medium.ttf");
     FontAsset::Load(U"tile");
-    FontAsset::Register(U"tile.text", FontMethod::Bitmap, 150, U"assets/fonts/Jost/Jost-Regular.ttf");
+    FontAsset::Register(U"tile.text", FontMethod::Bitmap, 75, U"assets/fonts/Jost/Jost-Regular.ttf");
     FontAsset::Load(U"tile.text");
-    FontAsset::Register(U"tile.cjk", 150, Typeface::CJK_Regular_JP);
-    const Font cjk { 150, Typeface::CJK_Regular_JP };
+    FontAsset::Register(U"tile.cjk", 75, Typeface::CJK_Regular_JP);
+    const Font cjk { 75, Typeface::CJK_Regular_JP };
     FontAsset(U"tile.text").addFallback(cjk);
 
     FontAsset::Register(U"BrunoAce", FontMethod::Bitmap, 68, U"assets/fonts/BrunoAce/BrunoAce-Regular.ttf");

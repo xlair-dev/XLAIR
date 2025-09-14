@@ -134,6 +134,7 @@
     <ClCompile Include="src\ui\components\MenuTimerPlate.cpp" />
     <ClCompile Include="src\ui\components\PlayerNameplate.cpp" />
     <ClCompile Include="src\ui\components\Tile.cpp" />
+    <ClCompile Include="src\ui\primitives\SparkleShape.cpp" />
     <ClCompile Include="src\ui\scenes\Login.cpp" />
     <ClCompile Include="src\ui\scenes\MusicSelect.cpp" />
     <ClCompile Include="src\ui\scenes\Title.cpp" />
@@ -371,6 +372,7 @@
     <ClInclude Include="src\app\usecases\LoadSheet.hpp" />
     <ClInclude Include="src\Common.hpp" />
     <ClInclude Include="src\core\features\SheetRepository.hpp" />
+    <ClInclude Include="src\core\features\SparklePoints.hpp" />
     <ClInclude Include="src\core\types\Sheet.hpp" />
     <ClInclude Include="src\infra\api\ApiClientMock.hpp" />
     <ClInclude Include="src\infra\config\TomlConfigProvider.hpp" />
@@ -379,6 +381,7 @@
     <ClInclude Include="src\ui\components\MenuTimerPlate.hpp" />
     <ClInclude Include="src\ui\components\PlayerNameplate.hpp" />
     <ClInclude Include="src\ui\components\Tile.hpp" />
+    <ClInclude Include="src\ui\primitives\SparkleShape.hpp" />
     <ClInclude Include="src\ui\scenes\Login.hpp" />
     <ClInclude Include="src\ui\scenes\MusicSelect.hpp" />
     <ClInclude Include="src\ui\scenes\Title.hpp" />
