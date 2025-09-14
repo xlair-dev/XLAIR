@@ -27,7 +27,7 @@ void Main() {
     const Font cjk { 150, Typeface::CJK_Regular_JP };
     FontAsset(U"tile.text").addFallback(cjk);
 
-    FontAsset::Register(U"BrunoAce", FontMethod::Bitmap, 70, U"assets/fonts/BrunoAce/BrunoAce-Regular.ttf");
+    FontAsset::Register(U"BrunoAce", FontMethod::Bitmap, 68, U"assets/fonts/BrunoAce/BrunoAce-Regular.ttf");
     FontAsset::Load(U"BrunoAce");
 
     PixelShaderAsset::Register(U"grayscale", HLSL{ U"assets/shaders/grayscale.hlsl", U"PS" } | GLSL{ U"assets/shaders/grayscale.frag", {{U"PSConstants2D", 0}} });

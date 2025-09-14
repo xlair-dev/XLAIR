@@ -14,6 +14,6 @@ namespace ui::components {
         MSRenderTexture m_tile_rt;
 
         constexpr static int32 Scale { 2 };
-        static constexpr Size TileSize { 416, 505 };
+        static constexpr Size TileSize { 416, 545 };
     };
 }
