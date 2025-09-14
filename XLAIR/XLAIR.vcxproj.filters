@@ -238,6 +238,9 @@
     <Filter Include="Resource Files\assets\fonts\Jost">
       <UniqueIdentifier>{bcad3837-93dd-4193-bea9-4402e41adc6b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Resource Files\assets\fonts\BrunoAce">
+      <UniqueIdentifier>{50a48521-a9b2-420e-af84-4c9015f76cf2}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -425,6 +428,15 @@
     </Text>
     <Text Include="App\example\LICENSE.txt">
       <Filter>Resource Files\example</Filter>
+    </Text>
+    <Text Include="App\assets\fonts\Jost\OFL.txt">
+      <Filter>Resource Files\assets\fonts\Jost</Filter>
+    </Text>
+    <Text Include="App\assets\fonts\Jost\README.txt">
+      <Filter>Resource Files\assets\fonts\Jost</Filter>
+    </Text>
+    <Text Include="App\assets\fonts\BrunoAce\OFL.txt">
+      <Filter>Resource Files\assets\fonts\BrunoAce</Filter>
     </Text>
   </ItemGroup>
   <ItemGroup>
@@ -938,6 +950,15 @@
     </Font>
     <Font Include="App\example\font\RocknRoll\RocknRollOne-Regular.ttf">
       <Filter>Resource Files\example\font\RocknRoll</Filter>
+    </Font>
+    <Font Include="App\assets\fonts\Jost\Jost-Medium.ttf">
+      <Filter>Resource Files\assets\fonts\Jost</Filter>
+    </Font>
+    <Font Include="App\assets\fonts\Jost\Jost-Regular.ttf">
+      <Filter>Resource Files\assets\fonts\Jost</Filter>
+    </Font>
+    <Font Include="App\assets\fonts\BrunoAce\BrunoAce-Regular.ttf">
+      <Filter>Resource Files\assets\fonts\BrunoAce</Filter>
     </Font>
   </ItemGroup>
   <ItemGroup>
