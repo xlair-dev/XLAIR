@@ -143,6 +143,7 @@ namespace ui::components {
             Image image{ scale * SparkleSize };
             primitives::Sparkle(scale * Vec2{ w / 2.0, h / 2.0 }, scale * w / 2.0, scale * h / 2.0, 0).asPolygon().overwrite(image, Palette::White);
 
+            // avoid black outlines
             for (int32 x = 0; x < image.width(); ++x) {
                 for (int32 y = 0; y < image.height(); ++y) {
                     image[y][x] = Color{ Palette::White, image[y][x].a };

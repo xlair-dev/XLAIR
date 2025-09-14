@@ -377,12 +377,6 @@
     <Image Include="App\example\obj\siv3d-kun-eye.png">
       <Filter>Resource Files\example\obj</Filter>
     </Image>
-    <Image Include="App\assets\textures\sparkle.png">
-      <Filter>Resource Files\assets\textures</Filter>
-    </Image>
-    <Image Include="App\assets\textures\sparkle_x2.png">
-      <Filter>Resource Files\assets\textures</Filter>
-    </Image>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="App\Resource.rc">
