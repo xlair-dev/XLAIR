@@ -29,7 +29,7 @@ namespace ui {
             }
         }
 
-        m_scroll_offset = Math::SmoothDamp(m_scroll_offset, 0.0, m_scroll_velocity, 1);
+        m_scroll_offset = Math::SmoothDamp(m_scroll_offset, 0.0, m_scroll_velocity, 0.1);
     }
 
     void MusicSelect::draw() const {
@@ -70,7 +70,7 @@ namespace ui {
         constexpr ColorF C2{ ColorF{ U"#EFEEFE" }, 1.00 };
         constexpr ColorF C3{ ColorF{ U"#FFA1FF" }, 0.00 };
 
-        static const auto drawBar = [&](double base, double dir) {
+        const auto drawBar = [&](double base, double dir) {
             const double T0 = base;
             const double T1 = base + dir * (LineWidth * 0.06);
             const double T2 = base + dir * (LineWidth * 0.86);
@@ -95,8 +95,6 @@ namespace ui {
         // scroll value (right:+ / left:-)
         const double s = m_scroll_offset;
         const double s_abs = Math::Abs(s);
-        const double s_right = Math::Clamp(s, 0.0, 1.0);
-        const double s_left = Math::Clamp(-s, 0.0, 1.0);
 
         // selected tile
         const SizeF selected_tile_size = SelectedTileSize.lerp(TileSize, s_abs);
@@ -106,11 +104,12 @@ namespace ui {
         const RectF selected_tile{ Arg::center = Vec2{ selected_tile_x, TileY }, selected_tile_size };
         selected_tile.draw(Palette::Black);
 
-        static const auto drawSide = [&](int32 dir) {
-            const double margin_factor = Math::Min(1.0, 1.0 + dir * s);
+        const auto drawSide = [&](int32 dir) {
+            const double ds = dir * s;
+            const double margin_factor = Math::Min(1.0, 1.0 + ds);
+            const double neighbor_scale = Math::Clamp(ds, 0.0, 1.0);
             
             double x = selected_tile_x + dir * (selected_tile_size.x / 2.0 + TileSpacing + SelectedTileMargin * margin_factor);
-            const double neighbor_scale = (dir > 0 ? s_right : s_left);
 
             const int32 start = static_cast<int32>(m_selected_index) + dir;
             const int32 end_cmp = (dir > 0 ? static_cast<int32>(repo.size()) : -1);
