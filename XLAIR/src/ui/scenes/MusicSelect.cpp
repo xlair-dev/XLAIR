@@ -29,12 +29,10 @@ namespace ui {
             }
         }
 
-        m_scroll_offset = Math::SmoothDamp(m_scroll_offset, 0.0, m_scroll_velocity, 0.1);
+        m_scroll_offset = Math::SmoothDamp(m_scroll_offset, 0.0, m_scroll_velocity, 1);
     }
 
     void MusicSelect::draw() const {
-        Size TileSize{ 416, 505 };
-
         // drawBackground();
 
         drawUI();
@@ -91,53 +89,55 @@ namespace ui {
 
     void MusicSelect::drawTiles() const {
         const auto& repo = getData().sheetRepository;
-        const auto center = Vec2{ SceneWidth / 2.0, TileY };
+
+        const Vec2 center{ SceneWidth / 2.0, TileY };
+
+        // scroll value (right:+ / left:-)
+        const double s = m_scroll_offset;
+        const double s_abs = Math::Abs(s);
+        const double s_right = Math::Clamp(s, 0.0, 1.0);
+        const double s_left = Math::Clamp(-s, 0.0, 1.0);
 
         // selected tile
-        const auto selected_tile_size = SelectedTileSize.lerp(TileSize, Math::Abs(m_scroll_offset));
-        const auto selected_tile_x = center.x - (SelectedTileSize.x / 2.0 + TileSize.x / 2.0 + TileSpacing + SelectedTileMargin) * m_scroll_offset;
-        RectF selected_tile{ Arg::center = Vec2{ selected_tile_x, TileY }, selected_tile_size };
+        const SizeF selected_tile_size = SelectedTileSize.lerp(TileSize, s_abs);
+        const double neighbor_gap = (SelectedTileSize.x / 2.0 + TileSize.x / 2.0 + TileSpacing + SelectedTileMargin);
+        const double selected_tile_x = center.x - neighbor_gap * s;
+
+        const RectF selected_tile{ Arg::center = Vec2{ selected_tile_x, TileY }, selected_tile_size };
         selected_tile.draw(Palette::Black);
 
-        double x = selected_tile_x + (selected_tile_size.x / 2.0 + TileSpacing + SelectedTileMargin * Math::Min(1.0, 1.0 + m_scroll_offset));
-        // right side
-        for (int32 i = static_cast<int32>(m_selected_index) + 1; i < repo.size(); ++i) {
-            if (x - TileSize.x > SceneWidth) {
-                // out of screen
-                break;
+        static const auto drawSide = [&](int32 dir) {
+            const double margin_factor = Math::Min(1.0, 1.0 + dir * s);
+            
+            double x = selected_tile_x + dir * (selected_tile_size.x / 2.0 + TileSpacing + SelectedTileMargin * margin_factor);
+            const double neighbor_scale = (dir > 0 ? s_right : s_left);
+
+            const int32 start = static_cast<int32>(m_selected_index) + dir;
+            const int32 end_cmp = (dir > 0 ? static_cast<int32>(repo.size()) : -1);
+
+            for (int32 i = start; (dir > 0) ? (i < end_cmp) : (i > end_cmp); i += dir) {
+                if (x - dir * TileSize.x > SceneWidth or x - dir * TileSize.x < 0) {
+                    // out of screen
+                    break;
+                }
+
+                const Vec2 tile_pos{ x, TileY };
+                SizeF tile_size = TileSize;
+
+                if (i == static_cast<int32>(m_selected_index) + dir) {
+                    tile_size = TileSize.lerp(SelectedTileSize, neighbor_scale);
+                    x += dir * (TileSpacing + SelectedTileMargin) * neighbor_scale;
+                }
+
+                RectF tile{ Arg::center = tile_pos.movedBy(dir * tile_size.x / 2, 0), tile_size};
+                tile.draw(Palette::Gray);
+
+                x += dir * (TileSpacing + TileSize.x);
             }
+        };
 
-            RectF tile{ Arg::leftCenter = Vec2{ x, TileY }, TileSize };
-
-            if (i == static_cast<int32>(m_selected_index) + 1) {
-                tile.set(Arg::leftCenter = Vec2{ x, TileY }, TileSize.lerp(SelectedTileSize, Math::Max(0.0, m_scroll_offset)));
-                x += (TileSpacing + SelectedTileMargin) * Math::Max(0.0, m_scroll_offset);
-            }
-
-            tile.draw(Palette::Gray);
-
-            x += TileSpacing + TileSize.x;
-        }
-
-        x = selected_tile_x - (selected_tile_size.x / 2.0 + TileSpacing + SelectedTileMargin * Math::Min(1.0, 1.0 - m_scroll_offset));
-        // left side
-        for (int32 i = static_cast<int32>(m_selected_index) - 1; i >= 0; --i) {
-            if (x + TileSize.x > SceneWidth) {
-                // out of screen
-                break;
-            }
-
-            RectF tile{ Arg::rightCenter = Vec2{ x, TileY }, TileSize };
-
-            if (i == static_cast<int32>(m_selected_index) - 1) {
-                tile.set(Arg::rightCenter = Vec2{ x, TileY }, TileSize.lerp(SelectedTileSize, Math::Max(0.0, -m_scroll_offset)));
-                x -= (TileSpacing + SelectedTileMargin) * Math::Max(0.0, -m_scroll_offset);
-            }
-
-            tile.draw(Palette::Gray);
-
-            x -= TileSpacing + TileSize.x;
-        }
+        drawSide(+1);  // right side
+        drawSide(-1); // left side
     }
 
     std::unique_ptr<TextureAssetData> MakeMenuUITitle() {
