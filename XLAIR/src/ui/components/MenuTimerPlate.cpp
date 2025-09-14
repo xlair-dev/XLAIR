@@ -1,4 +1,5 @@
 ﻿#include "MenuTimerPlate.hpp"
+#include "ui/primitives/EighthNote.hpp"
 
 namespace ui::components {
     void DrawMenuTimerPlate(const Point& pos, int32 time, int32 left_playable_music) {
@@ -11,6 +12,9 @@ namespace ui::components {
         FontAsset(U"tile.text")(U"TIME").drawBase(32, 13, 78, AccentColor);
         FontAsset(U"BrunoAce")(time).draw(68, Arg::bottomLeft = Vec2{ 100, 96 }, TextColor);
 
-        // TODO: left playable music
+        for (const auto i : step(3)) {
+            const auto color = i < left_playable_music ? AccentColor : TextColor;
+            primitives::DrawEighthNote(Vec2{ 5 + i * 42, 100 }, 1.0, color);
+        }
     }
 }
