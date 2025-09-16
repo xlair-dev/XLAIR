@@ -6,6 +6,8 @@
 #include "ui/components/PlayerNameplate.hpp"
 #include "ui/components/MenuTimerPlate.hpp"
 
+#include "ui/primitives/Arrow.hpp"
+
 namespace ui {
     using namespace app::consts;
     using namespace ui::consts;
@@ -44,15 +46,18 @@ namespace ui {
 
         drawTiles();
 
+        drawArrows();
+
         components::DrawPlayerNameplate(Point{ 59, 72 });
         components::DrawMenuTimerPlate(Point{ 1599, 72 }, 58, 1);
 
     }
 
     void MusicSelect::drawBackground() const {
-        // TODO: use selected jecket
+        const auto& repo = getData().sheetRepository;
+        // TODO: add change animation
         const ScopedCustomShader2D shader{ PixelShaderAsset(U"grayscale") };
-        RectF{ SceneSize.maxComponent() }(*getData().sheetRepository.getJacket(0)).draw(ColorF{ 1.0, 1.0, 1.0, 0.05 });
+        RectF{ SceneSize.maxComponent() }(*repo.getJacket(m_selected_index)).draw(ColorF{ 1.0, 1.0, 1.0, 0.05 });
     }
 
     void MusicSelect::drawUI() const {
@@ -90,7 +95,7 @@ namespace ui {
     void MusicSelect::drawTiles() const {
         const auto& repo = getData().sheetRepository;
 
-        const Vec2 center{ SceneWidth / 2.0, TileY };
+        constexpr Vec2 center{ SceneWidth / 2.0, TileY };
 
         // scroll value (right:+ / left:-)
         const double s = m_scroll_offset;
@@ -102,7 +107,8 @@ namespace ui {
         const double selected_tile_x = center.x - neighbor_gap * s;
 
         const RectF selected_tile{ Arg::center = Vec2{ selected_tile_x, TileY }, selected_tile_size };
-         
+
+        selected_tile.drawShadow(Vec2{ 12, 26 }, 32.0, 0, ColorF{ 0, 0, 0, 0.22 });
         selected_tile(
             m_tile.get(repo.getMetadata(m_selected_index), *repo.getJacket(m_selected_index), 0, m_tile_offset)
         ).draw();
@@ -132,8 +138,10 @@ namespace ui {
                 }
 
                 RectF tile{ Arg::center = tile_pos.movedBy(dir * tile_size.x / 2, 0), tile_size};
+
+                tile.drawShadow(Vec2{ 12, 26 }, 32.0, 0, ColorF{ 0, 0, 0, 0.22 });
                 tile(
-                    m_tile.get(repo.getMetadata(i), *repo.getJacket(i), 0, m_tile_offset)
+                    m_tile.get(repo.getMetadata(i), *repo.getJacket(i), 0)
                 ).draw();
 
                 x += dir * (TileSpacing + TileSize.x);
@@ -142,6 +150,20 @@ namespace ui {
 
         drawSide(+1);  // right side
         drawSide(-1); // left side
+    }
+
+    void MusicSelect::drawArrows() const {
+        constexpr ColorF color{ U"#7E7E7E" };
+        constexpr Vec2 center{ SceneWidth / 2.0, TileY };
+
+        constexpr Vec2 right_center = center.movedBy(SelectedTileSize.x / 2.0 - 10, 0);
+        constexpr Vec2 left_center = center.movedBy(-SelectedTileSize.x / 2.0 + 10, 0);
+
+        primitives::DrawArrow(right_center, color, +1);
+        primitives::DrawArrow(right_center.movedBy(30, 0), color, +1);
+
+        primitives::DrawArrow(left_center, color, -1);
+        primitives::DrawArrow(left_center.movedBy(-30, 0), color, -1);
     }
 
     std::unique_ptr<TextureAssetData> MakeMenuUITitle() {

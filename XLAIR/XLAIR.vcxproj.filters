@@ -306,6 +306,9 @@
     <ClCompile Include="src\ui\primitives\EighthNote.cpp">
       <Filter>Source Files\ui\primitives</Filter>
     </ClCompile>
+    <ClCompile Include="src\ui\primitives\Arrow.cpp">
+      <Filter>Source Files\ui\primitives</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Image Include="App\icon.ico">
@@ -1082,6 +1085,9 @@
       <Filter>Header Files\ui\primitives</Filter>
     </ClInclude>
     <ClInclude Include="src\ui\primitives\EighthNote.hpp">
+      <Filter>Header Files\ui\primitives</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ui\primitives\Arrow.hpp">
       <Filter>Header Files\ui\primitives</Filter>
     </ClInclude>
   </ItemGroup>
