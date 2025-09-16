@@ -1,4 +1,4 @@
-#include "SparkleShape.hpp"
+﻿#include "SparkleShape.hpp"
 #include "core/features/SparklePoints.hpp"
 
 namespace ui::primitives {

@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "Palette.hpp"
 
 #include "core/types/Difficulty.hpp"
