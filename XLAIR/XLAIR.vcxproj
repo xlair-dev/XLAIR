@@ -373,6 +373,7 @@
     <ClInclude Include="src\Common.hpp" />
     <ClInclude Include="src\core\features\SheetRepository.hpp" />
     <ClInclude Include="src\core\features\SparklePoints.hpp" />
+    <ClInclude Include="src\core\types\Difficulty.hpp" />
     <ClInclude Include="src\core\types\Sheet.hpp" />
     <ClInclude Include="src\infra\api\ApiClientMock.hpp" />
     <ClInclude Include="src\infra\config\TomlConfigProvider.hpp" />

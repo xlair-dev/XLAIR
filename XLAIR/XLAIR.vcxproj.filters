@@ -247,6 +247,12 @@
     <Filter Include="Header Files\ui\primitives">
       <UniqueIdentifier>{4ed71a04-2d32-4840-9e1b-4524ae317726}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\ui\theme">
+      <UniqueIdentifier>{1e641874-dc5f-496e-ab32-0bcee626af95}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\ui\theme">
+      <UniqueIdentifier>{55eefd55-2475-49ca-b844-399733356c52}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -1089,6 +1095,9 @@
     </ClInclude>
     <ClInclude Include="src\ui\primitives\Arrow.hpp">
       <Filter>Header Files\ui\primitives</Filter>
+    </ClInclude>
+    <ClInclude Include="src\core\types\Difficulty.hpp">
+      <Filter>Header Files\core\types</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
