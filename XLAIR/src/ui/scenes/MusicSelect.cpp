@@ -70,10 +70,10 @@ namespace ui {
         constexpr double Y2 = 147.0;
 
         // color stops
-        constexpr ColorF C0{ ColorF{ U"#9B9FCF" }, 0.00 };
-        constexpr ColorF C1{ ColorF{ U"#79C8F3" }, 0.94 };
-        constexpr ColorF C2{ ColorF{ U"#EFEEFE" }, 1.00 };
-        constexpr ColorF C3{ ColorF{ U"#FF8EFF" }, 0.00 };
+        constexpr ColorF C0{ theme::Palette::DimmedPurple, 0.00 };
+        constexpr ColorF C1{ theme::Palette::Cyan, 0.94 };
+        constexpr ColorF C2{ theme::Palette::Purple, 0.05 };
+        constexpr ColorF C3{ theme::Palette::Pink, 0.00 };
 
         const auto drawBar = [&](double base, double dir) {
             const double T0 = base;
@@ -153,7 +153,7 @@ namespace ui {
     }
 
     void MusicSelect::drawArrows() const {
-        constexpr ColorF color{ U"#7E7E7E" };
+        constexpr ColorF color = theme::Palette::Gray;
         constexpr Vec2 center{ SceneWidth / 2.0, TileY };
 
         constexpr Vec2 right_center = center.movedBy(SelectedTileSize.x / 2.0 - 10, 0);

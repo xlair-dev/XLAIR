@@ -1,11 +1,12 @@
 ﻿#include "MenuTimerPlate.hpp"
 #include "ui/primitives/EighthNote.hpp"
+#include "ui/theme/Palette.hpp"
 
 namespace ui::components {
     void DrawMenuTimerPlate(const Point& pos, int32 time, int32 left_playable_music) {
         ScopedViewport2D viewport{ pos, 400, 200 };
-        constexpr ColorF AccentColor = ColorF { U"#55C8FF" };
-        constexpr ColorF TextColor = ColorF { U"#7E7E7E" };
+        constexpr ColorF AccentColor = theme::Palette::Cyan;
+        constexpr ColorF TextColor = theme::Palette::Gray;
 
         Line { 0, 88, 249, 88 }.draw(LineStyle::RoundCap, 4, AccentColor);
 

@@ -1,4 +1,5 @@
 ﻿#include "PlayerNameplate.hpp"
+#include "ui/theme/Palette.hpp"
 
 namespace ui::components {
     void DrawPlayerNameplate(const Point& pos) {
@@ -6,10 +7,10 @@ namespace ui::components {
         constexpr StringView DisplayName{ U"Display Name" };
         constexpr int32 rating = 200;
         ScopedViewport2D viewport{ pos, 600, 200 };
-        constexpr ColorF BaseColor { U"#55C8FF" };
-        constexpr ColorF AccentColor = ColorF { BaseColor, 0.44 };
+        constexpr ColorF BaseColor = theme::Palette::Cyan;
+        constexpr ColorF AccentColor = BaseColor.withA(0.44);
         constexpr ColorF SubColor = ColorF { AccentColor, 0.16 };
-        constexpr ColorF TextColor = ColorF { U"#7E7E7E" };
+        constexpr ColorF TextColor = theme::Palette::Gray;
 
         constexpr double DiamondSize = 70.0;
         const auto center = Vec2 { DiamondSize, DiamondSize };
