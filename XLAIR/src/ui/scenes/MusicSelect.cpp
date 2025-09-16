@@ -5,8 +5,8 @@
 #include "ui/components/Tile.hpp"
 #include "ui/components/PlayerNameplate.hpp"
 #include "ui/components/MenuTimerPlate.hpp"
-
 #include "ui/primitives/Arrow.hpp"
+#include "ui/theme/Palette.hpp"
 
 namespace ui {
     using namespace app::consts;
@@ -73,7 +73,7 @@ namespace ui {
         constexpr ColorF C0{ ColorF{ U"#9B9FCF" }, 0.00 };
         constexpr ColorF C1{ ColorF{ U"#79C8F3" }, 0.94 };
         constexpr ColorF C2{ ColorF{ U"#EFEEFE" }, 1.00 };
-        constexpr ColorF C3{ ColorF{ U"#FFA1FF" }, 0.00 };
+        constexpr ColorF C3{ ColorF{ U"#FF8EFF" }, 0.00 };
 
         const auto drawBar = [&](double base, double dir) {
             const double T0 = base;
@@ -184,17 +184,14 @@ namespace ui {
 
             for (int32 x = 0; x < image.width(); ++x) {
                 const double t = static_cast<double>(x) / image.width();
-                // TODO: define colors somewhere
-                constexpr ColorF left = ColorF{ U"#FF8EFF" };
-                constexpr ColorF right = ColorF{ U"#35BEFF" };
+                constexpr ColorF left = theme::Palette::Pink;
+                constexpr ColorF right = theme::Palette::Cyan;
                 for (int32 y = 0; y < image.height(); ++y) {
                     image[y][x] = Color{ left.lerp(right, t), image[y][x].a };
                 }
             }
 
-            // TODO: define colors somewhere
-            constexpr ColorF SubColor = ColorF{ U"#9B9FCF" };
-            font_sub(TextSub).stampAt(image, region_main.w / 2.0, 107, SubColor);
+            font_sub(TextSub).stampAt(image, region_main.w / 2.0, 107, theme::Palette::DimmedPurple);
 
             asset.texture = Texture{ image };
             return static_cast<bool>(asset.texture);

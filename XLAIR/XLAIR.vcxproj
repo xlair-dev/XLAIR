@@ -388,6 +388,8 @@
     <ClInclude Include="src\ui\scenes\Login.hpp" />
     <ClInclude Include="src\ui\scenes\MusicSelect.hpp" />
     <ClInclude Include="src\ui\scenes\Title.hpp" />
+    <ClInclude Include="src\ui\theme\DifficultyTheme.hpp" />
+    <ClInclude Include="src\ui\theme\Palette.hpp" />
     <ClInclude Include="stdafx.h" />
   </ItemGroup>
   <ItemGroup>

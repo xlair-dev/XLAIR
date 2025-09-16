@@ -1099,5 +1099,11 @@
     <ClInclude Include="src\core\types\Difficulty.hpp">
       <Filter>Header Files\core\types</Filter>
     </ClInclude>
+    <ClInclude Include="src\ui\theme\Palette.hpp">
+      <Filter>Source Files\ui\theme</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ui\theme\DifficultyTheme.hpp">
+      <Filter>Source Files\ui\theme</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

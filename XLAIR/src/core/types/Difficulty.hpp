@@ -24,7 +24,7 @@ namespace core::types {
             case Difficulty::Basic: return U"Basic";
             case Difficulty::Advanced: return U"Advanced";
             case Difficulty::Master: return U"Master";
-            case Difficulty::Unknown: return U"Unknown";
+            default: return U"Unknown";
         }
     }
 }
