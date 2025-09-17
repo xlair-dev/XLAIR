@@ -5,5 +5,6 @@ namespace app::types {
         Title,
         Login,
         MapSelect,
+        MusicSelect,
     };
 }

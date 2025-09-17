@@ -125,11 +125,20 @@
     <ClCompile Include="src\app\di\SceneController.cpp" />
     <ClCompile Include="src\app\usecases\InitializeApp.cpp" />
     <ClCompile Include="src\app\usecases\LoadConfig.cpp" />
+    <ClCompile Include="src\core\features\SheetRepository.cpp" />
     <ClCompile Include="src\infra\api\ApiClientMock.cpp" />
     <ClCompile Include="src\infra\config\TomlConfigProvider.cpp" />
     <ClCompile Include="src\infra\controller\ControllerMock.cpp" />
+    <ClCompile Include="src\infra\sheet\SheetMock.cpp" />
     <ClCompile Include="src\Main.cpp" />
+    <ClCompile Include="src\ui\components\MenuTimerPlate.cpp" />
+    <ClCompile Include="src\ui\components\PlayerNameplate.cpp" />
+    <ClCompile Include="src\ui\components\Tile.cpp" />
+    <ClCompile Include="src\ui\primitives\Arrow.cpp" />
+    <ClCompile Include="src\ui\primitives\EighthNote.cpp" />
+    <ClCompile Include="src\ui\primitives\SparkleShape.cpp" />
     <ClCompile Include="src\ui\scenes\Login.cpp" />
+    <ClCompile Include="src\ui\scenes\MusicSelect.cpp" />
     <ClCompile Include="src\ui\scenes\Title.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
@@ -166,6 +175,9 @@
     <ResourceCompile Include="App\Resource.rc" />
   </ItemGroup>
   <ItemGroup>
+    <Text Include="App\assets\fonts\BrunoAce\OFL.txt" />
+    <Text Include="App\assets\fonts\Jost\OFL.txt" />
+    <Text Include="App\assets\fonts\Jost\README.txt" />
     <Text Include="App\dll\soundtouch\COPYING.TXT" />
     <Text Include="App\engine\font\fontawesome\LICENSE.txt" />
     <Text Include="App\engine\soundfont\GMGSx.sf2.txt" />
@@ -328,6 +340,9 @@
     <Media Include="App\example\video\river.mp4" />
   </ItemGroup>
   <ItemGroup>
+    <Font Include="App\assets\fonts\BrunoAce\BrunoAce-Regular.ttf" />
+    <Font Include="App\assets\fonts\Jost\Jost-Medium.ttf" />
+    <Font Include="App\assets\fonts\Jost\Jost-Regular.ttf" />
     <Font Include="App\example\font\DotGothic16\DotGothic16-Regular.ttf" />
     <Font Include="App\example\font\RocknRoll\RocknRollOne-Regular.ttf" />
   </ItemGroup>
@@ -348,17 +363,34 @@
     <ClInclude Include="src\app\interfaces\IApiClient.hpp" />
     <ClInclude Include="src\app\interfaces\IConfigProvider.hpp" />
     <ClInclude Include="src\app\interfaces\IController.hpp" />
+    <ClInclude Include="src\app\interfaces\ISheetProvider.hpp" />
     <ClInclude Include="src\app\types\Config.hpp" />
     <ClInclude Include="src\app\types\Scene.hpp" />
     <ClInclude Include="src\app\usecases\App.hpp" />
     <ClInclude Include="src\app\usecases\InitializeApp.hpp" />
     <ClInclude Include="src\app\usecases\LoadConfig.hpp" />
+    <ClInclude Include="src\app\usecases\LoadSheet.hpp" />
     <ClInclude Include="src\Common.hpp" />
+    <ClInclude Include="src\core\features\SheetRepository.hpp" />
+    <ClInclude Include="src\core\features\SparklePoints.hpp" />
+    <ClInclude Include="src\core\types\Difficulty.hpp" />
+    <ClInclude Include="src\core\types\PlayerData.hpp" />
+    <ClInclude Include="src\core\types\Sheet.hpp" />
     <ClInclude Include="src\infra\api\ApiClientMock.hpp" />
     <ClInclude Include="src\infra\config\TomlConfigProvider.hpp" />
     <ClInclude Include="src\infra\controller\ControllerMock.hpp" />
+    <ClInclude Include="src\infra\sheet\SheetMock.hpp" />
+    <ClInclude Include="src\ui\components\MenuTimerPlate.hpp" />
+    <ClInclude Include="src\ui\components\PlayerNameplate.hpp" />
+    <ClInclude Include="src\ui\components\Tile.hpp" />
+    <ClInclude Include="src\ui\primitives\Arrow.hpp" />
+    <ClInclude Include="src\ui\primitives\EighthNote.hpp" />
+    <ClInclude Include="src\ui\primitives\SparkleShape.hpp" />
     <ClInclude Include="src\ui\scenes\Login.hpp" />
+    <ClInclude Include="src\ui\scenes\MusicSelect.hpp" />
     <ClInclude Include="src\ui\scenes\Title.hpp" />
+    <ClInclude Include="src\ui\theme\DifficultyTheme.hpp" />
+    <ClInclude Include="src\ui\theme\Palette.hpp" />
     <ClInclude Include="stdafx.h" />
   </ItemGroup>
   <ItemGroup>

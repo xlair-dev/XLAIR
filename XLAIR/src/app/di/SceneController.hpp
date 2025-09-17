@@ -3,5 +3,5 @@
 #include "app/usecases/App.hpp"
 
 namespace app {
-    void InitializeSceneController(SceneController& controller);
+    void InitializeSceneController(SceneController& controller, types::SceneState initial_scene = types::SceneState::Title);
 }

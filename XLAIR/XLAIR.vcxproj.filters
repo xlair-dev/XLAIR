@@ -208,6 +208,51 @@
     <Filter Include="Header Files\app\types">
       <UniqueIdentifier>{2c2f608f-5359-49a9-93c0-355937bc44a9}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\core\features">
+      <UniqueIdentifier>{9abe2900-3c4e-486a-8d3d-5c418619d9ca}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\infra\sheet">
+      <UniqueIdentifier>{122f1e89-f3cd-4613-96c3-15d9aa503267}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\infra\sheet">
+      <UniqueIdentifier>{2f5712e3-f5dc-4e68-bb18-e5e6856d769e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\core\features">
+      <UniqueIdentifier>{97cab796-ff31-421b-a466-2a315e6f82ed}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\ui\components">
+      <UniqueIdentifier>{62d5ff4e-093a-4c35-b871-eb40bdffe39e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\ui\components">
+      <UniqueIdentifier>{df90883b-50d7-41cb-8328-e342d5edfeb3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files\assets">
+      <UniqueIdentifier>{731a0a76-5389-4b5d-9d38-7612bd8010df}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files\assets\textures">
+      <UniqueIdentifier>{acd89db4-ba36-4ce5-9b00-a99b61f1295b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files\assets\fonts">
+      <UniqueIdentifier>{026b62e5-b3a9-4f48-83b1-301415233e99}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files\assets\fonts\Jost">
+      <UniqueIdentifier>{bcad3837-93dd-4193-bea9-4402e41adc6b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files\assets\fonts\BrunoAce">
+      <UniqueIdentifier>{50a48521-a9b2-420e-af84-4c9015f76cf2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\ui\primitives">
+      <UniqueIdentifier>{51ff3cfe-4876-4aad-ba2c-6cfb937658c9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\ui\primitives">
+      <UniqueIdentifier>{4ed71a04-2d32-4840-9e1b-4524ae317726}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\ui\theme">
+      <UniqueIdentifier>{1e641874-dc5f-496e-ab32-0bcee626af95}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\ui\theme">
+      <UniqueIdentifier>{55eefd55-2475-49ca-b844-399733356c52}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -242,6 +287,33 @@
     </ClCompile>
     <ClCompile Include="src\app\di\Providers.cpp">
       <Filter>Source Files\app\di</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ui\scenes\MusicSelect.cpp">
+      <Filter>Source Files\ui\scenes</Filter>
+    </ClCompile>
+    <ClCompile Include="src\infra\sheet\SheetMock.cpp">
+      <Filter>Source Files\infra\sheet</Filter>
+    </ClCompile>
+    <ClCompile Include="src\core\features\SheetRepository.cpp">
+      <Filter>Source Files\core\features</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ui\components\Tile.cpp">
+      <Filter>Source Files\ui\components</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ui\components\PlayerNameplate.cpp">
+      <Filter>Source Files\ui\components</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ui\components\MenuTimerPlate.cpp">
+      <Filter>Source Files\ui\components</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ui\primitives\SparkleShape.cpp">
+      <Filter>Source Files\ui\primitives</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ui\primitives\EighthNote.cpp">
+      <Filter>Source Files\ui\primitives</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ui\primitives\Arrow.cpp">
+      <Filter>Source Files\ui\primitives</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -371,6 +443,15 @@
     </Text>
     <Text Include="App\example\LICENSE.txt">
       <Filter>Resource Files\example</Filter>
+    </Text>
+    <Text Include="App\assets\fonts\Jost\OFL.txt">
+      <Filter>Resource Files\assets\fonts\Jost</Filter>
+    </Text>
+    <Text Include="App\assets\fonts\Jost\README.txt">
+      <Filter>Resource Files\assets\fonts\Jost</Filter>
+    </Text>
+    <Text Include="App\assets\fonts\BrunoAce\OFL.txt">
+      <Filter>Resource Files\assets\fonts\BrunoAce</Filter>
     </Text>
   </ItemGroup>
   <ItemGroup>
@@ -885,6 +966,15 @@
     <Font Include="App\example\font\RocknRoll\RocknRollOne-Regular.ttf">
       <Filter>Resource Files\example\font\RocknRoll</Filter>
     </Font>
+    <Font Include="App\assets\fonts\Jost\Jost-Medium.ttf">
+      <Filter>Resource Files\assets\fonts\Jost</Filter>
+    </Font>
+    <Font Include="App\assets\fonts\Jost\Jost-Regular.ttf">
+      <Filter>Resource Files\assets\fonts\Jost</Filter>
+    </Font>
+    <Font Include="App\assets\fonts\BrunoAce\BrunoAce-Regular.ttf">
+      <Filter>Resource Files\assets\fonts\BrunoAce</Filter>
+    </Font>
   </ItemGroup>
   <ItemGroup>
     <Xml Include="App\example\objdetect\haarcascade\face_anime.xml">
@@ -966,6 +1056,57 @@
     </ClInclude>
     <ClInclude Include="src\app\di\Providers.hpp">
       <Filter>Header Files\app\di</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ui\scenes\MusicSelect.hpp">
+      <Filter>Header Files\ui\scenes</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\interfaces\ISheetProvider.hpp">
+      <Filter>Header Files\app\interfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="src\core\types\Sheet.hpp">
+      <Filter>Header Files\core\types</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\usecases\LoadSheet.hpp">
+      <Filter>Header Files\app\usecases</Filter>
+    </ClInclude>
+    <ClInclude Include="src\core\features\SheetRepository.hpp">
+      <Filter>Header Files\core\features</Filter>
+    </ClInclude>
+    <ClInclude Include="src\infra\sheet\SheetMock.hpp">
+      <Filter>Header Files\infra\sheet</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ui\components\Tile.hpp">
+      <Filter>Header Files\ui\components</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ui\components\PlayerNameplate.hpp">
+      <Filter>Header Files\ui\components</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ui\components\MenuTimerPlate.hpp">
+      <Filter>Header Files\ui\components</Filter>
+    </ClInclude>
+    <ClInclude Include="src\core\features\SparklePoints.hpp">
+      <Filter>Header Files\core\features</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ui\primitives\SparkleShape.hpp">
+      <Filter>Header Files\ui\primitives</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ui\primitives\EighthNote.hpp">
+      <Filter>Header Files\ui\primitives</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ui\primitives\Arrow.hpp">
+      <Filter>Header Files\ui\primitives</Filter>
+    </ClInclude>
+    <ClInclude Include="src\core\types\Difficulty.hpp">
+      <Filter>Header Files\core\types</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ui\theme\Palette.hpp">
+      <Filter>Source Files\ui\theme</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ui\theme\DifficultyTheme.hpp">
+      <Filter>Source Files\ui\theme</Filter>
+    </ClInclude>
+    <ClInclude Include="src\core\types\PlayerData.hpp">
+      <Filter>Header Files\core\types</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

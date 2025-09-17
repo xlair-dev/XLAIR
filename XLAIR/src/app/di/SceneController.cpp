@@ -5,14 +5,20 @@
 // di
 #include "ui/scenes/Title.hpp"
 #include "ui/scenes/Login.hpp"
+#include "ui/scenes/MusicSelect.hpp"
 
 namespace app {
-    void InitializeSceneController(SceneController& controller) {
-        using SceneState = app::types::SceneState;
+    using SceneState = app::types::SceneState;
+
+    void InitializeSceneController(SceneController& controller, SceneState initial_scene) {
         controller
             .add<ui::Title>(SceneState::Title)
-            .add<ui::Login>(SceneState::Login);
+            .add<ui::Login>(SceneState::Login)
+            .add<ui::MusicSelect>(SceneState::MusicSelect);
 
-        controller.init(SceneState::Title);
+        // TODO: asset management
+        ui::MusicSelect::RegisterAssets();
+
+        controller.init(initial_scene, 0);
     }
 }
