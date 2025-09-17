@@ -3,7 +3,7 @@
 
 namespace SheetsAnalyzer::SUSAnalyzer {
     SUSData::SUSData() {
-        SUSData { Constant::DefaultSampleRate, 0 };
+        SUSData{ Constant::DefaultSampleRate, 0 };
     }
 
     SUSData::SUSData(const s3d::int64 rate, const s3d::int64 offset) {
@@ -11,7 +11,7 @@ namespace SheetsAnalyzer::SUSAnalyzer {
         sample_offset = offset;
         bpm_difinitions[0] = Constant::DefaultBPM;
         beats_difinitions[0] = Constant::DefaultBeatLength;
-        hispeed_difinitions[Constant::DefaultHispeedNumber] = SUSHispeedTimeline {};
+        hispeed_difinitions[Constant::DefaultHispeedNumber] = SUSHispeedTimeline{};
         hispeed_difinitions[Constant::DefaultHispeedNumber].data_index = 0;
         current_timeline = Constant::DefaultHispeedNumber;
         measure_timeline = Constant::DefaultHispeedNumber;

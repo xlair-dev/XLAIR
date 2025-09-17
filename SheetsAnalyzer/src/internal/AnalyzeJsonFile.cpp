@@ -15,7 +15,7 @@ namespace SheetsAnalyzer::internal {
     s3d::Optional<Metadata> AnalyzeJsonFile(const s3d::FilePath& path) {
         const auto json = s3d::JSON::Load(path);
         if (not json) {
-            throw s3d::Error { U"Failed to load JSON file: " + path };
+            throw s3d::Error{ U"Failed to load JSON file: " + path };
         }
 
         if (not json.hasElement(U"version")) {
@@ -35,7 +35,7 @@ namespace SheetsAnalyzer::internal {
         helper(json, U"genre", metadata.genre, Constant::DefaltGenre);
         helper(json, U"music", metadata.music, U"");
         helper(json, U"jacket", metadata.jacket, U"");
-        helper(json, U"url", metadata.url, s3d::URL {});
+        helper(json, U"url", metadata.url, s3d::URL{});
         helper(json, U"music_offset", metadata.music_offset, Constant::DefaultMusicOffset);
         helper(json, U"bpm", metadata.bpm, Constant::DefaultBPM);
 

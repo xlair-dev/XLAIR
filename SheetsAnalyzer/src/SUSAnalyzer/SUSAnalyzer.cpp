@@ -17,7 +17,7 @@ namespace SheetsAnalyzer::SUSAnalyzer {
         reader.close();
 
         const auto sample_offset = static_cast<s3d::int64>(offset_sec * sample_rate);
-        SUSData data { sample_rate, sample_offset };
+        SUSData data{ sample_rate, sample_offset };
         for (const auto& line : content) {
             if (line.empty()) {
                 continue; // Skip empty lines

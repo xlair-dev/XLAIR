@@ -25,10 +25,10 @@ namespace SheetsAnalyzer::SUSAnalyzer::internal {
                 case U'1': AnalyzeShortNotes(data, meas, lane, value); break;
                 case U'2': AnalyzeSideLongNotes(data, meas, lane, value); break;
                 case U'3': AnalyzeHoldNotes(data, meas, lane, value); break;
-                case U'4': 
+                case U'4':
                     // Hold2
                     break;
-                case U'5': 
+                case U'5':
                     // Side Notes
                     break;
                 default:
@@ -50,7 +50,7 @@ namespace SheetsAnalyzer::SUSAnalyzer::internal {
                     return s3d::IsSpace(c);
                 }).split(U',');
                 if (not data.hispeed_difinitions.contains(number)) {
-                    data.hispeed_difinitions[number] = SUSHispeedTimeline {};
+                    data.hispeed_difinitions[number] = SUSHispeedTimeline{};
                     data.hispeed_difinitions[number].data_index = data.timelines.size() + 1;
                 }
                 for (const auto& arg : timeline) {

@@ -14,7 +14,7 @@ namespace SheetsAnalyzer::internal {
     s3d::Optional<Metadata> AnalyzeTomlFile(const s3d::FilePath& path) {
         const s3d::TOMLReader toml(path);
         if (not toml) {
-            throw s3d::Error { U"Failed to load TOML file: " + path };
+            throw s3d::Error{ U"Failed to load TOML file: " + path };
         }
 
         if (not toml.hasMember(U"version")) {
@@ -34,7 +34,7 @@ namespace SheetsAnalyzer::internal {
         helper(toml, U"genre", metadata.genre, Constant::DefaltGenre);
         helper(toml, U"music", metadata.music, U"");
         helper(toml, U"jacket", metadata.jacket, U"");
-        helper(toml, U"url", metadata.url, s3d::URL {});
+        helper(toml, U"url", metadata.url, s3d::URL{});
         helper(toml, U"music_offset", metadata.music_offset, Constant::DefaultMusicOffset);
         helper(toml, U"bpm", metadata.bpm, Constant::DefaultBPM);
 

@@ -123,9 +123,9 @@ namespace SheetsAnalyzer::SUSAnalyzer::internal {
         if (raw.front() == '\"' and raw.back() == '\"') {
             // TODO: process escaped characters
             const auto length = raw.size();
-            return s3d::String { raw.substr(1, length - 2) };
+            return s3d::String{ raw.substr(1, length - 2) };
         } else {
-            return s3d::String { raw };
+            return s3d::String{ raw };
         }
     }
 
@@ -152,6 +152,6 @@ namespace SheetsAnalyzer::SUSAnalyzer::internal {
         if (speed == 0.0) {
             speed = 0.0000001; // Avoid zero speed
         }
-        return SUSHispeedData { time, speed };
+        return SUSHispeedData{ time, speed };
     }
 }
