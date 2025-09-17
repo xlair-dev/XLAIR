@@ -1,0 +1,30 @@
+{
+  "folders": [
+    {
+      "name": "root",
+      "path": "."
+    },
+    {
+      "name": "XLAIR",
+      "path": "XLAIR"
+    },
+    {
+      "name": "SheetsAnalyzer",
+      "path": "SheetsAnalyzer"
+    },
+    {
+      "name": "SheetsViewer",
+      "path": "SheetsViewer"
+    }
+  ],
+  "settings": {
+    "C_Cpp.default.cStandard": "c17",
+    "C_Cpp.default.cppStandard": "c++23",
+    "C_Cpp.default.includePath": [
+      "${workspaceFolder:root}/**",
+      "${SIV3D_0_6_16}/include",
+      "${SIV3D_0_6_16}/include/ThirdParty",
+    ],
+    "C_Cpp.formatting": "default"
+  }
+}
