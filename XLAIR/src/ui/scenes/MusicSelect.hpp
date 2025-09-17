@@ -30,7 +30,6 @@ namespace ui {
         double m_tile_offset_raw = -consts::OffsetWait;
         double m_tile_offset = 0.0;
 
-        size_t m_selected_index = 0; // TODO: move to player data
         double m_scroll_offset = 0.0;
         double m_scroll_velocity = 0.0;
 

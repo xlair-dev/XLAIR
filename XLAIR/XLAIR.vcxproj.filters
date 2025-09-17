@@ -1105,5 +1105,8 @@
     <ClInclude Include="src\ui\theme\DifficultyTheme.hpp">
       <Filter>Source Files\ui\theme</Filter>
     </ClInclude>
+    <ClInclude Include="src\core\types\PlayerData.hpp">
+      <Filter>Header Files\core\types</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

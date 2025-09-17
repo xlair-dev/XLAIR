@@ -2,6 +2,9 @@
 #include "Common.hpp"
 
 namespace core::types {
+
+    static constexpr uint8 DifficultySize = 3;
+
     // TODO: Determine the difficulty name
     enum class Difficulty : uint8 {
         Basic,

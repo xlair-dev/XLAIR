@@ -16,6 +16,12 @@ void Main() {
     app.sceneController.get().get()->sheetRepository.load(std::make_unique<infra::sheet::SheetMock>(5));
     app.sceneController.get().get()->sheetRepository.loadJacket();
 
+    // TODO: api mock
+    app.sceneController.get().get()->playerData.username = U"User Name";
+    app.sceneController.get().get()->playerData.displayname = U"Display Name";
+    app.sceneController.get().get()->playerData.rating = 200;
+    app.sceneController.get().get()->playerData.level = 7;
+
     // TODO: asset management
     FontAsset::Register(U"tile", FontMethod::Bitmap, 38, U"assets/fonts/Jost/Jost-Medium.ttf");
     FontAsset::Load(U"tile");

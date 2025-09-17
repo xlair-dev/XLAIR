@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include "Common.hpp"
+#include "core/types/PlayerData.hpp"
 
 namespace ui::components {
-    void DrawPlayerNameplate(const Point& pos);
+    void DrawPlayerNameplate(const core::types::PlayerData& data, const Point& pos);
 }

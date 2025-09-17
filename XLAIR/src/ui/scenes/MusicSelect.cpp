@@ -1,5 +1,7 @@
 ﻿#include "MusicSelect.hpp"
 
+#include "core/types/Difficulty.hpp"
+
 #include "app/consts/Scene.hpp"
 
 #include "ui/components/Tile.hpp"
@@ -17,19 +19,33 @@ namespace ui {
     MusicSelect::~MusicSelect() {}
 
     void MusicSelect::update() {
+        auto&& index = getData().playerData.selected_index;
+        auto&& difficulty = getData().playerData.selected_difficulty;
+
         // TODO: input handling in infra layer
-        if (m_selected_index + 1 < getData().sheetRepository.size()) {
+        if (index + 1 < getData().sheetRepository.size()) {
             if (KeyRight.down()) {
-                ++m_selected_index;
+                ++index;
                 m_scroll_offset = -1.0;
                 m_tile_offset_raw = -OffsetWait;
             }
         }
-        if (m_selected_index > 0) {
+        if (index > 0) {
             if (KeyLeft.down()) {
-                --m_selected_index;
+                --index;
                 m_scroll_offset = 1.0;
                 m_tile_offset_raw = -OffsetWait;
+            }
+        }
+
+        if (difficulty + 1 < core::types::DifficultySize) {
+            if (KeyUp.down()) {
+                ++difficulty;
+            }
+        }
+        if (difficulty > 0) {
+            if (KeyDown.down()) {
+                --difficulty;
             }
         }
 
@@ -48,16 +64,17 @@ namespace ui {
 
         drawArrows();
 
-        components::DrawPlayerNameplate(Point{ 59, 72 });
+        components::DrawPlayerNameplate(getData().playerData, Point{ 59, 72 });
         components::DrawMenuTimerPlate(Point{ 1599, 72 }, 58, 1);
 
     }
 
     void MusicSelect::drawBackground() const {
+        const auto& index = getData().playerData.selected_index;
         const auto& repo = getData().sheetRepository;
         // TODO: add change animation
         const ScopedCustomShader2D shader{ PixelShaderAsset(U"grayscale") };
-        RectF{ SceneSize.maxComponent() }(*repo.getJacket(m_selected_index)).draw(ColorF{ 1.0, 1.0, 1.0, 0.05 });
+        RectF{ SceneSize.maxComponent() }(*repo.getJacket(index)).draw(ColorF{ 1.0, 1.0, 1.0, 0.05 });
     }
 
     void MusicSelect::drawUI() const {
@@ -93,6 +110,8 @@ namespace ui {
     }
 
     void MusicSelect::drawTiles() const {
+        const auto& index = getData().playerData.selected_index;
+        const auto& difficulty = getData().playerData.selected_difficulty;
         const auto& repo = getData().sheetRepository;
 
         constexpr Vec2 center{ SceneWidth / 2.0, TileY };
@@ -110,7 +129,7 @@ namespace ui {
 
         selected_tile.drawShadow(Vec2{ 12, 26 }, 32.0, 0, ColorF{ 0, 0, 0, 0.22 });
         selected_tile(
-            m_tile.get(repo.getMetadata(m_selected_index), *repo.getJacket(m_selected_index), 0, m_tile_offset)
+            m_tile.get(repo.getMetadata(index), *repo.getJacket(index), difficulty, m_tile_offset)
         ).draw();
 
         const auto drawSide = [&](int32 dir) {
@@ -120,7 +139,7 @@ namespace ui {
             
             double x = selected_tile_x + dir * (selected_tile_size.x / 2.0 + TileSpacing + SelectedTileMargin * margin_factor);
 
-            const int32 start = static_cast<int32>(m_selected_index) + dir;
+            const int32 start = static_cast<int32>(index) + dir;
             const int32 end_cmp = (dir > 0 ? static_cast<int32>(repo.size()) : -1);
 
             for (int32 i = start; (dir > 0) ? (i < end_cmp) : (i > end_cmp); i += dir) {
@@ -132,7 +151,7 @@ namespace ui {
                 const Vec2 tile_pos{ x, TileY };
                 SizeF tile_size = TileSize;
 
-                if (i == static_cast<int32>(m_selected_index) + dir) {
+                if (i == static_cast<int32>(index) + dir) {
                     tile_size = TileSize.lerp(SelectedTileSize, neighbor_scale);
                     x += dir * (TileSpacing + SelectedTileMargin) * neighbor_scale;
                 }
@@ -141,7 +160,7 @@ namespace ui {
 
                 tile.drawShadow(Vec2{ 12, 26 }, 32.0, 0, ColorF{ 0, 0, 0, 0.22 });
                 tile(
-                    m_tile.get(repo.getMetadata(i), *repo.getJacket(i), 0)
+                    m_tile.get(repo.getMetadata(i), *repo.getJacket(i), difficulty)
                 ).draw();
 
                 x += dir * (TileSpacing + TileSize.x);
