@@ -44,7 +44,7 @@ void NotificationAddon::draw() const {
         text_color.a *= alpha;
 
 
-        const RectF rect { Arg::topRight = Vec2 { Scene::Width() - 10, (10 + notification.current_index * 40)}, (m_style.width * x_scale), 35};
+        const RectF rect{ Arg::topRight = Vec2{ Scene::Width() - 10, (10 + notification.current_index * 40)}, (m_style.width * x_scale), 35 };
         rect.rounded(3).draw(background_color).drawFrame(1, 0, frame_color);
 
         ColorF color = notification.type == Type::Information ? m_style.information_color
@@ -63,7 +63,7 @@ void NotificationAddon::show(const StringView message, const Type type) {
     const double current_index = (m_notifications.empty() ? 0.0 : m_notifications.back().current_index + 1.0);
     const double velocity = (m_notifications.empty() ? 0.0 : m_notifications.back().velocity);
 
-    m_notifications << Notification {
+    m_notifications << Notification{
         .message = String {message},
         .time = 0.0,
         .current_index = current_index,

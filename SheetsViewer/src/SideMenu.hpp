@@ -11,7 +11,7 @@ public:
     void draw() const;
 
 private:
-    static constexpr auto SideMenuItems = std::array {
+    static constexpr auto SideMenuItems = std::array{
         std::pair{ U"\U000F0EFE", U"ID" },
         std::pair{ U"\U000F0CB8", U"Title" },
         std::pair{ U"\U000F04BA", U"Sort" },

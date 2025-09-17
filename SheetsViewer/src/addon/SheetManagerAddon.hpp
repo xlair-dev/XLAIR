@@ -6,7 +6,7 @@
 class SheetManagerAddon : public IAddon {
 public:
 
-    inline static constexpr StringView Name = U"SheetManagerAddon";
+    inline static constexpr StringView Name{ U"SheetManagerAddon" };
 
     enum class State {
         Unselected,
@@ -40,8 +40,8 @@ public:
     static inline Optional<size_t> GetSelectedDifficulty();
 
 private:
-    inline static constexpr StringView MusicAssetName = U"SheetManager_MusicAsset";
-    inline static constexpr StringView JacketAssetName = U"SheetManager_JacketAsset";
+    inline static constexpr StringView MusicAssetName{ U"SheetManager_MusicAsset" };
+    inline static constexpr StringView JacketAssetName{ U"SheetManager_JacketAsset" };
 
     State m_state = State::Unselected;
     Optional<size_t> m_selected_difficulty = none;

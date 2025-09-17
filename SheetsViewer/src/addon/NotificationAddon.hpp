@@ -15,14 +15,14 @@ public:
 
     struct Style {
         double width = 300.0;
-        ColorF background_color { 0.0, 0.7 };
-        ColorF frame_color { 0.75 };
-        ColorF text_color { 1.0 };
+        ColorF background_color{ 0.0, 0.7 };
+        ColorF frame_color{ 0.75 };
+        ColorF text_color{ 1.0 };
 
-        ColorF information_color { 0.0, 0.72, 0.83 };
-        ColorF success_color { 0.0, 0.78, 0.33 };
-        ColorF warning_color { 1.0, 0.57, 0.0 };
-        ColorF error_color { 1.00, 0.32, 0.32 };
+        ColorF information_color{ 0.0, 0.72, 0.83 };
+        ColorF success_color{ 0.0, 0.78, 0.33 };
+        ColorF warning_color{ 1.0, 0.57, 0.0 };
+        ColorF error_color{ 1.00, 0.32, 0.32 };
     };
 
     inline static void Show(const StringView message, const Type type = Type::Information) {

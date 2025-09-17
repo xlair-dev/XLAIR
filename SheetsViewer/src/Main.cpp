@@ -16,7 +16,7 @@ void Main() {
     // Graphics::SetVSyncEnabled(false);
     Window::SetStyle(WindowStyle::Sizable);
     Window::Resize(1280, 720);
-    Scene::SetBackground(Color { 20 });
+    Scene::SetBackground(Color{ 20 });
 
     const Array<std::pair<String, Array<String>>> menu_items = {
         { U"File", { U"\U000F0214 Open", U"\U000F05AD Exit" } },
@@ -34,12 +34,12 @@ void Main() {
 
         if (const auto item = menu_bar.update()) {
             // Exit
-            if (item == MenuBarItemIndex { 0, 1 }) {
+            if (item == MenuBarItemIndex{ 0, 1 }) {
                 System::Exit();
             }
 
             // Open
-            if (item == MenuBarItemIndex { 0, 0 }) {
+            if (item == MenuBarItemIndex{ 0, 0 }) {
                 if (not SheetManagerAddon::IsLoading()) {
                     const auto path = Dialog::OpenFile({ FileFilter::JSON() });
                     if (path) {
@@ -55,8 +55,8 @@ void Main() {
         const auto width = Scene::Width();
         const auto ui_y = Scene::Height() - 35;
 
-        const String time = FormatTime(SecondsF { SheetManagerAddon::PosSec() }, U"M:ss")
-            + U" / " + FormatTime(SecondsF { SheetManagerAddon::LengthSec() }, U"M:ss");
+        const String time = FormatTime(SecondsF{ SheetManagerAddon::PosSec() }, U"M:ss")
+            + U" / " + FormatTime(SecondsF{ SheetManagerAddon::LengthSec() }, U"M:ss");
 
         double progress = static_cast<double>(SheetManagerAddon::PosSec()) / SheetManagerAddon::LengthSec();
 
@@ -64,22 +64,22 @@ void Main() {
         const auto playing_label = enabled and SheetManagerAddon::IsPlaying() ? U"\U000F03E4" : U"\U000F040A";
 
         // play / pause
-        if (SimpleGUI::Button(playing_label, Vec2 { 300, ui_y }, 50, enabled)) {
+        if (SimpleGUI::Button(playing_label, Vec2{ 300, ui_y }, 50, enabled)) {
             SheetManagerAddon::Toggle();
         }
 
         // stop
-        if (SimpleGUI::Button(U"\U000F04DB", Vec2 { 350, ui_y }, 50, enabled)) {
+        if (SimpleGUI::Button(U"\U000F04DB", Vec2{ 350, ui_y }, 50, enabled)) {
             SheetManagerAddon::Stop();
         }
 
         // seek bar
-        if (SimpleGUI::Slider(time, progress, 0.0, 1.0, Vec2 { 400, ui_y }, 100, width - 550, enabled)) {
+        if (SimpleGUI::Slider(time, progress, 0.0, 1.0, Vec2{ 400, ui_y }, 100, width - 550, enabled)) {
             SheetManagerAddon::SeekTime(SheetManagerAddon::LengthSec() * progress);
         }
 
         // reload
-        if (SimpleGUI::Button(U"\U000F0453", Vec2 { width - 50, ui_y }, 50, enabled)) {
+        if (SimpleGUI::Button(U"\U000F0453", Vec2{ width - 50, ui_y }, 50, enabled)) {
             const auto path = SheetManagerAddon::GetMetadata().path;
             SheetManagerAddon::LoadAsync(path);
         }

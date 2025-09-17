@@ -32,7 +32,7 @@ inline const SheetsAnalyzer::Metadata& SheetManagerAddon::GetMetadata() {
     if (auto p = Addon::GetAddon<SheetManagerAddon>(Name)) {
         return p->m_metadata;
     }
-    return SheetsAnalyzer::Metadata {};
+    return SheetsAnalyzer::Metadata{};
 }
 
 inline Optional<SheetsAnalyzer::SheetData> SheetManagerAddon::GetSheetData(size_t index) {
@@ -47,7 +47,7 @@ inline Optional<SheetsAnalyzer::SheetData> SheetManagerAddon::GetSheetData(size_
 inline Optional<TextureRegion> SheetManagerAddon::GetJacket() {
     if (IsLoaded()) {
         if (TextureAsset(JacketAssetName)) {
-            return TextureRegion { TextureAsset(JacketAssetName) };
+            return TextureRegion{ TextureAsset(JacketAssetName) };
         } else {
             return none;
         }

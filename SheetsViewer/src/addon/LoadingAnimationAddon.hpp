@@ -32,7 +32,7 @@ private:
     static constexpr double UpdateInterval = 1.0 / 120.0;
     static constexpr double AngleStep = 1.6_deg;
 
-    Circle m_circle { 0, 0, 0 };
+    Circle m_circle{ 0, 0, 0 };
     double m_thickness = 0.0;
     ColorF m_color = Palette::White;
     Trail m_trail;

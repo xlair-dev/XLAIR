@@ -32,7 +32,7 @@ bool SheetManagerAddon::update() {
                     }
 
                     if (failed) {
-                        m_metadata = SheetsAnalyzer::Metadata {};
+                        m_metadata = SheetsAnalyzer::Metadata{};
                         m_state = State::Unselected;
                         LoadingAnimationAddon::End();
                     } else {
@@ -42,7 +42,7 @@ bool SheetManagerAddon::update() {
                 } else {
                     NotificationAddon::Show(U"Failed to load file", NotificationAddon::Type::Error);
 
-                    m_metadata = SheetsAnalyzer::Metadata {};
+                    m_metadata = SheetsAnalyzer::Metadata{};
                     m_state = State::Unselected;
                 }
             }
@@ -80,14 +80,14 @@ bool SheetManagerAddon::update() {
                     auto& task = m_loading_data_tasks[index];
 
                     if (difficulty.src.isEmpty()) {
-                        m_sheet_data[index] = SheetsAnalyzer::SheetData {};
+                        m_sheet_data[index] = SheetsAnalyzer::SheetData{};
                         continue;
                     }
 
                     if (const auto result = task.get()) {
                         m_sheet_data[index] = *result;
                     } else {
-                        m_sheet_data[index] = SheetsAnalyzer::SheetData {};
+                        m_sheet_data[index] = SheetsAnalyzer::SheetData{};
                         NotificationAddon::Show(U"Failed to load difficulty: {}"_fmt(index), NotificationAddon::Type::Warning);
                     }
                 }
@@ -116,7 +116,7 @@ void SheetManagerAddon::loadAsync(const FilePath& path) {
         TextureAsset::Unregister(JacketAssetName);
     }
 
-    LoadingAnimationAddon::Begin(Circle { Scene::Center(), 80}, 10, ColorF {0.8, 0.9, 1.0});
+    LoadingAnimationAddon::Begin(Circle{ Scene::Center(), 80 }, 10, ColorF{ 0.8, 0.9, 1.0 });
 }
 
 void SheetManagerAddon::play() const {
