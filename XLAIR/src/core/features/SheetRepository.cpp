@@ -54,7 +54,7 @@ namespace core::features {
     Optional<TextureRegion> SheetRepository::getJacket(size_t index) const {
         const auto name = GetJacketAssetName(index);
         if (TextureAsset::IsReady(name)) {
-            return TextureRegion { TextureAsset(name) };
+            return TextureRegion{ TextureAsset(name) };
         }
         return none;
     }

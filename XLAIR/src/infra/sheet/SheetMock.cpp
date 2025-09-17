@@ -6,7 +6,7 @@ namespace infra::sheet {
 
     void SheetMock::load(Array<core::types::SheetMetadata>& metadata) {
         metadata.clear();
-        const auto mock_meta = loadMockMetadata() ;
+        const auto mock_meta = loadMockMetadata();
         for (size_t i = 0; i < m_size; ++i) {
             metadata.push_back(mock_meta);
         }

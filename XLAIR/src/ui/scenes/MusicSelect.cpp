@@ -136,7 +136,7 @@ namespace ui {
             const double ds = dir * s;
             const double margin_factor = Math::Min(1.0, 1.0 + ds);
             const double neighbor_scale = Math::Clamp(ds, 0.0, 1.0);
-            
+
             double x = selected_tile_x + dir * (selected_tile_size.x / 2.0 + TileSpacing + SelectedTileMargin * margin_factor);
 
             const int32 start = static_cast<int32>(index) + dir;
@@ -156,7 +156,7 @@ namespace ui {
                     x += dir * (TileSpacing + SelectedTileMargin) * neighbor_scale;
                 }
 
-                RectF tile{ Arg::center = tile_pos.movedBy(dir * tile_size.x / 2, 0), tile_size};
+                RectF tile{ Arg::center = tile_pos.movedBy(dir * tile_size.x / 2, 0), tile_size };
 
                 tile.drawShadow(Vec2{ 12, 26 }, 32.0, 0, ColorF{ 0, 0, 0, 0.22 });
                 tile(

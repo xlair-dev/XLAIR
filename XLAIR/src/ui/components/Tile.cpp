@@ -81,8 +81,7 @@ namespace ui::components {
                 if (title_region.w <= DescriptionRegion.w) {
                     const Vec2 pos{ DescriptionRegion.w / 2.0, TitleY };
                     FontAsset(U"tile.text")(data.title).draw(TitleFotntSize, Arg::bottomCenter = pos, theme.text);
-                }
-                else {
+                } else {
                     const double t = Math::Fmod(offset, (title_region.w + DescriptionOffsetMargin) / DescriptionVel);
                     FontAsset(U"tile.text")(data.title).draw(TitleFotntSize, Arg::bottomLeft(-t * DescriptionVel, TitleY), theme.text);
                     FontAsset(U"tile.text")(data.title).draw(TitleFotntSize, Arg::bottomLeft(title_region.w + DescriptionOffsetMargin - t * DescriptionVel, TitleY), theme.text);
@@ -91,8 +90,7 @@ namespace ui::components {
                 if (artist_region.w <= DescriptionRegion.w) {
                     const Vec2 pos{ DescriptionRegion.w / 2.0, ArtistY };
                     FontAsset(U"tile.text")(data.artist).draw(ArtistFontSize, Arg::bottomCenter = pos, theme.sub_text);
-                }
-                else {
+                } else {
                     const double t = Math::Fmod(offset, (artist_region.w + DescriptionOffsetMargin) / DescriptionVel);
                     FontAsset(U"tile.text")(data.artist).draw(ArtistFontSize, Arg::bottomLeft(-t * DescriptionVel, ArtistY), theme.sub_text);
                     FontAsset(U"tile.text")(data.artist).draw(ArtistFontSize, Arg::bottomLeft(artist_region.w + DescriptionOffsetMargin - t * DescriptionVel, ArtistY), theme.sub_text);
@@ -153,7 +151,7 @@ namespace ui::components {
 
             asset.texture = Texture{ image.scaled(1.0 / scale, InterpolationAlgorithm::Area), TextureDesc::Mipped };
             return static_cast<bool>(asset.texture);
-            };
+        };
 
         return data;
     }

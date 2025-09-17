@@ -8,7 +8,7 @@ namespace app::consts {
         static inline constexpr int32 Height = 1080;
         static inline constexpr bool Sizable = true;
         static inline constexpr bool Fullscreen = false;
-        static inline constexpr ColorF LetterboxColor { 0 };
+        static inline constexpr ColorF LetterboxColor{ 0 };
 
         static inline constexpr bool Arcade = false;
     }

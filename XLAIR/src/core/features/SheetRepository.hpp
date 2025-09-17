@@ -27,7 +27,7 @@ namespace core::features {
         static AssetName GetJacketAssetName(size_t index);
 
         AsyncTask<void> m_loading_task;
-        std::atomic<bool> m_metadata_loaded { false };
+        std::atomic<bool> m_metadata_loaded{ false };
         mutable std::mutex m_mutex;
 
         Array<core::types::SheetMetadata> m_metadata;

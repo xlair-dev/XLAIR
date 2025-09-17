@@ -8,7 +8,7 @@ namespace ui::components {
         constexpr ColorF AccentColor = theme::Palette::Cyan;
         constexpr ColorF TextColor = theme::Palette::Gray;
 
-        Line { 0, 88, 249, 88 }.draw(LineStyle::RoundCap, 4, AccentColor);
+        Line{ 0, 88, 249, 88 }.draw(LineStyle::RoundCap, 4, AccentColor);
 
         FontAsset(U"tile.text")(U"TIME").drawBase(32, 13, 78, AccentColor);
         FontAsset(U"BrunoAce")(time).draw(68, Arg::bottomLeft = Vec2{ 100, 96 }, TextColor);

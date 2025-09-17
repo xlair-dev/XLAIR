@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "Common.hpp"
 
 namespace core::features {
@@ -53,8 +53,7 @@ namespace core::features {
                     p_dst->i1 = (base_index + i + 1);
                     p_dst->i2 = ((full_index + base_index - 1) % full_index);
                     ++p_dst;
-                }
-                else {
+                } else {
                     const Vertex2D::IndexType t0 = (base_index + i);
                     const Vertex2D::IndexType t1 = (base_index + i + 1);
                     const Vertex2D::IndexType t2 = ((full_index + base_index - i) % full_index);

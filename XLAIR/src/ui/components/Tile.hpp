@@ -17,7 +17,7 @@ namespace ui::components {
 
         void drawBadge(const Vec2& pos, const Vec2& size, StringView s, const ColorF& color) const;
 
-        static constexpr Size TileSize { 416, 545 };
+        static constexpr Size TileSize{ 416, 545 };
         static constexpr Size SparkleSize{ 44, 61 };
 
         struct Assets {
