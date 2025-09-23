@@ -45,6 +45,8 @@ namespace SheetsAnalyzer::SUSAnalyzer {
             return t.type == NoteType::BpmChange;
         }));
 
+        // TODO: validate
+
         // Convert SUSData to SheetData
         data.convertToSheetData();
         return static_cast<SheetData>(data);

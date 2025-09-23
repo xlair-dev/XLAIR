@@ -17,6 +17,33 @@ namespace SheetsAnalyzer {
         s3d::uint8 width = 0;
     };
 
+    enum class HoldNoteType : int8 {
+        Start,
+        End,
+        Mid,
+        MidUnvisible,
+    };
+
+    struct HoldNoteDataInternal {
+        size_t timeline_index = 0;
+        s3d::int64 sample;
+        s3d::uint8 start_lane = 0;
+        s3d::uint8 width = 0;
+        HoldNoteType type;
+    };
+
+    struct HoldNoteData {
+        // judgement
+        s3d::Array<HoldNoteDataInternal> judge;
+        // notes array
+        s3d::Array<HoldNoteDataInternal> notes;
+
+        void clear() {
+            judge.clear();
+            notes.clear();
+        }
+    };
+
     struct TimelineData {
         s3d::Array<HispeedData> hispeed_data;
     };
@@ -37,6 +64,7 @@ namespace SheetsAnalyzer {
             s3d::Array<ShortNoteData> tap;
             s3d::Array<ShortNoteData> xtap;
             s3d::Array<ShortNoteData> flick;
+            s3d::Array<HoldNoteData> hold;
         } notes;
     };
 }

@@ -68,22 +68,45 @@ void SheetViewer::draw() const {
                 for (const auto& tap : sheet_data->notes.tap) {
                     const auto x = offset_left + 2 * UI::SideLaneWidth + tap.start_lane * UI::LaneWidth;
                     const auto note_width = tap.width * UI::LaneWidth;
-                    const auto y = (height - 120) - static_cast<double>(tap.sample - pos_sample) * 0.005;
+                    const auto y = (height - 120) - static_cast<double>(tap.sample - pos_sample) * 0.01;
                     RectF{ x, y, note_width, 20.0 }.draw(ColorF(0.8, 0.2, 0.2));
                 }
 
                 for (const auto& xtap : sheet_data->notes.xtap) {
                     const auto x = offset_left + 2 * UI::SideLaneWidth + xtap.start_lane * UI::LaneWidth;
                     const auto note_width = xtap.width * UI::LaneWidth;
-                    const auto y = (height - 120) - static_cast<double>(xtap.sample - pos_sample) * 0.005;
+                    const auto y = (height - 120) - static_cast<double>(xtap.sample - pos_sample) * 0.01;
                     RectF{ x, y, note_width, 20.0 }.draw(ColorF(0.8, 0.8, 0.0));
                 }
 
                 for (const auto& flick : sheet_data->notes.flick) {
                     const auto x = offset_left + 2 * UI::SideLaneWidth + flick.start_lane * UI::LaneWidth;
                     const auto note_width = flick.width * UI::LaneWidth;
-                    const auto y = (height - 120) - static_cast<double>(flick.sample - pos_sample) * 0.005;
+                    const auto y = (height - 120) - static_cast<double>(flick.sample - pos_sample) * 0.01;
                     RectF{ x, y, note_width, 20.0 }.draw(ColorF(0.2, 0.2, 0.8));
+                }
+
+                for (const auto& hold : sheet_data->notes.hold) {
+                    for (size_t i = 1; i < hold.notes.size(); i++) {
+                        const auto& pre = hold.notes[i - 1];
+                        const auto& cur = hold.notes[i];
+
+                        const auto pre_x = offset_left + 2 * UI::SideLaneWidth + pre.start_lane * UI::LaneWidth;
+                        const auto cur_x = offset_left + 2 * UI::SideLaneWidth + cur.start_lane * UI::LaneWidth;
+
+                        const auto pre_w = pre.width * UI::LaneWidth;
+                        const auto cur_w = cur.width * UI::LaneWidth;
+
+                        const auto pre_y = (height - 120) - static_cast<double>(pre.sample - pos_sample) * 0.01;
+                        const auto cur_y = (height - 120) - static_cast<double>(cur.sample - pos_sample) * 0.01;
+
+                        Quad{
+                            Vec2{ pre_x, pre_y },
+                            Vec2{ pre_x + pre_w, pre_y },
+                            Vec2{ cur_x + cur_w, cur_y },
+                            Vec2{ cur_x, cur_y },
+                        }.draw(ColorF(0.2, 0.2, 0.8, 0.5));
+                    }
                 }
             }
         }

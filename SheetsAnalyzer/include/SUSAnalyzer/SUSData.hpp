@@ -21,7 +21,7 @@ namespace SheetsAnalyzer::SUSAnalyzer {
         auto operator<=>(const SUSRelativeNoteTime& other) const = default;
     };
 
-    enum class NoteType {
+    enum class NoteType : int8 {
         Undefined = 0,
         BpmChange,
 

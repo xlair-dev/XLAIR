@@ -41,6 +41,8 @@ namespace SheetsAnalyzer::SUSAnalyzer {
             });
         }
 
+        Array<HoldNoteData> holdnote_channel(36);
+
         // raw notes
         for (const auto& note : raw_notes) {
             switch (note.type) {
@@ -68,6 +70,48 @@ namespace SheetsAnalyzer::SUSAnalyzer {
                         .width = note.note_position.width
                     });
                     break;
+                case NoteType::HoldStartNote:
+                    holdnote_channel[note.extra].clear();
+                    holdnote_channel[note.extra].notes.push_back({
+                        .timeline_index = note.timeline_index,
+                        .sample = getSampleAt(note.time),
+                        .start_lane = note.note_position.start_lane,
+                        .width = note.note_position.width,
+                        .type = HoldNoteType::Start,
+                    });
+                    break;
+                case NoteType::HoldEndNote:
+                    holdnote_channel[note.extra].notes.push_back({
+                        .timeline_index = note.timeline_index,
+                        .sample = getSampleAt(note.time),
+                        .start_lane = note.note_position.start_lane,
+                        .width = note.note_position.width,
+                        .type = HoldNoteType::End,
+                    });
+                    // TODO: construct judge
+                    notes.hold.push_back(std::move(holdnote_channel[note.extra]));
+                    holdnote_channel[note.extra] = HoldNoteData{};
+                    break;
+                case NoteType::HoldControlPoint:
+                    // TODO: implement
+                    break;
+                case NoteType::HoldMidNote:
+                    holdnote_channel[note.extra].notes.push_back({
+                        .timeline_index = note.timeline_index,
+                        .sample = getSampleAt(note.time),
+                        .start_lane = note.note_position.start_lane,
+                        .width = note.note_position.width,
+                        .type = HoldNoteType::Mid,
+                    });
+                    break;
+                case NoteType::HoldMidUnvisibleNote:
+                    holdnote_channel[note.extra].notes.push_back({
+                        .timeline_index = note.timeline_index,
+                        .sample = getSampleAt(note.time),
+                        .start_lane = note.note_position.start_lane,
+                        .width = note.note_position.width,
+                        .type = HoldNoteType::MidUnvisible,
+                    });
                 default:
                     // Ignore other types
                     break;
@@ -90,7 +134,6 @@ namespace SheetsAnalyzer::SUSAnalyzer {
     s3d::int64 SUSData::getSampleAt(const SUSRelativeNoteTime& time) {
         s3d::uint32 meas = time.measure;
         s3d::uint32 tick = time.ticks;
-        s3d::int64 sample = 0;
         double frames = 0.0;
         double last_bpm = Constant::DefaultBPM;
         const double inv_tpb = 1.0 / static_cast<double>(ticks_per_beat);
