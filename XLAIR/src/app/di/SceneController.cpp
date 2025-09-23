@@ -6,6 +6,7 @@
 #include "ui/scenes/Title.hpp"
 #include "ui/scenes/Login.hpp"
 #include "ui/scenes/MusicSelect.hpp"
+#include "ui/scenes/Game.hpp"
 
 namespace app {
     using SceneState = app::types::SceneState;
@@ -14,7 +15,8 @@ namespace app {
         controller
             .add<ui::Title>(SceneState::Title)
             .add<ui::Login>(SceneState::Login)
-            .add<ui::MusicSelect>(SceneState::MusicSelect);
+            .add<ui::MusicSelect>(SceneState::MusicSelect)
+            .add<ui::Game>(SceneState::Game);
 
         // TODO: asset management
         ui::MusicSelect::RegisterAssets();

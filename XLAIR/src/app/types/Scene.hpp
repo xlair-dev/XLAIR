@@ -6,5 +6,6 @@ namespace app::types {
         Login,
         MapSelect,
         MusicSelect,
+        Game,
     };
 }
