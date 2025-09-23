@@ -253,6 +253,12 @@
     <Filter Include="Source Files\ui\theme">
       <UniqueIdentifier>{55eefd55-2475-49ca-b844-399733356c52}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\ui\addons">
+      <UniqueIdentifier>{a5a3c10b-9e69-4b20-a2c5-0579c899eae4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\ui\addons">
+      <UniqueIdentifier>{6df41f99-8cf7-4aa6-bcaf-ad606181cb4c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -317,6 +323,12 @@
     </ClCompile>
     <ClCompile Include="src\ui\scenes\Game.cpp">
       <Filter>Source Files\ui\scenes</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ui\addons\HomographyAddon.cpp">
+      <Filter>Source Files\ui\addons</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\di\Addon.cpp">
+      <Filter>Source Files\app\di</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1113,6 +1125,12 @@
     </ClInclude>
     <ClInclude Include="src\ui\scenes\Game.hpp">
       <Filter>Header Files\ui\scenes</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ui\addons\HomographyAddon.hpp">
+      <Filter>Header Files\ui\addons</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\di\Addon.hpp">
+      <Filter>Header Files\app\di</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

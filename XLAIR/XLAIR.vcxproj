@@ -121,6 +121,7 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\app\di\Addon.cpp" />
     <ClCompile Include="src\app\di\Providers.cpp" />
     <ClCompile Include="src\app\di\SceneController.cpp" />
     <ClCompile Include="src\app\usecases\InitializeApp.cpp" />
@@ -131,6 +132,7 @@
     <ClCompile Include="src\infra\controller\ControllerMock.cpp" />
     <ClCompile Include="src\infra\sheet\SheetMock.cpp" />
     <ClCompile Include="src\Main.cpp" />
+    <ClCompile Include="src\ui\addons\HomographyAddon.cpp" />
     <ClCompile Include="src\ui\components\MenuTimerPlate.cpp" />
     <ClCompile Include="src\ui\components\PlayerNameplate.cpp" />
     <ClCompile Include="src\ui\components\Tile.cpp" />
@@ -359,6 +361,7 @@
     <ClInclude Include="src\app\consts\Scene.hpp" />
     <ClInclude Include="src\app\consts\Version.hpp" />
     <ClInclude Include="src\app\consts\Config.hpp" />
+    <ClInclude Include="src\app\di\Addon.hpp" />
     <ClInclude Include="src\app\di\Providers.hpp" />
     <ClInclude Include="src\app\di\SceneController.hpp" />
     <ClInclude Include="src\app\interfaces\IApiClient.hpp" />
@@ -381,6 +384,7 @@
     <ClInclude Include="src\infra\config\TomlConfigProvider.hpp" />
     <ClInclude Include="src\infra\controller\ControllerMock.hpp" />
     <ClInclude Include="src\infra\sheet\SheetMock.hpp" />
+    <ClInclude Include="src\ui\addons\HomographyAddon.hpp" />
     <ClInclude Include="src\ui\components\MenuTimerPlate.hpp" />
     <ClInclude Include="src\ui\components\PlayerNameplate.hpp" />
     <ClInclude Include="src\ui\components\Tile.hpp" />

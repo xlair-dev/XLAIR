@@ -3,7 +3,6 @@
 #include "app/usecases/LoadConfig.hpp"
 #include "app/usecases/InitializeApp.hpp"
 
-#include "app/di/SceneController.hpp"
 #include "app/di/Providers.hpp"
 
 #include "infra/sheet/SheetMock.hpp"
@@ -36,7 +35,7 @@ void Main() {
     PixelShaderAsset::Register(U"grayscale", HLSL{ U"assets/shaders/grayscale.hlsl", U"PS" } | GLSL{ U"assets/shaders/grayscale.frag", {{U"PSConstants2D", 0}} });
     PixelShaderAsset::Load(U"grayscale");
 
-    app::InitializeSceneController(app.sceneController, app::types::SceneState::MusicSelect);
+    app.sceneController.changeScene(app::types::SceneState::MusicSelect);
     while (System::Update() and app.sceneController.update()) {
     }
 }

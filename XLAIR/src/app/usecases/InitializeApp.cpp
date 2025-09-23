@@ -1,6 +1,9 @@
 ﻿#include "InitializeApp.hpp"
 #include "app/consts/Scene.hpp"
 
+#include "app/di/Addon.hpp"
+#include "app/di/SceneController.hpp"
+
 namespace app {
     void InitializeApp(App& app, const app::types::Config& config) {
         System::SetTerminationTriggers(UserAction::CloseButtonClicked);
@@ -8,6 +11,9 @@ namespace app {
 #if SIV3D_PLATFORM(WINDOWS)
         Platform::Windows::TextInput::DisableIME();
 #endif
+
+        RegisterAddons();
+        InitializeSceneController(app.sceneController, app::types::SceneState::Title);
 
         Window::SetTitle(U"XLAIR");
         Window::Resize(config.window.width, config.window.height);
