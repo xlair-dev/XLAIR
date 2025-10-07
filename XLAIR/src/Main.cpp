@@ -12,6 +12,8 @@ void Main() {
 
     const auto config = app::LoadConfig(app::MakeDefaultConfigProviders());
     app::InitializeApp(app, config);
+
+    app.sceneController.changeScene(app::types::SceneState::Game, 0);
     app.sceneController.get().get()->sheetRepository.load(std::make_unique<infra::sheet::SheetMock>(5));
     app.sceneController.get().get()->sheetRepository.loadJacket();
 
@@ -35,7 +37,6 @@ void Main() {
     PixelShaderAsset::Register(U"grayscale", HLSL{ U"assets/shaders/grayscale.hlsl", U"PS" } | GLSL{ U"assets/shaders/grayscale.frag", {{U"PSConstants2D", 0}} });
     PixelShaderAsset::Load(U"grayscale");
 
-    app.sceneController.changeScene(app::types::SceneState::MusicSelect);
     while (System::Update() and app.sceneController.update()) {
     }
 }
