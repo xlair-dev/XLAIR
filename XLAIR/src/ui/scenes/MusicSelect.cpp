@@ -20,39 +20,9 @@ namespace ui {
     MusicSelect::~MusicSelect() {}
 
     void MusicSelect::update() {
-        auto&& index = getData().playerData.selected_index;
-        auto&& difficulty = getData().playerData.selected_difficulty;
-
-        // TODO: input handling in infra layer
-        if (index + 1 < getData().sheetRepository.size()) {
-            if (KeyRight.down()) {
-                ++index;
-                m_scroll_offset = -1.0;
-                m_tile_offset_raw = -OffsetWait;
-            }
-        }
-        if (index > 0) {
-            if (KeyLeft.down()) {
-                --index;
-                m_scroll_offset = 1.0;
-                m_tile_offset_raw = -OffsetWait;
-            }
-        }
-
-        if (difficulty + 1 < core::types::DifficultySize) {
-            if (KeyUp.down()) {
-                ++difficulty;
-            }
-        }
-        if (difficulty > 0) {
-            if (KeyDown.down()) {
-                --difficulty;
-            }
-        }
-
-        m_scroll_offset = Math::SmoothDamp(m_scroll_offset, 0.0, m_scroll_velocity, 0.1);
-        m_tile_offset_raw += Scene::DeltaTime();
-        m_tile_offset = Math::Max(0.0, m_tile_offset_raw);
+        handleIndexInput();
+        handleDifficultyInput();
+        updateScrollState();
     }
 
     void MusicSelect::draw() const {
@@ -184,6 +154,42 @@ namespace ui {
 
         primitives::DrawArrow(left_center, color, -1);
         primitives::DrawArrow(left_center.movedBy(-30, 0), color, -1);
+    }
+
+    void MusicSelect::handleIndexInput() {
+        // TODO: input handling in infra layer
+        auto& data = getData();
+        auto& index = getData().playerData.selected_index;
+        const auto repo_size = data.sheetRepository.size();
+
+        if (index + 1 < repo_size and KeyRight.down()) {
+            ++index;
+            m_scroll_offset = -1.0;
+            m_tile_offset_raw = -OffsetWait;
+        }
+        if (index > 0 and KeyLeft.down()) {
+            --index;
+            m_scroll_offset = 1.0;
+            m_tile_offset_raw = -OffsetWait;
+        }
+    }
+
+    void MusicSelect::handleDifficultyInput() {
+        // TODO: input handling in infra layer
+        auto& difficulty = getData().playerData.selected_difficulty;
+
+        if (difficulty + 1 < core::types::DifficultySize and KeyUp.down()) {
+            ++difficulty;
+        }
+        if (difficulty > 0 and KeyDown.down()) {
+            --difficulty;
+        }
+    }
+
+    void MusicSelect::updateScrollState() {
+        m_scroll_offset = Math::SmoothDamp(m_scroll_offset, 0.0, m_scroll_velocity, 0.1);
+        m_tile_offset_raw += Scene::DeltaTime();
+        m_tile_offset = Math::Max(0.0, m_tile_offset_raw);
     }
 
     std::unique_ptr<TextureAssetData> MakeMenuUITitle() {

@@ -41,5 +41,9 @@ namespace ui {
         void drawUI() const;
         void drawTiles() const;
         void drawArrows() const;
+
+        void handleIndexInput();
+        void handleDifficultyInput();
+        void updateScrollState();
     };
 }
