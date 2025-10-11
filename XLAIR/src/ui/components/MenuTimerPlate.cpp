@@ -1,4 +1,5 @@
 ﻿#include "MenuTimerPlate.hpp"
+#include "app/usecases/Assets.hpp"
 #include "ui/primitives/EighthNote.hpp"
 #include "ui/theme/Palette.hpp"
 
@@ -10,8 +11,8 @@ namespace ui::components {
 
         Line{ 0, 88, 249, 88 }.draw(LineStyle::RoundCap, 4, AccentColor);
 
-        FontAsset(U"tile.text")(U"TIME").drawBase(32, 13, 78, AccentColor);
-        FontAsset(U"BrunoAce")(time).draw(68, Arg::bottomLeft = Vec2{ 100, 96 }, TextColor);
+        FontAsset(app::assets::font::UiText)(U"TIME").drawBase(32, 13, 78, AccentColor);
+        FontAsset(app::assets::font::UiTimer)(time).draw(68, Arg::bottomLeft = Vec2{ 100, 96 }, TextColor);
 
         for (const auto i : step(3)) {
             const auto color = i < left_playable_music ? AccentColor : TextColor;

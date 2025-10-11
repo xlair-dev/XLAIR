@@ -1,4 +1,5 @@
 ﻿#include "Tile.hpp"
+#include "app/usecases/Assets.hpp"
 #include "ui/primitives/SparkleShape.hpp"
 #include "ui/theme/DifficultyTheme.hpp"
 
@@ -10,7 +11,6 @@ namespace ui::components {
     const MSRenderTexture& Tile::get(const core::types::SheetMetadata& data, const TextureRegion& jacket, int8 difficulty_index, const double offset) const {
         const auto difficulty = core::types::DifficultyFromInt(difficulty_index);
         const auto difficulty_info = data.difficulties[difficulty_index];
-
         const auto theme = theme::GetDifficultyTheme(difficulty);
 
         constexpr int32 Score = 1006000;
@@ -50,17 +50,17 @@ namespace ui::components {
             {
                 const auto difficulty_str = core::types::ToString(difficulty).uppercase();
                 const Transformer2D tr{ Mat3x2::Rotate(90_deg, Vec2{0, 0}) };
-                FontAsset(U"tile")(difficulty_str).draw(36, Vec2{ 20, -57 }, theme.accent);
+                FontAsset(app::assets::font::UiLabel)(difficulty_str).draw(36, Vec2{ 20, -57 }, theme.accent);
             }
 
             // level
             {
                 const Transformer2D tr{ Mat3x2::Rotate(-90_deg, Vec2{0, 0}) };
-                FontAsset(U"tile")(U"LEVEL").draw(23, Vec2{ -505, 50 }, theme.accent);
+                FontAsset(app::assets::font::UiLabel)(U"LEVEL").draw(23, Vec2{ -505, 50 }, theme.accent);
             }
             {
                 const double level_x = (difficulty_info.level < 10 ? 90 : 80);
-                FontAsset(U"tile.text")(difficulty_info.level).drawBase(87, level_x, 503, theme.text);
+                FontAsset(app::assets::font::UiText)(difficulty_info.level).drawBase(87, level_x, 503, theme.text);
             }
 
             // title and artist
@@ -75,34 +75,34 @@ namespace ui::components {
 
                 const ScopedViewport2D viewport{ DescriptionRegion };
 
-                const RectF title_region = FontAsset(U"tile.text")(data.title).region(TitleFotntSize);
-                const RectF artist_region = FontAsset(U"tile.text")(data.artist).region(ArtistFontSize);
+                const RectF title_region = FontAsset(app::assets::font::UiText)(data.title).region(TitleFotntSize);
+                const RectF artist_region = FontAsset(app::assets::font::UiText)(data.artist).region(ArtistFontSize);
 
                 if (title_region.w <= DescriptionRegion.w) {
                     const Vec2 pos{ DescriptionRegion.w / 2.0, TitleY };
-                    FontAsset(U"tile.text")(data.title).draw(TitleFotntSize, Arg::bottomCenter = pos, theme.text);
+                    FontAsset(app::assets::font::UiText)(data.title).draw(TitleFotntSize, Arg::bottomCenter = pos, theme.text);
                 } else {
                     const double t = Math::Fmod(offset, (title_region.w + DescriptionOffsetMargin) / DescriptionVel);
-                    FontAsset(U"tile.text")(data.title).draw(TitleFotntSize, Arg::bottomLeft(-t * DescriptionVel, TitleY), theme.text);
-                    FontAsset(U"tile.text")(data.title).draw(TitleFotntSize, Arg::bottomLeft(title_region.w + DescriptionOffsetMargin - t * DescriptionVel, TitleY), theme.text);
+                    FontAsset(app::assets::font::UiText)(data.title).draw(TitleFotntSize, Arg::bottomLeft(-t * DescriptionVel, TitleY), theme.text);
+                    FontAsset(app::assets::font::UiText)(data.title).draw(TitleFotntSize, Arg::bottomLeft(title_region.w + DescriptionOffsetMargin - t * DescriptionVel, TitleY), theme.text);
                 }
 
                 if (artist_region.w <= DescriptionRegion.w) {
                     const Vec2 pos{ DescriptionRegion.w / 2.0, ArtistY };
-                    FontAsset(U"tile.text")(data.artist).draw(ArtistFontSize, Arg::bottomCenter = pos, theme.sub_text);
+                    FontAsset(app::assets::font::UiText)(data.artist).draw(ArtistFontSize, Arg::bottomCenter = pos, theme.sub_text);
                 } else {
                     const double t = Math::Fmod(offset, (artist_region.w + DescriptionOffsetMargin) / DescriptionVel);
-                    FontAsset(U"tile.text")(data.artist).draw(ArtistFontSize, Arg::bottomLeft(-t * DescriptionVel, ArtistY), theme.sub_text);
-                    FontAsset(U"tile.text")(data.artist).draw(ArtistFontSize, Arg::bottomLeft(artist_region.w + DescriptionOffsetMargin - t * DescriptionVel, ArtistY), theme.sub_text);
+                    FontAsset(app::assets::font::UiText)(data.artist).draw(ArtistFontSize, Arg::bottomLeft(-t * DescriptionVel, ArtistY), theme.sub_text);
+                    FontAsset(app::assets::font::UiText)(data.artist).draw(ArtistFontSize, Arg::bottomLeft(artist_region.w + DescriptionOffsetMargin - t * DescriptionVel, ArtistY), theme.sub_text);
                 }
             }
 
             // high score
             {
-                FontAsset(U"tile")(U"HIGH").draw(17, 177, 470, theme.accent);
-                FontAsset(U"tile")(U"SCORE").draw(17, 177, 485, theme.accent);
+                FontAsset(app::assets::font::UiLabel)(U"HIGH").draw(17, 177, 470, theme.accent);
+                FontAsset(app::assets::font::UiLabel)(U"SCORE").draw(17, 177, 485, theme.accent);
 
-                FontAsset(U"tile.text")(Score).draw(40, Arg::bottomRight = Vec2{ 395, 520 }, theme.text);
+                FontAsset(app::assets::font::UiText)(Score).draw(40, Arg::bottomRight = Vec2{ 395, 520 }, theme.text);
             }
 
             // badge
@@ -114,7 +114,7 @@ namespace ui::components {
             }
 
             // notes designer
-            FontAsset(U"tile.text")(U"NOTES DESIGNER: {}"_fmt(difficulty_info.designer)).drawBase(15, 16, 534, theme.accent);
+            FontAsset(app::assets::font::UiText)(U"NOTES DESIGNER: {}"_fmt(difficulty_info.designer)).drawBase(15, 16, 534, theme.accent);
         }
 
         Graphics2D::Flush();
@@ -129,7 +129,7 @@ namespace ui::components {
         RectF{ pos, mid }.draw(Arg::left = color, lighten);
         RectF{ pos.movedBy(mid.x, 0), end }.draw(Arg::left = lighten, Arg::right = color);
 
-        FontAsset(U"tile")(s).draw(18, Arg::center = pos.movedBy(size.x / 2.0, size.y / 2.0), Palette::White);
+        FontAsset(app::assets::font::UiLabel)(s).draw(18, Arg::center = pos.movedBy(size.x / 2.0, size.y / 2.0), Palette::White);
     }
 
     std::unique_ptr<TextureAssetData> MakeSparkle() {

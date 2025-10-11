@@ -330,6 +330,9 @@
     <ClCompile Include="src\app\di\Addon.cpp">
       <Filter>Source Files\app\di</Filter>
     </ClCompile>
+    <ClCompile Include="src\app\usecases\Assets.cpp">
+      <Filter>Source Files\app\usecases</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Image Include="App\icon.ico">
@@ -1131,6 +1134,9 @@
     </ClInclude>
     <ClInclude Include="src\app\di\Addon.hpp">
       <Filter>Header Files\app\di</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\usecases\Assets.hpp">
+      <Filter>Header Files\app\usecases</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

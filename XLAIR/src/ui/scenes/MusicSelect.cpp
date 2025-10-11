@@ -3,6 +3,7 @@
 #include "core/types/Difficulty.hpp"
 
 #include "app/consts/Scene.hpp"
+#include "app/usecases/Assets.hpp"
 
 #include "ui/components/Tile.hpp"
 #include "ui/components/PlayerNameplate.hpp"
@@ -73,7 +74,7 @@ namespace ui {
         const auto& index = getData().playerData.selected_index;
         const auto& repo = getData().sheetRepository;
         // TODO: add change animation
-        const ScopedCustomShader2D shader{ PixelShaderAsset(U"grayscale") };
+        const ScopedCustomShader2D shader{ PixelShaderAsset(app::assets::shader::Grayscale) };
         RectF{ SceneSize.maxComponent() }(*repo.getJacket(index)).draw(ColorF{ 1.0, 1.0, 1.0, 0.05 });
     }
 
