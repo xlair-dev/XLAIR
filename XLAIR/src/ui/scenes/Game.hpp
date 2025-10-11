@@ -5,7 +5,6 @@
 using app::App;
 
 namespace ui {
-
     class Game : public App::Scene {
     public:
         Game(const InitData& init);
@@ -15,6 +14,8 @@ namespace ui {
         void draw() const override;
 
     private:
+        static constexpr double OffsetWait = 1.0;
+        double m_tile_offset_raw = -OffsetWait;
+        double m_tile_offset = 0.0;
     };
-
 }

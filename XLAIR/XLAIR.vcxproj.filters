@@ -333,6 +333,9 @@
     <ClCompile Include="src\app\usecases\Assets.cpp">
       <Filter>Source Files\app\usecases</Filter>
     </ClCompile>
+    <ClCompile Include="src\ui\components\GameMusicPlate.cpp">
+      <Filter>Source Files\ui\components</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Image Include="App\icon.ico">
@@ -1137,6 +1140,9 @@
     </ClInclude>
     <ClInclude Include="src\app\usecases\Assets.hpp">
       <Filter>Header Files\app\usecases</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ui\components\GameMusicPlate.hpp">
+      <Filter>Header Files\ui\components</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

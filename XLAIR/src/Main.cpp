@@ -14,7 +14,7 @@ void Main() {
     const auto config = app::LoadConfig(app::MakeDefaultConfigProviders());
     app::InitializeApp(app, config);
 
-    app.sceneController.changeScene(app::types::SceneState::MusicSelect, 0);
+    app.sceneController.changeScene(app::types::SceneState::Game, 0);
     auto* scene_data = app.sceneController.get().get();
     scene_data->sheetRepository.load(std::make_unique<infra::sheet::SheetMock>(5));
     scene_data->sheetRepository.loadJacket();
