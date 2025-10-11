@@ -74,7 +74,7 @@ namespace ui::components {
         constexpr double DescriptionOffsetMargin = 80;
         constexpr double DescriptionVel = 50.0;
         constexpr double TitleY = 50;
-        constexpr auto TitleFotntSize = 36;
+        constexpr auto TitleFontSize = 36;
         constexpr double ArtistY = 75;
         constexpr auto ArtistFontSize = 24;
 
@@ -82,16 +82,16 @@ namespace ui::components {
         {
             const ScopedViewport2D viewport{ DescriptionRegion };
 
-            const RectF title_region = FontAsset(app::assets::font::UiText)(data.title).region(TitleFotntSize);
+            const RectF title_region = FontAsset(app::assets::font::UiText)(data.title).region(TitleFontSize);
             const RectF artist_region = FontAsset(app::assets::font::UiText)(data.artist).region(ArtistFontSize);
 
             if (title_region.w <= DescriptionRegion.w) {
                 const Vec2 pos{ DescriptionRegion.w / 2.0, TitleY };
-                FontAsset(app::assets::font::UiText)(data.title).draw(TitleFotntSize, Arg::bottomCenter = pos, theme.text);
+                FontAsset(app::assets::font::UiText)(data.title).draw(TitleFontSize, Arg::bottomCenter = pos, theme.text);
             } else {
                 const double t = Math::Fmod(offset, (title_region.w + DescriptionOffsetMargin) / DescriptionVel);
-                FontAsset(app::assets::font::UiText)(data.title).draw(TitleFotntSize, Arg::bottomLeft(-t * DescriptionVel, TitleY), theme.text);
-                FontAsset(app::assets::font::UiText)(data.title).draw(TitleFotntSize, Arg::bottomLeft(title_region.w + DescriptionOffsetMargin - t * DescriptionVel, TitleY), theme.text);
+                FontAsset(app::assets::font::UiText)(data.title).draw(TitleFontSize, Arg::bottomLeft(-t * DescriptionVel, TitleY), theme.text);
+                FontAsset(app::assets::font::UiText)(data.title).draw(TitleFontSize, Arg::bottomLeft(title_region.w + DescriptionOffsetMargin - t * DescriptionVel, TitleY), theme.text);
             }
 
             if (artist_region.w <= DescriptionRegion.w) {
