@@ -7,14 +7,16 @@ namespace app::assets {
     }
 
     void InitializeFonts() {
-        FontAsset::Register(font::UiLabel, FontMethod::Bitmap, 38, U"assets/fonts/Jost/Jost-Medium.ttf");
+        FontAsset::Register(font::UiLabel, FontMethod::MSDF, 38, U"assets/fonts/Jost/Jost-Medium.ttf");
         FontAsset::Load(font::UiLabel);
 
         FontAsset::Register(font::UiText, FontMethod::MSDF, 75, U"assets/fonts/Jost/Jost-Regular.ttf");
         FontAsset::Load(font::UiText);
 
-        const Font cjk{ FontMethod::MSDF, 75, Typeface::CJK_Regular_JP };
-        FontAsset(font::UiText).addFallback(cjk);
+        FontAsset::Register(U"font.cjk", FontMethod::MSDF, 75, Typeface::CJK_Regular_JP);
+        FontAsset::Load(U"font.cjk");
+        auto&& target_font = FontAsset(U"font.cjk");
+        FontAsset(font::UiText).addFallback(target_font);
 
         FontAsset::Register(font::UiTimer, FontMethod::Bitmap, 68, U"assets/fonts/BrunoAce/BrunoAce-Regular.ttf");
         FontAsset::Load(font::UiTimer);
