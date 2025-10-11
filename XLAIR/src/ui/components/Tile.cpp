@@ -3,8 +3,6 @@
 #include "ui/primitives/SparkleShape.hpp"
 #include "ui/theme/DifficultyTheme.hpp"
 
-#include "core/types/Difficulty.hpp"
-
 namespace ui::components {
     Tile::Tile() : m_tile_rt{ TileSize } {}
 
@@ -13,113 +11,111 @@ namespace ui::components {
         const auto difficulty_info = data.difficulties[difficulty_index];
         const auto theme = theme::GetDifficultyTheme(difficulty);
 
-        constexpr int32 Score = 1006000;
-
         m_tile_rt.clear(Palette::White);
         {
             ScopedRenderTarget2D target{ m_tile_rt };
 
-            // background
-            {
-                const ColorF BG = (theme.accent * 1.5).withA(0.2);
-                Circle{ Vec2{ 0, 0 }, 70 }.draw(BG, Palette::White);
-                Circle{ Vec2{ TileSize.x, 0 }, 70 }.draw(BG, Palette::White);
-                Circle{ Vec2{ 0, TileSize.y }, 70 }.draw(BG, Palette::White);
-                Circle{ Vec2{ TileSize.x, TileSize.y }, 70 }.draw(BG, Palette::White);
-            }
+            drawBackground(theme, jacket);
+            drawDifficultySection(difficulty, difficulty_info.level, theme);
+            drawMetadataSection(data, difficulty_info.designer, offset, theme);
 
-            // frame
-            RectF{ TileSize }.drawFrame(2, 0, theme.accent);
-
-            // jacket
-            RectF{ Vec2{ 58, 20 },  Size{ 338, 338 } }.draw(theme.accent);
-            RectF{ Vec2{ 64, 20 },  Size{ 332, 332 } }(jacket).draw();
-
-            // decorations
-            Line{ Vec2{ 349, 10 },  Vec2{ 406, 10 } }.draw(2, theme.accent);
-            Line{ Vec2{ 406, 10 },  Vec2{ 406, 67 } }.draw(2, theme.accent);
-
-            Line{ Vec2{ 213, 534 },  Vec2{ 406, 534 } }.draw(2, theme.accent);
-            Line{ Vec2{ 406, 496 },  Vec2{ 406, 534 } }.draw(2, theme.accent);
-
-            TextureAsset(Assets::Sparkle).draw(Vec2{ 8, 341 }, Arg::top = theme.accent, Arg::bottom = theme.sub);
-            TextureAsset(Assets::Sparkle).draw(Vec2{ 8, 396 }, Arg::top = theme.accent, Arg::bottom = theme.sub);
-            TextureAsset(Assets::Sparkle).draw(Vec2{ 8, 450 }, Arg::top = theme.accent, Arg::bottom = theme.sub);
-
-            // difficulty
-            {
-                const auto difficulty_str = core::types::ToString(difficulty).uppercase();
-                const Transformer2D tr{ Mat3x2::Rotate(90_deg, Vec2{0, 0}) };
-                FontAsset(app::assets::font::UiLabel)(difficulty_str).draw(36, Vec2{ 20, -57 }, theme.accent);
-            }
-
-            // level
-            {
-                const Transformer2D tr{ Mat3x2::Rotate(-90_deg, Vec2{0, 0}) };
-                FontAsset(app::assets::font::UiLabel)(U"LEVEL").draw(23, Vec2{ -505, 50 }, theme.accent);
-            }
-            {
-                const double level_x = (difficulty_info.level < 10 ? 90 : 80);
-                FontAsset(app::assets::font::UiText)(difficulty_info.level).drawBase(87, level_x, 503, theme.text);
-            }
-
-            // title and artist
-            {
-                constexpr Rect DescriptionRegion{ Point{ 58, 363 },  Point{ 338, 75 } };
-                constexpr double DescriptionOffsetMargin = 80;
-                constexpr double DescriptionVel = 50.0;
-                constexpr double TitleY = 50;
-                constexpr auto TitleFotntSize = 36;
-                constexpr double ArtistY = 75;
-                constexpr auto ArtistFontSize = 24;
-
-                const ScopedViewport2D viewport{ DescriptionRegion };
-
-                const RectF title_region = FontAsset(app::assets::font::UiText)(data.title).region(TitleFotntSize);
-                const RectF artist_region = FontAsset(app::assets::font::UiText)(data.artist).region(ArtistFontSize);
-
-                if (title_region.w <= DescriptionRegion.w) {
-                    const Vec2 pos{ DescriptionRegion.w / 2.0, TitleY };
-                    FontAsset(app::assets::font::UiText)(data.title).draw(TitleFotntSize, Arg::bottomCenter = pos, theme.text);
-                } else {
-                    const double t = Math::Fmod(offset, (title_region.w + DescriptionOffsetMargin) / DescriptionVel);
-                    FontAsset(app::assets::font::UiText)(data.title).draw(TitleFotntSize, Arg::bottomLeft(-t * DescriptionVel, TitleY), theme.text);
-                    FontAsset(app::assets::font::UiText)(data.title).draw(TitleFotntSize, Arg::bottomLeft(title_region.w + DescriptionOffsetMargin - t * DescriptionVel, TitleY), theme.text);
-                }
-
-                if (artist_region.w <= DescriptionRegion.w) {
-                    const Vec2 pos{ DescriptionRegion.w / 2.0, ArtistY };
-                    FontAsset(app::assets::font::UiText)(data.artist).draw(ArtistFontSize, Arg::bottomCenter = pos, theme.sub_text);
-                } else {
-                    const double t = Math::Fmod(offset, (artist_region.w + DescriptionOffsetMargin) / DescriptionVel);
-                    FontAsset(app::assets::font::UiText)(data.artist).draw(ArtistFontSize, Arg::bottomLeft(-t * DescriptionVel, ArtistY), theme.sub_text);
-                    FontAsset(app::assets::font::UiText)(data.artist).draw(ArtistFontSize, Arg::bottomLeft(artist_region.w + DescriptionOffsetMargin - t * DescriptionVel, ArtistY), theme.sub_text);
-                }
-            }
-
-            // high score
-            {
-                FontAsset(app::assets::font::UiLabel)(U"HIGH").draw(17, 177, 470, theme.accent);
-                FontAsset(app::assets::font::UiLabel)(U"SCORE").draw(17, 177, 485, theme.accent);
-
-                FontAsset(app::assets::font::UiText)(Score).draw(40, Arg::bottomRight = Vec2{ 395, 520 }, theme.text);
-            }
-
-            // badge
-            {
-                // Rank
-                drawBadge(Vec2{ 177, 446 }, Vec2{ 74, 23 }, U"SSS", theme.accent);
-                // Status
-                drawBadge(Vec2{ 255, 446 }, Vec2{ 140, 23 }, U"FULL COMBO", theme.accent);
-            }
-
-            // notes designer
-            FontAsset(app::assets::font::UiText)(U"NOTES DESIGNER: {}"_fmt(difficulty_info.designer)).drawBase(15, 16, 534, theme.accent);
         }
 
         Graphics2D::Flush();
         m_tile_rt.resolve();
         return m_tile_rt;
+    }
+
+    void Tile::drawBackground(const ui::theme::DifficultyTheme& theme, const TextureRegion& jacket) const {
+        const ColorF bg = (theme.accent * 1.5).withA(0.2);
+        Circle{ Vec2{ 0, 0 }, 70 }.draw(bg, Palette::White);
+        Circle{ Vec2{ TileSize.x, 0 }, 70 }.draw(bg, Palette::White);
+        Circle{ Vec2{ 0, TileSize.y }, 70 }.draw(bg, Palette::White);
+        Circle{ Vec2{ TileSize.x, TileSize.y }, 70 }.draw(bg, Palette::White);
+
+        // frame
+        RectF{ TileSize }.drawFrame(2, 0, theme.accent);
+
+        // jacket
+        RectF{ Vec2{ 58, 20 },  Size{ 338, 338 } }.draw(theme.accent);
+        RectF{ Vec2{ 64, 20 },  Size{ 332, 332 } }(jacket).draw();
+
+        // decorations
+        Line{ Vec2{ 349, 10 },  Vec2{ 406, 10 } }.draw(2, theme.accent);
+        Line{ Vec2{ 406, 10 },  Vec2{ 406, 67 } }.draw(2, theme.accent);
+
+        Line{ Vec2{ 213, 534 },  Vec2{ 406, 534 } }.draw(2, theme.accent);
+        Line{ Vec2{ 406, 496 },  Vec2{ 406, 534 } }.draw(2, theme.accent);
+
+        TextureAsset(Assets::Sparkle).draw(Vec2{ 8, 341 }, Arg::top = theme.accent, Arg::bottom = theme.sub);
+        TextureAsset(Assets::Sparkle).draw(Vec2{ 8, 396 }, Arg::top = theme.accent, Arg::bottom = theme.sub);
+        TextureAsset(Assets::Sparkle).draw(Vec2{ 8, 450 }, Arg::top = theme.accent, Arg::bottom = theme.sub);
+    }
+
+    void Tile::drawDifficultySection(const core::types::Difficulty difficulty, const int32 level, const ui::theme::DifficultyTheme& theme) const {
+        const auto difficulty_str = core::types::ToString(difficulty).uppercase();
+        {
+            const Transformer2D tr{ Mat3x2::Rotate(90_deg, Vec2{0, 0}) };
+            FontAsset(app::assets::font::UiLabel)(difficulty_str).draw(36, Vec2{ 20, -57 }, theme.accent);
+        }
+
+        // level
+        {
+            const Transformer2D tr{ Mat3x2::Rotate(-90_deg, Vec2{0, 0}) };
+            FontAsset(app::assets::font::UiLabel)(U"LEVEL").draw(23, Vec2{ -505, 50 }, theme.accent);
+        }
+
+        const double level_x = (level < 10 ? 90 : 80);
+        FontAsset(app::assets::font::UiText)(level).drawBase(87, level_x, 503, theme.text);
+    }
+
+    void Tile::drawMetadataSection(const core::types::SheetMetadata& data, StringView designer, double offset, const ui::theme::DifficultyTheme& theme) const {
+        constexpr Rect DescriptionRegion{ Point{ 58, 363 },  Point{ 338, 75 } };
+        constexpr double DescriptionOffsetMargin = 80;
+        constexpr double DescriptionVel = 50.0;
+        constexpr double TitleY = 50;
+        constexpr auto TitleFotntSize = 36;
+        constexpr double ArtistY = 75;
+        constexpr auto ArtistFontSize = 24;
+
+        // title and artist
+        {
+            const ScopedViewport2D viewport{ DescriptionRegion };
+
+            const RectF title_region = FontAsset(app::assets::font::UiText)(data.title).region(TitleFotntSize);
+            const RectF artist_region = FontAsset(app::assets::font::UiText)(data.artist).region(ArtistFontSize);
+
+            if (title_region.w <= DescriptionRegion.w) {
+                const Vec2 pos{ DescriptionRegion.w / 2.0, TitleY };
+                FontAsset(app::assets::font::UiText)(data.title).draw(TitleFotntSize, Arg::bottomCenter = pos, theme.text);
+            } else {
+                const double t = Math::Fmod(offset, (title_region.w + DescriptionOffsetMargin) / DescriptionVel);
+                FontAsset(app::assets::font::UiText)(data.title).draw(TitleFotntSize, Arg::bottomLeft(-t * DescriptionVel, TitleY), theme.text);
+                FontAsset(app::assets::font::UiText)(data.title).draw(TitleFotntSize, Arg::bottomLeft(title_region.w + DescriptionOffsetMargin - t * DescriptionVel, TitleY), theme.text);
+            }
+
+            if (artist_region.w <= DescriptionRegion.w) {
+                const Vec2 pos{ DescriptionRegion.w / 2.0, ArtistY };
+                FontAsset(app::assets::font::UiText)(data.artist).draw(ArtistFontSize, Arg::bottomCenter = pos, theme.sub_text);
+            } else {
+                const double t = Math::Fmod(offset, (artist_region.w + DescriptionOffsetMargin) / DescriptionVel);
+                FontAsset(app::assets::font::UiText)(data.artist).draw(ArtistFontSize, Arg::bottomLeft(-t * DescriptionVel, ArtistY), theme.sub_text);
+                FontAsset(app::assets::font::UiText)(data.artist).draw(ArtistFontSize, Arg::bottomLeft(artist_region.w + DescriptionOffsetMargin - t * DescriptionVel, ArtistY), theme.sub_text);
+            }
+        }
+
+        // high score
+        FontAsset(app::assets::font::UiLabel)(U"HIGH").draw(17, 177, 470, theme.accent);
+        FontAsset(app::assets::font::UiLabel)(U"SCORE").draw(17, 177, 485, theme.accent);
+        FontAsset(app::assets::font::UiText)(MockHighScore).draw(40, Arg::bottomRight = Vec2{ 395, 520 }, theme.text);
+
+        // rank badge
+        drawBadge(Vec2{ 177, 446 }, Vec2{ 74, 23 }, U"SSS", theme.accent);
+        // status badge
+        drawBadge(Vec2{ 255, 446 }, Vec2{ 140, 23 }, U"FULL COMBO", theme.accent);
+
+        // notes designer
+        FontAsset(app::assets::font::UiText)(U"NOTES DESIGNER: {}"_fmt(designer)).drawBase(15, 16, 534, theme.accent);
     }
 
     void Tile::drawBadge(const Vec2& pos, const Vec2& size, StringView s, const ColorF& color) const {
