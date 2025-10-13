@@ -35,7 +35,8 @@ namespace ui {
 
         drawArrows();
 
-        components::DrawPlayerNameplate(getData().playerData, Point{ 59, 72 });
+        const auto& data = getData();
+        components::DrawPlayerNameplate(data.playerData, Point{ 59, 72 });
         components::DrawMenuTimerPlate(Point{ 1599, 72 }, 58, 1);
 
     }
@@ -81,9 +82,10 @@ namespace ui {
     }
 
     void MusicSelect::drawTiles() const {
-        const auto& index = getData().playerData.selected_index;
-        const auto& difficulty = getData().playerData.selected_difficulty;
-        const auto& repo = getData().sheetRepository;
+        const auto& data = getData();
+        const auto& index = data.playerData.selected_index;
+        const auto& difficulty = data.playerData.selected_difficulty;
+        const auto& repo = data.sheetRepository;
 
         constexpr Vec2 center{ SceneWidth / 2.0, TileY };
 
@@ -176,7 +178,8 @@ namespace ui {
 
     void MusicSelect::handleDifficultyInput() {
         // TODO: input handling in infra layer
-        auto& difficulty = getData().playerData.selected_difficulty;
+        auto& data = getData();
+        auto& difficulty = data.playerData.selected_difficulty;
 
         if (difficulty + 1 < core::types::DifficultySize and KeyUp.down()) {
             ++difficulty;

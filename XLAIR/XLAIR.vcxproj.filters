@@ -1144,5 +1144,8 @@
     <ClInclude Include="src\ui\components\GameMusicPlate.hpp">
       <Filter>Header Files\ui\components</Filter>
     </ClInclude>
+    <ClInclude Include="src\ui\components\ScrollingText.hpp">
+      <Filter>Header Files\ui\components</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
