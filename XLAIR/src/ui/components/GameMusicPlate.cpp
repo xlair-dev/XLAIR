@@ -3,6 +3,7 @@
 #include "ui/primitives/EighthNote.hpp"
 #include "ui/theme/Palette.hpp"
 #include "ui/theme/DifficultyTheme.hpp"
+#include "ui/components/ScrollingText.hpp"
 
 namespace ui::components {
     void DrawGameMusicPlate(const Point& pos, const core::types::SheetMetadata& data, const TextureRegion& jacket, int8 difficulty_index, const double offset, int32 left_playable_music) {
@@ -19,19 +20,10 @@ namespace ui::components {
 
         // title
         {
-            constexpr Rect ViewportRegion{ 123, 76, 260, 36 };
-            constexpr double DescriptionOffsetMargin = 80;
-            constexpr double DescriptionVel = 50.0;
-            const ScopedViewport2D viewport{ ViewportRegion.movedBy(pos)};
+            auto&& font = FontAsset(app::assets::font::UiText);
 
-            const RectF title_region = FontAsset(app::assets::font::UiText)(data.title).region(30);
-            if (title_region.w <= ViewportRegion.w) {
-                FontAsset(app::assets::font::UiText)(data.title).draw(30, Arg::bottomLeft = Vec2{ 0, 43 }, theme.text);
-            } else {
-                const double t = Math::Fmod(offset, (title_region.w + DescriptionOffsetMargin) / DescriptionVel);
-                FontAsset(app::assets::font::UiText)(data.title).draw(30, Arg::bottomLeft(-t * DescriptionVel, 43), theme.text);
-                FontAsset(app::assets::font::UiText)(data.title).draw(30, Arg::bottomLeft(title_region.w + DescriptionOffsetMargin - t * DescriptionVel, 43), theme.text);
-            }
+            constexpr Rect Region{ 123, 76, 260, 43 };
+            DrawScrollingText(font, data.title, 30, Region.movedBy(pos), offset, theme.sub_text);
         }
 
         {

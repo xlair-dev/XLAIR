@@ -2,6 +2,7 @@
 #include "app/usecases/Assets.hpp"
 #include "ui/primitives/SparkleShape.hpp"
 #include "ui/theme/DifficultyTheme.hpp"
+#include "ui/components/ScrollingText.hpp"
 
 namespace ui::components {
     Tile::Tile() : m_tile_rt{ TileSize } {}
@@ -70,38 +71,15 @@ namespace ui::components {
     }
 
     void Tile::drawMetadataSection(const core::types::SheetMetadata& data, StringView designer, double offset, const ui::theme::DifficultyTheme& theme) const {
-        constexpr Rect DescriptionRegion{ Point{ 58, 363 },  Point{ 338, 75 } };
-        constexpr double DescriptionOffsetMargin = 80;
-        constexpr double DescriptionVel = 50.0;
-        constexpr double TitleY = 50;
-        constexpr auto TitleFontSize = 36;
-        constexpr double ArtistY = 75;
-        constexpr auto ArtistFontSize = 24;
-
         // title and artist
         {
-            const ScopedViewport2D viewport{ DescriptionRegion };
+            auto&& font = FontAsset(app::assets::font::UiText);
 
-            const RectF title_region = FontAsset(app::assets::font::UiText)(data.title).region(TitleFontSize);
-            const RectF artist_region = FontAsset(app::assets::font::UiText)(data.artist).region(ArtistFontSize);
+            constexpr Rect TitleRegion{ Point{ 58, 363 },  Point{ 338, 50 } };
+            constexpr Rect ArtistRegion{ Point{ 58, 363 },  Point{ 338, 75 } };
 
-            if (title_region.w <= DescriptionRegion.w) {
-                const Vec2 pos{ DescriptionRegion.w / 2.0, TitleY };
-                FontAsset(app::assets::font::UiText)(data.title).draw(TitleFontSize, Arg::bottomCenter = pos, theme.text);
-            } else {
-                const double t = Math::Fmod(offset, (title_region.w + DescriptionOffsetMargin) / DescriptionVel);
-                FontAsset(app::assets::font::UiText)(data.title).draw(TitleFontSize, Arg::bottomLeft(-t * DescriptionVel, TitleY), theme.text);
-                FontAsset(app::assets::font::UiText)(data.title).draw(TitleFontSize, Arg::bottomLeft(title_region.w + DescriptionOffsetMargin - t * DescriptionVel, TitleY), theme.text);
-            }
-
-            if (artist_region.w <= DescriptionRegion.w) {
-                const Vec2 pos{ DescriptionRegion.w / 2.0, ArtistY };
-                FontAsset(app::assets::font::UiText)(data.artist).draw(ArtistFontSize, Arg::bottomCenter = pos, theme.sub_text);
-            } else {
-                const double t = Math::Fmod(offset, (artist_region.w + DescriptionOffsetMargin) / DescriptionVel);
-                FontAsset(app::assets::font::UiText)(data.artist).draw(ArtistFontSize, Arg::bottomLeft(-t * DescriptionVel, ArtistY), theme.sub_text);
-                FontAsset(app::assets::font::UiText)(data.artist).draw(ArtistFontSize, Arg::bottomLeft(artist_region.w + DescriptionOffsetMargin - t * DescriptionVel, ArtistY), theme.sub_text);
-            }
+            DrawScrollingText(font, data.title, 36, TitleRegion, offset, theme.text, true);
+            DrawScrollingText(font, data.artist, 24, ArtistRegion, offset, theme.sub_text, true);
         }
 
         // high score
