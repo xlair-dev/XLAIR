@@ -18,8 +18,8 @@ namespace app::assets {
         auto&& target_font = FontAsset(U"font.cjk");
         FontAsset(font::UiText).addFallback(target_font);
 
-        FontAsset::Register(font::UiTimer, FontMethod::Bitmap, 68, U"assets/fonts/BrunoAce/BrunoAce-Regular.ttf");
-        FontAsset::Load(font::UiTimer);
+        FontAsset::Register(font::UiSubText, FontMethod::Bitmap, 68, U"assets/fonts/BrunoAce/BrunoAce-Regular.ttf");
+        FontAsset::Load(font::UiSubText);
     }
 
     void InitializeShaders() {

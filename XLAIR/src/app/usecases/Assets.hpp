@@ -5,7 +5,7 @@ namespace app::assets {
     namespace font {
         static constexpr inline AssetNameView UiLabel{ U"Font.UiLabel" };
         static constexpr inline AssetNameView UiText{ U"Font.UiText" };
-        static constexpr inline AssetNameView UiTimer{ U"Font.UiTimer" };
+        static constexpr inline AssetNameView UiSubText{ U"Font.UiTimer" };
     }
 
     namespace shader {
