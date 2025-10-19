@@ -134,7 +134,9 @@
     <ClCompile Include="src\infra\sheet\SheetMock.cpp" />
     <ClCompile Include="src\Main.cpp" />
     <ClCompile Include="src\ui\addons\HomographyAddon.cpp" />
+    <ClCompile Include="src\ui\addons\TextShadowAddon.cpp" />
     <ClCompile Include="src\ui\components\GameMusicPlate.cpp" />
+    <ClCompile Include="src\ui\components\GameScoreBar.cpp" />
     <ClCompile Include="src\ui\components\MenuTimerPlate.cpp" />
     <ClCompile Include="src\ui\components\PlayerNameplate.cpp" />
     <ClCompile Include="src\ui\components\Tile.cpp" />
@@ -382,13 +384,16 @@
     <ClInclude Include="src\core\features\SparklePoints.hpp" />
     <ClInclude Include="src\core\types\Difficulty.hpp" />
     <ClInclude Include="src\core\types\PlayerData.hpp" />
+    <ClInclude Include="src\core\types\Scoring.hpp" />
     <ClInclude Include="src\core\types\Sheet.hpp" />
     <ClInclude Include="src\infra\api\ApiClientMock.hpp" />
     <ClInclude Include="src\infra\config\TomlConfigProvider.hpp" />
     <ClInclude Include="src\infra\controller\ControllerMock.hpp" />
     <ClInclude Include="src\infra\sheet\SheetMock.hpp" />
     <ClInclude Include="src\ui\addons\HomographyAddon.hpp" />
+    <ClInclude Include="src\ui\addons\TextShadowAddon.hpp" />
     <ClInclude Include="src\ui\components\GameMusicPlate.hpp" />
+    <ClInclude Include="src\ui\components\GameScoreBar.hpp" />
     <ClInclude Include="src\ui\components\MenuTimerPlate.hpp" />
     <ClInclude Include="src\ui\components\PlayerNameplate.hpp" />
     <ClInclude Include="src\ui\components\ScrollingText.hpp" />

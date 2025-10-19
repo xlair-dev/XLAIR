@@ -12,7 +12,12 @@ namespace app::assets {
         static constexpr inline AssetNameView Grayscale{ U"Shader.Grayscale" };
     }
 
+    namespace texture {
+        static constexpr inline AssetNameView GameScoreBarFrame{ U"Texture.GameScoreBarFrame" };
+    }
+
     void Initialize();
     void InitializeFonts();
     void InitializeShaders();
+    void InitializeTextures();
 }

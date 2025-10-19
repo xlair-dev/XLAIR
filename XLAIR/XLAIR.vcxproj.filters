@@ -336,6 +336,12 @@
     <ClCompile Include="src\ui\components\GameMusicPlate.cpp">
       <Filter>Source Files\ui\components</Filter>
     </ClCompile>
+    <ClCompile Include="src\ui\components\GameScoreBar.cpp">
+      <Filter>Source Files\ui\components</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ui\addons\TextShadowAddon.cpp">
+      <Filter>Source Files\ui\addons</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Image Include="App\icon.ico">
@@ -1146,6 +1152,15 @@
     </ClInclude>
     <ClInclude Include="src\ui\components\ScrollingText.hpp">
       <Filter>Header Files\ui\components</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ui\components\GameScoreBar.hpp">
+      <Filter>Header Files\ui\components</Filter>
+    </ClInclude>
+    <ClInclude Include="src\core\types\Scoring.hpp">
+      <Filter>Header Files\core\types</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ui\addons\TextShadowAddon.hpp">
+      <Filter>Header Files\ui\addons</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

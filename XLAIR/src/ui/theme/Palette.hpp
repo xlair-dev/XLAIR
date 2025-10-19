@@ -7,7 +7,9 @@ namespace ui::theme {
         static constexpr ColorF Cyan{ U"#55C8FF" };
         static constexpr ColorF Purple{ U"#B58BF2" };
         static constexpr ColorF DimmedPurple{ U"#9B9FCF" };
+        static constexpr ColorF Darkblue{ U"#0F4057" };
         static constexpr ColorF Gray{ U"#7E7E7E" };
         static constexpr ColorF LightGray{ U"#9798AA" };
+        static constexpr ColorF White{ U"#FFFFFF" };
     }
 }

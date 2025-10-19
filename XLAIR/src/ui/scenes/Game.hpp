@@ -17,5 +17,7 @@ namespace ui {
         static constexpr double OffsetWait = 0.0;
         double m_tile_offset_raw = -OffsetWait;
         double m_tile_offset = 0.0;
+
+        void drawField() const;
     };
 }

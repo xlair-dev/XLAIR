@@ -4,6 +4,7 @@ namespace app::assets {
     void Initialize() {
         InitializeFonts();
         InitializeShaders();
+        InitializeTextures();
     }
 
     void InitializeFonts() {
@@ -25,5 +26,10 @@ namespace app::assets {
     void InitializeShaders() {
         PixelShaderAsset::Register(shader::Grayscale, HLSL{ U"assets/shaders/grayscale.hlsl", U"PS" } | GLSL{ U"assets/shaders/grayscale.frag", {{U"PSConstants2D", 0}} });
         PixelShaderAsset::Load(shader::Grayscale);
+    }
+
+    void InitializeTextures() {
+        TextureAsset::Register(texture::GameScoreBarFrame, U"assets/textures/bar.png");
+        TextureAsset::Load(texture::GameScoreBarFrame);
     }
 }
