@@ -19,8 +19,14 @@ namespace app::assets {
         auto&& target_font = FontAsset(U"font.cjk");
         FontAsset(font::UiText).addFallback(target_font);
 
-        FontAsset::Register(font::UiSubText, FontMethod::Bitmap, 68, U"assets/fonts/BrunoAce/BrunoAce-Regular.ttf");
+        FontAsset::Register(font::UiSubText, FontMethod::MSDF, 68, U"assets/fonts/BrunoAce/BrunoAce-Regular.ttf");
         FontAsset::Load(font::UiSubText);
+
+        FontAsset::Register(font::UiComboNumber, FontMethod::Bitmap, 280, U"assets/fonts/Jost/Jost-Regular.ttf");
+        FontAsset::Load(font::UiComboNumber, U"0123456789");
+
+        FontAsset::Register(font::UiComboLabel, FontMethod::Bitmap, 70, U"assets/fonts/BrunoAce/BrunoAce-Regular.ttf");
+        FontAsset::Load(font::UiComboLabel, U"COMBO");
     }
 
     void InitializeShaders() {

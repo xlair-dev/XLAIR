@@ -20,6 +20,7 @@ namespace app {
 
         // TODO: asset management
         ui::MusicSelect::RegisterAssets();
+        ui::Game::RegisterAssets();
 
         controller.init(initial_scene, 0);
     }
