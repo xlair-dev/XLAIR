@@ -9,8 +9,8 @@ namespace ui::components {
 
     const MSRenderTexture& Tile::get(const core::types::SheetMetadata& data, const TextureRegion& jacket, int8 difficulty_index, const double offset) const {
         const auto difficulty = core::types::DifficultyFromInt(difficulty_index);
-        const auto difficulty_info = data.difficulties[difficulty_index];
-        const auto theme = theme::GetDifficultyTheme(difficulty);
+        const auto& difficulty_info = data.difficulties[difficulty_index];
+        const auto& theme = theme::GetDifficultyTheme(difficulty);
 
         m_tile_rt.clear(Palette::White);
         {

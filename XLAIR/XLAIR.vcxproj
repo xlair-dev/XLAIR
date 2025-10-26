@@ -142,6 +142,7 @@
     <ClCompile Include="src\ui\components\Tile.cpp" />
     <ClCompile Include="src\ui\primitives\Arrow.cpp" />
     <ClCompile Include="src\ui\primitives\EighthNote.cpp" />
+    <ClCompile Include="src\ui\primitives\Note.cpp" />
     <ClCompile Include="src\ui\primitives\SparkleShape.cpp" />
     <ClCompile Include="src\ui\scenes\Game.cpp" />
     <ClCompile Include="src\ui\scenes\Login.cpp" />
@@ -400,6 +401,7 @@
     <ClInclude Include="src\ui\components\Tile.hpp" />
     <ClInclude Include="src\ui\primitives\Arrow.hpp" />
     <ClInclude Include="src\ui\primitives\EighthNote.hpp" />
+    <ClInclude Include="src\ui\primitives\Note.hpp" />
     <ClInclude Include="src\ui\primitives\SparkleShape.hpp" />
     <ClInclude Include="src\ui\scenes\Game.hpp" />
     <ClInclude Include="src\ui\scenes\Login.hpp" />

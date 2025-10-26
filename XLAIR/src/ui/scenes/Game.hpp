@@ -23,5 +23,9 @@ namespace ui {
         const MSRenderTexture m_rt_main_field{ 1000, 4000 };
 
         void drawField() const;
+        void drawMainField() const;
+        void drawSideField() const;
+
+        void drawMainNotes() const;
     };
 }

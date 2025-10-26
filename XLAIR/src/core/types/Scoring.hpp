@@ -8,6 +8,7 @@ namespace core::types {
         int32 good_count = 0;
         int32 miss_count = 0;
         int32 max_combo = 0;
+        int32 combo = 0;
 
         int32 score_value = 0;
         int32 prev_score_value = 0;

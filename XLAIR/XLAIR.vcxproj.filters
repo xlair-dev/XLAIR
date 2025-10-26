@@ -342,6 +342,9 @@
     <ClCompile Include="src\ui\addons\TextShadowAddon.cpp">
       <Filter>Source Files\ui\addons</Filter>
     </ClCompile>
+    <ClCompile Include="src\ui\primitives\Note.cpp">
+      <Filter>Source Files\ui\primitives</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Image Include="App\icon.ico">
@@ -1161,6 +1164,9 @@
     </ClInclude>
     <ClInclude Include="src\ui\addons\TextShadowAddon.hpp">
       <Filter>Header Files\ui\addons</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ui\primitives\Note.hpp">
+      <Filter>Header Files\ui\primitives</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
