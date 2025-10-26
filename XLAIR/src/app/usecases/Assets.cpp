@@ -22,11 +22,8 @@ namespace app::assets {
         FontAsset::Register(font::UiSubText, FontMethod::MSDF, 68, U"assets/fonts/BrunoAce/BrunoAce-Regular.ttf");
         FontAsset::Load(font::UiSubText);
 
-        FontAsset::Register(font::UiComboNumber, FontMethod::Bitmap, 280, U"assets/fonts/Jost/Jost-Regular.ttf");
+        FontAsset::Register(font::UiComboNumber, FontMethod::Bitmap, 270, U"assets/fonts/Jost/Jost-Regular.ttf");
         FontAsset::Load(font::UiComboNumber, U"0123456789");
-
-        FontAsset::Register(font::UiComboLabel, FontMethod::Bitmap, 70, U"assets/fonts/BrunoAce/BrunoAce-Regular.ttf");
-        FontAsset::Load(font::UiComboLabel, U"COMBO");
     }
 
     void InitializeShaders() {

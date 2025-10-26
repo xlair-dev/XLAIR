@@ -7,7 +7,6 @@ namespace app::assets {
         static constexpr inline AssetNameView UiText{ U"Font.UiText" };
         static constexpr inline AssetNameView UiSubText{ U"Font.UiSubText" };
         static constexpr inline AssetNameView UiComboNumber{ U"Font.ComboNumber" };
-        static constexpr inline AssetNameView UiComboLabel{ U"Font.ComboLabel" };
     }
 
     namespace shader {
