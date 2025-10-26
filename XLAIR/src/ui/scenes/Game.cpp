@@ -80,6 +80,9 @@ namespace ui {
             // Edge decorations
             RectF{ 0, 0, EdgeMargin, h }.draw(ColorF{ U"#B4E6FF" });
             RectF{ w - EdgeMargin, 0, EdgeMargin, h }.draw(ColorF{ U"#B4E6FF" });
+
+            // blur
+            RectF{ 0, 0, w, h / 1.75 }.draw(Arg::top = ColorF{ 1.0, 0.9 }, Arg::bottom = ColorF{ 1.0, 0.0 });
         }
 
         Graphics2D::Flush();

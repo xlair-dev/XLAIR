@@ -22,6 +22,11 @@ namespace ui::primitives {
     }
 
     void DrawFlickNote(const Vec2& left_center, double width, double height) {
+        // TODO: implement
+        const Transformer2D t{ Mat3x2::Rotate(-90_deg, left_center) }; // NOTE: Siv3D v0.6 limitation: cannot draw horizontal gradient RoundRect directly
+        RoundRect{ left_center.movedBy(-height / 2, 0), height, width, 4.0 }
+            .drawShadow(Vec2{ -10, 0 }, 30.0, 0, ColorF{ U"##B429FA" }.withA(0.5))
+            .draw(Arg::top = ColorF{ U"#D5A1F0" }, Arg::bottom = ColorF{ U"#B429FA" });
     }
 
     void DrawHoldNoteHead(const Vec2& left_center, double width, double height) {
