@@ -7,25 +7,61 @@ namespace core::features {
         }
     }
 
-    bool SheetRepository::load(Provider provider) {
-        if (m_loading_task.isValid()) {
-            m_loading_task.wait();
+    bool SheetRepository::init() {
+        return true;
+    }
+
+    bool SheetRepository::update() {
+        switch (m_state) {
+            case State::Unloaded: break;
+            case State::LoadingMetadata: {
+                if (m_loading_task.isReady()) {
+                    m_state = State::LoadingJackets;
+                    loadJackets(true);
+                }
+            } break;
+            case State::LoadingJackets: {
+                std::scoped_lock lock(m_mutex);
+                bool all_loaded = true;
+                for (size_t i = 0 ; i < m_metadata.size(); ++i) {
+                    const auto name = GetJacketAssetName(i);
+                    if (not TextureAsset::IsReady(name)) {
+                        all_loaded = false;
+                        break;
+                    }
+                }
+                if (all_loaded) {
+                    m_state = State::Loaded;
+                }
+            } break;
+            case State::Loaded: break;
+            default: break;
         }
-        Load(this, std::move(provider));
+        return true;
+    }
+
+    bool SheetRepository::load(Provider provider) {
+        if (m_state != State::Unloaded) {
+            return false;
+        }
+        LoadMetadata(this, std::move(provider));
+        loadJackets();
+        m_state = State::Loaded;
         return true;
     }
 
     bool SheetRepository::loadAsync(Provider provider) {
-        if (m_loading_task.isValid()) {
+        if (m_state != State::Unloaded) {
             return false;
         }
+        m_state = State::LoadingMetadata;
         m_loading_task = Async([this, p = std::move(provider)]() mutable {
-            Load(this, std::move(p));
+            LoadMetadata(this, std::move(p));
         });
         return true;
     }
 
-    bool SheetRepository::loadJacket() {
+    bool SheetRepository::loadJackets(bool do_async) {
         if (not m_metadata_loaded.load(std::memory_order_acquire)) {
             return false;
         }
@@ -38,7 +74,11 @@ namespace core::features {
                 TextureAsset::Unregister(name);
             }
             TextureAsset::Register(name, path, TextureDesc::Mipped);
-            TextureAsset::Load(name);
+            if (do_async) {
+                TextureAsset::LoadAsync(name);
+            } else {
+                TextureAsset::Load(name);
+            }
         }
         return true;
     }
@@ -67,7 +107,7 @@ namespace core::features {
         return m_metadata[index];
     }
 
-    void SheetRepository::Load(SheetRepository* pSheetRepository, Provider provider) {
+    void SheetRepository::LoadMetadata(SheetRepository* pSheetRepository, Provider provider) {
         pSheetRepository->m_metadata_loaded = false;
         {
             std::scoped_lock lock(pSheetRepository->m_mutex);

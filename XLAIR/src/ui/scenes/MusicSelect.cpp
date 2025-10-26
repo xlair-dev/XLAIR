@@ -46,7 +46,7 @@ namespace ui {
         const auto& repo = getData().sheetRepository;
         // TODO: add change animation
         const ScopedCustomShader2D shader{ PixelShaderAsset(app::assets::shader::Grayscale) };
-        RectF{ SceneSize.maxComponent() }(*repo.getJacket(index)).draw(ColorF{ 1.0, 1.0, 1.0, 0.05 });
+        RectF{ SceneSize.maxComponent() }(*repo->getJacket(index)).draw(ColorF{ 1.0, 1.0, 1.0, 0.05 });
     }
 
     void MusicSelect::drawUI() const {
@@ -102,7 +102,7 @@ namespace ui {
 
         selected_tile.drawShadow(Vec2{ 12, 26 }, 32.0, 0, ColorF{ 0, 0, 0, 0.22 });
         selected_tile(
-            m_tile.get(repo.getMetadata(index), *repo.getJacket(index), difficulty, m_tile_offset)
+            m_tile.get(repo->getMetadata(index), *repo->getJacket(index), difficulty, m_tile_offset)
         ).draw();
 
         const auto drawSide = [&](int32 dir) {
@@ -113,7 +113,7 @@ namespace ui {
             double x = selected_tile_x + dir * (selected_tile_size.x / 2.0 + TileSpacing + SelectedTileMargin * margin_factor);
 
             const int32 start = static_cast<int32>(index) + dir;
-            const int32 end_cmp = (dir > 0 ? static_cast<int32>(repo.size()) : -1);
+            const int32 end_cmp = (dir > 0 ? static_cast<int32>(repo->size()) : -1);
 
             for (int32 i = start; (dir > 0) ? (i < end_cmp) : (i > end_cmp); i += dir) {
                 if (x - dir * TileSize.x > SceneWidth or x - dir * TileSize.x < 0) {
@@ -133,7 +133,7 @@ namespace ui {
 
                 tile.drawShadow(Vec2{ 12, 26 }, 32.0, 0, ColorF{ 0, 0, 0, 0.22 });
                 tile(
-                    m_tile.get(repo.getMetadata(i), *repo.getJacket(i), difficulty)
+                    m_tile.get(repo->getMetadata(i), *repo->getJacket(i), difficulty)
                 ).draw();
 
                 x += dir * (TileSpacing + TileSize.x);
@@ -162,7 +162,7 @@ namespace ui {
         // TODO: input handling in infra layer
         auto& data = getData();
         auto& index = getData().playerData.selected_index;
-        const auto repo_size = data.sheetRepository.size();
+        const auto repo_size = data.sheetRepository->size();
 
         if (index + 1 < repo_size and KeyRight.down()) {
             ++index;

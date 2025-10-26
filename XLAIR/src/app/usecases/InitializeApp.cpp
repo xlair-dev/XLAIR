@@ -15,6 +15,9 @@ namespace app {
         RegisterAddons();
         InitializeSceneController(app.sceneController, app::types::SceneState::Title);
 
+        Addon::Register<core::features::SheetRepository>(core::features::SheetRepository::Name);
+        app.sceneController.get().get()->sheetRepository = Addon::GetAddon<core::features::SheetRepository>(core::features::SheetRepository::Name);
+
         Window::SetTitle(U"XLAIR");
         Window::Resize(config.window.width, config.window.height);
         Window::SetStyle(config.window.sizable ? WindowStyle::Sizable : WindowStyle::Fixed);

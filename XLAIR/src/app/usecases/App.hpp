@@ -8,7 +8,7 @@
 namespace app {
 
     struct GameData {
-        core::features::SheetRepository sheetRepository;
+        core::features::SheetRepository* sheetRepository;
         core::types::PlayerData playerData;
         core::types::Score score;
     };
