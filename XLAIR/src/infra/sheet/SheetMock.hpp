@@ -8,7 +8,7 @@ namespace infra::sheet {
         ~SheetMock() = default;
 
         void load(Array<core::types::SheetMetadata>& metadata) override;
-        void loadData(core::types::SheetData& data) override {}
+        void loadData(core::types::SheetData& data, const FilePath& src, int64 sample_rate, double offset_sec) override;
 
     private:
         size_t m_size = 0;

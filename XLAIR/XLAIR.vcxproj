@@ -144,6 +144,7 @@
     <ClCompile Include="src\ui\primitives\EighthNote.cpp" />
     <ClCompile Include="src\ui\primitives\Note.cpp" />
     <ClCompile Include="src\ui\primitives\SparkleShape.cpp" />
+    <ClCompile Include="src\ui\scenes\Boot.cpp" />
     <ClCompile Include="src\ui\scenes\Game.cpp" />
     <ClCompile Include="src\ui\scenes\Login.cpp" />
     <ClCompile Include="src\ui\scenes\MusicSelect.cpp" />
@@ -403,6 +404,7 @@
     <ClInclude Include="src\ui\primitives\EighthNote.hpp" />
     <ClInclude Include="src\ui\primitives\Note.hpp" />
     <ClInclude Include="src\ui\primitives\SparkleShape.hpp" />
+    <ClInclude Include="src\ui\scenes\Boot.hpp" />
     <ClInclude Include="src\ui\scenes\Game.hpp" />
     <ClInclude Include="src\ui\scenes\Login.hpp" />
     <ClInclude Include="src\ui\scenes\MusicSelect.hpp" />

@@ -12,6 +12,7 @@ namespace app {
         }
 
         // TODO: add validation
+        assert(config.sheet_provider);
 
         return config;
     }

@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include "Common.hpp"
 #include "app/consts/Config.hpp"
+#include "app/interfaces/ISheetProvider.hpp"
 
 namespace app::types {
     struct Config {
@@ -15,5 +16,7 @@ namespace app::types {
             bool fullscreen = consts::defaults::Fullscreen;
             ColorF letterbox_color = consts::defaults::LetterboxColor;
         } window;
+
+        std::shared_ptr<interfaces::ISheetProvider> sheet_provider;
     };
 }
