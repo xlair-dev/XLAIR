@@ -13,7 +13,7 @@ namespace app {
 #endif
 
         RegisterAddons();
-        InitializeSceneController(app.sceneController, app::types::SceneState::Title);
+        InitializeSceneController(app.sceneController, app::types::SceneState::Boot);
 
         using core::features::SheetRepository;
         Addon::Register(SheetRepository::Name, std::make_unique<SheetRepository>(config.sheet_provider));

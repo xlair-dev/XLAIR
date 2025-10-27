@@ -23,6 +23,8 @@ namespace core::features {
         bool loadDataAsync(size_t index, uint8 difficulty_index);
         void releaseData();
 
+        bool isRepoReady() const { return m_state_repo == StateRepo::Ready; }
+        bool isDataReady() const { return m_state_data == StateData::Ready; }
         Optional<TextureRegion> getJacket(size_t index) const;
         Metadata getMetadata(size_t index) const;
 

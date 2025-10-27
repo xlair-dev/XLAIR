@@ -14,9 +14,7 @@ void Main() {
     const auto config = app::LoadConfig(app::MakeDefaultConfigProviders());
     app::InitializeApp(app, config);
 
-    app.sceneController.changeScene(app::types::SceneState::MusicSelect, 0);
     auto* scene_data = app.sceneController.get().get();
-    scene_data->sheetRepository->load();
 
     // TODO: api mock
     scene_data->playerData.username = U"User Name";

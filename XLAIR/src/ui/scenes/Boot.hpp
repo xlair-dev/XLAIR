@@ -14,5 +14,6 @@ namespace ui {
         void draw() const override;
 
     private:
+        bool m_loading = false;
     };
 }
