@@ -15,7 +15,8 @@ namespace app {
         RegisterAddons();
         InitializeSceneController(app.sceneController, app::types::SceneState::Title);
 
-        Addon::Register<core::features::SheetRepository>(core::features::SheetRepository::Name);
+        using core::features::SheetRepository;
+        Addon::Register(SheetRepository::Name, std::make_unique<SheetRepository>(config.sheet_provider));
         app.sceneController.get().get()->sheetRepository = Addon::GetAddon<core::features::SheetRepository>(core::features::SheetRepository::Name);
 
         Window::SetTitle(U"XLAIR");

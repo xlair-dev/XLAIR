@@ -7,3 +7,6 @@ height = 1080
 sizable = true
 fullscreen = false
 letterboxColor = "#000000"
+
+[Sheet]
+mock = true

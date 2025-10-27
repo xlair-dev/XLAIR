@@ -7,6 +7,6 @@ namespace app::interfaces {
     public:
         virtual ~ISheetProvider() = default;
         virtual void load(Array<core::types::SheetMetadata>& metadata) = 0;
-        virtual void loadData(core::types::SheetData& data) = 0;
+        virtual void loadData(core::types::SheetData& data, const FilePath& src, int64 sample_rate, double offset_sec) = 0;
     };
 }
