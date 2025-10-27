@@ -3,6 +3,7 @@
 #include "app/types/Scene.hpp"
 
 // di
+#include "ui/scenes/Boot.hpp"
 #include "ui/scenes/Title.hpp"
 #include "ui/scenes/Login.hpp"
 #include "ui/scenes/MusicSelect.hpp"
@@ -13,6 +14,7 @@ namespace app {
 
     void InitializeSceneController(SceneController& controller, SceneState initial_scene) {
         controller
+            .add<ui::Boot>(SceneState::Boot)
             .add<ui::Title>(SceneState::Title)
             .add<ui::Login>(SceneState::Login)
             .add<ui::MusicSelect>(SceneState::MusicSelect)

@@ -345,6 +345,9 @@
     <ClCompile Include="src\ui\primitives\Note.cpp">
       <Filter>Source Files\ui\primitives</Filter>
     </ClCompile>
+    <ClCompile Include="src\ui\scenes\Boot.cpp">
+      <Filter>Source Files\ui\scenes</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Image Include="App\icon.ico">
@@ -1167,6 +1170,9 @@
     </ClInclude>
     <ClInclude Include="src\ui\primitives\Note.hpp">
       <Filter>Header Files\ui\primitives</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ui\scenes\Boot.hpp">
+      <Filter>Header Files\ui\scenes</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
