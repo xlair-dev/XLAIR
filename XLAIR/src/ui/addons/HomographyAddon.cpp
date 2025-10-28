@@ -10,7 +10,7 @@ namespace ui::addons {
     }
 
     void HomographyAddon::Draw(const Quad& quad, const Texture& texture) {
-        if (auto p = Addon::GetAddon<HomographyAddon>(HomographyAddon::Name)) {
+        if (auto p = Addon::GetAddon<HomographyAddon>(Name)) {
             p->setQuad(quad);
             p->draw(texture);
         }
