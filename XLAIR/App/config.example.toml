@@ -1,5 +1,6 @@
 [System]
 arcade = false
+controller = "keyboard"
 
 [Window]
 width = 1920

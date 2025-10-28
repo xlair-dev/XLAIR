@@ -273,9 +273,6 @@
     <ClCompile Include="src\ui\scenes\Login.cpp">
       <Filter>Source Files\ui\scenes</Filter>
     </ClCompile>
-    <ClCompile Include="src\infra\controller\ControllerMock.cpp">
-      <Filter>Source Files\infra\controller</Filter>
-    </ClCompile>
     <ClCompile Include="src\infra\api\ApiClientMock.cpp">
       <Filter>Source Files\infra\api</Filter>
     </ClCompile>
@@ -350,6 +347,9 @@
     </ClCompile>
     <ClCompile Include="src\stdafx.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\infra\controller\ControllerMockKeyboard.cpp">
+      <Filter>Source Files\infra\controller</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1057,9 +1057,6 @@
     <ClInclude Include="src\app\interfaces\IController.hpp">
       <Filter>Header Files\app\interfaces</Filter>
     </ClInclude>
-    <ClInclude Include="src\infra\controller\ControllerMock.hpp">
-      <Filter>Header Files\infra\controller</Filter>
-    </ClInclude>
     <ClInclude Include="src\app\interfaces\IApiClient.hpp">
       <Filter>Header Files\app\interfaces</Filter>
     </ClInclude>
@@ -1179,6 +1176,9 @@
     </ClInclude>
     <ClInclude Include="src\stdafx.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\infra\controller\ControllerMockKeyboard.hpp">
+      <Filter>Header Files\infra\controller</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
