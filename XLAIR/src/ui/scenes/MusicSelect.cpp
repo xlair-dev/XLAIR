@@ -20,6 +20,10 @@ namespace ui {
     MusicSelect::~MusicSelect() {}
 
     void MusicSelect::update() {
+        if (KeyEnter.down()) {
+            changeScene(app::types::SceneState::Game);
+        }
+
         handleIndexInput();
         handleDifficultyInput();
         updateScrollState();

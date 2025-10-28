@@ -173,7 +173,7 @@ namespace core::features {
             if (TextureAsset::IsRegistered(name)) {
                 TextureAsset::Unregister(name);
             }
-            TextureAsset::Register(name, path, TextureDesc::Mipped);
+            TextureAsset::Register(name, path, TextureDesc::Mipped); // TODO: handle Error
             if (do_async) {
                 TextureAsset::LoadAsync(name);
             } else {
@@ -192,7 +192,7 @@ namespace core::features {
             AudioAsset::Unregister(AudioAssetName);
         }
         const auto& path = m_metadata[index].music;
-        AudioAsset::Register(AudioAssetName, path);
+        AudioAsset::Register(AudioAssetName, path); // TODO: handle Error
         if (do_async) {
             AudioAsset::LoadAsync(AudioAssetName);
         } else {

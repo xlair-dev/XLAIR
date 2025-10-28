@@ -11,8 +11,17 @@
 #include "ui/theme/Palette.hpp"
 
 namespace ui {
-    Game::Game(const InitData& init) : IScene(init) {}
-    Game::~Game() {}
+    Game::Game(const InitData& init) : IScene(init) {
+        auto& data = getData();
+        data.sheetRepository->loadDataAsync(
+            data.playerData.selected_index,
+            data.playerData.selected_difficulty
+        );
+    }
+    Game::~Game() {
+        auto& data = getData();
+        data.sheetRepository->releaseData();
+    }
 
     void Game::update() {
         m_tile_offset_raw += Scene::DeltaTime();
@@ -25,7 +34,7 @@ namespace ui {
         drawField();
 
         components::DrawPlayerNameplate(getData().playerData, Point{ 59, 72 });
-        components::DrawGameMusicPlate(Point{ 1500, 72 }, data.sheetRepository->getMetadata(data.playerData.selected_index), data.sheetRepository->getJacket(data.playerData.selected_index).value(), data.playerData.selected_difficulty, m_tile_offset, 1);
+        components::DrawGameMusicPlate(Point{ 1480, 72 }, data.sheetRepository->getMetadata(data.playerData.selected_index), data.sheetRepository->getJacket(data.playerData.selected_index).value(), data.playerData.selected_difficulty, m_tile_offset, 1);
         components::DrawGameScoreBar(Point{ app::consts::SceneWidth / 2 - 434, 56 }, data.score);
     }
 
