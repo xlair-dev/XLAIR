@@ -1,6 +1,7 @@
 ﻿#include "TomlConfigProvider.hpp"
 #include "app/consts/Config.hpp"
 #include "infra/sheet/SheetMock.hpp"
+#include "infra/sheet/SheetProd.hpp"
 
 namespace infra::config {
     using Config = app::types::Config;
@@ -27,7 +28,7 @@ namespace infra::config {
             const size_t mock_size = toml[U"Sheet.mockSize"].getOr<size_t>(10);
             config.sheet_provider = std::make_shared<infra::sheet::SheetMock>(mock_size);
         } else {
-            // TODO
+            config.sheet_provider = std::make_shared<infra::sheet::SheetProd>();
         }
     };
 }

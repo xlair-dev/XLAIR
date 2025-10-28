@@ -13,7 +13,7 @@ namespace infra::sheet {
     }
 
     void SheetMock::loadData(core::types::SheetData& data, const FilePath& src, int64 sample_rate, double offset_sec) {
-        data = *SheetsAnalyzer::AnalyzeData(src, sample_rate, offset_sec);
+        data = *SheetsAnalyzer::AnalyzeData(src, sample_rate, offset_sec); // TODO: error handling
     }
 
     core::types::SheetMetadata SheetMock::loadMockMetadata() const {
