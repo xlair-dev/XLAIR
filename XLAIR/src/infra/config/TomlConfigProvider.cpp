@@ -9,6 +9,7 @@ namespace infra::config {
         const TOMLReader toml(m_path);
 
         if (not toml) {
+            throw Error{ U"Failed to open config file: {}"_fmt(m_path) };
             return;
         }
 
