@@ -2,6 +2,7 @@
 #include "Common.hpp"
 #include "app/consts/Config.hpp"
 #include "app/interfaces/ISheetProvider.hpp"
+#include "app/interfaces/IController.hpp"
 
 namespace app::types {
     struct Config {
@@ -18,5 +19,6 @@ namespace app::types {
         } window;
 
         std::shared_ptr<interfaces::ISheetProvider> sheet_provider;
+        std::shared_ptr<interfaces::IController> controller;
     };
 }

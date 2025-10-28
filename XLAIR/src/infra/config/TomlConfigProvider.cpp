@@ -2,6 +2,7 @@
 #include "app/consts/Config.hpp"
 #include "infra/sheet/SheetMock.hpp"
 #include "infra/sheet/SheetProd.hpp"
+#include "infra/controller/ControllerMockKeyboard.hpp"
 
 namespace infra::config {
     using Config = app::types::Config;
@@ -29,6 +30,13 @@ namespace infra::config {
             config.sheet_provider = std::make_shared<infra::sheet::SheetMock>(mock_size);
         } else {
             config.sheet_provider = std::make_shared<infra::sheet::SheetProd>();
+        }
+
+        const auto controller = toml[U"System.controller"].get<String>();
+        if (controller == U"keyboard") {
+            config.controller = std::make_shared<infra::controller::ControllerMockKeyboard>();
+        } else {
+            // TODO:
         }
     };
 }

@@ -1,10 +1,10 @@
 ﻿#pragma once
 #include "app/interfaces/IController.hpp"
 
-namespace infra {
+namespace infra::controller {
     class ControllerMockKeyboard : public app::interfaces::IController {
     public:
-        bool open(StringView port, int32 baudrate) override;
+        bool open() override;
 
         void close() override;
 

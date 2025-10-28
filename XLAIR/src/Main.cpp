@@ -6,7 +6,7 @@
 
 #include "app/di/Providers.hpp"
 
-#include "infra/sheet/SheetMock.hpp"
+#include "core/features/ControllerManager.hpp"
 
 void Main() {
     app::App app;
@@ -23,6 +23,8 @@ void Main() {
     scene_data->playerData.level = 7;
 
     app::assets::Initialize();
+
+    core::features::ControllerManager::InitializeDevice();
 
     while (System::Update() and app.sceneController.update()) {
     }

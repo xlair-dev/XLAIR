@@ -1,7 +1,7 @@
 ﻿#include "ControllerMockKeyboard.hpp"
 
-namespace infra {
-    bool ControllerMockKeyboard::open(StringView, int32) {
+namespace infra::controller {
+    bool ControllerMockKeyboard::open() {
         return true; // do nothing
     }
 

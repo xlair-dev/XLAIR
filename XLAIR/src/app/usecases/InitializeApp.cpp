@@ -4,6 +4,9 @@
 #include "app/di/Addon.hpp"
 #include "app/di/SceneController.hpp"
 
+#include "core/features/SheetRepository.hpp"
+#include "core/features/ControllerManager.hpp"
+
 namespace app {
     void InitializeApp(App& app, const app::types::Config& config) {
         System::SetTerminationTriggers(UserAction::CloseButtonClicked);
@@ -18,6 +21,9 @@ namespace app {
         using core::features::SheetRepository;
         Addon::Register(SheetRepository::Name, std::make_unique<SheetRepository>(config.sheet_provider));
         app.sceneController.get().get()->sheetRepository = Addon::GetAddon<core::features::SheetRepository>(core::features::SheetRepository::Name);
+
+        using core::features::ControllerManager;
+        Addon::Register(ControllerManager::Name, std::make_unique<ControllerManager>(config.controller));
 
         Window::SetTitle(U"XLAIR");
         Window::Resize(config.window.width, config.window.height);

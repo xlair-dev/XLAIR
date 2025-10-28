@@ -12,7 +12,7 @@ namespace app::interfaces {
 
         virtual ~IController() = default;
 
-        virtual bool open(StringView port, int32 baudrate) = 0;
+        virtual bool open() = 0;
 
         virtual void close() = 0;
 
