@@ -375,6 +375,7 @@
     <ClInclude Include="src\app\di\Providers.hpp" />
     <ClInclude Include="src\app\di\SceneController.hpp" />
     <ClInclude Include="src\app\interfaces\IApiClient.hpp" />
+    <ClInclude Include="src\app\interfaces\ICardReader.hpp" />
     <ClInclude Include="src\app\interfaces\IConfigProvider.hpp" />
     <ClInclude Include="src\app\interfaces\IController.hpp" />
     <ClInclude Include="src\app\interfaces\ISheetProvider.hpp" />

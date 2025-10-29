@@ -1186,5 +1186,8 @@
     <ClInclude Include="src\core\features\ControllerManager.hpp">
       <Filter>Header Files\core\features</Filter>
     </ClInclude>
+    <ClInclude Include="src\app\interfaces\ICardReader.hpp">
+      <Filter>Header Files\app\interfaces</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
