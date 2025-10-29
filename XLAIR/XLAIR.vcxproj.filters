@@ -1201,5 +1201,8 @@
     <ClInclude Include="src\infra\card\CardReaderMock.hpp">
       <Filter>Header Files\infra\card</Filter>
     </ClInclude>
+    <ClInclude Include="src\core\types\DeviceInput.hpp">
+      <Filter>Header Files\core\types</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

@@ -3,7 +3,7 @@
 namespace app::interfaces {
     class IController {
     public:
-        enum class SideButton {
+        enum class SideButton : uint8 {
             left_up,
             left_bottom,
             right_up,

@@ -391,6 +391,7 @@
     <ClInclude Include="src\core\features\ControllerManager.hpp" />
     <ClInclude Include="src\core\features\SheetRepository.hpp" />
     <ClInclude Include="src\core\features\SparklePoints.hpp" />
+    <ClInclude Include="src\core\types\DeviceInput.hpp" />
     <ClInclude Include="src\core\types\Difficulty.hpp" />
     <ClInclude Include="src\core\types\PlayerData.hpp" />
     <ClInclude Include="src\core\types\Scoring.hpp" />
