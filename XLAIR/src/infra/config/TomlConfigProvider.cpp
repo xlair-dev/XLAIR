@@ -3,6 +3,7 @@
 #include "infra/sheet/SheetMock.hpp"
 #include "infra/sheet/SheetProd.hpp"
 #include "infra/controller/ControllerMockKeyboard.hpp"
+#include "infra/card/CardReaderMock.hpp"
 
 namespace infra::config {
     using Config = app::types::Config;
@@ -32,9 +33,17 @@ namespace infra::config {
             config.sheet_provider = std::make_shared<infra::sheet::SheetProd>();
         }
 
-        const auto controller = toml[U"System.controller"].get<String>();
-        if (controller == U"keyboard") {
+        const auto controller_device = toml[U"Controller.device"].get<String>();
+        if (controller_device == U"keyboard") {
             config.controller = std::make_shared<infra::controller::ControllerMockKeyboard>();
+        } else {
+            // TODO:
+        }
+
+        const auto use_mock_cardreader = toml[U"CardReader.mock"].getOr<bool>(false);
+        if (use_mock_cardreader) {
+            const String card_id = toml[U"CardReader.mockId"].getOr<String>(U"00000000");
+            config.cardreader = std::make_shared<infra::card::CardReaderMock>(card_id);
         } else {
             // TODO:
         }

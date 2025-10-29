@@ -1,6 +1,5 @@
 [System]
 arcade = false
-controller = "keyboard"
 
 [Window]
 width = 1920
@@ -11,3 +10,12 @@ letterboxColor = "#000000"
 
 [Sheet]
 mock = true
+
+[Controller]
+device = "keyboard"
+port = "COM1"
+baudrate = 115900
+
+[CardReader]
+mock = true
+mockId = "00000000"

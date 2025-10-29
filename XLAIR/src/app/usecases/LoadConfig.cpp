@@ -14,6 +14,7 @@ namespace app {
         // TODO: add validation
         assert(config.sheet_provider);
         assert(config.controller);
+        assert(config.cardreader);
 
         return config;
     }
