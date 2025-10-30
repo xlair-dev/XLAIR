@@ -199,10 +199,11 @@ namespace ui {
     void MusicSelect::handleReturnInput() {
         using Controller = core::features::ControllerManager;
         // TODO: refactor (Controller::Slider(12, 8))
-        bool enter_down = KeyEnter.down();
+        uint32 enter_count = 0;
         for (size_t i = 12; i <= 19; ++i) {
-            enter_down |= Controller::Slider(i).down();
+            enter_count += Controller::Slider(i).frameCount();
         }
+        bool enter_down = KeyEnter.down() or (enter_count == 1);
         if (enter_down) {
             changeScene(app::types::SceneState::Game);
         }
@@ -215,15 +216,20 @@ namespace ui {
         const auto repo_size = data.sheetRepository->size();
 
         // TODO: refactor (Controller::Slider(0, 6))
-        bool left_down = KeyLeft.down();
+        uint32 left_count_one = 0;
+        uint32 left_count = 0;
         for (size_t i = 0; i <= 5; ++i) {
-            left_down |= Controller::Slider(i).down();
+            left_count_one += Controller::Slider(i).frameCount() == 1;
+            left_count += Controller::Slider(i).frameCount() > 1;
         }
+        bool left_down = KeyLeft.down() or (left_count_one > 0 and left_count == 0);
+
         // TODO: refactor (Controller::Slider(6, 6))
-        bool right_down = KeyRight.down();
+        uint32 right_count = 0;
         for (size_t i = 6; i <= 11; ++i) {
-            right_down |= Controller::Slider(i).down();
+            right_count += Controller::Slider(i).frameCount();
         }
+        bool right_down = KeyRight.down() or right_count == 1;
 
         if (index > 0 and left_down) {
             --index;

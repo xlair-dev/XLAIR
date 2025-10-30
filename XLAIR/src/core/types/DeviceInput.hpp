@@ -19,6 +19,10 @@ namespace core::types {
         //    return m_prev_frame_count > 0 and m_curr_frame_count == 0;
         //}
 
+        constexpr inline uint32 frameCount() const noexcept {
+            return m_curr_frame_count;
+        }
+
     private:
         //const uint32 m_prev_frame_count;
         const uint32 m_curr_frame_count;
