@@ -17,10 +17,10 @@ namespace infra::controller {
 
         struct HWInfo {
             String model;
-            uint8 deviceClass;
-            String chipPartNumber;
+            uint8 device_class;
+            String chip_part_number;
             uint8 unk_0xe;
-            uint8 firmwareVerison;
+            uint8 firmware_verison;
             uint8 unk_0x10;
             uint8 unk_0x11;
             bool valid = false;
@@ -52,6 +52,10 @@ namespace infra::controller {
 
         bool sendRawCommand(const Array<uint8>& body);
 
+        void pumpRx();
+
+        bool consumeOnePacket();
+
         bool consumeUntilOnePacket(uint32 timeout_ms);
 
         Serial m_serial;
@@ -66,6 +70,8 @@ namespace infra::controller {
         uint8 m_brightness = 0x3F;
         bool m_sync = false;
         bool m_enable_input = false;
+
+        static constexpr inline int32 MaxQueue = 128;
 
         std::array<uint32, 32> m_slider_pressed_frames{};
     };

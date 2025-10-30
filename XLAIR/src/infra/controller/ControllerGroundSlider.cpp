@@ -25,10 +25,10 @@ namespace infra::controller {
     }
 
     void ControllerGroundSlider::close() {
-        if (m_enable_input) {
-            stopInput();
-        }
         if (m_serial.isOpen()) {
+            if (m_enable_input) {
+                stopInput();
+            }
             m_serial.close();
         }
         m_initialized = false;
@@ -71,10 +71,10 @@ namespace infra::controller {
             }
 
             m_hw.model = String{ payload.begin(), payload.begin() + 8 };
-            m_hw.deviceClass = payload[8];
-            m_hw.chipPartNumber = String{ payload.begin() + 9, payload.begin() + 14 };
+            m_hw.device_class = payload[8];
+            m_hw.chip_part_number = String{ payload.begin() + 9, payload.begin() + 14 };
             m_hw.unk_0xe = payload[14];
-            m_hw.firmwareVerison = payload[15];
+            m_hw.firmware_verison = payload[15];
             m_hw.unk_0x10 = payload[16];
             m_hw.unk_0x11 = payload[17];
             m_hw.valid = true;
@@ -82,6 +82,35 @@ namespace infra::controller {
 
         m_initialized = m_hw.valid;
         return m_initialized;
+    }
+
+    void ControllerGroundSlider::update() {
+        if (not m_serial.isOpen()) {
+            return;
+        }
+        pumpRx();
+        while (consumeOnePacket()) {
+            if (m_last_packet.cmd == 0x01 and m_last_packet.len == 0x20 and m_last_packet.payload.size() == 32) {
+                TouchFrame f{};
+                std::memcpy(f.zones.data(), m_last_packet.payload.data(), 32);
+                f.timestamp_ms = Time::GetMillisec();
+
+                if (m_queue.size() >= MaxQueue) {
+                    m_queue.pop_front();
+                }
+                m_queue.push_back(f);
+            }
+        }
+    }
+
+    bool ControllerGroundSlider::startInput() {
+        m_enable_input = (m_serial.isOpen() and sendRawCommand({ 0xFF, 0x03, 0x00 }));
+        return m_enable_input;
+    }
+
+    bool ControllerGroundSlider::stopInput() {
+        m_enable_input = false;
+        return m_serial.isOpen() and sendRawCommand({ 0xFF, 0x04, 0x00 });
     }
 
     bool ControllerGroundSlider::sendRawCommand(const Array<uint8>& body) {
