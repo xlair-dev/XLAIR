@@ -15,6 +15,7 @@ namespace app {
         assert(config.sheet_provider);
         assert(config.controller);
         assert(config.cardreader);
+        assert(config.api);
 
         return config;
     }

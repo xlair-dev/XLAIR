@@ -35,14 +35,19 @@ namespace core::features {
                 if (not m_p->m_mock_task.isReady()) {
                     return;
                 }
-                m_p->m_state = State::parsing;
                 const JSON json = m_p->m_mock_task.get();
-                m_p->m_parse_task = Async(m_p->m_parser, json);
+                if (json) {
+                    m_p->m_parse_task = Async(m_p->m_parser, json);
+                    m_p->m_state = State::parsing;
+                } else {
+                    m_p->m_error_message = U"Mockdata error";
+                    m_p->m_state = State::failed;
+                }
             }
         }
 
         if (m_p->m_state == State::parsing) {
-            if (not (m_p->m_parse_task and m_p->m_parse_task.isReady())) {
+            if (not m_p->m_parse_task.isReady()) {
                 return;
             }
 

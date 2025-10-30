@@ -13,13 +13,32 @@ namespace ui {
     void Title::update() {
         using core::features::CardReaderManager;
 
+        if (m_loading) {
+            m_call.update();
+            if (m_call.isReady()) {
+                if (m_call.isOK()) {
+                    Print << m_call.value().id;
+                } else {
+                    Print << m_call.errorMessage();
+                }
+            }
+            return;
+        }
+
+        if (m_scaned) {
+            m_call = getData().api->getUserByCard(CardReaderManager::GetID());
+            m_loading = true;
+            return;
+        }
+
         if (m_card_scanning) {
             if (CardReaderManager::IsReady()) {
                 if (CardReaderManager::IsOK()) {
                     Print << CardReaderManager::GetID(); // TODO: pass this string to API and get user data
-                    changeScene(app::types::SceneState::MusicSelect);
+                    m_scaned = true;
                 } else {
                     // TODO: error handling
+                    // CardReaderManager::StartScan();
                 }
             }
         } else {

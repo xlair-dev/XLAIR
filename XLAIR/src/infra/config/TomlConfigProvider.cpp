@@ -6,6 +6,7 @@
 #include "infra/controller/ControllerGroundSlider.hpp"
 #include "infra/card/CardReaderMock.hpp"
 #include "infra/card/PasoriRCS3xx.hpp"
+#include "infra/api/ApiClientMock.hpp"
 
 namespace infra::config {
     using Config = app::types::Config;
@@ -56,5 +57,13 @@ namespace infra::config {
         } else {
             // Error: unsupported
         }
+
+        const auto use_mock_api = toml[U"Api.mock"].getOr<bool>(false);
+        if (use_mock_api) {
+            config.api = std::make_shared<infra::api::ApiClientMock>();
+        } else {
+            const auto endpoint = toml[U"Api.endpoint"].get<String>();
+        }
+
     };
 }

@@ -4,6 +4,7 @@
 #include "app/interfaces/ISheetProvider.hpp"
 #include "app/interfaces/IController.hpp"
 #include "app/interfaces/ICardReader.hpp"
+#include "app/interfaces/IApiClient.hpp"
 
 namespace app::types {
     struct Config {
@@ -22,5 +23,6 @@ namespace app::types {
         std::shared_ptr<interfaces::ISheetProvider> sheet_provider;
         std::shared_ptr<interfaces::IController> controller;
         std::shared_ptr<interfaces::ICardReader> cardreader;
+        std::shared_ptr<interfaces::IApiClient> api;
     };
 }

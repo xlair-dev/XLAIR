@@ -21,13 +21,15 @@ namespace app {
 
         using core::features::SheetRepository;
         Addon::Register(SheetRepository::Name, std::make_unique<SheetRepository>(config.sheet_provider));
-        app.sceneController.get().get()->sheetRepository = Addon::GetAddon<core::features::SheetRepository>(core::features::SheetRepository::Name);
+        app.sceneController.get()->sheetRepository = Addon::GetAddon<core::features::SheetRepository>(core::features::SheetRepository::Name);
 
         using core::features::ControllerManager;
         Addon::Register(ControllerManager::Name, std::make_unique<ControllerManager>(config.controller));
 
         using core::features::CardReaderManager;
         Addon::Register(CardReaderManager::Name, std::make_unique<CardReaderManager>(config.cardreader));
+
+        app.sceneController.get()->api = std::move(config.api);
 
         Window::SetTitle(U"XLAIR");
         Window::Resize(config.window.width, config.window.height);
