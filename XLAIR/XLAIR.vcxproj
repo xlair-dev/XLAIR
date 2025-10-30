@@ -150,7 +150,7 @@
     <ClCompile Include="src\ui\components\GameMusicPlate.cpp" />
     <ClCompile Include="src\ui\components\GameScoreBar.cpp" />
     <ClCompile Include="src\ui\components\MenuTimerPlate.cpp" />
-    <ClCompile Include="src\ui\components\PlayerNameplate.cpp" />
+    <ClCompile Include="src\ui\components\UserNameplate.cpp" />
     <ClCompile Include="src\ui\components\SliderMappingGuide.cpp" />
     <ClCompile Include="src\ui\components\Tile.cpp" />
     <ClCompile Include="src\ui\primitives\Arrow.cpp" />
@@ -396,9 +396,10 @@
     <ClInclude Include="src\core\features\ControllerManager.hpp" />
     <ClInclude Include="src\core\features\SheetRepository.hpp" />
     <ClInclude Include="src\core\features\SparklePoints.hpp" />
+    <ClInclude Include="src\core\types\ApiCall.hpp" />
     <ClInclude Include="src\core\types\DeviceInput.hpp" />
     <ClInclude Include="src\core\types\Difficulty.hpp" />
-    <ClInclude Include="src\core\types\PlayerData.hpp" />
+    <ClInclude Include="src\core\types\UserData.hpp" />
     <ClInclude Include="src\core\types\Scoring.hpp" />
     <ClInclude Include="src\core\types\Sheet.hpp" />
     <ClInclude Include="src\infra\api\ApiClientMock.hpp" />
@@ -415,7 +416,7 @@
     <ClInclude Include="src\ui\components\GameMusicPlate.hpp" />
     <ClInclude Include="src\ui\components\GameScoreBar.hpp" />
     <ClInclude Include="src\ui\components\MenuTimerPlate.hpp" />
-    <ClInclude Include="src\ui\components\PlayerNameplate.hpp" />
+    <ClInclude Include="src\ui\components\UserNameplate.hpp" />
     <ClInclude Include="src\ui\components\ScrollingText.hpp" />
     <ClInclude Include="src\ui\components\SliderMappingGuide.hpp" />
     <ClInclude Include="src\ui\components\Tile.hpp" />

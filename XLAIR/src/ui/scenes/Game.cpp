@@ -2,7 +2,7 @@
 
 #include "app/consts/Scene.hpp"
 #include "app/usecases/Assets.hpp"
-#include "ui/components/PlayerNameplate.hpp"
+#include "ui/components/UserNameplate.hpp"
 #include "ui/components/GameMusicPlate.hpp"
 #include "ui/components/GameScoreBar.hpp"
 #include "ui/primitives/SparkleShape.hpp"
@@ -14,8 +14,8 @@ namespace ui {
     Game::Game(const InitData& init) : IScene(init) {
         auto& data = getData();
         data.sheetRepository->loadDataAsync(
-            data.playerData.selected_index,
-            data.playerData.selected_difficulty
+            data.userData.selected_index,
+            data.userData.selected_difficulty
         );
     }
     Game::~Game() {
@@ -33,8 +33,8 @@ namespace ui {
 
         drawField();
 
-        components::DrawPlayerNameplate(getData().playerData, Point{ 59, 72 });
-        components::DrawGameMusicPlate(Point{ 1480, 72 }, data.sheetRepository->getMetadata(data.playerData.selected_index), data.sheetRepository->getJacket(data.playerData.selected_index).value(), data.playerData.selected_difficulty, m_tile_offset, 1);
+        components::DrawUserNameplate(getData().userData, Point{ 59, 72 });
+        components::DrawGameMusicPlate(Point{ 1480, 72 }, data.sheetRepository->getMetadata(data.userData.selected_index), data.sheetRepository->getJacket(data.userData.selected_index).value(), data.userData.selected_difficulty, m_tile_offset, 1);
         components::DrawGameScoreBar(Point{ app::consts::SceneWidth / 2 - 434, 56 }, data.score);
     }
 

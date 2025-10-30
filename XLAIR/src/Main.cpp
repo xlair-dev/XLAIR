@@ -17,10 +17,9 @@ void Main() {
     auto* scene_data = app.sceneController.get().get();
 
     // TODO: api mock
-    scene_data->playerData.username = U"User Name";
-    scene_data->playerData.displayname = U"Display Name";
-    scene_data->playerData.rating = 200;
-    scene_data->playerData.level = 7;
+    scene_data->userData.displayname = U"Display Name";
+    scene_data->userData.rating = 200;
+    scene_data->userData.level = 7;
 
     app::assets::Initialize();
 

@@ -306,7 +306,7 @@
     <ClCompile Include="src\ui\components\Tile.cpp">
       <Filter>Source Files\ui\components</Filter>
     </ClCompile>
-    <ClCompile Include="src\ui\components\PlayerNameplate.cpp">
+    <ClCompile Include="src\ui\components\UserNameplate.cpp">
       <Filter>Source Files\ui\components</Filter>
     </ClCompile>
     <ClCompile Include="src\ui\components\MenuTimerPlate.cpp">
@@ -1132,7 +1132,7 @@
     <ClInclude Include="src\ui\components\Tile.hpp">
       <Filter>Header Files\ui\components</Filter>
     </ClInclude>
-    <ClInclude Include="src\ui\components\PlayerNameplate.hpp">
+    <ClInclude Include="src\ui\components\UserNameplate.hpp">
       <Filter>Header Files\ui\components</Filter>
     </ClInclude>
     <ClInclude Include="src\ui\components\MenuTimerPlate.hpp">
@@ -1153,7 +1153,7 @@
     <ClInclude Include="src\core\types\Difficulty.hpp">
       <Filter>Header Files\core\types</Filter>
     </ClInclude>
-    <ClInclude Include="src\core\types\PlayerData.hpp">
+    <ClInclude Include="src\core\types\UserData.hpp">
       <Filter>Header Files\core\types</Filter>
     </ClInclude>
     <ClInclude Include="src\ui\theme\DifficultyTheme.hpp">
@@ -1227,6 +1227,9 @@
     </ClInclude>
     <ClInclude Include="src\infra\card\PasoriRCS3xx.hpp">
       <Filter>Header Files\infra\card</Filter>
+    </ClInclude>
+    <ClInclude Include="src\core\types\ApiCall.hpp">
+      <Filter>Header Files\core\types</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

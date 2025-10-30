@@ -1,9 +1,9 @@
-﻿#include "PlayerNameplate.hpp"
+﻿#include "UserNameplate.hpp"
 #include "app/usecases/Assets.hpp"
 #include "ui/theme/Palette.hpp"
 
 namespace ui::components {
-    void DrawPlayerNameplate(const core::types::PlayerData& data, const Point& pos) {
+    void DrawUserNameplate(const core::types::UserData& data, const Point& pos) {
         // TODO: user
         ScopedViewport2D viewport{ pos, 600, 200 };
         constexpr ColorF BaseColor = theme::Palette::Cyan;

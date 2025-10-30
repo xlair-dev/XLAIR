@@ -2,14 +2,14 @@
 #include "Common.hpp"
 #include "app/types/Scene.hpp"
 #include "core/features/SheetRepository.hpp"
-#include "core/types/PlayerData.hpp"
+#include "core/types/UserData.hpp"
 #include "core/types/Scoring.hpp"
 
 namespace app {
 
     struct GameData {
         core::features::SheetRepository* sheetRepository;
-        core::types::PlayerData playerData;
+        core::types::UserData userData;
         core::types::Score score;
     };
 

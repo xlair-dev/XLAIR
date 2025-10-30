@@ -7,7 +7,7 @@
 #include "app/usecases/Assets.hpp"
 
 #include "ui/components/Tile.hpp"
-#include "ui/components/PlayerNameplate.hpp"
+#include "ui/components/UserNameplate.hpp"
 #include "ui/components/MenuTimerPlate.hpp"
 #include "ui/components/SliderMappingGuide.hpp"
 #include "ui/primitives/Arrow.hpp"
@@ -39,13 +39,13 @@ namespace ui {
         drawUI();
 
         const auto& data = getData();
-        components::DrawPlayerNameplate(data.playerData, Point{ 59, 72 });
+        components::DrawUserNameplate(data.userData, Point{ 59, 72 });
         components::DrawMenuTimerPlate(Point{ 1599, 72 }, 58, 1);
 
     }
 
     void MusicSelect::drawBackground() const {
-        const auto& index = getData().playerData.selected_index;
+        const auto& index = getData().userData.selected_index;
         const auto& repo = getData().sheetRepository;
         // TODO: add change animation
         const ScopedCustomShader2D shader{ PixelShaderAsset(app::assets::shader::Grayscale) };
@@ -121,8 +121,8 @@ namespace ui {
 
     void MusicSelect::drawTiles() const {
         const auto& data = getData();
-        const auto& index = data.playerData.selected_index;
-        const auto& difficulty = data.playerData.selected_difficulty;
+        const auto& index = data.userData.selected_index;
+        const auto& difficulty = data.userData.selected_difficulty;
         const auto& repo = data.sheetRepository;
 
         constexpr Vec2 center{ SceneWidth / 2.0, TileY };
@@ -212,7 +212,7 @@ namespace ui {
     void MusicSelect::handleIndexInput() {
         using Controller = core::features::ControllerManager;
         auto& data = getData();
-        auto& index = getData().playerData.selected_index;
+        auto& index = getData().userData.selected_index;
         const auto repo_size = data.sheetRepository->size();
 
         // TODO: refactor (Controller::Slider(0, 6))
@@ -246,7 +246,7 @@ namespace ui {
     void MusicSelect::handleDifficultyInput() {
         using Controller = core::features::ControllerManager;
         auto& data = getData();
-        auto& difficulty = data.playerData.selected_difficulty;
+        auto& difficulty = data.userData.selected_difficulty;
 
         // TODO: refactor (Controller::Slider(20, 4))
         bool down_down = KeyDown.down();

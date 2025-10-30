@@ -20,3 +20,7 @@ threshold = 1
 [CardReader]
 device = "mock"
 mockId = "00000000"
+
+[Api]
+mock = true
+endpoint = "https://api.example.com"
