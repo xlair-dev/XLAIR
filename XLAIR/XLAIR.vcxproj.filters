@@ -372,6 +372,9 @@
     <ClCompile Include="src\core\features\CardReaderManager.cpp">
       <Filter>Source Files\core\features</Filter>
     </ClCompile>
+    <ClCompile Include="src\infra\card\PasoriRCS3xx.cpp">
+      <Filter>Source Files\infra\card</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Image Include="App\icon.ico">
@@ -1221,6 +1224,9 @@
     </ClInclude>
     <ClInclude Include="src\core\features\CardReaderManager.hpp">
       <Filter>Header Files\core\features</Filter>
+    </ClInclude>
+    <ClInclude Include="src\infra\card\PasoriRCS3xx.hpp">
+      <Filter>Header Files\infra\card</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

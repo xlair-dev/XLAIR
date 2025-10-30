@@ -18,5 +18,5 @@ baudrate = 115200
 threshold = 1
 
 [CardReader]
-mock = true
+device = "mock"
 mockId = "00000000"

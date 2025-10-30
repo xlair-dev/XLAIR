@@ -5,6 +5,7 @@
 #include "infra/controller/ControllerMockKeyboard.hpp"
 #include "infra/controller/ControllerGroundSlider.hpp"
 #include "infra/card/CardReaderMock.hpp"
+#include "infra/card/PasoriRCS3xx.hpp"
 
 namespace infra::config {
     using Config = app::types::Config;
@@ -46,12 +47,14 @@ namespace infra::config {
             // TODO:
         }
 
-        const auto use_mock_cardreader = toml[U"CardReader.mock"].getOr<bool>(false);
-        if (use_mock_cardreader) {
+        const auto card_reader = toml[U"CardReader.device"].get<String>();
+        if (card_reader == U"mock") {
             const String card_id = toml[U"CardReader.mockId"].getOr<String>(U"00000000");
             config.cardreader = std::make_shared<infra::card::CardReaderMock>(card_id);
+        } else if (card_reader.starts_with(U"Pasori RC-S3")) {
+            config.cardreader = std::make_shared<infra::card::PasoriRCS3xx>();
         } else {
-            // TODO:
+            // Error: unsupported
         }
     };
 }

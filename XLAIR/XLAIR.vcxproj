@@ -134,6 +134,7 @@
     <ClCompile Include="src\core\features\SheetRepository.cpp" />
     <ClCompile Include="src\infra\api\ApiClientMock.cpp" />
     <ClCompile Include="src\infra\card\CardReaderMock.cpp" />
+    <ClCompile Include="src\infra\card\PasoriRCS3xx.cpp" />
     <ClCompile Include="src\infra\config\TomlConfigProvider.cpp" />
     <ClCompile Include="src\infra\controller\ControllerGroundSlider.cpp" />
     <ClCompile Include="src\infra\controller\ControllerMockKeyboard.cpp" />
@@ -402,6 +403,7 @@
     <ClInclude Include="src\core\types\Sheet.hpp" />
     <ClInclude Include="src\infra\api\ApiClientMock.hpp" />
     <ClInclude Include="src\infra\card\CardReaderMock.hpp" />
+    <ClInclude Include="src\infra\card\PasoriRCS3xx.hpp" />
     <ClInclude Include="src\infra\config\TomlConfigProvider.hpp" />
     <ClInclude Include="src\infra\controller\ControllerGroundSlider.hpp" />
     <ClInclude Include="src\infra\controller\ControllerMockKeyboard.hpp" />
