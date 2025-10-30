@@ -2,7 +2,7 @@
 
 namespace core::features {
     CardReaderManager::CardReaderManager(CardReader reader)
-        :m_reader(std::move(reader)) {
+        : m_reader(std::move(reader)) {
     }
 
     CardReaderManager::~CardReaderManager() {
