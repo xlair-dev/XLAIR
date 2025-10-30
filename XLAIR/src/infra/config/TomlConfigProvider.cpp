@@ -40,7 +40,7 @@ namespace infra::config {
         } else if (controller_device == U"ground_slider") {
             const auto port = toml[U"Controller.port"].getOr<String>(U"COM1");
             const auto baudrate = toml[U"Controller.baudrate"].getOr<int32>(115200);
-            const auto threshold = toml[U"Controller.threshold"].getOr<int32>(1);
+            const auto threshold = toml[U"Controller.threshold"].getOr<int8>(1);
             config.controller = std::make_shared<infra::controller::ControllerGroundSlider>(port, baudrate, threshold);
         } else {
             // TODO:
