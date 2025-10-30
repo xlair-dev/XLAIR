@@ -133,6 +133,7 @@
     <ClCompile Include="src\core\features\ControllerManager.cpp" />
     <ClCompile Include="src\core\features\SheetRepository.cpp" />
     <ClCompile Include="src\infra\api\ApiClientMock.cpp" />
+    <ClCompile Include="src\infra\api\ApiClientProd.cpp" />
     <ClCompile Include="src\infra\api\Parser.cpp" />
     <ClCompile Include="src\infra\card\CardReaderMock.cpp" />
     <ClCompile Include="src\infra\card\PasoriRCS3xx.cpp" />
@@ -405,6 +406,7 @@
     <ClInclude Include="src\core\types\Scoring.hpp" />
     <ClInclude Include="src\core\types\Sheet.hpp" />
     <ClInclude Include="src\infra\api\ApiClientMock.hpp" />
+    <ClInclude Include="src\infra\api\ApiClientProd.hpp" />
     <ClInclude Include="src\infra\api\Parser.hpp" />
     <ClInclude Include="src\infra\card\CardReaderMock.hpp" />
     <ClInclude Include="src\infra\card\PasoriRCS3xx.hpp" />

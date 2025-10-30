@@ -11,11 +11,6 @@ namespace core::features {
     template<class T>
     class ApiCall {
     public:
-        enum class Method {
-            get,
-            post,
-        };
-
         enum class State {
             pending,
             parsing,
@@ -34,21 +29,21 @@ namespace core::features {
         ApiCall(const ApiCall&) = delete;
         ApiCall& operator=(const ApiCall&) = delete;
 
-        static ApiCall HTTP(Method method, URLView url, const HashTable<String, String>& headers, Parser parser) {
+        static ApiCall HTTPGet(URLView url, const HashTable<String, String>& headers, Parser parser) {
             ApiCall c;
             c.m_p = std::make_shared<Impl>();
             c.m_p->m_parser = std::move(parser);
             c.m_p->m_is_mock = false;
+            c.m_p->m_http_task = SimpleHTTP::GetAsync(url, headers);
+            return c;
+        }
 
-            // Siv3D limitation
-            switch (method) {
-                case Method::get:
-                    c.m_p->m_http_task = SimpleHTTP::GetAsync(url, headers);
-                    break;
-                case Method::post:
-                    c.m_p->m_http_task = SimpleHTTP::PostAsync(url, headers);
-                    break;
-            }
+        static ApiCall HTTPPost(URLView url, const HashTable<String, String>& headers, const void* src, size_t size, Parser parser) {
+            ApiCall c;
+            c.m_p = std::make_shared<Impl>();
+            c.m_p->m_parser = std::move(parser);
+            c.m_p->m_is_mock = false;
+            c.m_p->m_http_task = SimpleHTTP::PostAsync(url, headers, src, size);
             return c;
         }
 

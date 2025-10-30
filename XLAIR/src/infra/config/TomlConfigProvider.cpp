@@ -7,6 +7,7 @@
 #include "infra/card/CardReaderMock.hpp"
 #include "infra/card/PasoriRCS3xx.hpp"
 #include "infra/api/ApiClientMock.hpp"
+#include "infra/api/ApiClientProd.hpp"
 
 namespace infra::config {
     using Config = app::types::Config;
@@ -63,6 +64,7 @@ namespace infra::config {
             config.api = std::make_shared<infra::api::ApiClientMock>();
         } else {
             const auto endpoint = toml[U"Api.endpoint"].get<String>();
+            config.api = std::make_shared<infra::api::ApiClientProd>(endpoint);
         }
 
     };

@@ -381,6 +381,9 @@
     <ClCompile Include="src\infra\api\Parser.cpp">
       <Filter>Source Files\infra\api</Filter>
     </ClCompile>
+    <ClCompile Include="src\infra\api\ApiClientProd.cpp">
+      <Filter>Source Files\infra\api</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Image Include="App\icon.ico">
@@ -1241,6 +1244,9 @@
       <Filter>Header Files\core\features\detail</Filter>
     </ClInclude>
     <ClInclude Include="src\infra\api\Parser.hpp">
+      <Filter>Header Files\infra\api</Filter>
+    </ClInclude>
+    <ClInclude Include="src\infra\api\ApiClientProd.hpp">
       <Filter>Header Files\infra\api</Filter>
     </ClInclude>
   </ItemGroup>
