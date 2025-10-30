@@ -378,6 +378,9 @@
     <ClCompile Include="src\infra\card\PasoriRCS3xx.cpp">
       <Filter>Source Files\infra\card</Filter>
     </ClCompile>
+    <ClCompile Include="src\infra\api\Parser.cpp">
+      <Filter>Source Files\infra\api</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Image Include="App\icon.ico">
@@ -1236,6 +1239,9 @@
     </ClInclude>
     <ClInclude Include="src\core\features\detail\ApiCall.ipp">
       <Filter>Header Files\core\features\detail</Filter>
+    </ClInclude>
+    <ClInclude Include="src\infra\api\Parser.hpp">
+      <Filter>Header Files\infra\api</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

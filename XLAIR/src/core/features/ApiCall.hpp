@@ -1,6 +1,13 @@
 ﻿#pragma once
+#include "Common.hpp"
 
 namespace core::features {
+    template<class T>
+    struct ParseResult {
+        T value{};
+        bool ok = false;
+    };
+    
     template<class T>
     class ApiCall {
     public:
@@ -17,19 +24,14 @@ namespace core::features {
             cancelled,
         };
 
-        struct ParseResult {
-            T value{};
-            bool ok = false;
-        };
-
-        using Parser = std::function<ParseResult(const JSON& json)>;
+        using Parser = std::function<ParseResult<T>(const JSON& json)>;
 
         ApiCall() = default;
 
         ApiCall(Method method, URLView url, const HashTable<String, String>& headers, Parser parser);
-        
-        [[nodiscard]]
-        static ApiCall<T> MockFromFile(FilePathView path, Parser parser);
+
+        // Mock from file
+        ApiCall(FilePathView path, Parser parser);
 
         void update();
 
@@ -56,7 +58,7 @@ namespace core::features {
         Parser m_parser;
         AsyncHTTPTask m_http_task;
         AsyncTask<JSON> m_mock_task;
-        AsyncTask<ParseResult> m_parse_task;
+        AsyncTask<ParseResult<T>> m_parse_task;
         std::atomic<bool> m_cancelled{ false };
 
         String m_error_message;

@@ -12,14 +12,12 @@ namespace core::features {
     }
 
     template<class T>
-    ApiCall<T> ApiCall<T>::MockFromFile(FilePathView path, Parser parser) {
-        auto self = ApiCall<T>{};
-        self.m_parser = parser;
-        self.m_mock_task = Async([&path]() {
+    ApiCall<T>::ApiCall(FilePathView path, Parser parser)
+        :m_parser(parser) {
+        m_mock_task = Async([&path]() {
             const JSON json = JSON::Load(path);
             return json;
         });
-        return std::move(self);
     }
 
     template<class T>
