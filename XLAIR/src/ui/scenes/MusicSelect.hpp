@@ -42,6 +42,7 @@ namespace ui {
         void drawTiles() const;
         void drawArrows() const;
 
+        void handleReturnInput();
         void handleIndexInput();
         void handleDifficultyInput();
         void updateScrollState();

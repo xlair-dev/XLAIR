@@ -1,6 +1,7 @@
 ﻿#include "MusicSelect.hpp"
 
 #include "core/types/Difficulty.hpp"
+#include "core/features/ControllerManager.hpp"
 
 #include "app/consts/Scene.hpp"
 #include "app/usecases/Assets.hpp"
@@ -21,10 +22,7 @@ namespace ui {
     MusicSelect::~MusicSelect() {}
 
     void MusicSelect::update() {
-        if (KeyEnter.down()) {
-            changeScene(app::types::SceneState::Game);
-        }
-
+        handleReturnInput();
         handleIndexInput();
         handleDifficultyInput();
         updateScrollState();
@@ -198,34 +196,68 @@ namespace ui {
         primitives::DrawArrow(left_center.movedBy(-30, 0), color, -1);
     }
 
+    void MusicSelect::handleReturnInput() {
+        using Controller = core::features::ControllerManager;
+        // TODO: refactor (Controller::Slider(12, 8))
+        bool enter_down = KeyEnter.down();
+        for (size_t i = 12; i <= 19; ++i) {
+            enter_down |= Controller::Slider(i).down();
+        }
+        if (enter_down) {
+            changeScene(app::types::SceneState::Game);
+        }
+    }
+
     void MusicSelect::handleIndexInput() {
-        // TODO: input handling in infra layer
+        using Controller = core::features::ControllerManager;
         auto& data = getData();
         auto& index = getData().playerData.selected_index;
         const auto repo_size = data.sheetRepository->size();
 
-        if (index + 1 < repo_size and KeyRight.down()) {
-            ++index;
-            m_scroll_offset = -1.0;
-            m_tile_offset_raw = -OffsetWait;
+        // TODO: refactor (Controller::Slider(0, 6))
+        bool left_down = KeyLeft.down();
+        for (size_t i = 0; i <= 5; ++i) {
+            left_down |= Controller::Slider(i).down();
         }
-        if (index > 0 and KeyLeft.down()) {
+        // TODO: refactor (Controller::Slider(6, 6))
+        bool right_down = KeyRight.down();
+        for (size_t i = 6; i <= 11; ++i) {
+            right_down |= Controller::Slider(i).down();
+        }
+
+        if (index > 0 and left_down) {
             --index;
             m_scroll_offset = 1.0;
+            m_tile_offset_raw = -OffsetWait;
+        }
+        if (index + 1 < repo_size and right_down) {
+            ++index;
+            m_scroll_offset = -1.0;
             m_tile_offset_raw = -OffsetWait;
         }
     }
 
     void MusicSelect::handleDifficultyInput() {
-        // TODO: input handling in infra layer
+        using Controller = core::features::ControllerManager;
         auto& data = getData();
         auto& difficulty = data.playerData.selected_difficulty;
 
-        if (difficulty + 1 < core::types::DifficultySize and KeyUp.down()) {
-            ++difficulty;
+        // TODO: refactor (Controller::Slider(20, 4))
+        bool down_down = KeyDown.down();
+        for (size_t i = 20; i <= 23; ++i) {
+            down_down |= Controller::Slider(i).down();
         }
-        if (difficulty > 0 and KeyDown.down()) {
+        // TODO: refactor (Controller::Slider(24, 4))
+        bool up_down = KeyUp.down();
+        for (size_t i = 24; i <= 27; ++i) {
+            up_down |= Controller::Slider(i).down();
+        }
+
+        if (difficulty > 0 and down_down) {
             --difficulty;
+        }
+        if (difficulty + 1 < core::types::DifficultySize and up_down) {
+            ++difficulty;
         }
     }
 
