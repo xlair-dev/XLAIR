@@ -1,0 +1,11 @@
+{
+  "id": "uuid",
+  "card": "00000000",
+  "displayName": "test",
+  "rating": 0,
+  "xp": 0,
+  "credits": 0,
+  "isPublic": true,
+  "isAdmin": false,
+  "createdAt": "2025-10-29T10:14:45.629733+00:00"
+}

@@ -265,6 +265,9 @@
     <Filter Include="Source Files\infra\card">
       <UniqueIdentifier>{ac8311c1-12a3-42bb-8d15-97a87db8e0a8}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\core\features\detail">
+      <UniqueIdentifier>{fb04e7ef-d049-4e0e-8b9f-bd8367972650}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\ui\scenes\Title.cpp">
@@ -1228,8 +1231,11 @@
     <ClInclude Include="src\infra\card\PasoriRCS3xx.hpp">
       <Filter>Header Files\infra\card</Filter>
     </ClInclude>
-    <ClInclude Include="src\core\types\ApiCall.hpp">
-      <Filter>Header Files\core\types</Filter>
+    <ClInclude Include="src\core\features\ApiCall.hpp">
+      <Filter>Header Files\core\features</Filter>
+    </ClInclude>
+    <ClInclude Include="src\core\features\detail\ApiCall.ipp">
+      <Filter>Header Files\core\features\detail</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

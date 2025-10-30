@@ -392,11 +392,12 @@
     <ClInclude Include="src\app\usecases\LoadConfig.hpp" />
     <ClInclude Include="src\app\usecases\LoadSheet.hpp" />
     <ClInclude Include="src\Common.hpp" />
+    <ClInclude Include="src\core\features\ApiCall.hpp" />
     <ClInclude Include="src\core\features\CardReaderManager.hpp" />
     <ClInclude Include="src\core\features\ControllerManager.hpp" />
+    <ClInclude Include="src\core\features\detail\ApiCall.ipp" />
     <ClInclude Include="src\core\features\SheetRepository.hpp" />
     <ClInclude Include="src\core\features\SparklePoints.hpp" />
-    <ClInclude Include="src\core\types\ApiCall.hpp" />
     <ClInclude Include="src\core\types\DeviceInput.hpp" />
     <ClInclude Include="src\core\types\Difficulty.hpp" />
     <ClInclude Include="src\core\types\UserData.hpp" />
