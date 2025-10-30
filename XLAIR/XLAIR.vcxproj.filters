@@ -366,6 +366,9 @@
     <ClCompile Include="src\ui\components\SliderMappingGuide.cpp">
       <Filter>Source Files\ui\components</Filter>
     </ClCompile>
+    <ClCompile Include="src\infra\controller\ControllerGroundSlider.cpp">
+      <Filter>Source Files\infra\controller</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Image Include="App\icon.ico">
@@ -1209,6 +1212,9 @@
     </ClInclude>
     <ClInclude Include="src\ui\components\SliderMappingGuide.hpp">
       <Filter>Header Files\ui\components</Filter>
+    </ClInclude>
+    <ClInclude Include="src\infra\controller\ControllerGroundSlider.hpp">
+      <Filter>Header Files\infra\controller</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -3,6 +3,7 @@
 #include "infra/sheet/SheetMock.hpp"
 #include "infra/sheet/SheetProd.hpp"
 #include "infra/controller/ControllerMockKeyboard.hpp"
+#include "infra/controller/ControllerGroundSlider.hpp"
 #include "infra/card/CardReaderMock.hpp"
 
 namespace infra::config {
@@ -36,6 +37,10 @@ namespace infra::config {
         const auto controller_device = toml[U"Controller.device"].get<String>();
         if (controller_device == U"keyboard") {
             config.controller = std::make_shared<infra::controller::ControllerMockKeyboard>();
+        } else if (controller_device == U"ground_slider") {
+            const auto port = toml[U"Controller.port"].getOr<String>(U"COM1");
+            const auto baudrate = toml[U"Controller.baudrate"].getOr<int32>(115200);
+            config.controller = std::make_shared<infra::controller::ControllerGroundSlider>(port, baudrate);
         } else {
             // TODO:
         }
