@@ -6,6 +6,7 @@
 
 #include "core/features/SheetRepository.hpp"
 #include "core/features/ControllerManager.hpp"
+#include "core/features/CardReaderManager.hpp"
 
 namespace app {
     void InitializeApp(App& app, const app::types::Config& config) {
@@ -24,6 +25,9 @@ namespace app {
 
         using core::features::ControllerManager;
         Addon::Register(ControllerManager::Name, std::make_unique<ControllerManager>(config.controller));
+
+        using core::features::CardReaderManager;
+        Addon::Register(CardReaderManager::Name, std::make_unique<CardReaderManager>(config.cardreader));
 
         Window::SetTitle(U"XLAIR");
         Window::Resize(config.window.width, config.window.height);

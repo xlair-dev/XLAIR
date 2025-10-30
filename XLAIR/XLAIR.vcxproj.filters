@@ -369,6 +369,9 @@
     <ClCompile Include="src\infra\controller\ControllerGroundSlider.cpp">
       <Filter>Source Files\infra\controller</Filter>
     </ClCompile>
+    <ClCompile Include="src\core\features\CardReaderManager.cpp">
+      <Filter>Source Files\core\features</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Image Include="App\icon.ico">
@@ -1215,6 +1218,9 @@
     </ClInclude>
     <ClInclude Include="src\infra\controller\ControllerGroundSlider.hpp">
       <Filter>Header Files\infra\controller</Filter>
+    </ClInclude>
+    <ClInclude Include="src\core\features\CardReaderManager.hpp">
+      <Filter>Header Files\core\features</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
