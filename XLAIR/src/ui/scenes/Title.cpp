@@ -1,17 +1,51 @@
 ﻿#include "Title.hpp"
+#include "core/features/CardReaderManager.hpp"
 #include "app/consts/Version.hpp"
+#include "app/consts/Scene.hpp"
+#include "app/usecases/Assets.hpp"
+#include "ui/theme/Palette.hpp"
 
 namespace ui {
-    Title::Title(const InitData& init) : IScene(init) {
-        Print << XLAIR_VERSION_STRING;
-        Print << U"Title Scene";
-    }
+    Title::Title(const InitData& init) : IScene(init) {}
+
     Title::~Title() {}
+
     void Title::update() {
-        // なにかキーを押すと遷移
-        if (!Keyboard::GetAllInputs().empty()) {
-            changeScene(app::types::SceneState::Login);
+        using core::features::CardReaderManager;
+
+        if (m_card_scanning) {
+            if (CardReaderManager::IsReady()) {
+                if (CardReaderManager::IsOK()) {
+                    Print << CardReaderManager::GetID(); // TODO: pass this string to API and get user data
+                    changeScene(app::types::SceneState::MusicSelect);
+                } else {
+                    // TODO: error handling
+                }
+            }
+        } else {
+            CardReaderManager::StartScan();
+            m_card_scanning = true;
         }
     }
-    void Title::draw() const {}
+
+    void Title::draw() const {
+        using app::consts::SceneWidth;
+        using app::consts::SceneHeight;
+        TextureAsset(app::assets::texture::Logo).drawAt(SceneWidth / 2.0, SceneHeight * 0.4);
+
+        const auto region = FontAsset(app::assets::font::UiText)(U"カードをタッチして始める").drawAt(
+            32,
+            Vec2{ SceneWidth / 2.0,  760 },
+            theme::Palette::Cyan
+        ).stretched(30);
+
+        RectF{ Arg::rightCenter = region.leftCenter(), 135, 2}.draw(theme::Palette::Cyan);
+        RectF{ Arg::leftCenter = region.rightCenter(), 135, 2}.draw(theme::Palette::Cyan);
+
+        FontAsset(app::assets::font::UiText)(U"XLAIR version: " XLAIR_VERSION_STRING).draw(
+            15,
+            Arg::bottomRight(SceneWidth - 10, SceneHeight - 5),
+            theme::Palette::Gray
+        );
+    }
 }

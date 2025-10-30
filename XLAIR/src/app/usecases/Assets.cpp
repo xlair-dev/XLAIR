@@ -34,5 +34,8 @@ namespace app::assets {
     void InitializeTextures() {
         TextureAsset::Register(texture::GameScoreBarFrame, U"assets/textures/bar.png");
         TextureAsset::Load(texture::GameScoreBarFrame);
+
+        TextureAsset::Register(texture::Logo, U"assets/textures/logo.png");
+        TextureAsset::Load(texture::Logo);
     }
 }

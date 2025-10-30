@@ -14,6 +14,7 @@ namespace ui {
         void draw() const override;
 
     private:
+        bool m_card_scanning = false;
     };
 
 }

@@ -14,6 +14,7 @@ namespace app::assets {
     }
 
     namespace texture {
+        static constexpr inline AssetNameView Logo{ U"Texture.Logo" };
         static constexpr inline AssetNameView GameScoreBarFrame{ U"Texture.GameScoreBarFrame" };
     }
 
