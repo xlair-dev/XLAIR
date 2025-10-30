@@ -148,6 +148,7 @@
     <ClCompile Include="src\ui\components\GameScoreBar.cpp" />
     <ClCompile Include="src\ui\components\MenuTimerPlate.cpp" />
     <ClCompile Include="src\ui\components\PlayerNameplate.cpp" />
+    <ClCompile Include="src\ui\components\SliderMappingGuide.cpp" />
     <ClCompile Include="src\ui\components\Tile.cpp" />
     <ClCompile Include="src\ui\primitives\Arrow.cpp" />
     <ClCompile Include="src\ui\primitives\EighthNote.cpp" />
@@ -410,6 +411,7 @@
     <ClInclude Include="src\ui\components\MenuTimerPlate.hpp" />
     <ClInclude Include="src\ui\components\PlayerNameplate.hpp" />
     <ClInclude Include="src\ui\components\ScrollingText.hpp" />
+    <ClInclude Include="src\ui\components\SliderMappingGuide.hpp" />
     <ClInclude Include="src\ui\components\Tile.hpp" />
     <ClInclude Include="src\ui\primitives\Arrow.hpp" />
     <ClInclude Include="src\ui\primitives\EighthNote.hpp" />

@@ -8,6 +8,7 @@
 #include "ui/components/Tile.hpp"
 #include "ui/components/PlayerNameplate.hpp"
 #include "ui/components/MenuTimerPlate.hpp"
+#include "ui/components/SliderMappingGuide.hpp"
 #include "ui/primitives/Arrow.hpp"
 #include "ui/theme/Palette.hpp"
 
@@ -33,11 +34,11 @@ namespace ui {
 
         // drawBackground();
 
-        drawUI();
-
         drawTiles();
 
         drawArrows();
+
+        drawUI();
 
         const auto& data = getData();
         components::DrawPlayerNameplate(data.playerData, Point{ 59, 72 });
@@ -83,6 +84,41 @@ namespace ui {
 
         drawBar(SideOffset + LineWidth, -1.0); // left
         drawBar(SceneWidth - SideOffset - LineWidth, 1.0); // right
+
+        // controller
+        Array<components::Mapping> mapping{
+            {
+                components::Mapping::Region{ 0, 3, true, false },
+                U"◀ 左",
+                theme::Palette::Pink,
+            },
+            {
+                components::Mapping::Region{ 3, 3, false, true },
+                U"右 ▶",
+                theme::Palette::Pink,
+            },
+            {
+                components::Mapping::Region{ 6, 4 },
+                U"選択",
+                theme::Palette::Cyan,
+            },
+            {
+                components::Mapping::Region{ 10, 2, true, false },
+                U"レベル＋",
+                theme::Palette::Pink,
+            },
+            {
+                components::Mapping::Region{ 12, 2, false, true },
+                U"レベル－",
+                theme::Palette::Pink,
+            },
+            {
+                components::Mapping::Region{ 14, 2 },
+                U"設定",
+                theme::Palette::Purple,
+            },
+        };
+        components::DrawSliderMappingGuide(mapping);
     }
 
     void MusicSelect::drawTiles() const {
