@@ -40,7 +40,9 @@ namespace infra::controller {
 
     bool ControllerGroundSlider::initialize(uint32 timeout_ms) {
         if (not m_serial.isOpen()) {
-            return false;
+            if (not m_serial.open(m_port, m_baudrate)) {
+                return false;
+            }
         }
 
         m_initialized = false;
@@ -57,7 +59,6 @@ namespace infra::controller {
         if (not (m_last_packet.cmd == 0x10 and m_last_packet.len == 0)) {
             return false;
         }
-
 
         sendRawCommand({ 0xFF, 0xF0, 0x00 }); // send HW INFO
         if (not consumeUntilOnePacket(timeout_ms)) {
@@ -80,6 +81,10 @@ namespace infra::controller {
         }
 
         m_initialized = m_hw.valid;
+        if (m_initialized) {
+            startInput();
+        }
+
         return m_initialized;
     }
 
@@ -87,6 +92,7 @@ namespace infra::controller {
         if (not m_serial.isOpen()) {
             return;
         }
+
         pumpRx();
         TouchFrame f{};
         while (consumeOnePacket()) {
@@ -98,7 +104,11 @@ namespace infra::controller {
         }
         if (f.valid) {
             for (size_t i = 0; i < 32; ++i) {
-                m_slider_pressed_frames[31 - i] = (f.zones[i] >= m_threshold);
+                if (f.zones[i] >= m_threshold) {
+                    m_slider_pressed_frames[31 - i]++;
+                } else {
+                    m_slider_pressed_frames[31 - i] = 0;
+                }
             }
             sendLED();
         }

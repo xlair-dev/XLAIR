@@ -24,7 +24,9 @@ void Main() {
 
     app::assets::Initialize();
 
-    core::features::ControllerManager::InitializeDevice();
+    if (not core::features::ControllerManager::InitializeDevice()) {
+        throw Error{ U"InitializeDevice failed." };
+    }
 
     while (System::Update() and app.sceneController.update()) {
     }

@@ -14,7 +14,8 @@ mock = true
 [Controller]
 device = "keyboard"
 port = "COM1"
-baudrate = 115900
+baudrate = 115200
+threshold = 1
 
 [CardReader]
 mock = true
