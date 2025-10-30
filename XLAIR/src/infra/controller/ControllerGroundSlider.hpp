@@ -13,6 +13,7 @@ namespace infra::controller {
         struct TouchFrame {
             std::array<uint8, 32> zones{};
             uint64 timestamp_ms = 0;
+            bool valid = false;
         };
 
         struct HWInfo {
@@ -27,7 +28,7 @@ namespace infra::controller {
         };
 
     public:
-        ControllerGroundSlider(StringView port, int32 baudrate);
+        ControllerGroundSlider(StringView port, int32 baudrate, uint8 threshold = 1);
 
         ~ControllerGroundSlider();
 
@@ -39,7 +40,7 @@ namespace infra::controller {
 
         void update() override;
 
-        bool setLED(const Array<Color>& color, uint8 brightness) override;
+        bool setLED(const Array<Color>& color, uint8 brightness = 63) override;
 
         uint32 sliderPressedFrameCount(size_t index) override;
 
@@ -49,6 +50,8 @@ namespace infra::controller {
         bool startInput();
 
         bool stopInput();
+
+        bool sendLED();
 
         bool sendRawCommand(const Array<uint8>& body);
 
@@ -60,19 +63,18 @@ namespace infra::controller {
 
         Serial m_serial;
         String m_port;
+        uint8 m_threshold;
         int32 m_baudrate;
 
         bool m_initialized = false;
         HWInfo m_hw{};
         Array<uint8> m_buffer;
         Packet m_last_packet{};
-        std::deque<TouchFrame> m_queue;
         uint8 m_brightness = 0x3F;
         bool m_sync = false;
         bool m_enable_input = false;
 
-        static constexpr inline int32 MaxQueue = 128;
-
         std::array<uint32, 32> m_slider_pressed_frames{};
+        Array<Color> m_color;
     };
 }
