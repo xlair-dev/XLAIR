@@ -108,12 +108,12 @@ namespace ui {
             },
             {
                 components::Mapping::Region{ 10, 2, true, false },
-                U"レベル＋",
+                U"レベル－",
                 theme::Palette::Pink,
             },
             {
                 components::Mapping::Region{ 12, 2, false, true },
-                U"レベル－",
+                U"レベル＋",
                 theme::Palette::Pink,
             },
             {
@@ -256,16 +256,25 @@ namespace ui {
         auto& difficulty = data.userData.selected_difficulty;
 
         // TODO: refactor (Controller::Slider(20, 4))
-        bool down_down = KeyDown.down();
+        uint32 down_pre_count = 0;
+        uint32 down_cur_count = 0;
         for (size_t i = 20; i <= 23; ++i) {
-            down_down |= Controller::Slider(i).down();
+            const auto [pre, cur] = Controller::SliderTouchFrames(i);
+            down_pre_count += pre;
+            down_cur_count += cur;
         }
-        // TODO: refactor (Controller::Slider(24, 4))
-        bool up_down = KeyUp.down();
-        for (size_t i = 24; i <= 27; ++i) {
-            up_down |= Controller::Slider(i).down();
-        }
+        bool down_down = KeyDown.down() or (down_pre_count == 0 and down_cur_count > 0);
 
+        // TODO: refactor (Controller::Slider(24, 4))
+        uint32 up_pre_count = 0;
+        uint32 up_cur_count = 0;
+        for (size_t i = 24; i <= 27; ++i) {
+            const auto [pre, cur] = Controller::SliderTouchFrames(i);
+            up_pre_count += pre;
+            up_cur_count += cur;
+        }
+        bool up_down = KeyUp.down() or (up_pre_count == 0 and up_cur_count > 0);
+        
         if (difficulty > 0 and down_down) {
             --difficulty;
         }

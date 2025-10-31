@@ -8,5 +8,6 @@ namespace app::types {
         MapSelect,
         MusicSelect,
         Game,
+        Result,
     };
 }

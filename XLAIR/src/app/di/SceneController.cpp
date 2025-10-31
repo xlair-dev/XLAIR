@@ -8,6 +8,7 @@
 #include "ui/scenes/Login.hpp"
 #include "ui/scenes/MusicSelect.hpp"
 #include "ui/scenes/Game.hpp"
+#include "ui/scenes/Result.hpp"
 
 namespace app {
     using SceneState = app::types::SceneState;
@@ -18,7 +19,8 @@ namespace app {
             .add<ui::Title>(SceneState::Title)
             .add<ui::Login>(SceneState::Login)
             .add<ui::MusicSelect>(SceneState::MusicSelect)
-            .add<ui::Game>(SceneState::Game);
+            .add<ui::Game>(SceneState::Game)
+            .add<ui::Result>(SceneState::Result);
 
         controller.setFadeColor(Palette::White);
 

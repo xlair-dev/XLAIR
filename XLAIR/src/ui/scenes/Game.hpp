@@ -21,6 +21,9 @@ namespace ui {
         double m_tile_offset = 0.0;
         double m_scene_timer = 0.0;
         int64 m_pos_sample = 0;
+        size_t m_samples = 0;
+        Array<int64> m_last_judged{ 32 };
+
         bool m_started = false;
 
         const MSRenderTexture m_rt_main_field{ 1000, 4000 };
@@ -30,6 +33,10 @@ namespace ui {
         void drawSideField() const;
 
         void drawMainNotes() const;
+
+        void drawTouchEffect() const;
+
+        void judgement();
 
         double calculateNoteY(int64 sample) const;
     };

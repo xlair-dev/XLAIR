@@ -35,4 +35,28 @@ namespace ui::primitives {
             .drawShadow(Vec2{ -10, 0 }, 30.0, 0, ColorF{ U"#43A4F2" }.withA(0.5))
             .draw(Arg::top = ColorF{ U"#55C8FF" }, Arg::bottom = ColorF{ U"#43A4F2" });
     }
+
+    void DrawHoldBack(const Vec2& start_left, double start_width, const Vec2& end_left, double end_width) {
+        Quad{
+            start_left,
+            start_left.movedBy(start_width, 0),
+            end_left.movedBy(end_width, 0),
+            end_left,
+        }.draw(
+            //ColorF{ U"#EC43F242" },
+            //ColorF{ U"#EC43F242" },
+            //ColorF{ U"#43A4F2" },
+            //ColorF{ U"#43A4F2" }
+
+            ColorF{ U"#43A4F270" },
+            ColorF{ U"#43A4F270" },
+            ColorF{ U"#43A4F270" },
+            ColorF{ U"#43A4F270" }
+        );
+
+        Line{ start_left.movedBy(start_width / 2.0, 0), end_left.movedBy(end_width / 2.0, 0) }.draw(
+            5.0,
+            ColorF{ U"#43A4F2" }
+        );
+    }
 }

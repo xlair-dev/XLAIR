@@ -30,12 +30,22 @@ namespace core::features {
         return DeviceInput{ 0 };
     }
 
+    std::pair<uint32, uint32> ControllerManager::SliderTouchFrames(size_t index) {
+        if (auto p = Addon::GetAddon<ControllerManager>(Name)) {
+            return p->sliderTouchFrames(index);
+        }
+        return { 0, 0 };
+    }
+
     bool ControllerManager::init() {
         return m_device->open();
     }
 
     bool ControllerManager::update() {
         if (m_initialized) {
+            for (size_t i = 0; i < 32; ++i) {
+                m_prev_touch_frame_count[i] = m_device->sliderPressedFrameCount(i);
+            }
             m_device->update();
         }
         return true;
@@ -52,5 +62,9 @@ namespace core::features {
 
     const types::DeviceInput ControllerManager::side(SideButton button) {
         return DeviceInput{ m_device->sidePressedFrameCount(button) };
+    }
+
+    std::pair<uint32, uint32> ControllerManager::sliderTouchFrames(size_t index) {
+        return { m_prev_touch_frame_count[index], m_device->sliderPressedFrameCount(index) };
     }
 }

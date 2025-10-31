@@ -1,5 +1,6 @@
 ﻿#include "Game.hpp"
 
+#include "core/features/ControllerManager.hpp"
 #include "app/consts/Scene.hpp"
 #include "app/usecases/Assets.hpp"
 #include "ui/components/UserNameplate.hpp"
@@ -31,7 +32,15 @@ namespace ui {
 
         if (not m_started and m_scene_timer >= 1.0) {
             if (data.sheetRepository->isDataReady()) {
+                m_samples = AudioAsset(data.sheetRepository->AudioAssetName).samples();
                 AudioAsset(data.sheetRepository->AudioAssetName).play();
+                m_started = true;
+            }
+        }
+
+        if (m_started) {
+            if (not AudioAsset(data.sheetRepository->AudioAssetName).isPlaying()) {
+                changeScene(app::types::SceneState::Result);
             }
         }
     }
@@ -80,6 +89,8 @@ namespace ui {
             FontAsset(app::assets::font::UiComboNumber)(U"{}"_fmt(data.score.combo)).drawAt(center_x, h - 750, theme::Palette::White);
             FontAsset(app::assets::font::UiSubText)(U"COMBO").drawAt(center_x, h - 600, theme::Palette::White);
 
+            // touch effect
+            drawTouchEffect();
 
             // judge line
             const double judge_y = h - JudgeLineY;
@@ -122,21 +133,101 @@ namespace ui {
         constexpr double EdgeMargin = 32.0;
         const auto field_size = m_rt_main_field.size();
         const auto [w, h] = field_size;
-        const auto center_x = w / 2.0;
         const auto main_width = w - 2 * EdgeMargin;
         const double lane_width = main_width / 16.0;
 
         //primitives::DrawHoldNoteHead(Vec2{ EdgeMargin, h - 100 }, lane_width * 4);
+        for (const auto& hold : data.notes.hold) {
+            for (size_t i = 1; i < hold.notes.size(); i++) {
+                // 先にスライドを描画してあとから Head を描画する
+                const auto& pre = hold.notes[i - 1];
+                const auto& cur = hold.notes[i];
+
+                const double cur_x = EdgeMargin + lane_width * cur.start_lane;
+                const double cur_y = calculateNoteY(cur.sample);
+                const double cur_w = lane_width * cur.width;
+
+                const double pre_x = EdgeMargin + lane_width * pre.start_lane;
+                const double pre_y = calculateNoteY(pre.sample);
+                const double pre_w = lane_width * pre.width;
+
+                if (pre.type == SheetsAnalyzer::HoldNoteType::Start or pre.type == SheetsAnalyzer::HoldNoteType::End) {
+                    primitives::DrawHoldNoteHead(Vec2{ pre_x, pre_y }, pre_w);
+                }
+
+                primitives::DrawHoldBack(
+                    Vec2{ pre_x, pre_y }, pre_w,
+                    Vec2{ cur_x, cur_y }, cur_w
+                );
+            }
+            if (not hold.notes.isEmpty() and hold.notes.back().type == SheetsAnalyzer::HoldNoteType::Start or hold.notes.back().type == SheetsAnalyzer::HoldNoteType::End) {
+                const double x = EdgeMargin + lane_width * hold.notes.back().start_lane;
+                const double y = calculateNoteY(hold.notes.back().sample);
+                const double width = lane_width * hold.notes.back().width;
+                primitives::DrawHoldNoteHead(Vec2{ x, y }, width);
+            }
+        }
+
         for (const auto& tap : data.notes.tap) {
-            const double x = EdgeMargin + lane_width * tap.start_lane;
             const double y = calculateNoteY(tap.sample);
+            if (y < -50 or h + 50 < y) {
+                continue;
+            }
+
+            const double x = EdgeMargin + lane_width * tap.start_lane;
             const double width = lane_width * tap.width;
             primitives::DrawTapNote(Vec2{ x, y }, width);
         }
+
+        for (const auto& tap : data.notes.xtap) {
+            const double y = calculateNoteY(tap.sample);
+            if (y < -50 or h + 50 < y) {
+                continue;
+            }
+            const double x = EdgeMargin + lane_width * tap.start_lane;
+            const double width = lane_width * tap.width;
+            primitives::DrawXTapNote(Vec2{ x, y }, width);
+        }
+
+        for (const auto& tap : data.notes.flick) {
+            const double y = calculateNoteY(tap.sample);
+            const double x = EdgeMargin + lane_width * tap.start_lane;
+            if (y < -50 or h + 50 < y) {
+                continue;
+            }
+            const double width = lane_width * tap.width;
+            primitives::DrawFlickNote(Vec2{ x, y }, width);
+        }
+
+
+    }
+
+    void Game::drawTouchEffect() const {
+        using core::features::ControllerManager;
+        constexpr double EdgeMargin = 32.0;
+        const auto field_size = m_rt_main_field.size();
+        const auto [w, h] = field_size;
+        const auto main_width = w - 2 * EdgeMargin;
+        const double lane_width = main_width / 16.0;
+
+        for (uint8 i = 0; i < 16; ++i) {
+            const bool pressed = ControllerManager::Slider(2 * i).pressed() or ControllerManager::Slider(2 * i + 1).pressed();
+            if (pressed) {
+                const double x = EdgeMargin + lane_width * i;
+                RectF{ Arg::bottomLeft(x, h), lane_width, 250 }.draw(
+                    Arg::top = ColorF{ 1.0, 0.0 },
+                    Arg::bottom = ColorF{ 1.0, 0.7 }
+                );
+            }
+        }
+    }
+
+    void Game::judgement() {
     }
 
     double Game::calculateNoteY(int64 sample) const {
-        return JudgeLineY - static_cast<double>(sample - m_pos_sample) * 0.02;
+        constexpr double h = 4000;
+        return (4000 - JudgeLineY) - static_cast<double>(sample - m_pos_sample) * 0.08;
     }
 
     void Game::RegisterAssets() {

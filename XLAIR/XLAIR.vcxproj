@@ -164,6 +164,7 @@
     <ClCompile Include="src\ui\scenes\Game.cpp" />
     <ClCompile Include="src\ui\scenes\Login.cpp" />
     <ClCompile Include="src\ui\scenes\MusicSelect.cpp" />
+    <ClCompile Include="src\ui\scenes\Result.cpp" />
     <ClCompile Include="src\ui\scenes\Title.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -435,6 +436,7 @@
     <ClInclude Include="src\ui\scenes\Game.hpp" />
     <ClInclude Include="src\ui\scenes\Login.hpp" />
     <ClInclude Include="src\ui\scenes\MusicSelect.hpp" />
+    <ClInclude Include="src\ui\scenes\Result.hpp" />
     <ClInclude Include="src\ui\scenes\Title.hpp" />
     <ClInclude Include="src\ui\theme\DifficultyTheme.hpp" />
     <ClInclude Include="src\ui\theme\Palette.hpp" />

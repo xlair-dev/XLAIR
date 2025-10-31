@@ -22,6 +22,10 @@ namespace core::features {
 
         static const DeviceInput Side(SideButton button);
 
+        static std::pair<uint32, uint32> SliderTouchFrames(size_t index);
+
+        //static std::pair<uint32, uint32> SideTouchFrames(size_t index);
+
         static inline constexpr StringView Name{ U"ControllerManager" };
 
     private:
@@ -35,7 +39,12 @@ namespace core::features {
 
         const DeviceInput side(SideButton button);
 
+        std::pair<uint32, uint32> sliderTouchFrames(size_t index);
+
+        //std::pair<uint32, uint32> sideTouchFrames(size_t index);
+
         Device m_device;
         bool m_initialized = false;
+        std::array<uint32, 32> m_prev_touch_frame_count{};
     };
 }
