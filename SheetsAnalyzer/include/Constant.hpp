@@ -12,6 +12,7 @@ namespace SheetsAnalyzer {
         const inline s3d::String DefaltGenre = U"Unspecified";
         const inline s3d::String DefaultDesigner = U"Anonymous";
         constexpr inline double DefaultMusicOffset = 0.0;
+        constexpr inline double DefaultDemoStart = 0.0;
         constexpr inline double DefaultBPM = 120.0;
 
         constexpr inline size_t MaxDifficulties = 10;

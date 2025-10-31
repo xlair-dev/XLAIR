@@ -36,6 +36,7 @@ namespace SheetsAnalyzer::internal {
         helper(toml, U"jacket", metadata.jacket, U"");
         helper(toml, U"url", metadata.url, s3d::URL{});
         helper(toml, U"music_offset", metadata.music_offset, Constant::DefaultMusicOffset);
+        helper(toml, U"demo_start", metadata.demo_start, Constant::DefaultDemoStart);
         helper(toml, U"bpm", metadata.bpm, Constant::DefaultBPM);
 
         metadata.music = HandlePath(path, metadata.music);

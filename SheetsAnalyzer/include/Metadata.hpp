@@ -21,8 +21,9 @@ namespace SheetsAnalyzer {
         s3d::String jacket;
         s3d::URL url;
         double music_offset;
+        double demo_start;
         double bpm;
 
-        std::array<Difficulty, Constant::MaxDifficulties> difficulties;
+        std::array<Difficulty, Constant::MaxDifficulties> difficulties = {};
     };
 }

@@ -37,6 +37,7 @@ namespace SheetsAnalyzer::internal {
         helper(json, U"jacket", metadata.jacket, U"");
         helper(json, U"url", metadata.url, s3d::URL{});
         helper(json, U"music_offset", metadata.music_offset, Constant::DefaultMusicOffset);
+        helper(json, U"demo_start", metadata.demo_start, Constant::DefaultDemoStart);
         helper(json, U"bpm", metadata.bpm, Constant::DefaultBPM);
 
         metadata.music = HandlePath(path, metadata.music);
@@ -61,6 +62,7 @@ namespace SheetsAnalyzer::internal {
                     difficulty.src = HandlePath(path, difficulty.src);
 
                     metadata.difficulties[id] = difficulty;
+                    
                 }
             }
         }
