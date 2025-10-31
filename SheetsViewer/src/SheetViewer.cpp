@@ -107,6 +107,12 @@ void SheetViewer::draw() const {
                             Vec2{ cur_x, cur_y },
                         }.draw(ColorF(0.2, 0.2, 0.8, 0.5));
                     }
+                    for (const auto& judge : hold.judge) {
+                        const auto x = offset_left + 2 * UI::SideLaneWidth + judge.start_lane * UI::LaneWidth;
+                        const auto note_width = judge.width * UI::LaneWidth;
+                        const auto y = (height - 120) - static_cast<double>(judge.sample - pos_sample) * 0.01;
+                        RectF{ x, y, note_width, 10.0 }.draw(ColorF(0.8, 0.8, 0.8, 0.5));
+                    }
                 }
             }
         }

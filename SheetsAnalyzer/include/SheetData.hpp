@@ -17,7 +17,7 @@ namespace SheetsAnalyzer {
         s3d::uint8 width = 0;
     };
 
-    enum class HoldNoteType : int8 {
+    enum class HoldNoteType : s3d::uint8 {
         Start,
         End,
         Mid,
@@ -66,5 +66,7 @@ namespace SheetsAnalyzer {
             s3d::Array<ShortNoteData> flick;
             s3d::Array<HoldNoteData> hold;
         } notes;
+
+        size_t total_combo = 0;
     };
 }

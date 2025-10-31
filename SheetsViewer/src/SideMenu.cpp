@@ -31,6 +31,7 @@ void SideMenu::update() {
             if (is_valid and rect.leftClicked()) {
                 SheetManagerAddon::SetSelectedDifficulty(index);
                 NotificationAddon::Show(U"Selected difficulty: {}"_fmt(index), NotificationAddon::Type::Information);
+                NotificationAddon::Show(U"Total combo: {}"_fmt(data->total_combo), NotificationAddon::Type::Information);
             }
         }
     }

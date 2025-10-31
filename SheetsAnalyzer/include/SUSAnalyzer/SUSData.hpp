@@ -21,7 +21,7 @@ namespace SheetsAnalyzer::SUSAnalyzer {
         auto operator<=>(const SUSRelativeNoteTime& other) const = default;
     };
 
-    enum class NoteType : int8 {
+    enum class NoteType : s3d::uint8 {
         Undefined = 0,
         BpmChange,
 
@@ -75,7 +75,7 @@ namespace SheetsAnalyzer::SUSAnalyzer {
         inline void addData(const SUSHispeedData& data) {
             hispeed_data.push_back(data);
         }
-    };;
+    };
 
     struct SUSData : SheetData {
 
@@ -85,6 +85,7 @@ namespace SheetsAnalyzer::SUSAnalyzer {
         void convertToSheetData();
         float getBeatsAt(const s3d::uint32 meas) const;
         s3d::int64 getSampleAt(const SUSRelativeNoteTime& time);
+        void constructHoldJudge(HoldNoteData& data, SUSRelativeNoteTime& last_time);
 
         s3d::uint32 current_timeline = Constant::DefaultHispeedNumber;
         s3d::uint32 measure_base = 0;
