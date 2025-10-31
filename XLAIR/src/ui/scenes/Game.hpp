@@ -22,7 +22,8 @@ namespace ui {
         double m_scene_timer = 0.0;
         int64 m_pos_sample = 0;
         size_t m_samples = 0;
-        Array<int64> m_last_judged{ 32 };
+        int64 m_sample_rate = 44100;
+        Array<int64> m_last_judged{ 16 };
 
         bool m_started = false;
 

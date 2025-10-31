@@ -33,6 +33,7 @@ namespace ui {
         if (not m_started and m_scene_timer >= 1.0) {
             if (data.sheetRepository->isDataReady()) {
                 m_samples = AudioAsset(data.sheetRepository->AudioAssetName).samples();
+                m_sample_rate = AudioAsset(data.sheetRepository->AudioAssetName).sampleRate();
                 AudioAsset(data.sheetRepository->AudioAssetName).play();
                 m_started = true;
             }
@@ -43,6 +44,15 @@ namespace ui {
                 changeScene(app::types::SceneState::Result);
             }
         }
+
+        judgement();
+
+        ClearPrint();
+        Print << data.score.perfect_count;
+        Print << data.score.great_count;
+        Print << data.score.good_count;
+        Print << data.score.miss_count;
+        Print << data.score.combo;
     }
 
     void Game::draw() const {
@@ -138,6 +148,11 @@ namespace ui {
 
         //primitives::DrawHoldNoteHead(Vec2{ EdgeMargin, h - 100 }, lane_width * 4);
         for (const auto& hold : data.notes.hold) {
+            if (hold.notes.isEmpty()) {
+                continue;
+            }
+            const double start_sample = hold.notes.front().sample;
+            const double length = static_cast<double>(hold.notes.back().sample - hold.notes.front().sample);
             for (size_t i = 1; i < hold.notes.size(); i++) {
                 // 先にスライドを描画してあとから Head を描画する
                 const auto& pre = hold.notes[i - 1];
@@ -155,9 +170,11 @@ namespace ui {
                     primitives::DrawHoldNoteHead(Vec2{ pre_x, pre_y }, pre_w);
                 }
 
+                const double cur_t = (cur.sample - start_sample) / length;
+                const double pre_t = (pre.sample - start_sample) / length;
                 primitives::DrawHoldBack(
-                    Vec2{ pre_x, pre_y }, pre_w,
-                    Vec2{ cur_x, cur_y }, cur_w
+                    Vec2{ pre_x, pre_y }, pre_w, pre_t,
+                    Vec2{ cur_x, cur_y }, cur_w, cur_t
                 );
             }
             if (not hold.notes.isEmpty() and hold.notes.back().type == SheetsAnalyzer::HoldNoteType::Start or hold.notes.back().type == SheetsAnalyzer::HoldNoteType::End) {
@@ -173,7 +190,9 @@ namespace ui {
             if (y < -50 or h + 50 < y) {
                 continue;
             }
-
+            if (tap.done) {
+                continue;
+            }
             const double x = EdgeMargin + lane_width * tap.start_lane;
             const double width = lane_width * tap.width;
             primitives::DrawTapNote(Vec2{ x, y }, width);
@@ -182,6 +201,9 @@ namespace ui {
         for (const auto& tap : data.notes.xtap) {
             const double y = calculateNoteY(tap.sample);
             if (y < -50 or h + 50 < y) {
+                continue;
+            }
+            if (tap.done) {
                 continue;
             }
             const double x = EdgeMargin + lane_width * tap.start_lane;
@@ -193,6 +215,9 @@ namespace ui {
             const double y = calculateNoteY(tap.sample);
             const double x = EdgeMargin + lane_width * tap.start_lane;
             if (y < -50 or h + 50 < y) {
+                continue;
+            }
+            if (tap.done) {
                 continue;
             }
             const double width = lane_width * tap.width;
@@ -223,11 +248,74 @@ namespace ui {
     }
 
     void Game::judgement() {
+        // TODO: ここらへんのロジックは core/features などに移すべきかも
+        // TODO: 流石にオワリ・実装なのでマシなものにするべき
+        using core::features::ControllerManager;
+        auto& data = getData().sheetRepository->m_data;
+        auto& score = getData().score;
+        if (not data.valid) {
+            return;
+        }
+        // 35ms, 65ms, 100ms
+        const int64 perfect = static_cast<int64>(0.035 * m_sample_rate);
+        const int64 great = static_cast<int64>(0.065 * m_sample_rate);
+        const int64 good = static_cast<int64>(0.100 * m_sample_rate);
+
+        Array<bool> has_judged(16, false);
+        for (auto& tap : data.notes.tap) {
+            if (tap.done) {
+                continue;
+            }
+            if (tap.passed) {
+                const double y = calculateNoteY(tap.sample);
+                if (y < -50) {
+                    tap.done = true;
+                }
+                continue;
+            }
+            const int64 dist = tap.sample - m_pos_sample; // TODO: add timing setting
+
+            if (dist < -good) {
+                // miss
+                score.miss_count++;
+                score.combo = 0;
+                tap.passed = true;
+            }
+
+            bool pressed = false;
+            for (size_t i = 0; i < tap.width; ++i) {
+                const auto index = tap.start_lane + i;
+                if (has_judged[index]) {
+                    continue;
+                }
+                pressed |= ControllerManager::Slider(2 * index).down();
+                pressed |= ControllerManager::Slider(2 * index + 1).down();
+            }
+
+            if (pressed) {
+                const auto adist = Abs(dist);
+                if (adist <= good) {
+                    score.combo++;
+                    tap.done = true;
+                    for (size_t i = 0; i < tap.width; ++i) {
+                        has_judged[tap.start_lane + i] = true;
+                    }
+                }
+
+                if (adist <= perfect) {
+                    score.perfect_count++;
+                } else if (adist <= great) {
+                    score.great_count++;
+                } else if (adist <= good) {
+                    score.good_count++;
+                }
+            }
+        }
     }
 
     double Game::calculateNoteY(int64 sample) const {
         constexpr double h = 4000;
-        return (4000 - JudgeLineY) - static_cast<double>(sample - m_pos_sample) * 0.08;
+        return (4000 - JudgeLineY) - static_cast<double>(sample - m_pos_sample) * 0.02;
     }
 
     void Game::RegisterAssets() {

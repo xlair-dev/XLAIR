@@ -46,7 +46,6 @@ namespace core::features {
         bool m_metadata_loaded = false;
         mutable std::mutex m_mutex;
         Array<Metadata> m_metadata;
-        Data m_data;
 
         size_t m_pending_index;
         uint8 m_pending_difficulty_index;
@@ -68,5 +67,9 @@ namespace core::features {
 
         StateRepo m_state_repo = StateRepo::Unloaded;
         StateData m_state_data = StateData::Unloaded;
+
+    public:
+        // FIXME: 流石に private に置く
+        Data m_data;
     };
 }

@@ -15,6 +15,8 @@ namespace SheetsAnalyzer {
         s3d::int64 sample;
         s3d::uint8 start_lane = 0;
         s3d::uint8 width = 0;
+        bool passed = false;
+        bool done = false;
     };
 
     enum class HoldNoteType : s3d::uint8 {
