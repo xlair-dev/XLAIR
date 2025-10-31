@@ -137,12 +137,20 @@ namespace core::features {
         return none;
     }
 
-    core::types::SheetMetadata SheetRepository::getMetadata(size_t index) const {
+    const core::types::SheetMetadata& SheetRepository::getMetadata(size_t index) const {
         std::scoped_lock lock(m_mutex);
         if (not m_metadata_loaded or index >= m_metadata.size()) {
             return {};
         }
         return m_metadata[index];
+    }
+
+    const core::types::SheetData& SheetRepository::getData() const {
+        std::scoped_lock lock(m_mutex);
+        if (m_state_data != StateData::Ready) {
+            return {};
+        }
+        return m_data;
     }
 
     void SheetRepository::LoadMetadata(SheetRepository* pSheetRepository) {

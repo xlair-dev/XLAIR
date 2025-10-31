@@ -26,7 +26,8 @@ namespace core::features {
         bool isRepoReady() const { return m_state_repo == StateRepo::Ready; }
         bool isDataReady() const { return m_state_data == StateData::Ready; }
         Optional<TextureRegion> getJacket(size_t index) const;
-        Metadata getMetadata(size_t index) const;
+        const Metadata& getMetadata(size_t index) const;
+        const Data& getData() const;
 
         static inline constexpr StringView Name{ U"SheetRepository" };
         static inline constexpr AssetNameView AudioAssetName{ U"SheetRepository.Audio" };

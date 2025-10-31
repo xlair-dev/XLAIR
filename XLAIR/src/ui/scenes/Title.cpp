@@ -17,9 +17,12 @@ namespace ui {
             m_call.update();
             if (m_call.isReady()) {
                 if (m_call.isOK()) {
-                    Print << m_call.value().id;
+                    getData().userData = m_call.value();
+                    changeScene(app::types::SceneState::MusicSelect, 0.5s);
                 } else {
-                    Print << m_call.errorMessage();
+                    m_loading = false;
+                    m_scaned = false;
+                    m_card_scanning = false;
                 }
             }
             return;
@@ -34,11 +37,10 @@ namespace ui {
         if (m_card_scanning) {
             if (CardReaderManager::IsReady()) {
                 if (CardReaderManager::IsOK()) {
-                    Print << CardReaderManager::GetID(); // TODO: pass this string to API and get user data
                     m_scaned = true;
                 } else {
                     // TODO: error handling
-                    // CardReaderManager::StartScan();
+                     CardReaderManager::StartScan();
                 }
             }
         } else {

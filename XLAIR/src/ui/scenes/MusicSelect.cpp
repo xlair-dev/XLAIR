@@ -17,7 +17,8 @@ namespace ui {
     using namespace app::consts;
     using namespace ui::consts;
 
-    MusicSelect::MusicSelect(const InitData& init) : IScene(init) {}
+    MusicSelect::MusicSelect(const InitData& init)
+        : IScene(init) {}
 
     MusicSelect::~MusicSelect() {}
 
@@ -26,6 +27,11 @@ namespace ui {
         handleIndexInput();
         handleDifficultyInput();
         updateScrollState();
+
+        const auto& index = getData().userData.selected_index;
+        const auto& repo = getData().sheetRepository;
+        m_demo.update(repo->getMetadata(index).music, repo->getMetadata(index).music_offset);
+        m_demo.autoPlayAndStop();
     }
 
     void MusicSelect::draw() const {
@@ -205,6 +211,7 @@ namespace ui {
         }
         bool enter_down = KeyEnter.down() or (enter_count == 1);
         if (enter_down) {
+            m_demo.stop(0.3s);
             changeScene(app::types::SceneState::Game);
         }
     }

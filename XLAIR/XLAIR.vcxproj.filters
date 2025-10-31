@@ -384,6 +384,9 @@
     <ClCompile Include="src\infra\api\ApiClientProd.cpp">
       <Filter>Source Files\infra\api</Filter>
     </ClCompile>
+    <ClCompile Include="src\core\features\DemoMusic.cpp">
+      <Filter>Source Files\core\features</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Image Include="App\icon.ico">
@@ -1248,6 +1251,9 @@
     </ClInclude>
     <ClInclude Include="src\infra\api\ApiClientProd.hpp">
       <Filter>Header Files\infra\api</Filter>
+    </ClInclude>
+    <ClInclude Include="src\core\features\DemoMusic.hpp">
+      <Filter>Header Files\core\features</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

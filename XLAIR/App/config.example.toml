@@ -1,6 +1,7 @@
 [System]
 arcade = false
 
+
 [Window]
 width = 1920
 height = 1080

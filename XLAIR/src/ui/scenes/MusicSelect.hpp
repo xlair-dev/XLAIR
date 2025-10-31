@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include "Common.hpp"
 #include "app/usecases/App.hpp"
+#include "core/features/DemoMusic.hpp"
 
 #include "ui/components/Tile.hpp"
 
@@ -32,6 +33,8 @@ namespace ui {
 
         double m_scroll_offset = 0.0;
         double m_scroll_velocity = 0.0;
+
+        core::features::DemoMusic m_demo;
 
         struct Assets {
             static constexpr AssetNameView MenuUITitle{ U"MusicSelect.MenuUITitle" };

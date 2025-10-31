@@ -131,6 +131,7 @@
     <ClCompile Include="src\app\usecases\LoadConfig.cpp" />
     <ClCompile Include="src\core\features\CardReaderManager.cpp" />
     <ClCompile Include="src\core\features\ControllerManager.cpp" />
+    <ClCompile Include="src\core\features\DemoMusic.cpp" />
     <ClCompile Include="src\core\features\SheetRepository.cpp" />
     <ClCompile Include="src\infra\api\ApiClientMock.cpp" />
     <ClCompile Include="src\infra\api\ApiClientProd.cpp" />
@@ -397,6 +398,7 @@
     <ClInclude Include="src\core\features\ApiCall.hpp" />
     <ClInclude Include="src\core\features\CardReaderManager.hpp" />
     <ClInclude Include="src\core\features\ControllerManager.hpp" />
+    <ClInclude Include="src\core\features\DemoMusic.hpp" />
     <ClInclude Include="src\core\features\detail\ApiCall.ipp" />
     <ClInclude Include="src\core\features\SheetRepository.hpp" />
     <ClInclude Include="src\core\features\SparklePoints.hpp" />

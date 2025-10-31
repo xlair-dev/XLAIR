@@ -20,6 +20,8 @@ namespace app {
             .add<ui::MusicSelect>(SceneState::MusicSelect)
             .add<ui::Game>(SceneState::Game);
 
+        controller.setFadeColor(Palette::White);
+
         // TODO: asset management
         ui::MusicSelect::RegisterAssets();
         ui::Game::RegisterAssets();
