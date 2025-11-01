@@ -111,7 +111,7 @@ namespace ui {
 
             RectF{ Arg::leftCenter(0, judge_y), w, 5.0 }
                 .drawShadow(Vec2{ 0.0, 10.0 }, 30.0, 0.0, JudgeColor.withA(0.15))
-                .draw(JudgeColor); 
+                .draw(JudgeColor);
             // notes
             drawMainNotes();
 
@@ -262,60 +262,134 @@ namespace ui {
         const int64 good = static_cast<int64>(0.100 * m_sample_rate);
 
         Array<bool> has_judged(16, false);
-        for (auto& tap : data.notes.tap) {
-            if (tap.done) {
-                continue;
-            }
-            if (tap.passed) {
-                const double y = calculateNoteY(tap.sample);
-                if (y < -50) {
-                    tap.done = true;
-                }
-                continue;
-            }
-            const int64 dist = tap.sample - m_pos_sample; // TODO: add timing setting
 
-            if (dist < -good) {
-                // miss
-                score.miss_count++;
-                score.combo = 0;
-                tap.passed = true;
-            }
-
-            bool pressed = false;
-            for (size_t i = 0; i < tap.width; ++i) {
-                const auto index = tap.start_lane + i;
-                if (has_judged[index]) {
+        size_t tap_index = 0;
+        size_t xtap_index = 0;
+        while (true) {
+            int32 min_target = -1;
+            int64 value = std::numeric_limits<int64>::max();
+            for (; tap_index < data.notes.tap.size(); ++tap_index) {
+                auto& tap = data.notes.tap[tap_index];
+                if (tap.done) {
                     continue;
                 }
-                pressed |= ControllerManager::Slider(2 * index).down();
-                pressed |= ControllerManager::Slider(2 * index + 1).down();
+                if (tap.passed) {
+                    const double y = calculateNoteY(tap.sample);
+                    if (y < -50) {
+                        tap.done = true;
+                    }
+                    continue;
+                }
+                if (value > tap.sample) {
+                    min_target = 0;
+                    value = tap.sample;
+                    break;
+                }
             }
 
-            if (pressed) {
-                const auto adist = Abs(dist);
-                if (adist <= good) {
-                    score.combo++;
-                    tap.done = true;
-                    for (size_t i = 0; i < tap.width; ++i) {
-                        has_judged[tap.start_lane + i] = true;
+            for (; xtap_index < data.notes.xtap.size(); ++xtap_index) {
+                auto& xtap = data.notes.xtap[xtap_index];
+                if (xtap.done) {
+                    continue;
+                }
+                if (xtap.passed) {
+                    const double y = calculateNoteY(xtap.sample);
+                    if (y < -50) {
+                        xtap.done = true;
                     }
+                    continue;
+                }
+                if (value > xtap.sample) {
+                    min_target = 1;
+                    value = xtap.sample;
+                    break;
+                }
+            }
+
+            if (min_target == -1) {
+                break;
+            }
+
+            if (min_target == 0) {
+                auto& tap = data.notes.tap[tap_index];
+                const int64 dist = tap.sample - m_pos_sample; // TODO: add timing setting
+                if (dist < -good) {
+                    // miss
+                    score.miss_count++;
+                    score.combo = 0;
+                    tap.passed = true;
                 }
 
-                if (adist <= perfect) {
-                    score.perfect_count++;
-                } else if (adist <= great) {
-                    score.great_count++;
-                } else if (adist <= good) {
-                    score.good_count++;
+                bool pressed = false;
+                for (size_t i = 0; i < tap.width; ++i) {
+                    const auto index = tap.start_lane + i;
+                    if (has_judged[index]) {
+                        continue;
+                    }
+                    pressed |= ControllerManager::Slider(2 * index).down();
+                    pressed |= ControllerManager::Slider(2 * index + 1).down();
                 }
+
+                if (pressed) {
+                    const auto adist = Abs(dist);
+                    if (adist <= good) {
+                        score.combo++;
+                        tap.done = true;
+                        for (size_t i = 0; i < tap.width; ++i) {
+                            has_judged[tap.start_lane + i] = true;
+                        }
+                    }
+
+                    if (adist <= perfect) {
+                        score.perfect_count++;
+                    } else if (adist <= great) {
+                        score.great_count++;
+                    } else if (adist <= good) {
+                        score.good_count++;
+                    }
+                }
+                tap_index++;
+            }
+
+            if (min_target == 1) {
+                auto& xtap = data.notes.xtap[xtap_index];
+                const int64 dist = xtap.sample - m_pos_sample; // TODO: add timing setting
+                if (dist < -good) {
+                    // miss
+                    score.miss_count++;
+                    score.combo = 0;
+                    xtap.passed = true;
+                }
+
+                bool pressed = false;
+                for (size_t i = 0; i < xtap.width; ++i) {
+                    const auto index = xtap.start_lane + i;
+                    if (has_judged[index]) {
+                        continue;
+                    }
+                    pressed |= ControllerManager::Slider(2 * index).down();
+                    pressed |= ControllerManager::Slider(2 * index + 1).down();
+                }
+
+                if (pressed) {
+                    const auto adist = Abs(dist);
+                    if (adist <= good) {
+                        score.combo++;
+                        xtap.done = true;
+                        score.perfect_count++;
+                        for (size_t i = 0; i < xtap.width; ++i) {
+                            has_judged[xtap.start_lane + i] = true;
+                        }
+                    }
+                }
+                xtap_index++;
             }
         }
     }
 
     double Game::calculateNoteY(int64 sample) const {
         constexpr double h = 4000;
-        return (4000 - JudgeLineY) - static_cast<double>(sample - m_pos_sample) * 0.02;
+        return (4000 - JudgeLineY) - static_cast<double>(sample - m_pos_sample) * 0.07;
     }
 
     void Game::RegisterAssets() {
