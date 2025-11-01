@@ -11,7 +11,7 @@ namespace core::features {
         using SideButton = app::interfaces::IController::SideButton;
 
     public:
-        ControllerManager(Device device);
+        ControllerManager(Device device, double latency_offset = 0.0);
 
         ~ControllerManager();
 
@@ -25,6 +25,10 @@ namespace core::features {
         static std::pair<uint32, uint32> SliderTouchFrames(size_t index);
 
         //static std::pair<uint32, uint32> SideTouchFrames(size_t index);
+
+        static uint64 GetLastInputTimestampMs();
+
+        static double LatencyOffset();
 
         static inline constexpr StringView Name{ U"ControllerManager" };
 
@@ -43,7 +47,10 @@ namespace core::features {
 
         //std::pair<uint32, uint32> sideTouchFrames(size_t index);
 
+        uint64 getLastInputTimestampMs() const;
+
         Device m_device;
+        const double m_latency_offset;
         bool m_initialized = false;
         std::array<uint32, 32> m_prev_touch_frame_count{};
     };

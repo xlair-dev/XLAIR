@@ -18,8 +18,11 @@ namespace infra::controller {
 
         uint32 sidePressedFrameCount(SideButton button) override;
 
+        uint64 lastInputTimestampMs() const override;
+
     private:
         std::array<uint32, 32> m_slider_pressed_frames{};
         std::array<uint32, 4> m_side_pressed_frames{};
+        uint64 m_last_input_timestamp_ms = 0;
     };
 }

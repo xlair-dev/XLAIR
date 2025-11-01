@@ -110,6 +110,7 @@ namespace infra::controller {
                     m_slider_pressed_frames[31 - i] = 0;
                 }
             }
+            m_last_input_timestamp_ms = f.timestamp_ms;
             sendLED();
         }
     }
@@ -130,6 +131,10 @@ namespace infra::controller {
 
     uint32 ControllerGroundSlider::sidePressedFrameCount(SideButton) {
         return 0;
+    }
+
+    uint64 ControllerGroundSlider::lastInputTimestampMs() const {
+        return m_last_input_timestamp_ms;
     }
 
     bool ControllerGroundSlider::startInput() {

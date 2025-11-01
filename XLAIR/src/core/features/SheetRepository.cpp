@@ -101,10 +101,8 @@ namespace core::features {
         if (not m_metadata_loaded or !m_provider or index >= m_metadata.size()) {
             return false;
         }
-        m_pending_index = index;
-        m_pending_difficulty_index = difficulty_index;
         loadAudio(index);
-        LoadData(this,index, difficulty_index, AudioAsset(AudioAssetName).sampleRate());
+        LoadData(this, index, difficulty_index, AudioAsset(AudioAssetName).sampleRate());
         m_state_data = StateData::Ready;
         return true;
     }
@@ -113,6 +111,8 @@ namespace core::features {
         if (not m_metadata_loaded or !m_provider or index >= m_metadata.size()) {
             return false;
         }
+        m_pending_index = index;
+        m_pending_difficulty_index = difficulty_index;
         loadAudio(index, true);
         m_state_data = StateData::LoadingAudio;
         return true;

@@ -11,6 +11,8 @@ namespace infra::api {
 
         ApiCall<core::types::UserData> getUserByCard(StringView card) override;
 
+        ApiCall<Array<core::types::Record>> getUserRecords(StringView user_id) override;
+
     private:
         URL m_endpoint;
     };

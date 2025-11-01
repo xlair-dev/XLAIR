@@ -1261,5 +1261,8 @@
     <ClInclude Include="src\ui\scenes\Result.hpp">
       <Filter>Header Files\ui\scenes</Filter>
     </ClInclude>
+    <ClInclude Include="src\core\types\Record.hpp">
+      <Filter>Header Files\core\types</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

@@ -25,4 +25,38 @@ namespace infra::api {
         ok &= helper(json, U"isAdmin", u.isAdmin);
         return { u, ok };
     }
+
+    ParseResult<Records> ParseUserRecords(const JSON& json) {
+        Records r;
+        bool ok = json.isArray();
+        if (ok) {
+            for (const auto& [index, object] : json) {
+                core::types::Record record;
+                bool record_ok = true;
+                record_ok &= helper(object, U"id", record.id);
+                record_ok &= helper(object, U"sheetId", record.sheet_id);
+                record_ok &= helper(object, U"score", record.score);
+
+                String clear_type;
+                record_ok &= helper(object, U"clearType", clear_type);
+                if (clear_type == U"failed") {
+                    record.clear_type = core::types::ClearType::failed;
+                } else if (clear_type == U"clear") {
+                    record.clear_type = core::types::ClearType::clear;
+                } else if (clear_type == U"fullcombo") {
+                    record.clear_type = core::types::ClearType::fullcombo;
+                } else if (clear_type == U"perfect") {
+                    record.clear_type = core::types::ClearType::perfect;
+                } else {
+                    record_ok = false;
+                }
+                record_ok &= helper(object, U"playCount", record.play_count);
+                if (record_ok) {
+                    r.push_back(record);
+                }
+                ok &= record_ok;
+            }
+        }
+        return { r, ok };
+    }
 }

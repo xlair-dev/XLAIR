@@ -1,6 +1,7 @@
 [System]
 arcade = false
-
+# playcount
+# menuTimer
 
 [Window]
 width = 1920
@@ -17,6 +18,7 @@ device = "keyboard"
 port = "COM1"
 baudrate = 115200
 threshold = 1
+latencyOffset = 0.06575
 
 [CardReader]
 device = "mock"

@@ -48,6 +48,7 @@ namespace infra::config {
         } else {
             // TODO:
         }
+        config.controller_latency_offset = toml[U"Controller.latencyOffset"].getOr<double>(0.0);
 
         const auto card_reader = toml[U"CardReader.device"].get<String>();
         if (card_reader == U"mock") {

@@ -24,5 +24,6 @@ namespace app::types {
         std::shared_ptr<interfaces::IController> controller;
         std::shared_ptr<interfaces::ICardReader> cardreader;
         std::shared_ptr<interfaces::IApiClient> api;
+        double controller_latency_offset = 0.0;
     };
 }

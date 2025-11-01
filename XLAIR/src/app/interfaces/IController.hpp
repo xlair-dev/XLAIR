@@ -39,5 +39,7 @@ namespace app::interfaces {
         virtual uint32 sliderPressedFrameCount(size_t index) = 0;
 
         virtual uint32 sidePressedFrameCount(SideButton button) = 0;
+
+        virtual uint64 lastInputTimestampMs() const = 0;
     };
 }

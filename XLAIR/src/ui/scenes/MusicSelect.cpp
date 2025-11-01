@@ -143,10 +143,17 @@ namespace ui {
         const double selected_tile_x = center.x - neighbor_gap * s;
 
         const RectF selected_tile{ Arg::center = Vec2{ selected_tile_x, TileY }, selected_tile_size };
+        const auto& selected_id = repo->getMetadata(index).difficulties[difficulty].id;
 
         selected_tile.drawShadow(Vec2{ 12, 26 }, 32.0, 0, ColorF{ 0, 0, 0, 0.22 });
         selected_tile(
-            m_tile.get(repo->getMetadata(index), *repo->getJacket(index), difficulty, m_tile_offset)
+            m_tile.get(
+                repo->getMetadata(index),
+                *repo->getJacket(index),
+                difficulty,
+                data.records.contains(selected_id) ? data.records.at(selected_id) : core::types::Record{},
+                m_tile_offset
+            )
         ).draw();
 
         const auto drawSide = [&](int32 dir) {
@@ -175,9 +182,15 @@ namespace ui {
 
                 RectF tile{ Arg::center = tile_pos.movedBy(dir * tile_size.x / 2, 0), tile_size };
 
+                const auto& id = repo->getMetadata(i).difficulties[difficulty].id;
                 tile.drawShadow(Vec2{ 12, 26 }, 32.0, 0, ColorF{ 0, 0, 0, 0.22 });
                 tile(
-                    m_tile.get(repo->getMetadata(i), *repo->getJacket(i), difficulty)
+                    m_tile.get(
+                        repo->getMetadata(i),
+                        *repo->getJacket(i),
+                        difficulty,
+                        data.records.contains(id) ? data.records.at(id) : core::types::Record{}
+                    )
                 ).draw();
 
                 x += dir * (TileSpacing + TileSize.x);

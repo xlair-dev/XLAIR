@@ -10,4 +10,9 @@ namespace infra::api {
         return ApiCall<core::types::UserData>::HTTPGet(url, {}, ParseUserData);
     }
 
+    ApiCall<Array<core::types::Record>> ApiClientProd::getUserRecords(StringView user_id) {
+        const auto url = m_endpoint + U"/users/{}/records"_fmt(user_id);
+        return ApiCall<Array<core::types::Record>>::HTTPGet(url, {}, ParseUserRecords);
+    }
+
 }

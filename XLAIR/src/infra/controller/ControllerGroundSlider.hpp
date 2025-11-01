@@ -46,6 +46,8 @@ namespace infra::controller {
 
         uint32 sidePressedFrameCount(SideButton button) override;
 
+        uint64 lastInputTimestampMs() const override;
+
     private:
         bool startInput();
 
@@ -71,6 +73,7 @@ namespace infra::controller {
         Array<uint8> m_buffer;
         Packet m_last_packet{};
         uint8 m_brightness = 0x3F;
+        uint64 m_last_input_timestamp_ms = 0;
         bool m_sync = false;
         bool m_enable_input = false;
 

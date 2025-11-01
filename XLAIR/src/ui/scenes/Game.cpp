@@ -36,6 +36,7 @@ namespace ui {
                 m_sample_rate = AudioAsset(data.sheetRepository->AudioAssetName).sampleRate();
                 AudioAsset(data.sheetRepository->AudioAssetName).play();
                 m_started = true;
+                m_start_time_ms = Time::GetMillisec();
             }
         }
 
@@ -53,6 +54,11 @@ namespace ui {
         Print << data.score.good_count;
         Print << data.score.miss_count;
         Print << data.score.combo;
+
+        Print << U"fast: " << m_fast;
+        Print << U"late: " << m_late;
+        Print << U"avg diff: " << (m_count > 0 ? static_cast<double>(m_total_diff) / m_count : 0.0);
+        Print << U"avg diff millisec: " << (m_count > 0 ? static_cast<double>(m_total_diff) / m_count / m_sample_rate * 1000.0 : 0.0);
     }
 
     void Game::draw() const {
@@ -261,6 +267,9 @@ namespace ui {
         const int64 great = static_cast<int64>(0.065 * m_sample_rate);
         const int64 good = static_cast<int64>(0.100 * m_sample_rate);
 
+        const int64 latency_offset = static_cast<int64>(ControllerManager::LatencyOffset() * m_sample_rate);
+        const int64 offset_sample = -latency_offset; // add timing offset
+
         Array<bool> has_judged(16, false);
 
         size_t tap_index = 0;
@@ -318,7 +327,7 @@ namespace ui {
 
             if (min_target == 0) {
                 auto& tap = data.notes.tap[tap_index];
-                const int64 dist = tap.sample - m_pos_sample; // TODO: add timing setting
+                const int64 dist = tap.sample - m_pos_sample + offset_sample;
                 if (dist < -good) {
                     // miss
                     score.miss_count++;
@@ -344,6 +353,13 @@ namespace ui {
                         for (size_t i = 0; i < tap.width; ++i) {
                             has_judged[tap.start_lane + i] = true;
                         }
+                        if (dist < 0) {
+                            m_fast++;
+                        } else if (dist > 0) {
+                            m_late++;
+                        }
+                        m_total_diff += static_cast<int32>(dist);
+                        m_count++;
                     }
 
                     if (adist <= perfect) {
@@ -359,7 +375,7 @@ namespace ui {
 
             if (min_target == 1) {
                 auto& xtap = data.notes.xtap[xtap_index];
-                const int64 dist = xtap.sample - m_pos_sample; // TODO: add timing setting
+                const int64 dist = xtap.sample - m_pos_sample + offset_sample; // TODO: add timing setting
                 if (dist < -good) {
                     // miss
                     score.miss_count++;
@@ -386,6 +402,15 @@ namespace ui {
                         for (size_t i = 0; i < xtap.width; ++i) {
                             has_judged[xtap.start_lane + i] = true;
                         }
+
+                        if (dist < 0) {
+                            m_fast++;
+                        } else if (dist > 0) {
+                            m_late++;
+                        }
+                        m_total_diff += static_cast<int32>(dist);
+                        m_count++;
+
                     }
                 }
                 xtap_index++;
@@ -395,7 +420,7 @@ namespace ui {
 
     double Game::calculateNoteY(int64 sample) const {
         constexpr double h = 4000;
-        return (4000 - JudgeLineY) - static_cast<double>(sample - m_pos_sample) * 0.07;
+        return (4000 - JudgeLineY) - static_cast<double>(sample - m_pos_sample) * 0.08;
     }
 
     void Game::RegisterAssets() {

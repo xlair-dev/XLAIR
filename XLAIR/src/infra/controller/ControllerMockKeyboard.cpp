@@ -72,4 +72,8 @@ namespace infra::controller {
         return m_side_pressed_frames[static_cast<size_t>(button)];
     }
 
+    uint64 ControllerMockKeyboard::lastInputTimestampMs() const {
+        return m_last_input_timestamp_ms;
+    }
+
 }

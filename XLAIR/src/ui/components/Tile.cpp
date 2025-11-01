@@ -7,7 +7,7 @@
 namespace ui::components {
     Tile::Tile() : m_tile_rt{ TileSize } {}
 
-    const MSRenderTexture& Tile::get(const core::types::SheetMetadata& data, const TextureRegion& jacket, int8 difficulty_index, const double offset) const {
+    const MSRenderTexture& Tile::get(const core::types::SheetMetadata& data, const TextureRegion& jacket, int8 difficulty_index, const core::types::Record& record, const double offset) const {
         const auto difficulty = core::types::DifficultyFromInt(difficulty_index);
         const auto& difficulty_info = data.difficulties[difficulty_index];
         const auto& theme = theme::GetDifficultyTheme(difficulty);
@@ -18,7 +18,7 @@ namespace ui::components {
 
             drawBackground(theme, jacket);
             drawDifficultySection(difficulty, difficulty_info.level, theme);
-            drawMetadataSection(data, difficulty_info.designer, offset, theme);
+            drawMetadataSection(data, difficulty_info.designer, record, offset, theme);
 
         }
 
@@ -54,7 +54,7 @@ namespace ui::components {
     }
 
     void Tile::drawDifficultySection(const core::types::Difficulty difficulty, const int32 level, const ui::theme::DifficultyTheme& theme) const {
-        const auto difficulty_str = core::types::ToString(difficulty).uppercase();
+        const String difficulty_str = core::types::ToString(difficulty).uppercase();
         {
             const Transformer2D tr{ Mat3x2::Rotate(90_deg, Vec2{0, 0}) };
             FontAsset(app::assets::font::UiLabel)(difficulty_str).draw(36, Vec2{ 20, -57 }, theme.accent);
@@ -70,7 +70,7 @@ namespace ui::components {
         FontAsset(app::assets::font::UiText)(level).drawBase(87, level_x, 503, theme.text);
     }
 
-    void Tile::drawMetadataSection(const core::types::SheetMetadata& data, StringView designer, double offset, const ui::theme::DifficultyTheme& theme) const {
+    void Tile::drawMetadataSection(const core::types::SheetMetadata& data, StringView designer, const core::types::Record& record, double offset, const ui::theme::DifficultyTheme& theme) const {
         // title and artist
         {
             auto&& font = FontAsset(app::assets::font::UiText);
@@ -85,12 +85,14 @@ namespace ui::components {
         // high score
         FontAsset(app::assets::font::UiLabel)(U"HIGH").draw(17, 177, 470, theme.accent);
         FontAsset(app::assets::font::UiLabel)(U"SCORE").draw(17, 177, 485, theme.accent);
-        FontAsset(app::assets::font::UiText)(MockHighScore).draw(40, Arg::bottomRight = Vec2{ 395, 520 }, theme.text);
+        FontAsset(app::assets::font::UiText)(record.score).draw(40, Arg::bottomRight = Vec2{ 395, 520 }, theme.text);
 
         // rank badge
         drawBadge(Vec2{ 177, 446 }, Vec2{ 74, 23 }, U"SSS", theme.accent);
         // status badge
-        drawBadge(Vec2{ 255, 446 }, Vec2{ 140, 23 }, U"FULL COMBO", theme.accent);
+        if (record.clear_type != core::types::ClearType::failed) {
+            drawBadge(Vec2{ 255, 446 }, Vec2{ 140, 23 }, core::types::ClearTypeToString(record.clear_type), theme.accent);
+        }
 
         // notes designer
         FontAsset(app::assets::font::UiText)(U"NOTES DESIGNER: {}"_fmt(designer)).drawBase(15, 16, 534, theme.accent);

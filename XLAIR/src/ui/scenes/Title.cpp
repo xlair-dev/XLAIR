@@ -18,8 +18,30 @@ namespace ui {
             if (m_call.isReady()) {
                 if (m_call.isOK()) {
                     getData().userData = m_call.value();
+                    m_call_records = getData().api->getUserRecords(getData().userData.id);
+                    m_loading = false;
+                    m_loading_records = true;
+                } else {
+                    m_loading = false;
+                    m_scaned = false;
+                    m_card_scanning = false;
+                }
+            }
+            return;
+        }
+
+        if (m_loading_records) {
+            m_call_records.update();
+            if (m_call_records.isReady()) {
+                if (m_call_records.isOK()) {
+                    m_loading_records = false;
+                    getData().records.clear();
+                    for (const auto& record : m_call_records.value()) {
+                        getData().records[record.sheet_id] = record;
+                    }
                     changeScene(app::types::SceneState::MusicSelect, 0.5s);
                 } else {
+                    m_loading_records = false;
                     m_loading = false;
                     m_scaned = false;
                     m_card_scanning = false;

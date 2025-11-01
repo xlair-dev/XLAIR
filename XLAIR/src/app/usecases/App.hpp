@@ -5,6 +5,7 @@
 #include "core/features/SheetRepository.hpp"
 #include "core/types/UserData.hpp"
 #include "core/types/Scoring.hpp"
+#include "core/types/Record.hpp"
 
 namespace app {
 
@@ -13,6 +14,7 @@ namespace app {
         core::types::UserData userData;
         core::types::Score score;
         std::shared_ptr<interfaces::IApiClient> api;
+        HashTable<String, core::types::Record> records; // sheet_id -> record
     };
 
     using SceneController = SceneManager<app::types::SceneState, GameData>;

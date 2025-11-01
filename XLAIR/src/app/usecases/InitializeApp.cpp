@@ -24,7 +24,7 @@ namespace app {
         app.sceneController.get()->sheetRepository = Addon::GetAddon<core::features::SheetRepository>(core::features::SheetRepository::Name);
 
         using core::features::ControllerManager;
-        Addon::Register(ControllerManager::Name, std::make_unique<ControllerManager>(config.controller));
+        Addon::Register(ControllerManager::Name, std::make_unique<ControllerManager>(config.controller, config.controller_latency_offset));
 
         using core::features::CardReaderManager;
         Addon::Register(CardReaderManager::Name, std::make_unique<CardReaderManager>(config.cardreader));

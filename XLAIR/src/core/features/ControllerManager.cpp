@@ -1,8 +1,9 @@
 ﻿#include "ControllerManager.hpp"
 
 namespace core::features {
-    ControllerManager::ControllerManager(Device device)
-        : m_device(std::move(device)) {
+    ControllerManager::ControllerManager(Device device, double latency_offset)
+        : m_device(std::move(device))
+        , m_latency_offset(latency_offset) {
     }
 
     ControllerManager::~ControllerManager() {
@@ -37,6 +38,20 @@ namespace core::features {
         return { 0, 0 };
     }
 
+    uint64 ControllerManager::GetLastInputTimestampMs() {
+        if (auto p = Addon::GetAddon<ControllerManager>(Name)) {
+            return p->getLastInputTimestampMs();
+        }
+        return 0;
+    }
+
+    double ControllerManager::LatencyOffset() {
+        if (auto p = Addon::GetAddon<ControllerManager>(Name)) {
+            return p->m_latency_offset;
+        }
+        return 0.0;
+    }
+
     bool ControllerManager::init() {
         return m_device->open();
     }
@@ -66,5 +81,9 @@ namespace core::features {
 
     std::pair<uint32, uint32> ControllerManager::sliderTouchFrames(size_t index) {
         return { m_prev_touch_frame_count[index], m_device->sliderPressedFrameCount(index) };
+    }
+
+    uint64 ControllerManager::getLastInputTimestampMs() const {
+        return m_device->lastInputTimestampMs();
     }
 }

@@ -405,6 +405,7 @@
     <ClInclude Include="src\core\features\SparklePoints.hpp" />
     <ClInclude Include="src\core\types\DeviceInput.hpp" />
     <ClInclude Include="src\core\types\Difficulty.hpp" />
+    <ClInclude Include="src\core\types\Record.hpp" />
     <ClInclude Include="src\core\types\UserData.hpp" />
     <ClInclude Include="src\core\types\Scoring.hpp" />
     <ClInclude Include="src\core\types\Sheet.hpp" />

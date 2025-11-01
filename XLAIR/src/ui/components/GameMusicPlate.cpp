@@ -32,7 +32,7 @@ namespace ui::components {
             FontAsset(app::assets::font::UiLabel)(U"LEVEL").draw(23, Vec2{ -65, 293 }, theme.accent);
         }
 
-        const auto level = difficulty_info.level;
+        const auto level = static_cast<int32>(difficulty_info.level); // TODO: handle decimal levels
         const double level_x = 325.0 + (level < 10 ? 10 : 0);
         FontAsset(app::assets::font::UiText)(level).drawBase(87, level_x, 63, theme.text);
 
