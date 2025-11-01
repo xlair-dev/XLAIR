@@ -4,7 +4,7 @@
 #include "ui/theme/Palette.hpp"
 
 namespace ui::components {
-    void DrawMenuTimerPlate(const Point& pos, int32 time, int32 left_playable_music) {
+    void DrawMenuTimerPlate(const Point& pos, int32 time, int32 max_playable, int32 left_playable_music) {
         ScopedViewport2D viewport{ pos, 400, 200 };
         constexpr ColorF AccentColor = theme::Palette::Cyan;
         constexpr ColorF TextColor = theme::Palette::Gray;
@@ -14,7 +14,7 @@ namespace ui::components {
         FontAsset(app::assets::font::UiText)(U"TIME").drawBase(32, 13, 78, AccentColor);
         FontAsset(app::assets::font::UiSubText)(time).draw(68, Arg::bottomLeft = Vec2{ 100, 96 }, TextColor);
 
-        for (const auto i : step(3)) {
+        for (const auto i : step(max_playable)) {
             const auto color = i < left_playable_music ? AccentColor : TextColor;
             primitives::DrawEighthNote(Vec2{ 5 + i * 42, 100 }, 1.0, color);
         }

@@ -10,6 +10,8 @@ namespace app::types {
     struct Config {
         struct System {
             bool arcade = consts::defaults::Arcade;
+            int32 playable = 3; // TODO: consts::defaults::Playable;
+            int32 menu_timer = 90; // TODO: consts::defaults::MenuTimer;
         } system;
 
         struct Window {

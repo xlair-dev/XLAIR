@@ -46,7 +46,7 @@ namespace ui {
 
         const auto& data = getData();
         components::DrawUserNameplate(data.userData, Point{ 59, 72 });
-        components::DrawMenuTimerPlate(Point{ 1599, 72 }, 58, 1);
+        components::DrawMenuTimerPlate(Point{ 1599, 72 }, 58, getData().max_playable, getData().playable);
 
     }
 

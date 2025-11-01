@@ -1,7 +1,7 @@
 [System]
 arcade = false
-# playcount
-# menuTimer
+playable = 3
+menuTimer = 90
 
 [Window]
 width = 1920

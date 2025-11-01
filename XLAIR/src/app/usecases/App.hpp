@@ -10,6 +10,9 @@
 namespace app {
 
     struct GameData {
+        int32 max_playable = 3;
+        int32 playable = 3;
+        int32 menu_timer = 90;
         core::features::SheetRepository* sheetRepository;
         core::types::UserData userData;
         core::types::Score score;

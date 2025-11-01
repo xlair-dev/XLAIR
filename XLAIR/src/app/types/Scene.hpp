@@ -9,5 +9,6 @@ namespace app::types {
         MusicSelect,
         Game,
         Result,
+        FinalResult,
     };
 }

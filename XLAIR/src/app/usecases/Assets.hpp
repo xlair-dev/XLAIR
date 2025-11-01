@@ -21,6 +21,10 @@ namespace app::assets {
         static constexpr inline AssetNameView Great{ U"Texture.Great" };
         static constexpr inline AssetNameView Good{ U"Texture.Good" };
         static constexpr inline AssetNameView Miss{ U"Texture.Miss" };
+        static constexpr inline AssetNameView GradeBack{ U"Texture.GradeBack" };
+        static constexpr inline AssetNameView GradeB{ U"Texture.GradeB" };
+        static constexpr inline AssetNameView GradeA{ U"Texture.GradeA" };
+        static constexpr inline AssetNameView GradeS{ U"Texture.GradeS" };
     }
 
     namespace sounds {

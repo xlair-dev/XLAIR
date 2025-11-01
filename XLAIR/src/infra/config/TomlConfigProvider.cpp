@@ -22,6 +22,8 @@ namespace infra::config {
 
         // TODO: add error handling
         config.system.arcade = toml[U"System.arcade"].get<bool>();
+        config.system.playable = toml[U"System.playable"].getOr<int32>(3);
+        config.system.menu_timer = toml[U"System.menuTimer"].getOr<int32>(90);
 
         config.window.width = toml[U"Window.width"].get<int32>();
         config.window.height = toml[U"Window.height"].get<int32>();

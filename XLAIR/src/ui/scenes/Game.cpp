@@ -14,6 +14,7 @@
 namespace ui {
     Game::Game(const InitData& init) : IScene(init) {
         auto& data = getData();
+        getData().score = core::types::Score{}; // reset score
         data.sheetRepository->loadDataAsync(
             data.userData.selected_index,
             data.userData.selected_difficulty
@@ -58,7 +59,7 @@ namespace ui {
         drawField();
 
         components::DrawUserNameplate(getData().userData, Point{ 59, 72 });
-        components::DrawGameMusicPlate(Point{ 1480, 72 }, data.sheetRepository->getMetadata(data.userData.selected_index), data.sheetRepository->getJacket(data.userData.selected_index).value(), data.userData.selected_difficulty, m_tile_offset, 1);
+        components::DrawGameMusicPlate(Point{ 1480, 72 }, data.sheetRepository->getMetadata(data.userData.selected_index), data.sheetRepository->getJacket(data.userData.selected_index).value(), data.userData.selected_difficulty, m_tile_offset, data.max_playable, data.playable);
         components::DrawGameScoreBar(Point{ app::consts::SceneWidth / 2 - 434, 56 }, data.score);
     }
 

@@ -50,6 +50,16 @@ namespace app::assets {
         TextureAsset::Load(texture::Good);
         TextureAsset::Register(texture::Miss, U"assets/textures/miss.png");
         TextureAsset::Load(texture::Miss);
+
+        TextureAsset::Register(texture::GradeBack, U"assets/textures/grade-back.png");
+        TextureAsset::Load(texture::GradeBack);
+
+        TextureAsset::Register(texture::GradeS, U"assets/textures/grade-s.png");
+        TextureAsset::Load(texture::GradeS);
+        TextureAsset::Register(texture::GradeA, U"assets/textures/grade-a.png");
+        TextureAsset::Load(texture::GradeA);
+        TextureAsset::Register(texture::GradeB, U"assets/textures/grade-b.png");
+        TextureAsset::Load(texture::GradeB);
     }
 
     void InitializeSounds() {
