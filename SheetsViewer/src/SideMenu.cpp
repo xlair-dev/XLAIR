@@ -89,7 +89,7 @@ void SideMenu::draw() const {
         }
 
         font(selected ? U"\U000F043E" : U"\U000F043D").draw(UI::ItemLabelSize, Arg::leftCenter = left_center, color);
-        font(U"ID: {}"_fmt(index)).draw(UI::ItemLabelSize, Arg::leftCenter = left_center.movedBy(UI::ItemLabelOffset, 0), color);
+        font(U"{}"_fmt(index)).draw(UI::ItemLabelSize, Arg::leftCenter = left_center.movedBy(UI::ItemLabelOffset, 0), color);
 
         if (is_valid) {
             font(U"\U000F041F Level: {}"_fmt(difficulty.level)).draw(UI::ItemTextSize, Arg::leftCenter = left_center.movedBy(UI::ItemDifficultyTextOffset, 0), ColorF{ 0.95 });

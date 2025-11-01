@@ -6,6 +6,7 @@
 namespace SheetsAnalyzer {
     struct Difficulty {
         double level = 0.0;
+        s3d::String id;
         s3d::FilePath src;
         s3d::String designer;
     };

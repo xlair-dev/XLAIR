@@ -265,6 +265,7 @@ namespace ui {
 
         size_t tap_index = 0;
         size_t xtap_index = 0;
+        size_t hold_index = 0;
         while (true) {
             int32 min_target = -1;
             int64 value = std::numeric_limits<int64>::max();
@@ -304,6 +305,11 @@ namespace ui {
                     value = xtap.sample;
                     break;
                 }
+            }
+
+            for (; hold_index < data.notes.hold.size(); ++hold_index) {
+                auto& hold = data.notes.hold[hold_index];
+                // TODO:
             }
 
             if (min_target == -1) {

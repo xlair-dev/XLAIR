@@ -42,7 +42,7 @@ private:
 
         static constexpr int32 ItemDifficultyOffset = 10;
         static constexpr int32 ItemDifficultyHeight = 25;
-        static constexpr int32 ItemDifficultyTextOffset = 70;
+        static constexpr int32 ItemDifficultyTextOffset = 50;
 
         static constexpr Vec2 JacketSize{ 90, 90 };
     };

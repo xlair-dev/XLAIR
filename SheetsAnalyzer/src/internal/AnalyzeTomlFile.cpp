@@ -50,17 +50,19 @@ namespace SheetsAnalyzer::internal {
                     if (not object.hasMember(U"id")) {
                         continue;
                     }
-                    const auto id = object[U"id"].getOr<s3d::uint32>(0);
-                    if (id >= Constant::MaxDifficulties) {
+                    const auto diff = object[U"difficulty"].getOr<s3d::uint32>(0);
+                    if (diff >= Constant::MaxDifficulties) {
                         continue;
                     }
+                    const auto id = object[U"id"].get<s3d::String>();
+                    difficulty.id = id;
                     helper(object, U"level", difficulty.level, 0.0);
                     helper(object, U"src", difficulty.src, U"");
                     helper(object, U"designer", difficulty.designer, Constant::DefaultDesigner);
 
                     difficulty.src = HandlePath(path, difficulty.src);
 
-                    metadata.difficulties[id] = difficulty;
+                    metadata.difficulties[diff] = difficulty;
                 }
             }
         }

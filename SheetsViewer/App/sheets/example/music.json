@@ -12,21 +12,31 @@
   "url": "https://example.com",
   "difficulties": [
     {
-      "id": 0,
+      "id": "3835b184-331a-4845-99ac-58a3c09ab42e",
+      "difficulty": 0,
       "level": 2.0,
       "src": "0.sus",
       "designer": "Example Designer"
     },
     {
-      "id": 1,
+      "id": "aba4efb4-ba78-44f6-be06-39cb929237e0",
+      "difficulty": 1,
       "level": 3.0,
       "src": "hispeed.sus",
       "designer": "Example Designer"
     },
     {
-      "id": 2,
+      "id": "249ac8f6-2df7-4ffe-bdfc-bb90a5deac4a",
+      "difficulty": 2,
       "level": 5.0,
       "src": "hold.sus",
+      "designer": "Example Designer"
+    },
+    {
+      "id": "da00d21b-a2a7-4ff0-b18c-e3b365838ace",
+      "difficulty": 3,
+      "level": 5.0,
+      "src": "holdtest.sus",
       "designer": "Example Designer"
     }
   ]
