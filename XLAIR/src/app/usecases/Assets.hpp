@@ -32,6 +32,7 @@ namespace app::assets {
             static constexpr inline AssetNameView MoveRightLeft{ U"Sound.SE.MoveRightLeft" };
             static constexpr inline AssetNameView SelectMusic{ U"Sound.SE.SelectMusic" };
             static constexpr inline AssetNameView ChangeLevel{ U"Sound.SE.ChangeLevel" };
+            static constexpr inline AssetNameView Finish{ U"Sound.SE.Finish" };
             //static constexpr inline AssetNameView Tap{ U"Sound.SE.Tap" };
             //static constexpr inline AssetNameView XTap{ U"Sound.SE.XTap" };
             //static constexpr inline AssetNameView Flick{ U"Sound.SE.Flick" };
@@ -41,6 +42,9 @@ namespace app::assets {
             //static constexpr inline AssetNameView JudgeGreat{ U"Sound.SE.Judge.Great" };
             //static constexpr inline AssetNameView JudgeGood{ U"Sound.SE.Judge.Good" };
             //static constexpr inline AssetNameView JudgeMiss{ U"Sound.SE.Judge.Miss" };
+        }
+        namespace bgm {
+            static constexpr inline AssetNameView FinalResult{ U"Sound.BGM.FinalResult" };
         }
     }
 

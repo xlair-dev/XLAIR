@@ -18,6 +18,7 @@ namespace ui {
     void Result::update() {
         m_scene_timer += Scene::DeltaTime();
         m_tile_offset = Math::Max(0.0, m_scene_timer - OffsetWait);
+        AudioAsset(app::assets::sounds::bgm::FinalResult).play();
 
         if (not m_update_record) {
             auto& data = getData();
@@ -119,6 +120,8 @@ namespace ui {
                 getData().userData.rating = m_rating; // 更新
                 getData().playable--;
 
+                AudioAsset(app::assets::sounds::bgm::FinalResult).stop();
+                AudioAsset(app::assets::sounds::se::Finish).playOneShot();
                 if (getData().playable == 0) {
                     changeScene(app::types::SceneState::FinalResult, 0.5s);
                 } else {

@@ -69,5 +69,10 @@ namespace app::assets {
         AudioAsset::Load(sounds::se::ChangeLevel);
         AudioAsset::Register(sounds::se::SelectMusic, U"assets/sounds/se/select_music.wav");
         AudioAsset::Load(sounds::se::SelectMusic);
+        AudioAsset::Register(sounds::se::Finish, U"assets/sounds/se/finish.wav");
+        AudioAsset::Load(sounds::se::Finish);
+
+        AudioAsset::Register(sounds::bgm::FinalResult, U"assets/sounds/bgm/final_result.wav");
+        AudioAsset::Load(sounds::bgm::FinalResult);
     }
 }

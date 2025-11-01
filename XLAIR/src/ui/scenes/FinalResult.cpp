@@ -3,7 +3,6 @@
 
 namespace ui {
     FinalResult::FinalResult(const InitData& init) : IScene(init) {
-        Print << U"XLAIR " << XLAIR_VERSION_STRING;
     }
     FinalResult::~FinalResult() {}
 
