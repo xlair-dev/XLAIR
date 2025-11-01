@@ -72,6 +72,7 @@ namespace ui {
             TextureAsset(app::assets::texture::Miss).draw(86, 598, ColorF{ 1.0, t1 });
             FontAsset(app::assets::font::UiText)(U"{}"_fmt(data.score.miss_count)).draw(48, Arg::topRight(500, 586), ColorF{ 0.8, t2 });
 
+
         }
 
         // controller

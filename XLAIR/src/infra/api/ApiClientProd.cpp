@@ -41,7 +41,9 @@ namespace infra::api {
         }
         const std::string data = json.formatUTF8();
         // TODO: check body
-        return ApiCall<bool>::HTTPPost(url, {}, data.data(), data.size(), [](const JSON&) { return ParseResult{ true, true }; });
+        HashTable<String, String> headers;
+        headers.emplace(U"Content-Type", U"application/json");
+        return ApiCall<bool>::HTTPPost(url, headers, data.data(), data.size(), [](const JSON&) { return ParseResult{ true, true }; });
     }
 
 }
