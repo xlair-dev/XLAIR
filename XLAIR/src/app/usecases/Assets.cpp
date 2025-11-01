@@ -37,5 +37,17 @@ namespace app::assets {
 
         TextureAsset::Register(texture::Logo, U"assets/textures/logo.png");
         TextureAsset::Load(texture::Logo);
+
+        TextureAsset::Register(texture::ResultBackground, U"assets/textures/result-background.png");
+        TextureAsset::Load(texture::ResultBackground);
+
+        TextureAsset::Register(texture::Perfect, U"assets/textures/perfect.png");
+        TextureAsset::Load(texture::Perfect);
+        TextureAsset::Register(texture::Great, U"assets/textures/great.png");
+        TextureAsset::Load(texture::Great);
+        TextureAsset::Register(texture::Good, U"assets/textures/good.png");
+        TextureAsset::Load(texture::Good);
+        TextureAsset::Register(texture::Miss, U"assets/textures/miss.png");
+        TextureAsset::Load(texture::Miss);
     }
 }

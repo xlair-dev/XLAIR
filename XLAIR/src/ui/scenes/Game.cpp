@@ -47,6 +47,7 @@ namespace ui {
         }
 
         judgement();
+        data.score.max_combo = Max(data.score.max_combo, data.score.combo); // NOTE: 途中の判定の順序で変わる可能性があるため、要検討
 
         data.score.updateScore(data.sheetRepository->getData().total_combo);
     }
@@ -123,9 +124,6 @@ namespace ui {
         m_rt_main_field.resolve();
 
         addons::HomographyAddon::Draw(field, m_rt_main_field);
-
-        // debug draw
-        RectF{ 1400, 0, 1000 / 4.0, 1000 }(m_rt_main_field).draw();
     }
 
     void Game::drawSideField() const {

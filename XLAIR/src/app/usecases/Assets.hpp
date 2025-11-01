@@ -16,6 +16,11 @@ namespace app::assets {
     namespace texture {
         static constexpr inline AssetNameView Logo{ U"Texture.Logo" };
         static constexpr inline AssetNameView GameScoreBarFrame{ U"Texture.GameScoreBarFrame" };
+        static constexpr inline AssetNameView ResultBackground{ U"Texture.ResultBackground" };
+        static constexpr inline AssetNameView Perfect{ U"Texture.Perfect" };
+        static constexpr inline AssetNameView Great{ U"Texture.Great" };
+        static constexpr inline AssetNameView Good{ U"Texture.Good" };
+        static constexpr inline AssetNameView Miss{ U"Texture.Miss" };
     }
 
     void Initialize();
