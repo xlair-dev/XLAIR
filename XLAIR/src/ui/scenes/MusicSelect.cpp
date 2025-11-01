@@ -218,12 +218,17 @@ namespace ui {
     void MusicSelect::handleReturnInput() {
         using Controller = core::features::ControllerManager;
         // TODO: refactor (Controller::Slider(12, 8))
-        uint32 enter_count = 0;
+        uint32 enter_pre_count = 0;
+        uint32 enter_cur_count = 0;
         for (size_t i = 12; i <= 19; ++i) {
-            enter_count += Controller::Slider(i).frameCount();
+            const auto [pre, cur] = Controller::SliderTouchFrames(i);
+            enter_pre_count += pre;
+            enter_cur_count += cur;
         }
-        bool enter_down = KeyEnter.down() or (enter_count == 1);
+        bool enter_down = KeyEnter.down() or (enter_pre_count == 0 and enter_cur_count > 0);
+
         if (enter_down) {
+            AudioAsset(app::assets::sounds::se::SelectMusic).playOneShot();
             m_demo.stop(0.3s);
             changeScene(app::types::SceneState::Game);
         }
@@ -236,30 +241,36 @@ namespace ui {
         const auto repo_size = data.sheetRepository->size();
 
         // TODO: refactor (Controller::Slider(0, 6))
-        uint32 left_count_one = 0;
-        uint32 left_count = 0;
+        uint32 left_pre_count = 0;
+        uint32 left_cur_count = 0;
         for (size_t i = 0; i <= 5; ++i) {
-            left_count_one += Controller::Slider(i).frameCount() == 1;
-            left_count += Controller::Slider(i).frameCount() > 1;
+            const auto [pre, cur] = Controller::SliderTouchFrames(i);
+            left_pre_count += pre;
+            left_cur_count += cur;
         }
-        bool left_down = KeyLeft.down() or (left_count_one > 0 and left_count == 0);
+        bool left_down = KeyLeft.down() or (left_pre_count == 0 and left_cur_count > 0);
 
         // TODO: refactor (Controller::Slider(6, 6))
-        uint32 right_count = 0;
+        uint32 right_pre_count = 0;
+        uint32 right_cur_count = 0;
         for (size_t i = 6; i <= 11; ++i) {
-            right_count += Controller::Slider(i).frameCount();
+            const auto [pre, cur] = Controller::SliderTouchFrames(i);
+            right_pre_count += pre;
+            right_cur_count += cur;
         }
-        bool right_down = KeyRight.down() or right_count == 1;
+        bool right_down = KeyRight.down() or (right_pre_count == 0 and right_cur_count > 0);
 
         if (index > 0 and left_down) {
             --index;
             m_scroll_offset = 1.0;
             m_tile_offset_raw = -OffsetWait;
+            AudioAsset(app::assets::sounds::se::MoveRightLeft).playOneShot();
         }
         if (index + 1 < repo_size and right_down) {
             ++index;
             m_scroll_offset = -1.0;
             m_tile_offset_raw = -OffsetWait;
+            AudioAsset(app::assets::sounds::se::MoveRightLeft).playOneShot();
         }
     }
 
@@ -290,9 +301,11 @@ namespace ui {
         
         if (difficulty > 0 and down_down) {
             --difficulty;
+            AudioAsset(app::assets::sounds::se::ChangeLevel).playOneShot();
         }
         if (difficulty + 1 < core::types::DifficultySize and up_down) {
             ++difficulty;
+            AudioAsset(app::assets::sounds::se::ChangeLevel).playOneShot();
         }
     }
 
