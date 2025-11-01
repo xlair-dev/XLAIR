@@ -5,6 +5,7 @@ namespace app::assets {
         InitializeFonts();
         InitializeShaders();
         InitializeTextures();
+        InitializeSounds();
     }
 
     void InitializeFonts() {
@@ -49,5 +50,14 @@ namespace app::assets {
         TextureAsset::Load(texture::Good);
         TextureAsset::Register(texture::Miss, U"assets/textures/miss.png");
         TextureAsset::Load(texture::Miss);
+    }
+
+    void InitializeSounds() {
+        AudioAsset::Register(sounds::se::MoveRightLeft, U"assets/sounds/se/move_right_left.wav");
+        AudioAsset::Load(sounds::se::MoveRightLeft);
+        AudioAsset::Register(sounds::se::ChangeLevel, U"assets/sounds/se/change_level.wav");
+        AudioAsset::Load(sounds::se::ChangeLevel);
+        AudioAsset::Register(sounds::se::SelectMusic, U"assets/sounds/se/select_music.wav");
+        AudioAsset::Load(sounds::se::SelectMusic);
     }
 }
