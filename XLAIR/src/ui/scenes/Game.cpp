@@ -48,17 +48,7 @@ namespace ui {
 
         judgement();
 
-        ClearPrint();
-        Print << data.score.perfect_count;
-        Print << data.score.great_count;
-        Print << data.score.good_count;
-        Print << data.score.miss_count;
-        Print << data.score.combo;
-
-        Print << U"fast: " << m_fast;
-        Print << U"late: " << m_late;
-        Print << U"avg diff: " << (m_count > 0 ? static_cast<double>(m_total_diff) / m_count : 0.0);
-        Print << U"avg diff millisec: " << (m_count > 0 ? static_cast<double>(m_total_diff) / m_count / m_sample_rate * 1000.0 : 0.0);
+        data.score.updateScore(data.sheetRepository->getData().total_combo);
     }
 
     void Game::draw() const {
@@ -271,6 +261,7 @@ namespace ui {
         // TODO: 流石にオワリ・実装なのでマシなものにするべき
         using core::features::ControllerManager;
         auto& data = getData().sheetRepository->m_data;
+        const auto total_combo = data.total_combo;
         auto& score = getData().score;
         if (not data.valid) {
             return;
@@ -383,6 +374,7 @@ namespace ui {
                     score.miss_count++;
                     score.combo = 0;
                     tap.passed = true;
+                    score.updateClearGuage(-1, total_combo);
                 }
 
                 bool pressed = false;
@@ -410,6 +402,7 @@ namespace ui {
                         }
                         m_total_diff += static_cast<int32>(dist);
                         m_count++;
+                        score.updateClearGuage(+1, total_combo);
                     }
 
                     if (adist <= perfect) {
@@ -431,6 +424,7 @@ namespace ui {
                     score.miss_count++;
                     score.combo = 0;
                     xtap.passed = true;
+                    score.updateClearGuage(-1, total_combo);
                 }
 
                 bool pressed = false;
@@ -452,6 +446,7 @@ namespace ui {
                         for (size_t i = 0; i < xtap.width; ++i) {
                             has_judged[xtap.start_lane + i] = true;
                         }
+                        score.updateClearGuage(+1, total_combo);
 
                         if (dist < 0) {
                             m_fast++;
@@ -475,6 +470,7 @@ namespace ui {
                     score.miss_count++;
                     score.combo = 0;
                     flick.passed = true;
+                    score.updateClearGuage(-1, total_combo);
                 }
                 bool pressed = false;
                 for (size_t i = 0; i < flick.width; ++i) {
@@ -491,6 +487,7 @@ namespace ui {
                         score.combo++;
                         flick.done = true;
                         score.perfect_count++;
+                        score.updateClearGuage(+1, total_combo);
                         //for (size_t i = 0; i < flick.width; ++i) {
                         //    has_judged[flick.start_lane + i] = true;
                         //}
@@ -517,6 +514,7 @@ namespace ui {
                     score.combo = 0;
                     judge.passed = true;
                     note.passed = true;
+                    score.updateClearGuage(-1, total_combo);
                 }
                 bool pressed = false;
                 for (size_t i = 0; i < judge.width; ++i) {
@@ -534,6 +532,7 @@ namespace ui {
                         note.done = true;
                         judge.done = true;
                         hold.pressed = true;
+                        score.updateClearGuage(+1, total_combo);
                         for (size_t i = 0; i < judge.width; ++i) {
                             has_judged[judge.start_lane + i] = true;
                         }
@@ -574,6 +573,7 @@ namespace ui {
                     score.combo = 0;
                     judge.done = true;
                     hold.pressed = false;
+                    score.updateClearGuage(-1, total_combo);
                     continue;
                 }
 
@@ -591,6 +591,7 @@ namespace ui {
                         judge.done = true;
                         score.perfect_count++;
                         hold.pressed = true;
+                        score.updateClearGuage(+1, total_combo);
 
                         if (hold.judge.size() == index + 1) {
                             // last judge
