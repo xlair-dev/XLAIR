@@ -152,6 +152,10 @@ namespace ui {
         const auto main_width = w - 2 * EdgeMargin;
         const double lane_width = main_width / 16.0;
 
+        Graphics2D::SetScissorRect(Rect{ 0, 0, 1000, 4000 - 100 - 2 }); // ジャストラインの少し上まで (TODO: 定数化)
+        RasterizerState rs = RasterizerState::Default2D;
+        rs.scissorEnable = true;
+
         //primitives::DrawHoldNoteHead(Vec2{ EdgeMargin, h - 100 }, lane_width * 4);
         for (const auto& hold : data.notes.hold) {
             if (hold.notes.isEmpty()) {
@@ -173,17 +177,26 @@ namespace ui {
                 const double pre_w = lane_width * pre.width;
 
                 if (pre.type == SheetsAnalyzer::HoldNoteType::Start or pre.type == SheetsAnalyzer::HoldNoteType::End) {
-                    primitives::DrawHoldNoteHead(Vec2{ pre_x, pre_y }, pre_w);
+                    if (not pre.done) {
+                        primitives::DrawHoldNoteHead(Vec2{ pre_x, pre_y }, pre_w);
+                    }
                 }
 
                 const double cur_t = (cur.sample - start_sample) / length;
                 const double pre_t = (pre.sample - start_sample) / length;
+
+                rs.scissorEnable = hold.pressed;
+                const ScopedRenderStates2D rasterizer{ rs };
                 primitives::DrawHoldBack(
                     Vec2{ pre_x, pre_y }, pre_w, pre_t,
                     Vec2{ cur_x, cur_y }, cur_w, cur_t
                 );
+
             }
             if (not hold.notes.isEmpty() and hold.notes.back().type == SheetsAnalyzer::HoldNoteType::Start or hold.notes.back().type == SheetsAnalyzer::HoldNoteType::End) {
+                if (hold.notes.back().done) {
+                    continue;
+                }
                 const double x = EdgeMargin + lane_width * hold.notes.back().start_lane;
                 const double y = calculateNoteY(hold.notes.back().sample);
                 const double width = lane_width * hold.notes.back().width;
@@ -274,6 +287,7 @@ namespace ui {
 
         size_t tap_index = 0;
         size_t xtap_index = 0;
+        size_t flick_index = 0;
         size_t hold_index = 0;
         while (true) {
             int32 min_target = -1;
@@ -316,9 +330,45 @@ namespace ui {
                 }
             }
 
+            for (; flick_index < data.notes.flick.size(); ++flick_index) {
+                auto& flick = data.notes.flick[flick_index];
+                if (flick.done) {
+                    continue;
+                }
+                if (flick.passed) {
+                    const double y = calculateNoteY(flick.sample);
+                    if (y < -50) {
+                        flick.done = true;
+                    }
+                    continue;
+                }
+                if (value > flick.sample) {
+                    min_target = 2;
+                    value = flick.sample;
+                    break;
+                }
+            }
+
             for (; hold_index < data.notes.hold.size(); ++hold_index) {
                 auto& hold = data.notes.hold[hold_index];
-                // TODO:
+                if (hold.judge.isEmpty()) {
+                    continue;
+                }
+                if (hold.judge[0].done) {
+                    continue;
+                }
+                if (hold.judge[0].passed) {
+                    const double y = calculateNoteY(hold.judge[0].sample);
+                    if (y < -50) {
+                        hold.judge[0].done = true;
+                    }
+                    continue;
+                }
+                if (value > hold.judge[0].sample) {
+                    min_target = 3;
+                    value = hold.judge[0].sample;
+                    break;
+                }
             }
 
             if (min_target == -1) {
@@ -375,7 +425,7 @@ namespace ui {
 
             if (min_target == 1) {
                 auto& xtap = data.notes.xtap[xtap_index];
-                const int64 dist = xtap.sample - m_pos_sample + offset_sample; // TODO: add timing setting
+                const int64 dist = xtap.sample - m_pos_sample + offset_sample;
                 if (dist < -good) {
                     // miss
                     score.miss_count++;
@@ -414,6 +464,142 @@ namespace ui {
                     }
                 }
                 xtap_index++;
+            }
+
+            if (min_target == 2) {
+                // 一旦 xtap と同じ判定にする
+                auto& flick = data.notes.flick[flick_index];
+                const int64 dist = flick.sample - m_pos_sample + offset_sample;
+                if (dist < -good) {
+                    // miss
+                    score.miss_count++;
+                    score.combo = 0;
+                    flick.passed = true;
+                }
+                bool pressed = false;
+                for (size_t i = 0; i < flick.width; ++i) {
+                    const auto index = flick.start_lane + i;
+                    if (has_judged[index]) {
+                        continue;
+                    }
+                    pressed |= ControllerManager::Slider(2 * index).down();
+                    pressed |= ControllerManager::Slider(2 * index + 1).down();
+                }
+                if (pressed) {
+                    const auto adist = Abs(dist);
+                    if (adist <= good) {
+                        score.combo++;
+                        flick.done = true;
+                        score.perfect_count++;
+                        //for (size_t i = 0; i < flick.width; ++i) {
+                        //    has_judged[flick.start_lane + i] = true;
+                        //}
+                        if (dist < 0) {
+                            m_fast++;
+                        } else if (dist > 0) {
+                            m_late++;
+                        }
+                        m_total_diff += static_cast<int32>(dist);
+                        m_count++;
+                    }
+                }
+                flick_index++;
+            }
+
+            if (min_target == 3) {
+                auto& hold = data.notes.hold[hold_index];
+                auto& note = hold.notes[0];
+                auto& judge = hold.judge[0];
+                const int64 dist = judge.sample - m_pos_sample + offset_sample;
+                if (dist < -good) {
+                    // miss
+                    score.miss_count++;
+                    score.combo = 0;
+                    judge.passed = true;
+                    note.passed = true;
+                }
+                bool pressed = false;
+                for (size_t i = 0; i < judge.width; ++i) {
+                    const auto index = judge.start_lane + i;
+                    if (has_judged[index]) {
+                        continue;
+                    }
+                    pressed |= ControllerManager::Slider(2 * index).down();
+                    pressed |= ControllerManager::Slider(2 * index + 1).down();
+                }
+                if (pressed) {
+                    const auto adist = Abs(dist);
+                    if (adist <= good) {
+                        score.combo++;
+                        note.done = true;
+                        judge.done = true;
+                        hold.pressed = true;
+                        for (size_t i = 0; i < judge.width; ++i) {
+                            has_judged[judge.start_lane + i] = true;
+                        }
+                        if (dist < 0) {
+                            m_fast++;
+                        } else if (dist > 0) {
+                            m_late++;
+                        }
+                        m_total_diff += static_cast<int32>(dist);
+                        m_count++;
+                    }
+                    if (adist <= perfect) {
+                        score.perfect_count++;
+                    } else if (adist <= great) {
+                        score.great_count++;
+                    } else if (adist <= good) {
+                        score.good_count++;
+                    }
+                }
+                hold_index++;
+            }
+        }
+
+        // hold things
+        for (auto& hold : data.notes.hold) {
+            if (hold.notes.isEmpty()) {
+                continue;
+            }
+            for (size_t index = 1; index < hold.judge.size(); index++) {
+                auto& judge = hold.judge[index];
+                if (judge.done) {
+                    continue;
+                }
+                const int64 dist = judge.sample - m_pos_sample + offset_sample;
+                if (dist < -good) {
+                    // miss
+                    score.miss_count++;
+                    score.combo = 0;
+                    judge.done = true;
+                    hold.pressed = false;
+                    continue;
+                }
+
+                bool pressed = false;
+                for (size_t i = 0; i < judge.width; ++i) {
+                    const auto index = judge.start_lane + i;
+                    pressed |= ControllerManager::Slider(2 * index).pressed();
+                    pressed |= ControllerManager::Slider(2 * index + 1).pressed();
+                }
+
+                if (pressed) {
+                    const auto adist = Abs(dist);
+                    if (adist <= great) {
+                        score.combo++;
+                        judge.done = true;
+                        score.perfect_count++;
+                        hold.pressed = true;
+
+                        if (hold.judge.size() == index + 1) {
+                            // last judge
+                            for (auto& note : hold.notes) {
+                                note.done = true;
+                            }
+                        }
+                    }
+                }
             }
         }
     }

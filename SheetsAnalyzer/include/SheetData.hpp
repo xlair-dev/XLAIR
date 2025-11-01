@@ -32,6 +32,8 @@ namespace SheetsAnalyzer {
         s3d::uint8 start_lane = 0;
         s3d::uint8 width = 0;
         HoldNoteType type;
+        bool passed = false;
+        bool done = false;
     };
 
     struct HoldNoteData {
@@ -39,6 +41,8 @@ namespace SheetsAnalyzer {
         s3d::Array<HoldNoteDataInternal> judge;
         // notes array
         s3d::Array<HoldNoteDataInternal> notes;
+
+        bool pressed = false;
 
         void clear() {
             judge.clear();
