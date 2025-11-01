@@ -19,7 +19,7 @@ namespace ui {
         if (data.sheetRepository->isRepoReady()) {
             Print << U"Loaded";
             ClearPrint();
-            changeScene(app::types::SceneState::Result, 0);
+            changeScene(app::types::SceneState::Title, 0);
         }
     }
 

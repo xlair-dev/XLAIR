@@ -231,7 +231,6 @@ namespace ui {
             primitives::DrawFlickNote(Vec2{ x, y }, width);
         }
 
-
     }
 
     void Game::drawTouchEffect() const {

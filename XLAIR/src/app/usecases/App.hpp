@@ -15,6 +15,7 @@ namespace app {
         core::types::Score score;
         std::shared_ptr<interfaces::IApiClient> api;
         HashTable<String, core::types::Record> records; // sheet_id -> record
+        Array<core::types::Record> played_records;
     };
 
     using SceneController = SceneManager<app::types::SceneState, GameData>;
