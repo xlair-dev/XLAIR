@@ -11,6 +11,8 @@ namespace infra::api {
 
         ApiCall<Array<core::types::Record>> getUserRecords(StringView user_id) override;
 
+        core::features::ApiCall<bool> postUserRecords(StringView user_id, const Array<core::types::Record>& records) override;
+
     private:
         static constexpr inline FilePathView BaseDir{ U"mockdata/api/" };
     };

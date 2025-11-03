@@ -12,5 +12,7 @@ namespace app::interfaces {
         virtual core::features::ApiCall<core::types::UserData> getUserByCard(StringView card) = 0;
 
         virtual core::features::ApiCall<Array<core::types::Record>> getUserRecords(StringView user_id) = 0;
+
+        virtual core::features::ApiCall<bool> postUserRecords(StringView user_id, const Array<core::types::Record>& records) = 0;
     };
 }

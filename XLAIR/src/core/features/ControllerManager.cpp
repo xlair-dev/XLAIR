@@ -52,6 +52,13 @@ namespace core::features {
         return 0.0;
     }
 
+    bool ControllerManager::SetLED(const Array<Color>& color, uint8 brightness) {
+        if (auto p = Addon::GetAddon<ControllerManager>(Name)) {
+            return p->m_device->setLED(color, brightness);
+        }
+        return false;
+    }
+
     bool ControllerManager::init() {
         return m_device->open();
     }

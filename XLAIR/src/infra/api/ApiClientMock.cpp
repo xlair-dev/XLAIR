@@ -14,4 +14,8 @@ namespace infra::api {
         return ApiCall<Array<core::types::Record>>::Mock(path, ParseUserRecords);
     }
 
+    ApiCall<bool> ApiClientMock::postUserRecords(StringView user_id, const Array<core::types::Record>& record) {
+        return ApiCall<bool>{}; // TODO: implement
+    }
+
 }

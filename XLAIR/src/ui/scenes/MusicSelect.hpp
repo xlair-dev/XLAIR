@@ -3,6 +3,7 @@
 #include "app/usecases/App.hpp"
 #include "core/features/DemoMusic.hpp"
 
+#include "ui/theme/Palette.hpp"
 #include "ui/components/Tile.hpp"
 
 using app::App;
@@ -49,5 +50,49 @@ namespace ui {
         void handleIndexInput();
         void handleDifficultyInput();
         void updateScrollState();
+
+        const Array<Color> m_slider_color{
+            theme::Palette::Pink,
+              theme::Palette::Pink,
+            theme::Palette::Pink,
+              theme::Palette::Pink,
+            theme::Palette::Pink,
+
+              theme::Palette::White,
+
+            theme::Palette::Pink,
+              theme::Palette::Pink,
+            theme::Palette::Pink,
+              theme::Palette::Pink,
+            theme::Palette::Pink,
+
+              theme::Palette::White,
+
+            theme::Palette::Cyan,
+              theme::Palette::Cyan,
+            theme::Palette::Cyan,
+              theme::Palette::Cyan,
+            theme::Palette::Cyan,
+              theme::Palette::Cyan,
+            theme::Palette::Cyan,
+
+              theme::Palette::White,
+
+            theme::Palette::Pink,
+              theme::Palette::Pink,
+            theme::Palette::Pink,
+
+              theme::Palette::White,
+
+            theme::Palette::Pink,
+              theme::Palette::Pink,
+            theme::Palette::Pink,
+
+              theme::Palette::White,
+
+            theme::Palette::Purple,
+              theme::Palette::Purple,
+            theme::Palette::Purple,
+        };
     };
 }

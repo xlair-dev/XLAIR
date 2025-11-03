@@ -141,6 +141,7 @@
     <ClCompile Include="src\infra\config\TomlConfigProvider.cpp" />
     <ClCompile Include="src\infra\controller\ControllerGroundSlider.cpp" />
     <ClCompile Include="src\infra\controller\ControllerMockKeyboard.cpp" />
+    <ClCompile Include="src\infra\controller\ControllerV1.cpp" />
     <ClCompile Include="src\infra\sheet\SheetMock.cpp" />
     <ClCompile Include="src\infra\sheet\SheetProd.cpp" />
     <ClCompile Include="src\Main.cpp" />
@@ -161,6 +162,7 @@
     <ClCompile Include="src\ui\primitives\Note.cpp" />
     <ClCompile Include="src\ui\primitives\SparkleShape.cpp" />
     <ClCompile Include="src\ui\scenes\Boot.cpp" />
+    <ClCompile Include="src\ui\scenes\FinalResult.cpp" />
     <ClCompile Include="src\ui\scenes\Game.cpp" />
     <ClCompile Include="src\ui\scenes\Login.cpp" />
     <ClCompile Include="src\ui\scenes\MusicSelect.cpp" />
@@ -417,6 +419,7 @@
     <ClInclude Include="src\infra\config\TomlConfigProvider.hpp" />
     <ClInclude Include="src\infra\controller\ControllerGroundSlider.hpp" />
     <ClInclude Include="src\infra\controller\ControllerMockKeyboard.hpp" />
+    <ClInclude Include="src\infra\controller\ControllerV1.hpp" />
     <ClInclude Include="src\infra\sheet\SheetMock.hpp" />
     <ClInclude Include="src\infra\sheet\SheetProd.hpp" />
     <ClInclude Include="src\stdafx.h" />
@@ -434,6 +437,7 @@
     <ClInclude Include="src\ui\primitives\Note.hpp" />
     <ClInclude Include="src\ui\primitives\SparkleShape.hpp" />
     <ClInclude Include="src\ui\scenes\Boot.hpp" />
+    <ClInclude Include="src\ui\scenes\FinalResult.hpp" />
     <ClInclude Include="src\ui\scenes\Game.hpp" />
     <ClInclude Include="src\ui\scenes\Login.hpp" />
     <ClInclude Include="src\ui\scenes\MusicSelect.hpp" />

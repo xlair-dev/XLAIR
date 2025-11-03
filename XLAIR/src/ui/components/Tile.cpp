@@ -3,6 +3,7 @@
 #include "ui/primitives/SparkleShape.hpp"
 #include "ui/theme/DifficultyTheme.hpp"
 #include "ui/components/ScrollingText.hpp"
+#include "core/types/Scoring.hpp"
 
 namespace ui::components {
     Tile::Tile() : m_tile_rt{ TileSize } {}
@@ -88,7 +89,9 @@ namespace ui::components {
         FontAsset(app::assets::font::UiText)(record.score).draw(40, Arg::bottomRight = Vec2{ 395, 520 }, theme.text);
 
         // rank badge
-        drawBadge(Vec2{ 177, 446 }, Vec2{ 74, 23 }, U"SSS", theme.accent);
+        if (record.score > 0) {
+            drawBadge(Vec2{ 177, 446 }, Vec2{ 74, 23 }, core::types::GetGrade(record.score), theme.accent);
+        }
         // status badge
         if (record.clear_type != core::types::ClearType::failed) {
             drawBadge(Vec2{ 255, 446 }, Vec2{ 140, 23 }, core::types::ClearTypeToString(record.clear_type), theme.accent);

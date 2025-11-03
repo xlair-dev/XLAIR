@@ -4,6 +4,7 @@
 #include "infra/sheet/SheetProd.hpp"
 #include "infra/controller/ControllerMockKeyboard.hpp"
 #include "infra/controller/ControllerGroundSlider.hpp"
+#include "infra/controller/ControllerV1.hpp"
 #include "infra/card/CardReaderMock.hpp"
 #include "infra/card/PasoriRCS3xx.hpp"
 #include "infra/api/ApiClientMock.hpp"
@@ -22,6 +23,8 @@ namespace infra::config {
 
         // TODO: add error handling
         config.system.arcade = toml[U"System.arcade"].get<bool>();
+        config.system.playable = toml[U"System.playable"].getOr<int32>(3);
+        config.system.menu_timer = toml[U"System.menuTimer"].getOr<int32>(90);
 
         config.window.width = toml[U"Window.width"].get<int32>();
         config.window.height = toml[U"Window.height"].get<int32>();
@@ -45,6 +48,10 @@ namespace infra::config {
             const auto baudrate = toml[U"Controller.baudrate"].getOr<int32>(115200);
             const auto threshold = toml[U"Controller.threshold"].getOr<int8>(1);
             config.controller = std::make_shared<infra::controller::ControllerGroundSlider>(port, baudrate, threshold);
+        } else if (controller_device == U"V1") {
+            const auto port = toml[U"Controller.port"].getOr<String>(U"COM1");
+            const auto baudrate = toml[U"Controller.baudrate"].getOr<int32>(115200);
+            config.controller = std::make_shared<infra::controller::ControllerV1>(port, baudrate);
         } else {
             // TODO:
         }

@@ -16,10 +16,41 @@ namespace app::assets {
     namespace texture {
         static constexpr inline AssetNameView Logo{ U"Texture.Logo" };
         static constexpr inline AssetNameView GameScoreBarFrame{ U"Texture.GameScoreBarFrame" };
+        static constexpr inline AssetNameView ResultBackground{ U"Texture.ResultBackground" };
+        static constexpr inline AssetNameView Perfect{ U"Texture.Perfect" };
+        static constexpr inline AssetNameView Great{ U"Texture.Great" };
+        static constexpr inline AssetNameView Good{ U"Texture.Good" };
+        static constexpr inline AssetNameView Miss{ U"Texture.Miss" };
+        static constexpr inline AssetNameView GradeBack{ U"Texture.GradeBack" };
+        static constexpr inline AssetNameView GradeB{ U"Texture.GradeB" };
+        static constexpr inline AssetNameView GradeA{ U"Texture.GradeA" };
+        static constexpr inline AssetNameView GradeS{ U"Texture.GradeS" };
+    }
+
+    namespace sounds {
+        namespace se {
+            static constexpr inline AssetNameView MoveRightLeft{ U"Sound.SE.MoveRightLeft" };
+            static constexpr inline AssetNameView SelectMusic{ U"Sound.SE.SelectMusic" };
+            static constexpr inline AssetNameView ChangeLevel{ U"Sound.SE.ChangeLevel" };
+            static constexpr inline AssetNameView Finish{ U"Sound.SE.Finish" };
+            //static constexpr inline AssetNameView Tap{ U"Sound.SE.Tap" };
+            //static constexpr inline AssetNameView XTap{ U"Sound.SE.XTap" };
+            //static constexpr inline AssetNameView Flick{ U"Sound.SE.Flick" };
+            //static constexpr inline AssetNameView Hold{ U"Sound.SE.Hold" };
+            //static constexpr inline AssetNameView Release{ U"Sound.SE.Release" };
+            //static constexpr inline AssetNameView JudgePerfect{ U"Sound.SE.Judge.Perfect" };
+            //static constexpr inline AssetNameView JudgeGreat{ U"Sound.SE.Judge.Great" };
+            //static constexpr inline AssetNameView JudgeGood{ U"Sound.SE.Judge.Good" };
+            //static constexpr inline AssetNameView JudgeMiss{ U"Sound.SE.Judge.Miss" };
+        }
+        namespace bgm {
+            static constexpr inline AssetNameView FinalResult{ U"Sound.BGM.FinalResult" };
+        }
     }
 
     void Initialize();
     void InitializeFonts();
     void InitializeShaders();
     void InitializeTextures();
+    void InitializeSounds();
 }

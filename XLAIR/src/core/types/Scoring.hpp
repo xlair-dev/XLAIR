@@ -40,4 +40,27 @@ namespace core::types {
             clear_guage = Math::Clamp(clear_guage, 0.0, 1.0);
         }
     };
+
+    inline String GetGrade(int32 score_value) {
+        if (score_value >= 1'050'000) {
+            return U"SSS";
+        } else if (score_value >= 1'000'000) {
+            return U"SS";
+        } else if (score_value >= 950'000) {
+            return U"S";
+        } else if (score_value >= 900'000) {
+            return U"AAA";
+        } else if (score_value >= 850'000) {
+            return U"AA";
+        } else if (score_value >= 800'000) {
+            return U"A";
+        } else if (score_value >= 750'000) {
+            return U"BBB";
+        } else if (score_value >= 700'000) {
+            return U"BB";
+        } else {
+            return U"B";
+        }
+    }
+
 }

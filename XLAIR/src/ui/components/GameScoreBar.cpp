@@ -10,7 +10,7 @@ namespace ui::components {
 
         font(U"SCORE").drawBase(32, 32, 42, theme::Palette::Gray);
 
-        addons::TextShadowAddon::DrawAt(U"{:0>8}"_fmt(score.score_value), font, 48, Vec2{ width / 2.0, 30 }, theme::Palette::White, theme::Palette::Darkblue, Vec2{ 1, 1 });
+        addons::TextShadowAddon::DrawAt(U"{:0>7}"_fmt(score.score_value), font, 48, Vec2{ width / 2.0, 30 }, theme::Palette::White, theme::Palette::Darkblue, Vec2{ 1, 1 });
 
         TextureAsset(app::assets::texture::GameScoreBarFrame).resized(width, 67).draw(0, 49);
 

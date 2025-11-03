@@ -31,6 +31,10 @@ namespace app {
 
         app.sceneController.get()->api = std::move(config.api);
 
+        app.sceneController.get()->max_playable = config.system.playable;
+        app.sceneController.get()->playable = config.system.playable;
+        app.sceneController.get()->menu_timer = config.system.menu_timer;
+
         Window::SetTitle(U"XLAIR");
         Window::Resize(config.window.width, config.window.height);
         Window::SetStyle(config.window.sizable ? WindowStyle::Sizable : WindowStyle::Fixed);

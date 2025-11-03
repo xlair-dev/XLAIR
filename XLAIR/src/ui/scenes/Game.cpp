@@ -14,6 +14,7 @@
 namespace ui {
     Game::Game(const InitData& init) : IScene(init) {
         auto& data = getData();
+        getData().score = core::types::Score{}; // reset score
         data.sheetRepository->loadDataAsync(
             data.userData.selected_index,
             data.userData.selected_difficulty
@@ -29,6 +30,12 @@ namespace ui {
         m_scene_timer += Scene::DeltaTime();
         m_tile_offset = Math::Max(0.0, m_scene_timer - OffsetWait);
         m_pos_sample = AudioAsset(data.sheetRepository->AudioAssetName).posSample();
+
+        if (KeyEscape.pressedDuration() >= 1.5s) {
+            AudioAsset(data.sheetRepository->AudioAssetName).stop();
+            changeScene(app::types::SceneState::MusicSelect, 0.5s);
+            return;
+        }
 
         if (not m_started and m_scene_timer >= 1.0) {
             if (data.sheetRepository->isDataReady()) {
@@ -47,8 +54,22 @@ namespace ui {
         }
 
         judgement();
+        data.score.max_combo = Max(data.score.max_combo, data.score.combo); // NOTE: 途中の判定の順序で変わる可能性があるため、要検討
 
         data.score.updateScore(data.sheetRepository->getData().total_combo);
+
+        //using core::features::ControllerManager;
+        //Array<Color> color(31, Color{ 0x23, 0x00, 0x7F });
+        //for (size_t i = 0; i < 31; ++i) {
+        //    if (i & 1) {
+        //        // separator
+        //        //color[i] = Color{ 0x23, 0x00, 0x7F };
+        //    } else if (ControllerManager::SliderTouchFrames(i).second > 0 or ControllerManager::SliderTouchFrames(i + 1).second > 0) {
+        //        color[i] = theme::Palette::Cyan;
+        //    }
+        //}
+
+        //ControllerManager::SetLED(color);
     }
 
     void Game::draw() const {
@@ -57,8 +78,9 @@ namespace ui {
         drawField();
 
         components::DrawUserNameplate(getData().userData, Point{ 59, 72 });
-        components::DrawGameMusicPlate(Point{ 1480, 72 }, data.sheetRepository->getMetadata(data.userData.selected_index), data.sheetRepository->getJacket(data.userData.selected_index).value(), data.userData.selected_difficulty, m_tile_offset, 1);
+        components::DrawGameMusicPlate(Point{ 1480, 72 }, data.sheetRepository->getMetadata(data.userData.selected_index), data.sheetRepository->getJacket(data.userData.selected_index).value(), data.userData.selected_difficulty, m_tile_offset, data.max_playable, data.playable);
         components::DrawGameScoreBar(Point{ app::consts::SceneWidth / 2 - 434, 56 }, data.score);
+
     }
 
     void Game::drawField() const {
@@ -111,6 +133,8 @@ namespace ui {
             // notes
             drawMainNotes();
 
+            m_effect.update();
+
             // Edge decorations
             RectF{ 0, 0, EdgeMargin, h }.draw(ColorF{ U"#B4E6FF" });
             RectF{ w - EdgeMargin, 0, EdgeMargin, h }.draw(ColorF{ U"#B4E6FF" });
@@ -123,9 +147,6 @@ namespace ui {
         m_rt_main_field.resolve();
 
         addons::HomographyAddon::Draw(field, m_rt_main_field);
-
-        // debug draw
-        RectF{ 1400, 0, 1000 / 4.0, 1000 }(m_rt_main_field).draw();
     }
 
     void Game::drawSideField() const {
@@ -233,7 +254,6 @@ namespace ui {
             primitives::DrawFlickNote(Vec2{ x, y }, width);
         }
 
-
     }
 
     void Game::drawTouchEffect() const {
@@ -260,6 +280,13 @@ namespace ui {
         // TODO: ここらへんのロジックは core/features などに移すべきかも
         // TODO: 流石にオワリ・実装なのでマシなものにするべき
         using core::features::ControllerManager;
+
+        constexpr double EdgeMargin = 32.0;
+        const auto field_size = m_rt_main_field.size();
+        const auto [w, h] = field_size;
+        const auto main_width = w - 2 * EdgeMargin;
+        const double lane_width = main_width / 16.0;
+
         auto& data = getData().sheetRepository->m_data;
         const auto total_combo = data.total_combo;
         auto& score = getData().score;
@@ -375,6 +402,10 @@ namespace ui {
                     score.combo = 0;
                     tap.passed = true;
                     score.updateClearGuage(-1, total_combo);
+
+                    const double x = EdgeMargin + lane_width * tap.start_lane;
+                    const double width = lane_width * tap.width;
+                    m_effect.add<JudgeEffect>(Vec2{(x + x + width) / 2.0, h - JudgeLineY}, 3);
                 }
 
                 bool pressed = false;
@@ -407,10 +438,19 @@ namespace ui {
 
                     if (adist <= perfect) {
                         score.perfect_count++;
+                        const double x = EdgeMargin + lane_width * tap.start_lane;
+                        const double width = lane_width * tap.width;
+                        m_effect.add<JudgeEffect>(Vec2{(x + x + width) / 2.0, h - JudgeLineY}, 0);
                     } else if (adist <= great) {
                         score.great_count++;
+                        const double x = EdgeMargin + lane_width * tap.start_lane;
+                        const double width = lane_width * tap.width;
+                        m_effect.add<JudgeEffect>(Vec2{(x + x + width) / 2.0, h - JudgeLineY}, 1);
                     } else if (adist <= good) {
                         score.good_count++;
+                        const double x = EdgeMargin + lane_width * tap.start_lane;
+                        const double width = lane_width * tap.width;
+                        m_effect.add<JudgeEffect>(Vec2{(x + x + width) / 2.0, h - JudgeLineY}, 2);
                     }
                 }
                 tap_index++;
@@ -425,6 +465,9 @@ namespace ui {
                     score.combo = 0;
                     xtap.passed = true;
                     score.updateClearGuage(-1, total_combo);
+                    const double x = EdgeMargin + lane_width * xtap.start_lane;
+                    const double width = lane_width * xtap.width;
+                    m_effect.add<JudgeEffect>(Vec2{(x + x + width) / 2.0, h - JudgeLineY}, 3);
                 }
 
                 bool pressed = false;
@@ -447,6 +490,9 @@ namespace ui {
                             has_judged[xtap.start_lane + i] = true;
                         }
                         score.updateClearGuage(+1, total_combo);
+                        const double x = EdgeMargin + lane_width * xtap.start_lane;
+                        const double width = lane_width * xtap.width;
+                        m_effect.add<JudgeEffect>(Vec2{(x + x + width) / 2.0, h - JudgeLineY}, 0);
 
                         if (dist < 0) {
                             m_fast++;
@@ -471,6 +517,10 @@ namespace ui {
                     score.combo = 0;
                     flick.passed = true;
                     score.updateClearGuage(-1, total_combo);
+
+                    const double x = EdgeMargin + lane_width * flick.start_lane;
+                    const double width = lane_width * flick.width;
+                    m_effect.add<JudgeEffect>(Vec2{(x + x + width) / 2.0, h - JudgeLineY}, 3);
                 }
                 bool pressed = false;
                 for (size_t i = 0; i < flick.width; ++i) {
@@ -488,6 +538,10 @@ namespace ui {
                         flick.done = true;
                         score.perfect_count++;
                         score.updateClearGuage(+1, total_combo);
+
+                        const double x = EdgeMargin + lane_width * flick.start_lane;
+                        const double width = lane_width * flick.width;
+                        m_effect.add<JudgeEffect>(Vec2{(x + x + width) / 2.0, h - JudgeLineY}, 0);
                         //for (size_t i = 0; i < flick.width; ++i) {
                         //    has_judged[flick.start_lane + i] = true;
                         //}
@@ -546,10 +600,20 @@ namespace ui {
                     }
                     if (adist <= perfect) {
                         score.perfect_count++;
+
+                        const double x = EdgeMargin + lane_width * judge.start_lane;
+                        const double width = lane_width * judge.width;
+                        m_effect.add<JudgeEffect>(Vec2{(x + x + width) / 2.0, h - JudgeLineY}, 0);
                     } else if (adist <= great) {
                         score.great_count++;
+                        const double x = EdgeMargin + lane_width * judge.start_lane;
+                        const double width = lane_width * judge.width;
+                        m_effect.add<JudgeEffect>(Vec2{(x + x + width) / 2.0, h - JudgeLineY}, 1);
                     } else if (adist <= good) {
                         score.good_count++;
+                        const double x = EdgeMargin + lane_width * judge.start_lane;
+                        const double width = lane_width * judge.width;
+                        m_effect.add<JudgeEffect>(Vec2{(x + x + width) / 2.0, h - JudgeLineY}, 2);
                     }
                 }
                 hold_index++;
@@ -574,6 +638,9 @@ namespace ui {
                     judge.done = true;
                     hold.pressed = false;
                     score.updateClearGuage(-1, total_combo);
+                    const double x = EdgeMargin + lane_width * judge.start_lane;
+                    const double width = lane_width * judge.width;
+                    m_effect.add<JudgeEffect>(Vec2{(x + x + width) / 2.0, h - JudgeLineY}, 3);
                     continue;
                 }
 
@@ -593,6 +660,10 @@ namespace ui {
                         hold.pressed = true;
                         score.updateClearGuage(+1, total_combo);
 
+                        const double x = EdgeMargin + lane_width * judge.start_lane;
+                        const double width = lane_width * judge.width;
+                        m_effect.add<JudgeEffect>(Vec2{(x + x + width) / 2.0, h - JudgeLineY}, 0);
+
                         if (hold.judge.size() == index + 1) {
                             // last judge
                             for (auto& note : hold.notes) {
@@ -607,7 +678,7 @@ namespace ui {
 
     double Game::calculateNoteY(int64 sample) const {
         constexpr double h = 4000;
-        return (4000 - JudgeLineY) - static_cast<double>(sample - m_pos_sample) * 0.08;
+        return (4000 - JudgeLineY) - static_cast<double>(sample - m_pos_sample) * 0.06;
     }
 
     void Game::RegisterAssets() {
