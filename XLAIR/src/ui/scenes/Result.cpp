@@ -129,6 +129,8 @@ namespace ui {
                 }
             }
         }
+
+        //core::features::ControllerManager::SetLED(Array<Color>(31, Palette::Pink));
     }
 
     void Result::draw() const {

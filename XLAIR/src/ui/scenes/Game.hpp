@@ -16,16 +16,16 @@ namespace ui {
             const double e = EaseOutExpo(t * 2.0);
             if (kind == 0) {
                 // perfect
-                TextureAsset(app::assets::texture::Perfect).scaled(0.4).drawAt(position.moveBy(0, -5 * e), ColorF{1.0, 1.0 - Max(0.0, 7.0 * t - 1.0)});
+                TextureAsset(app::assets::texture::Perfect).scaled(0.5).drawAt(position.moveBy(0, -10 * e), ColorF{1.0, 1.0 - Max(0.0, 7.0 * t - 1.0)});
             } else if (kind == 1) {
                 // great
-                TextureAsset(app::assets::texture::Great).scaled(0.4).drawAt(position.moveBy(0, -5 * e), ColorF{1.0, 1.0 - Max(0.0, 7.0 * t - 1.0)});
+                TextureAsset(app::assets::texture::Great).scaled(0.5).drawAt(position.moveBy(0, -10 * e), ColorF{1.0, 1.0 - Max(0.0, 7.0 * t - 1.0)});
             } else if (kind == 2) {
                 // good
-                TextureAsset(app::assets::texture::Good).scaled(0.4).drawAt(position.moveBy(0, -5 * e), ColorF{1.0, 1.0 - Max(0.0, 7.0 * t - 1.0)});
+                TextureAsset(app::assets::texture::Good).scaled(0.5).drawAt(position.moveBy(0, -10 * e), ColorF{1.0, 1.0 - Max(0.0, 7.0 * t - 1.0)});
             } else if (kind == 3) {
                 // miss
-                TextureAsset(app::assets::texture::Miss).scaled(0.4).drawAt(position.moveBy(0, -5 * e), ColorF{1.0, 1.0 - Max(0.0, 7.0 * t - 1.0)});
+                TextureAsset(app::assets::texture::Miss).scaled(0.5).drawAt(position.moveBy(0, -10 * e), ColorF{1.0, 1.0 - Max(0.0, 7.0 * t - 1.0)});
             }
             return (t < 0.5);
         }

@@ -393,6 +393,9 @@
     <ClCompile Include="src\ui\scenes\FinalResult.cpp">
       <Filter>Source Files\ui\scenes</Filter>
     </ClCompile>
+    <ClCompile Include="src\infra\controller\ControllerV1.cpp">
+      <Filter>Source Files\infra\controller</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Image Include="App\icon.ico">
@@ -1269,6 +1272,9 @@
     </ClInclude>
     <ClInclude Include="src\ui\scenes\FinalResult.hpp">
       <Filter>Header Files\ui\scenes</Filter>
+    </ClInclude>
+    <ClInclude Include="src\infra\controller\ControllerV1.hpp">
+      <Filter>Header Files\infra\controller</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

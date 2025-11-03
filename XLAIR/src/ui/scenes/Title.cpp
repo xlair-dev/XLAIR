@@ -1,5 +1,6 @@
 ﻿#include "Title.hpp"
 #include "core/features/CardReaderManager.hpp"
+#include "core/features/ControllerManager.hpp"
 #include "app/consts/Version.hpp"
 #include "app/consts/Scene.hpp"
 #include "app/usecases/Assets.hpp"
@@ -12,6 +13,8 @@ namespace ui {
 
     void Title::update() {
         using core::features::CardReaderManager;
+
+        //core::features::ControllerManager::SetLED(Array<Color>(31, Palette::Black));
 
         if (m_loading) {
             m_call.update();

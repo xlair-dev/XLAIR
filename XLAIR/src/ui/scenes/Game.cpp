@@ -31,6 +31,12 @@ namespace ui {
         m_tile_offset = Math::Max(0.0, m_scene_timer - OffsetWait);
         m_pos_sample = AudioAsset(data.sheetRepository->AudioAssetName).posSample();
 
+        if (KeyEscape.pressedDuration() >= 1.5s) {
+            AudioAsset(data.sheetRepository->AudioAssetName).stop();
+            changeScene(app::types::SceneState::MusicSelect, 0.5s);
+            return;
+        }
+
         if (not m_started and m_scene_timer >= 1.0) {
             if (data.sheetRepository->isDataReady()) {
                 m_samples = AudioAsset(data.sheetRepository->AudioAssetName).samples();
@@ -51,6 +57,19 @@ namespace ui {
         data.score.max_combo = Max(data.score.max_combo, data.score.combo); // NOTE: 途中の判定の順序で変わる可能性があるため、要検討
 
         data.score.updateScore(data.sheetRepository->getData().total_combo);
+
+        //using core::features::ControllerManager;
+        //Array<Color> color(31, Color{ 0x23, 0x00, 0x7F });
+        //for (size_t i = 0; i < 31; ++i) {
+        //    if (i & 1) {
+        //        // separator
+        //        //color[i] = Color{ 0x23, 0x00, 0x7F };
+        //    } else if (ControllerManager::SliderTouchFrames(i).second > 0 or ControllerManager::SliderTouchFrames(i + 1).second > 0) {
+        //        color[i] = theme::Palette::Cyan;
+        //    }
+        //}
+
+        //ControllerManager::SetLED(color);
     }
 
     void Game::draw() const {

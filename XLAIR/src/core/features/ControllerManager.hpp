@@ -30,6 +30,8 @@ namespace core::features {
 
         static double LatencyOffset();
 
+        static bool SetLED(const Array<Color>& color, uint8 brightness = 0x3F);
+
         static inline constexpr StringView Name{ U"ControllerManager" };
 
     private:

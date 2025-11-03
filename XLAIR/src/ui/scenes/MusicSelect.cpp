@@ -28,6 +28,14 @@ namespace ui {
         handleDifficultyInput();
         updateScrollState();
 
+        if (KeyEscape.pressedDuration() >= 1.5s) {
+            getData().playable = getData().max_playable; // reset
+            getData().played_records.clear();
+            m_demo.stop(0.3s);
+            changeScene(app::types::SceneState::Title, 0.5s);
+            return;
+        }
+
         const auto& index = getData().userData.selected_index;
         const auto& repo = getData().sheetRepository;
         m_demo.update(repo->getMetadata(index).music, repo->getMetadata(index).music_offset);
@@ -123,6 +131,8 @@ namespace ui {
             },
         };
         components::DrawSliderMappingGuide(mapping);
+
+        //core::features::ControllerManager::SetLED(m_slider_color);
     }
 
     void MusicSelect::drawTiles() const {
