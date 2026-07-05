@@ -1,70 +1,71 @@
-## Siv3D テンプレート
+# XLAIR
 
-このリポジトリは、再利用可能な base image を中心にした Linux 向け Siv3D テンプレートです。
+XLAIR is a rhythm game built with [Siv3D](https://siv3d.github.io/) v0.6.16.
 
-### できること
+## Supported platforms
 
-- ルート直下の CMake プロジェクトでゲームコードを置ける
-- `ghcr.io/xlair-dev/siv3d-docker-base` に公開される Siv3D base image を使える
-- devcontainer で Siv3D の再ビルドなしにすぐ開発を始められる
-- `docker compose` でホストの GUI に接続して Linux 上で実行できる
-- `ccache` と build ディレクトリで再ビルドを高速化できる
-- GitHub Actions から base image を自動公開できる
+| Target       | Siv3D source                               | Build environment                       |
+| ------------ | ------------------------------------------ | --------------------------------------- |
+| Linux x86_64 | Preinstalled in the XLAIR container image  | Docker / devcontainer                   |
+| Windows x64  | Official SDK and v0.6.16 runtime resources | Visual Studio Build Tools, clang, Ninja |
+| macOS x86_64 | Official SDK                               | Xcode Command Line Tools, Ninja         |
 
-### 使い方
+## Development
 
-#### 1. devcontainer で開く
+### Linux
 
-`/home/noname/me/workspace/personal/siv3d-template` をワークスペースルートにして devcontainer を開くと、公開済みの base image をそのまま利用します。
+Open the repository in its devcontainer, then configure and build XLAIR inside the container:
 
 ```bash
-devcontainer up --workspace-folder /home/noname/me/workspace/personal/siv3d-template --remove-existing-container
+cmake --preset linux-debug
+cmake --build --preset build-linux-debug
+./build/linux-debug/App/XLAIR
 ```
 
-`workspace-folder` を省略する場合は、必ず `siv3d-template` リポジトリのルートで実行してください。`siv3d-docker` 側には devcontainer 設定を置いていません。
-
-#### 2. compose で起動する
+The same environment can be started without a devcontainer:
 
 ```bash
 docker compose up -d
-docker compose exec siv3d-app bash
+docker compose exec xlair bash
 ```
 
-#### 3. プロジェクトをビルドする
-
-コンテナ内またはローカルの Linux 環境で、リポジトリのルートからビルドします。`build/` はホスト側に置かれるので、そのまま `cmake` が書き込めます。
+The default image is `ghcr.io/xlair-dev/siv3d-docker-base:latest`. Set `SIV3D_IMAGE` to use a pinned tag or digest:
 
 ```bash
-cmake -S . -B build -GNinja -DCMAKE_BUILD_TYPE=Debug
-cmake --build build
+SIV3D_IMAGE=ghcr.io/xlair-dev/siv3d-docker-base:<tag-or-digest> docker compose up -d
 ```
 
-#### 4. 実行する
+### Windows
+
+Run the following commands from a Visual Studio Developer PowerShell:
+
+```powershell
+cmake --preset windows-debug
+cmake --build --preset build-windows-debug
+./build/windows-debug/App/XLAIR.exe
+```
+
+CMake 3.22 or newer is required.
+
+The Siv3D v0.6.16 macOS SDK targets x86_64. Builds run through Rosetta on Apple Silicon Macs.
+
+### macOS
 
 ```bash
-./build/Siv3DTemplate
+cmake --preset macos-debug
+cmake --build --preset build-macos-debug
+open build/macos-debug/App/XLAIR.app
 ```
 
-### 主な feature
+The macOS bundle identifier is `dev.xlair.XLAIR`.
 
-- **Siv3D base image の分離**: 重い Siv3D ビルドを `docker/base/Dockerfile` に集約
-- **高速な再ビルド**: `ccache` とホスト側 `build/` でゲーム側の再ビルドを短縮
-- **Linux GUI 対応**: X11 をホストにバイパスして描画可能
-- **devcontainer 対応**: そのまま開いて開発を始められる
-- **GitHub Actions 対応**: `main` への push などで GHCR に公開
-- **テンプレート向け構成**: `src/Main.cpp` だけを触ればゲームの起点になる
+### Release builds
 
-### GitHub Actions
+Replace `debug` with `release` in the configure and build preset names. For example:
 
-`docker/base/Dockerfile` から base image をビルドし、`.github/workflows/publish-base-image.yml` から GHCR に公開します。
+```bash
+cmake --preset macos-release
+cmake --build --preset build-macos-release
+```
 
-`latest` と commit/tag ベースのタグを付けるので、devcontainer と compose の両方で安定して利用できます。
-
-### ファイル構成
-
-- `CMakeLists.txt`: ルートの CMake 定義
-- `src/Main.cpp`: グラフィカルな最小サンプル
-- `docker/base/Dockerfile`: Siv3D base image のビルド定義
-- `.devcontainer/devcontainer.json`: devcontainer 設定
-- `compose.yml`: ローカル実行用の compose 定義
-- `.github/workflows/publish-base-image.yml`: GHCR への公開 workflow
+Build artifacts are written to `build/<preset>/App/`.
