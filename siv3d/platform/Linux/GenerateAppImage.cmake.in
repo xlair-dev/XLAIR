@@ -1,0 +1,128 @@
+cmake_minimum_required(VERSION 3.16)
+
+set(APPIMAGE_APP_DIR "@APPIMAGE_APP_DIR@")
+set(APPIMAGE_OUTPUT_DIR "@APPIMAGE_OUTPUT_DIR@")
+set(APPIMAGE_NAME "@APPIMAGE_NAME@")
+set(APPIMAGE_EXECUTABLE "@APPIMAGE_EXECUTABLE@")
+set(APPIMAGE_ICON_SOURCE "@APPIMAGE_ICON_SOURCE@")
+
+set(APPIMAGE_RESOURCE_PATHS @APPIMAGE_RESOURCE_PATHS@)
+set(APPIMAGE_RESOURCE_TYPES @APPIMAGE_RESOURCE_TYPES@)
+set(APPIMAGE_RESOURCE_DESTINATIONS @APPIMAGE_RESOURCE_DESTINATIONS@)
+
+if(NOT EXISTS "${APPIMAGE_EXECUTABLE}")
+    message(FATAL_ERROR "Executable not found: ${APPIMAGE_EXECUTABLE}")
+endif()
+
+if(NOT DEFINED APPIMAGE_LINUXDEPLOY)
+    message(FATAL_ERROR "APPIMAGE_LINUXDEPLOY must be specified, e.g. -DAPPIMAGE_LINUXDEPLOY=/path/to/linuxdeploy-x86_64.AppImage")
+endif()
+
+if(NOT DEFINED APPIMAGE_APPIMAGETOOL)
+    message(FATAL_ERROR "APPIMAGE_APPIMAGETOOL must be specified, e.g. -DAPPIMAGE_APPIMAGETOOL=/path/to/appimagetool-x86_64.AppImage")
+endif()
+
+if(NOT EXISTS "${APPIMAGE_LINUXDEPLOY}")
+    message(FATAL_ERROR "linuxdeploy not found: ${APPIMAGE_LINUXDEPLOY}")
+endif()
+
+if(NOT EXISTS "${APPIMAGE_APPIMAGETOOL}")
+    message(FATAL_ERROR "appimagetool not found: ${APPIMAGE_APPIMAGETOOL}")
+endif()
+
+file(REMOVE_RECURSE "${APPIMAGE_APP_DIR}")
+file(MAKE_DIRECTORY "${APPIMAGE_APP_DIR}")
+
+file(COPY "${APPIMAGE_EXECUTABLE}" DESTINATION "${APPIMAGE_APP_DIR}" FOLLOW_SYMLINK_CHAIN)
+
+get_filename_component(_executable_basename "${APPIMAGE_EXECUTABLE}" NAME)
+if(NOT _executable_basename STREQUAL "${APPIMAGE_NAME}")
+    file(RENAME
+        "${APPIMAGE_APP_DIR}/${_executable_basename}"
+        "${APPIMAGE_APP_DIR}/${APPIMAGE_NAME}"
+    )
+endif()
+
+if(APPIMAGE_OUTPUT_DIR STREQUAL "" OR APPIMAGE_OUTPUT_DIR STREQUAL "/")
+    message(FATAL_ERROR "Refusing to clear unsafe AppImage output directory: ${APPIMAGE_OUTPUT_DIR}")
+endif()
+
+file(REMOVE_RECURSE "${APPIMAGE_OUTPUT_DIR}")
+file(MAKE_DIRECTORY "${APPIMAGE_OUTPUT_DIR}")
+
+file(WRITE "${APPIMAGE_APP_DIR}/AppRun"
+"#!/bin/sh
+APPDIR=\"\$(dirname \"\$(readlink -f \"\$0\")\")\"
+cd \"\$APPDIR\"
+exec \"\$APPDIR/${APPIMAGE_NAME}\" \"\$@\"
+")
+execute_process(COMMAND chmod +x "${APPIMAGE_APP_DIR}/AppRun")
+
+set(_desktop_path "${APPIMAGE_APP_DIR}/${APPIMAGE_NAME}.desktop")
+file(WRITE "${_desktop_path}"
+"[Desktop Entry]
+Type=Application
+Name=${APPIMAGE_NAME}
+Exec=${APPIMAGE_NAME}
+Icon=${APPIMAGE_NAME}
+Categories=Game;
+Terminal=false
+")
+
+if(NOT EXISTS "${APPIMAGE_ICON_SOURCE}")
+    message(FATAL_ERROR "AppImage icon not found: ${APPIMAGE_ICON_SOURCE}")
+endif()
+
+set(_icon_path "${APPIMAGE_APP_DIR}/${APPIMAGE_NAME}.png")
+file(COPY_FILE "${APPIMAGE_ICON_SOURCE}" "${_icon_path}")
+
+file(MAKE_DIRECTORY "${APPIMAGE_APP_DIR}/usr/share/icons/hicolor/256x256/apps")
+file(COPY "${_icon_path}" DESTINATION "${APPIMAGE_APP_DIR}/usr/share/icons/hicolor/256x256/apps" FOLLOW_SYMLINK_CHAIN)
+
+list(LENGTH APPIMAGE_RESOURCE_PATHS _resource_count)
+if(_resource_count GREATER 0)
+    math(EXPR _last_index "${_resource_count} - 1")
+    foreach(_index RANGE ${_last_index})
+        list(GET APPIMAGE_RESOURCE_PATHS ${_index} _source_path)
+        list(GET APPIMAGE_RESOURCE_TYPES ${_index} _resource_type)
+        list(GET APPIMAGE_RESOURCE_DESTINATIONS ${_index} _destination_relpath)
+
+        get_filename_component(_destination_dir "${_destination_relpath}" DIRECTORY)
+
+        if(_resource_type STREQUAL "EMBED")
+            set(_destination_root "${APPIMAGE_APP_DIR}")
+        else()
+            set(_destination_root "${APPIMAGE_OUTPUT_DIR}")
+        endif()
+
+        if(_destination_dir STREQUAL "" OR _destination_dir STREQUAL ".")
+            set(_destination_abs "${_destination_root}")
+        else()
+            set(_destination_abs "${_destination_root}/${_destination_dir}")
+        endif()
+
+        file(MAKE_DIRECTORY "${_destination_abs}")
+        file(COPY "${_source_path}" DESTINATION "${_destination_abs}" FOLLOW_SYMLINK_CHAIN)
+    endforeach()
+endif()
+
+execute_process(
+    COMMAND "${APPIMAGE_LINUXDEPLOY}"
+        --appdir "${APPIMAGE_APP_DIR}"
+        --executable "${APPIMAGE_APP_DIR}/${APPIMAGE_NAME}"
+        --desktop-file "${_desktop_path}"
+        --icon-file "${_icon_path}"
+    RESULT_VARIABLE _linuxdeploy_result
+)
+if(NOT _linuxdeploy_result EQUAL 0)
+    message(FATAL_ERROR "linuxdeploy failed with exit code: ${_linuxdeploy_result}")
+endif()
+
+set(_appimage_output "${APPIMAGE_OUTPUT_DIR}/${APPIMAGE_NAME}.AppImage")
+execute_process(
+    COMMAND "${APPIMAGE_APPIMAGETOOL}" "${APPIMAGE_APP_DIR}" "${_appimage_output}"
+    RESULT_VARIABLE _appimagetool_result
+)
+if(NOT _appimagetool_result EQUAL 0)
+    message(FATAL_ERROR "appimagetool failed with exit code: ${_appimagetool_result}")
+endif()

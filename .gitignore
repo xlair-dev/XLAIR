@@ -15,4 +15,5 @@ compile_commands.json
 *.log
 .cache/
 .ccache/
+App/
 .DS_Store
