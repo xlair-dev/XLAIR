@@ -1,0 +1,26 @@
+{
+  "cmake.useCMakePresets": "always",
+  "cmake.useVsDeveloperEnvironment": "always",
+  "cmake.buildBeforeRun": true,
+  "cmake.buildTask": true,
+  "cmake.setBuildTargetSameAsLaunchTarget": true,
+  "cmake.debugConfig": {
+    "type": "lldb",
+    "request": "launch",
+    "cwd": "${workspaceFolder}",
+    "terminal": "integrated"
+  },
+  "lldb.dbgconfig": {
+    "cwd": "${workspaceFolder}"
+  },
+  "clangd.arguments": [
+    "--background-index",
+    "--clang-tidy",
+    "--header-insertion=iwyu",
+    "--completion-style=detailed"
+  ],
+  "[cpp]": {
+    "editor.defaultFormatter": "llvm-vs-code-extensions.vscode-clangd",
+    "editor.formatOnSave": true
+  }
+}
