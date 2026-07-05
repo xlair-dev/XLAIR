@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.22)
 
 project(XLAIR VERSION 0.1.0 LANGUAGES CXX)
 
-set(SIV3D_VERSION "0.6.16" CACHE STRING "Siv3D SDK version")
+set(SIV3D_VERSION "0.6.16")
 include(siv3d/Siv3D.cmake)
 
 add_executable(XLAIR

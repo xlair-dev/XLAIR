@@ -5,6 +5,10 @@ set(SIV3D_INCLUDE_DIR "${SIV3D_ROOT}/include")
 set(SIV3D_LIB_DIR "${SIV3D_ROOT}/lib/macOS")
 set(SIV3D_RUNTIME_RESOURCES_PATH "${SIV3D_ROOT}/runtime")
 set(SIV3D_DOWNLOAD_DIR "${SIV3D_SDK_CACHE_DIR}/downloads")
+set(SIV3D_MACOS_ZIP_PATH "${SIV3D_DOWNLOAD_DIR}/macos_${SIV3D_VERSION}.zip")
+set(SIV3D_MACOS_EXTRACT_DIR "${SIV3D_DOWNLOAD_DIR}/macos_${SIV3D_VERSION}")
+set(SIV3D_MACOS_EXTRACTED_ROOT
+    "${SIV3D_MACOS_EXTRACT_DIR}/siv3d_v${SIV3D_VERSION}_macOS")
 set(SIV3D_EXTRACTED FALSE)
 if(EXISTS "${SIV3D_INCLUDE_DIR}/Siv3D.hpp"
     AND EXISTS "${SIV3D_LIB_DIR}/libSiv3D.a"
@@ -13,53 +17,36 @@ if(EXISTS "${SIV3D_INCLUDE_DIR}/Siv3D.hpp"
 endif()
 
 set(SIV3D_MACOS_ZIP_URL "https://siv3d.jp/downloads/Siv3D/siv3d_v${SIV3D_VERSION}_macOS.zip")
+set(SIV3D_MACOS_ZIP_SHA256
+    "0950fc93b9cf0ed9e0e47a3b360db8759515f98baaa86a42556369ecfcbcf365")
 
 # Download and extract Siv3D SDK
 
 if(NOT SIV3D_EXTRACTED)
-    set(SIV3D_MACOS_TEMP_ZIP_PATH "${SIV3D_DOWNLOAD_DIR}/macos_${SIV3D_VERSION}.zip")
-    set(SIV3D_MACOS_TEMP_INNER_DIR "${SIV3D_DOWNLOAD_DIR}/siv3d_v${SIV3D_VERSION}_macOS")
+    _siv3d_download(
+        "${SIV3D_MACOS_ZIP_URL}"
+        "${SIV3D_MACOS_ZIP_PATH}"
+        "${SIV3D_MACOS_ZIP_SHA256}"
+    )
+    _siv3d_extract_archive("${SIV3D_MACOS_ZIP_PATH}" "${SIV3D_MACOS_EXTRACT_DIR}")
 
-    # 一時ディレクトリを作成
-    file(MAKE_DIRECTORY "${SIV3D_DOWNLOAD_DIR}")
-
-    # ZIPファイルのダウンロード
-    if(NOT EXISTS "${SIV3D_MACOS_TEMP_ZIP_PATH}")
-        message(STATUS "Downloading Siv3D SDK from: ${SIV3D_MACOS_ZIP_URL}")
-        file(DOWNLOAD
-            "${SIV3D_MACOS_ZIP_URL}"
-            "${SIV3D_MACOS_TEMP_ZIP_PATH}"
-            SHOW_PROGRESS
-            TLS_VERIFY ON
-            STATUS download_status
-        )
-        list(GET download_status 0 status_code)
-        if(NOT status_code EQUAL 0)
-            list(GET download_status 1 error_message)
-        message(FATAL_ERROR "Failed to download ZIP file: ${error_message}")
-        endif()
-    endif()
-
-    # ZIPファイルの展開
-    message(STATUS "Extracting Siv3D SDK")
-
-    if(NOT EXISTS "${SIV3D_MACOS_TEMP_INNER_DIR}")
-    execute_process(
-        COMMAND unzip -q "${SIV3D_MACOS_TEMP_ZIP_PATH}" -d "${SIV3D_DOWNLOAD_DIR}"
-        RESULT_VARIABLE unzip_result
-        OUTPUT_QUIET
-        ERROR_QUIET
-        )
-        if(NOT unzip_result EQUAL 0)
-            message(FATAL_ERROR "Failed to extract ZIP file: ${unzip_result}")
-        endif()
-    endif()
-
-    file(COPY "${SIV3D_MACOS_TEMP_INNER_DIR}/lib/macOS/" DESTINATION "${SIV3D_LIB_DIR}")
-    file(COPY "${SIV3D_MACOS_TEMP_INNER_DIR}/include/" DESTINATION "${SIV3D_INCLUDE_DIR}")
-    file(COPY "${SIV3D_MACOS_TEMP_INNER_DIR}/examples/empty/App/engine"
+    file(COPY "${SIV3D_MACOS_EXTRACTED_ROOT}/lib/macOS/" DESTINATION "${SIV3D_LIB_DIR}")
+    file(COPY "${SIV3D_MACOS_EXTRACTED_ROOT}/include/" DESTINATION "${SIV3D_INCLUDE_DIR}")
+    file(COPY "${SIV3D_MACOS_EXTRACTED_ROOT}/examples/empty/App/engine"
         DESTINATION "${SIV3D_RUNTIME_RESOURCES_PATH}")
 endif()
+
+if(NOT EXISTS "${SIV3D_INCLUDE_DIR}/Siv3D.hpp"
+    OR NOT EXISTS "${SIV3D_LIB_DIR}/libSiv3D.a"
+    OR NOT IS_DIRECTORY "${SIV3D_RUNTIME_RESOURCES_PATH}/engine")
+    message(FATAL_ERROR "The macOS Siv3D SDK installation is incomplete: ${SIV3D_ROOT}")
+endif()
+
+file(REMOVE "${SIV3D_MACOS_ZIP_PATH}")
+file(REMOVE_RECURSE
+    "${SIV3D_MACOS_EXTRACT_DIR}"
+    "${SIV3D_DOWNLOAD_DIR}/siv3d_v${SIV3D_VERSION}_macOS"
+)
 
 # Setup Siv3D::Siv3D target
 

@@ -5,6 +5,16 @@ set(SIV3D_INCLUDE_DIR "${SIV3D_ROOT}/include")
 set(SIV3D_LIB_DIR "${SIV3D_ROOT}/lib/Windows")
 set(SIV3D_RUNTIME_RESOURCES_PATH "${SIV3D_ROOT}/runtime")
 set(SIV3D_DOWNLOAD_DIR "${SIV3D_SDK_CACHE_DIR}/downloads")
+set(SIV3D_WINDOWS_SDK_ZIP_PATH
+    "${SIV3D_DOWNLOAD_DIR}/windows_sdk_${SIV3D_VERSION}.zip")
+set(SIV3D_WINDOWS_SDK_EXTRACT_DIR
+    "${SIV3D_DOWNLOAD_DIR}/windows_sdk_${SIV3D_VERSION}")
+set(SIV3D_WINDOWS_SDK_EXTRACTED_ROOT
+    "${SIV3D_WINDOWS_SDK_EXTRACT_DIR}/OpenSiv3D_SDK_${SIV3D_VERSION}")
+set(SIV3D_WINDOWS_TEMPLATE_ZIP_PATH
+    "${SIV3D_DOWNLOAD_DIR}/windows_template_${SIV3D_VERSION}.zip")
+set(SIV3D_WINDOWS_TEMPLATE_EXTRACT_DIR
+    "${SIV3D_DOWNLOAD_DIR}/windows_template_${SIV3D_VERSION}")
 set(SIV3D_EXTRACTED FALSE)
 if(EXISTS "${SIV3D_INCLUDE_DIR}/Siv3D.hpp"
     AND EXISTS "${SIV3D_LIB_DIR}/Siv3D.lib"
@@ -14,91 +24,59 @@ if(EXISTS "${SIV3D_INCLUDE_DIR}/Siv3D.hpp"
 endif()
 
 set(SIV3D_WINDOWS_ZIP_URL "https://siv3d.jp/downloads/Siv3D/manual/${SIV3D_VERSION}/OpenSiv3D_SDK_${SIV3D_VERSION}.zip")
-set(SIV3D_SOURCE_ARCHIVE_URL
-    "https://github.com/Siv3D/OpenSiv3D/archive/refs/tags/v${SIV3D_VERSION}.tar.gz")
+set(SIV3D_WINDOWS_ZIP_SHA256
+    "5819af501b3589d5bdd8052a97688af19a854c6a0af7d7f5bc70ae2a1975fcdd")
+set(SIV3D_WINDOWS_TEMPLATE_ZIP_URL
+    "https://siv3d.jp/downloads/Siv3D/manual/${SIV3D_VERSION}/OpenSiv3D_${SIV3D_VERSION}.zip")
+set(SIV3D_WINDOWS_TEMPLATE_ZIP_SHA256
+    "10c2707b37338c407fc11c28119e5da0ea232ed4cf09438a2b4bc90f75583ea0")
 
 enable_language(RC)
 
 # Download and extract Siv3D SDK
 
 if(NOT SIV3D_EXTRACTED)
-    set(SIV3D_WINDOWS_TEMP_ZIP_PATH "${SIV3D_DOWNLOAD_DIR}/windows_${SIV3D_VERSION}.zip")
-    set(SIV3D_WINDOWS_TEMP_INNER_DIR "${SIV3D_DOWNLOAD_DIR}/OpenSiv3D_SDK_${SIV3D_VERSION}")
+    _siv3d_download(
+        "${SIV3D_WINDOWS_ZIP_URL}"
+        "${SIV3D_WINDOWS_SDK_ZIP_PATH}"
+        "${SIV3D_WINDOWS_ZIP_SHA256}"
+    )
+    _siv3d_download(
+        "${SIV3D_WINDOWS_TEMPLATE_ZIP_URL}"
+        "${SIV3D_WINDOWS_TEMPLATE_ZIP_PATH}"
+        "${SIV3D_WINDOWS_TEMPLATE_ZIP_SHA256}"
+    )
+    _siv3d_extract_archive(
+        "${SIV3D_WINDOWS_SDK_ZIP_PATH}"
+        "${SIV3D_WINDOWS_SDK_EXTRACT_DIR}"
+    )
+    _siv3d_extract_archive(
+        "${SIV3D_WINDOWS_TEMPLATE_ZIP_PATH}"
+        "${SIV3D_WINDOWS_TEMPLATE_EXTRACT_DIR}"
+    )
 
-    # 一時ディレクトリを作成
-    file(MAKE_DIRECTORY "${SIV3D_DOWNLOAD_DIR}")
-
-    # ZIPファイルのダウンロード
-    if(NOT EXISTS "${SIV3D_WINDOWS_TEMP_ZIP_PATH}")
-        message(STATUS "Downloading Siv3D SDK from: ${SIV3D_WINDOWS_ZIP_URL}")
-        file(DOWNLOAD
-            "${SIV3D_WINDOWS_ZIP_URL}"
-            "${SIV3D_WINDOWS_TEMP_ZIP_PATH}"
-            SHOW_PROGRESS
-            TLS_VERIFY ON
-            STATUS download_status
-        )
-        list(GET download_status 0 status_code)
-        if(NOT status_code EQUAL 0)
-            list(GET download_status 1 error_message)
-            message(FATAL_ERROR "Failed to download ZIP file: ${error_message}")
-        endif()
-    endif()
-
-    # ZIPファイルの展開
-    message(STATUS "Extracting Siv3D SDK")
-
-    if(NOT EXISTS "${SIV3D_WINDOWS_TEMP_INNER_DIR}")
-        execute_process(
-            COMMAND powershell -NoProfile -ExecutionPolicy Bypass -Command
-                "Expand-Archive -LiteralPath '${SIV3D_WINDOWS_TEMP_ZIP_PATH}' -DestinationPath '${SIV3D_DOWNLOAD_DIR}' -Force"
-            RESULT_VARIABLE extract_result
-            OUTPUT_QUIET
-            ERROR_VARIABLE extract_error
-        )
-        if(NOT extract_result EQUAL 0)
-            message(FATAL_ERROR "Failed to extract ZIP file: ${extract_result}\n${extract_error}")
-        endif()
-    endif()
-
-    file(COPY "${SIV3D_WINDOWS_TEMP_INNER_DIR}/lib/Windows/" DESTINATION "${SIV3D_LIB_DIR}")
-    file(COPY "${SIV3D_WINDOWS_TEMP_INNER_DIR}/include/" DESTINATION "${SIV3D_INCLUDE_DIR}")
-
-    set(SIV3D_SOURCE_ARCHIVE_PATH
-        "${SIV3D_DOWNLOAD_DIR}/OpenSiv3D_${SIV3D_VERSION}.tar.gz")
-    set(SIV3D_SOURCE_EXTRACT_DIR "${SIV3D_DOWNLOAD_DIR}/source_${SIV3D_VERSION}")
-    set(SIV3D_SOURCE_ROOT "${SIV3D_SOURCE_EXTRACT_DIR}/OpenSiv3D-${SIV3D_VERSION}")
-
-    if(NOT EXISTS "${SIV3D_SOURCE_ARCHIVE_PATH}")
-        message(STATUS "Downloading Siv3D runtime resources from: ${SIV3D_SOURCE_ARCHIVE_URL}")
-        file(DOWNLOAD
-            "${SIV3D_SOURCE_ARCHIVE_URL}"
-            "${SIV3D_SOURCE_ARCHIVE_PATH}"
-            SHOW_PROGRESS
-            TLS_VERIFY ON
-            STATUS source_download_status
-        )
-        list(GET source_download_status 0 source_status_code)
-        if(NOT source_status_code EQUAL 0)
-            list(GET source_download_status 1 source_error_message)
-            message(FATAL_ERROR
-                "Failed to download Siv3D runtime resources: ${source_error_message}")
-        endif()
-    endif()
-
-    if(NOT IS_DIRECTORY "${SIV3D_SOURCE_ROOT}/WindowsDesktop/App/engine")
-        file(MAKE_DIRECTORY "${SIV3D_SOURCE_EXTRACT_DIR}")
-        file(ARCHIVE_EXTRACT
-            INPUT "${SIV3D_SOURCE_ARCHIVE_PATH}"
-            DESTINATION "${SIV3D_SOURCE_EXTRACT_DIR}"
-        )
-    endif()
-
-    file(COPY "${SIV3D_SOURCE_ROOT}/WindowsDesktop/App/engine"
+    file(COPY "${SIV3D_WINDOWS_SDK_EXTRACTED_ROOT}/lib/Windows/"
+        DESTINATION "${SIV3D_LIB_DIR}")
+    file(COPY "${SIV3D_WINDOWS_SDK_EXTRACTED_ROOT}/include/"
+        DESTINATION "${SIV3D_INCLUDE_DIR}")
+    file(COPY "${SIV3D_WINDOWS_TEMPLATE_EXTRACT_DIR}/App/engine"
         DESTINATION "${SIV3D_RUNTIME_RESOURCES_PATH}")
-    file(COPY "${SIV3D_SOURCE_ROOT}/WindowsDesktop/App/dll"
+    file(COPY "${SIV3D_WINDOWS_TEMPLATE_EXTRACT_DIR}/App/dll"
         DESTINATION "${SIV3D_RUNTIME_RESOURCES_PATH}")
 endif()
+
+if(NOT EXISTS "${SIV3D_INCLUDE_DIR}/Siv3D.hpp"
+    OR NOT EXISTS "${SIV3D_LIB_DIR}/Siv3D.lib"
+    OR NOT IS_DIRECTORY "${SIV3D_RUNTIME_RESOURCES_PATH}/engine"
+    OR NOT IS_DIRECTORY "${SIV3D_RUNTIME_RESOURCES_PATH}/dll")
+    message(FATAL_ERROR "The Windows Siv3D SDK installation is incomplete: ${SIV3D_ROOT}")
+endif()
+
+file(REMOVE "${SIV3D_WINDOWS_SDK_ZIP_PATH}" "${SIV3D_WINDOWS_TEMPLATE_ZIP_PATH}")
+file(REMOVE_RECURSE
+    "${SIV3D_WINDOWS_SDK_EXTRACT_DIR}"
+    "${SIV3D_WINDOWS_TEMPLATE_EXTRACT_DIR}"
+)
 
 # Setup Siv3D::Siv3D target
 
@@ -195,7 +173,7 @@ function(_siv3d_platform_add_resources target resource_paths resource_types reso
     set_target_properties(${target} PROPERTIES
         RESOURCE "${resource_paths}"
     )
-    
+
     set(generated_rc_path "${CMAKE_BINARY_DIR}/${target}_resource.rc")
     set(generated_rc_content "# include <Siv3D/Windows/Resource.hpp>\n\n")
 
@@ -206,6 +184,7 @@ function(_siv3d_platform_add_resources target resource_paths resource_types reso
         list(GET resource_relative_paths ${i} resource_relpath)
 
         if(resource_type STREQUAL "EMBED")
+            list(APPEND embed_paths "${resource_abspath}")
             if(resource_relpath STREQUAL "icon.ico")
                 set(generated_rc_content "${generated_rc_content}DefineResource(100, ICON, ${resource_abspath})\n")
             else()
