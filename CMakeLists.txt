@@ -25,7 +25,7 @@ if(CMAKE_EXPORT_COMPILE_COMMANDS)
 endif()
 
 set(SIV3D_VERSION "0.6.16")
-include(siv3d/Siv3D.cmake)
+include(cmake/Siv3D/Siv3D.cmake)
 
 file(GLOB_RECURSE XLAIR_SOURCE_FILES CONFIGURE_DEPENDS
     "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp"
