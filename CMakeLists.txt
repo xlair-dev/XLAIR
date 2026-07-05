@@ -10,7 +10,7 @@ add_executable(XLAIR
     src/XLAIR/DataDirectory.hpp
 )
 
-target_compile_features(XLAIR PRIVATE cxx_std_20)
+target_compile_features(XLAIR PRIVATE cxx_std_23)
 target_link_libraries(XLAIR PRIVATE Siv3D::Siv3D)
 
 set_target_properties(XLAIR PROPERTIES
