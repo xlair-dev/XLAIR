@@ -5,10 +5,12 @@ project(XLAIR VERSION 0.1.0 LANGUAGES CXX)
 set(SIV3D_VERSION "0.6.16")
 include(siv3d/Siv3D.cmake)
 
-add_executable(XLAIR
-    src/Main.cpp
-    src/XLAIR/DataDirectory.hpp
+file(GLOB_RECURSE XLAIR_SOURCE_FILES CONFIGURE_DEPENDS
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/*.hpp"
 )
+
+add_executable(XLAIR ${XLAIR_SOURCE_FILES})
 
 target_compile_features(XLAIR PRIVATE cxx_std_23)
 target_link_libraries(XLAIR PRIVATE Siv3D::Siv3D)
