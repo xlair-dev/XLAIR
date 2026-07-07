@@ -1,14 +1,17 @@
 # include <Siv3D.hpp>
+# include "XLAIR/DataDirectory.hpp"
 
 void Main()
 {
     Scene::SetBackground(ColorF{ 0.18, 0.20, 0.24 });
 
     const Font font{ 28 };
+    const FilePath dataDirectory = xlair::DataDirectory();
 
     while (System::Update())
     {
-        font(U"Siv3D template").draw(40, 40, Palette::White);
+        font(U"XLAIR").draw(40, 40, Palette::White);
         font(U"Edit src/Main.cpp and rebuild").draw(40, 84, Palette::Skyblue);
+        font(U"Data: {}"_fmt(dataDirectory)).draw(40, 128, Palette::Lightgray);
     }
 }

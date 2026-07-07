@@ -1,9 +1,9 @@
 {
-  "name": "Siv3D Template",
+  "name": "XLAIR",
   "dockerComposeFile": [
     "../compose.yml"
   ],
-  "service": "siv3d-app",
+  "service": "xlair",
   "workspaceFolder": "/workspace",
   "remoteUser": "user",
   "overrideCommand": false,

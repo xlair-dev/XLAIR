@@ -1,7 +1,7 @@
 services:
-  siv3d-app:
-    image: ghcr.io/xlair-dev/siv3d-docker-base:latest
-    container_name: siv3d-app
+  xlair:
+    image: ${SIV3D_IMAGE:-ghcr.io/xlair-dev/siv3d-docker-base:latest}
+    platform: linux/amd64
     init: true
     stdin_open: true
     tty: true
