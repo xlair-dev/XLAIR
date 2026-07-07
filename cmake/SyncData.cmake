@@ -1,9 +1,13 @@
+if(NOT DEFINED APP_NAME OR APP_NAME STREQUAL "")
+    set(APP_NAME "Application")
+endif()
+
 if(NOT DEFINED SOURCE_DIR OR NOT IS_DIRECTORY "${SOURCE_DIR}")
-    message(FATAL_ERROR "XLAIR data source directory not found: ${SOURCE_DIR}")
+    message(FATAL_ERROR "${APP_NAME} data source directory not found: ${SOURCE_DIR}")
 endif()
 
 if(NOT DEFINED DESTINATION_DIR OR DESTINATION_DIR STREQUAL "")
-    message(FATAL_ERROR "XLAIR data destination directory is not set")
+    message(FATAL_ERROR "${APP_NAME} data destination directory is not set")
 endif()
 
 file(MAKE_DIRECTORY "${DESTINATION_DIR}")

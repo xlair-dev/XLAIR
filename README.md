@@ -23,7 +23,7 @@ Open the repository in its devcontainer, then configure and build XLAIR inside t
 ```bash
 cmake --preset linux-debug
 cmake --build --preset build-linux-debug
-./build/linux-debug/App/XLAIR
+./build/linux-debug/App/XLAIR/XLAIR
 ```
 
 The same environment can be started without a devcontainer:
@@ -46,7 +46,7 @@ Run the following commands from a Visual Studio Developer PowerShell:
 ```powershell
 cmake --preset windows-debug
 cmake --build --preset build-windows-debug
-./build/windows-debug/App/XLAIR.exe
+./build/windows-debug/App/XLAIR/XLAIR.exe
 ```
 
 ### macOS
@@ -54,7 +54,7 @@ cmake --build --preset build-windows-debug
 ```bash
 cmake --preset macos-debug
 cmake --build --preset build-macos-debug
-open build/macos-debug/App/XLAIR.app
+open build/macos-debug/App/XLAIR/XLAIR.app
 ```
 
 The macOS bundle identifier is `dev.xlair.XLAIR`.
@@ -68,4 +68,10 @@ cmake --preset macos-release
 cmake --build --preset build-macos-release
 ```
 
-Build artifacts are written to `build/<preset>/App/`.
+Build artifacts are written to `build/<preset>/App/<target>/`.
+
+## Project layout
+
+Application targets live under `apps/`. Each application owns its `src/`,
+`data/`, and `resources/` directories. Shared libraries should live under
+`libs/`, and reusable CMake helpers live under `cmake/`.

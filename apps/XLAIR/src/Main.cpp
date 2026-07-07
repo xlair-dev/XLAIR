@@ -11,7 +11,7 @@ void Main()
     while (System::Update())
     {
         font(U"XLAIR").draw(40, 40, Palette::White);
-        font(U"Edit src/Main.cpp and rebuild").draw(40, 84, Palette::Skyblue);
+        font(U"Edit apps/XLAIR/src/Main.cpp and rebuild").draw(40, 84, Palette::Skyblue);
         font(U"Data: {}"_fmt(dataDirectory)).draw(40, 128, Palette::Lightgray);
     }
 }
