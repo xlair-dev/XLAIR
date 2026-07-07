@@ -1,1 +1,1 @@
-# Shared libraries should be added here.
+add_subdirectory(SheetsAnalyzer)

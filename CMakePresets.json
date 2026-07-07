@@ -111,11 +111,11 @@
     }
   ],
   "buildPresets": [
-    { "name": "build-linux-debug", "configurePreset": "linux-debug", "targets": ["XLAIR"] },
-    { "name": "build-linux-release", "configurePreset": "linux-release", "targets": ["XLAIR"] },
-    { "name": "build-macos-debug", "configurePreset": "macos-debug", "targets": ["XLAIR"] },
-    { "name": "build-macos-release", "configurePreset": "macos-release", "targets": ["XLAIR"] },
-    { "name": "build-windows-debug", "configurePreset": "windows-debug", "targets": ["XLAIR"] },
-    { "name": "build-windows-release", "configurePreset": "windows-release", "targets": ["XLAIR"] }
+    { "name": "build-linux-debug", "configurePreset": "linux-debug" },
+    { "name": "build-linux-release", "configurePreset": "linux-release" },
+    { "name": "build-macos-debug", "configurePreset": "macos-debug" },
+    { "name": "build-macos-release", "configurePreset": "macos-release" },
+    { "name": "build-windows-debug", "configurePreset": "windows-debug" },
+    { "name": "build-windows-release", "configurePreset": "windows-release" }
   ]
 }

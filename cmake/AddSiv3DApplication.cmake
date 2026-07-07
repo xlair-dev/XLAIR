@@ -55,7 +55,6 @@ function(xlair_add_siv3d_application target)
 
     add_executable(${target} ${app_source_files})
     target_compile_features(${target} PRIVATE cxx_std_23)
-    target_link_libraries(${target} PRIVATE Siv3D::Siv3D)
 
     set_target_properties(${target} PROPERTIES
         OUTPUT_NAME "${target}"

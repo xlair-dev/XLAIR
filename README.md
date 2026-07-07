@@ -18,7 +18,7 @@ The Siv3D v0.6.16 macOS SDK targets x86_64. Builds run through Rosetta on Apple 
 
 ### Linux
 
-Open the repository in its devcontainer, then configure and build XLAIR inside the container:
+Open the repository in its devcontainer, then configure and build the project inside the container:
 
 ```bash
 cmake --preset linux-debug
@@ -69,6 +69,13 @@ cmake --build --preset build-macos-release
 ```
 
 Build artifacts are written to `build/<preset>/App/<target>/`.
+
+For example, `SheetsViewer` is written to:
+
+```bash
+./build/linux-debug/App/SheetsViewer/SheetsViewer
+open build/macos-debug/App/SheetsViewer/SheetsViewer.app
+```
 
 ## Project layout
 

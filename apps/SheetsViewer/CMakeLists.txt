@@ -1,5 +1,5 @@
-xlair_add_siv3d_application(XLAIR
-    BUNDLE_IDENTIFIER "dev.xlair.XLAIR"
+xlair_add_siv3d_application(SheetsViewer
+    BUNDLE_IDENTIFIER "dev.xlair.SheetsViewer"
     RESOURCE_ENTRIES
         ALL     EMBED "engine/font"
         MACOS   EMBED "engine/lib/soundtouch"
@@ -10,8 +10,6 @@ xlair_add_siv3d_application(XLAIR
         ALL     EMBED "engine/soundfont"
         ALL     EMBED "engine/texture"
         WINDOWS COPY  "dll"
-        MACOS   EMBED "icon.icns"
-        WINDOWS EMBED "icon.ico"
 )
 
-target_link_libraries(XLAIR PRIVATE Siv3D::Siv3D)
+target_link_libraries(SheetsViewer PRIVATE XLAIR::SheetsAnalyzer)
