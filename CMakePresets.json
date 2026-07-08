@@ -111,11 +111,39 @@
     }
   ],
   "buildPresets": [
-    { "name": "build-linux-debug", "configurePreset": "linux-debug", "targets": ["XLAIR"] },
-    { "name": "build-linux-release", "configurePreset": "linux-release", "targets": ["XLAIR"] },
-    { "name": "build-macos-debug", "configurePreset": "macos-debug", "targets": ["XLAIR"] },
-    { "name": "build-macos-release", "configurePreset": "macos-release", "targets": ["XLAIR"] },
-    { "name": "build-windows-debug", "configurePreset": "windows-debug", "targets": ["XLAIR"] },
-    { "name": "build-windows-release", "configurePreset": "windows-release", "targets": ["XLAIR"] }
+    { "name": "build-linux-debug-base", "hidden": true, "configurePreset": "linux-debug" },
+    { "name": "build-linux-release-base", "hidden": true, "configurePreset": "linux-release" },
+    { "name": "build-macos-debug-base", "hidden": true, "configurePreset": "macos-debug" },
+    { "name": "build-macos-release-base", "hidden": true, "configurePreset": "macos-release" },
+    { "name": "build-windows-debug-base", "hidden": true, "configurePreset": "windows-debug" },
+    { "name": "build-windows-release-base", "hidden": true, "configurePreset": "windows-release" },
+
+    { "name": "build-linux-debug", "displayName": "Build all (Linux Debug)", "inherits": "build-linux-debug-base" },
+    { "name": "build-linux-release", "displayName": "Build all (Linux Release)", "inherits": "build-linux-release-base" },
+    { "name": "build-macos-debug", "displayName": "Build all (macOS Debug)", "inherits": "build-macos-debug-base" },
+    { "name": "build-macos-release", "displayName": "Build all (macOS Release)", "inherits": "build-macos-release-base" },
+    { "name": "build-windows-debug", "displayName": "Build all (Windows Debug)", "inherits": "build-windows-debug-base" },
+    { "name": "build-windows-release", "displayName": "Build all (Windows Release)", "inherits": "build-windows-release-base" },
+
+    { "name": "build-xlair-linux-debug", "displayName": "Build XLAIR (Linux Debug)", "inherits": "build-linux-debug-base", "targets": ["XLAIR"] },
+    { "name": "build-xlair-linux-release", "displayName": "Build XLAIR (Linux Release)", "inherits": "build-linux-release-base", "targets": ["XLAIR"] },
+    { "name": "build-xlair-macos-debug", "displayName": "Build XLAIR (macOS Debug)", "inherits": "build-macos-debug-base", "targets": ["XLAIR"] },
+    { "name": "build-xlair-macos-release", "displayName": "Build XLAIR (macOS Release)", "inherits": "build-macos-release-base", "targets": ["XLAIR"] },
+    { "name": "build-xlair-windows-debug", "displayName": "Build XLAIR (Windows Debug)", "inherits": "build-windows-debug-base", "targets": ["XLAIR"] },
+    { "name": "build-xlair-windows-release", "displayName": "Build XLAIR (Windows Release)", "inherits": "build-windows-release-base", "targets": ["XLAIR"] },
+
+    { "name": "build-sheets-viewer-linux-debug", "displayName": "Build SheetsViewer (Linux Debug)", "inherits": "build-linux-debug-base", "targets": ["SheetsViewer"] },
+    { "name": "build-sheets-viewer-linux-release", "displayName": "Build SheetsViewer (Linux Release)", "inherits": "build-linux-release-base", "targets": ["SheetsViewer"] },
+    { "name": "build-sheets-viewer-macos-debug", "displayName": "Build SheetsViewer (macOS Debug)", "inherits": "build-macos-debug-base", "targets": ["SheetsViewer"] },
+    { "name": "build-sheets-viewer-macos-release", "displayName": "Build SheetsViewer (macOS Release)", "inherits": "build-macos-release-base", "targets": ["SheetsViewer"] },
+    { "name": "build-sheets-viewer-windows-debug", "displayName": "Build SheetsViewer (Windows Debug)", "inherits": "build-windows-debug-base", "targets": ["SheetsViewer"] },
+    { "name": "build-sheets-viewer-windows-release", "displayName": "Build SheetsViewer (Windows Release)", "inherits": "build-windows-release-base", "targets": ["SheetsViewer"] },
+
+    { "name": "build-sheets-analyzer-linux-debug", "displayName": "Build SheetsAnalyzer (Linux Debug)", "inherits": "build-linux-debug-base", "targets": ["SheetsAnalyzer"] },
+    { "name": "build-sheets-analyzer-linux-release", "displayName": "Build SheetsAnalyzer (Linux Release)", "inherits": "build-linux-release-base", "targets": ["SheetsAnalyzer"] },
+    { "name": "build-sheets-analyzer-macos-debug", "displayName": "Build SheetsAnalyzer (macOS Debug)", "inherits": "build-macos-debug-base", "targets": ["SheetsAnalyzer"] },
+    { "name": "build-sheets-analyzer-macos-release", "displayName": "Build SheetsAnalyzer (macOS Release)", "inherits": "build-macos-release-base", "targets": ["SheetsAnalyzer"] },
+    { "name": "build-sheets-analyzer-windows-debug", "displayName": "Build SheetsAnalyzer (Windows Debug)", "inherits": "build-windows-debug-base", "targets": ["SheetsAnalyzer"] },
+    { "name": "build-sheets-analyzer-windows-release", "displayName": "Build SheetsAnalyzer (Windows Release)", "inherits": "build-windows-release-base", "targets": ["SheetsAnalyzer"] }
   ]
 }

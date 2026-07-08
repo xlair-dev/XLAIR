@@ -8,6 +8,14 @@
       "args": {
         "targetName": "XLAIR"
       }
+    },
+    {
+      "id": "sheetsViewerTargetPath",
+      "type": "command",
+      "command": "cmake.launchTargetPath",
+      "args": {
+        "targetName": "SheetsViewer"
+      }
     }
   ],
   "configurations": [
@@ -16,6 +24,15 @@
       "type": "lldb",
       "request": "launch",
       "program": "${input:xlairTargetPath}",
+      "args": [],
+      "cwd": "${workspaceFolder}",
+      "terminal": "integrated"
+    },
+    {
+      "name": "Debug SheetsViewer",
+      "type": "lldb",
+      "request": "launch",
+      "program": "${input:sheetsViewerTargetPath}",
       "args": [],
       "cwd": "${workspaceFolder}",
       "terminal": "integrated"
