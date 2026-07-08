@@ -70,6 +70,17 @@ cmake --build --preset build-macos-release
 
 Build artifacts are written to `build/<preset>/App/<target>/`.
 
+The root CMake project acts as the task runner for this monorepo. Configure once
+per platform/configuration, then build either all targets or a single target:
+
+```bash
+cmake --preset macos-debug
+cmake --build --preset build-macos-debug
+cmake --build --preset build-xlair-macos-debug
+cmake --build --preset build-sheets-viewer-macos-debug
+cmake --build --preset build-sheets-analyzer-macos-debug
+```
+
 For example, `SheetsViewer` is written to:
 
 ```bash
