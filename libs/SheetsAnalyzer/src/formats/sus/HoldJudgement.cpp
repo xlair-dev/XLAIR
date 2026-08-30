@@ -8,13 +8,15 @@ namespace xlair::sheets::formats::sus {
     namespace {
         constexpr std::size_t MaximumJudgePointCount = 1'000'000;
 
-        [[nodiscard]] s3d::int64 RoundSample(const long double sample) {
+        [[nodiscard]]
+        s3d::int64 RoundSample(const long double sample) {
             constexpr auto Minimum = static_cast<long double>(std::numeric_limits<s3d::int64>::min());
             constexpr auto Maximum = static_cast<long double>(std::numeric_limits<s3d::int64>::max());
             return static_cast<s3d::int64>(s3d::Clamp(std::round(sample), Minimum, Maximum));
         }
 
-        [[nodiscard]] double BPMAtSample(const s3d::Array<TempoChange>& tempo_changes, const long double sample) {
+        [[nodiscard]]
+        double BPMAtSample(const s3d::Array<TempoChange>& tempo_changes, const long double sample) {
             const auto change = std::upper_bound(tempo_changes.begin(), tempo_changes.end(), sample,
                                                  [](const long double value, const TempoChange& candidate) {
                                                      return value < candidate.sample;
@@ -22,8 +24,9 @@ namespace xlair::sheets::formats::sus {
             return (change == tempo_changes.begin() ? change : std::prev(change))->bpm;
         }
 
-        [[nodiscard]] s3d::int64 NextJudgeSample(const s3d::int64 current_sample, const s3d::int64 sample_rate,
-                                                 const s3d::Array<TempoChange>& tempo_changes) {
+        [[nodiscard]]
+        s3d::int64 NextJudgeSample(const s3d::int64 current_sample, const s3d::int64 sample_rate,
+                                   const s3d::Array<TempoChange>& tempo_changes) {
             long double cursor = current_sample;
             const double current_bpm = BPMAtSample(tempo_changes, cursor);
             const long double division = current_bpm < 120.0 ? 4.0L : (current_bpm < 240.0 ? 2.0L : 1.0L);

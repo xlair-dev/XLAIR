@@ -5,7 +5,9 @@
 #include "SheetsAnalyzer/Metadata.hpp"
 
 namespace xlair::sheets::metadata {
-    [[nodiscard]] Result<Metadata> Load(const s3d::FilePath& path);
+    [[nodiscard]]
+    Result<Metadata> Load(const s3d::FilePath& path);
 
-    [[nodiscard]] Result<s3d::Array<Metadata>> Scan(const s3d::FilePath& directory);
+    [[nodiscard]]
+    Result<s3d::Array<Metadata>> Scan(const s3d::FilePath& directory);
 }

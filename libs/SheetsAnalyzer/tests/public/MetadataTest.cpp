@@ -3,11 +3,13 @@
 #include <SheetsAnalyzer.hpp>
 
 namespace {
-    [[nodiscard]] s3d::FilePath MetadataFixture(const s3d::StringView path) {
+    [[nodiscard]]
+    s3d::FilePath MetadataFixture(const s3d::StringView path) {
         return XLAIR_SHEETS_ANALYZER_TEST_FIXTURE_DIR U"metadata/" + path;
     }
 
-    [[nodiscard]] std::string FirstDiagnostic(const xlair::sheets::Result<xlair::sheets::Metadata>& result) {
+    [[nodiscard]]
+    std::string FirstDiagnostic(const xlair::sheets::Result<xlair::sheets::Metadata>& result) {
         return result.diagnostics.isEmpty() ? std::string{} : result.diagnostics.front().message.narrow();
     }
 }

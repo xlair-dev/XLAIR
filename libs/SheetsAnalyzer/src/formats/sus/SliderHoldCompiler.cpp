@@ -39,7 +39,8 @@ namespace xlair::sheets::formats::sus {
         using TimelineLookup = s3d::HashTable<TimelineId, TimelineIndex>;
         using ActiveHolds = s3d::HashTable<ChannelId, HoldBuilder>;
 
-        [[nodiscard]] bool PositionComesBefore(const Position& left, const Position& right) {
+        [[nodiscard]]
+        bool PositionComesBefore(const Position& left, const Position& right) {
             if (left.measure != right.measure) {
                 return left.measure < right.measure;
             }
@@ -50,8 +51,9 @@ namespace xlair::sheets::formats::sus {
                    (static_cast<s3d::uint64>(right.numerator) * left_denominator);
         }
 
-        [[nodiscard]] s3d::Optional<TimelineIndex> ResolveTimeline(const s3d::Optional<TimelineId>& source,
-                                                                   const TimelineLookup& lookup) {
+        [[nodiscard]]
+        s3d::Optional<TimelineIndex> ResolveTimeline(const s3d::Optional<TimelineId>& source,
+                                                     const TimelineLookup& lookup) {
             if (!source) {
                 return 0;
             }
@@ -63,15 +65,16 @@ namespace xlair::sheets::formats::sus {
             return timeline->second;
         }
 
-        [[nodiscard]] ::xlair::sheets::LaneSpan ToChartLane(const LaneSpan lane) {
+        [[nodiscard]]
+        ::xlair::sheets::LaneSpan ToChartLane(const LaneSpan lane) {
             return {
                 .start = lane.start,
                 .width = lane.width,
             };
         }
 
-        [[nodiscard]] s3d::Optional<::xlair::sheets::SliderHoldPointKind>
-        ToChartAnchorKind(const SliderHoldPointKind kind) {
+        [[nodiscard]]
+        s3d::Optional<::xlair::sheets::SliderHoldPointKind> ToChartAnchorKind(const SliderHoldPointKind kind) {
             switch (kind) {
                 case SliderHoldPointKind::Start:
                     return ::xlair::sheets::SliderHoldPointKind::Start;
@@ -88,19 +91,21 @@ namespace xlair::sheets::formats::sus {
             return s3d::none;
         }
 
-        [[nodiscard]] long double CenterLane(const ::xlair::sheets::LaneSpan lane) {
+        [[nodiscard]]
+        long double CenterLane(const ::xlair::sheets::LaneSpan lane) {
             return static_cast<long double>(lane.start) + (static_cast<long double>(lane.width) / 2.0L);
         }
 
-        [[nodiscard]] CurveCoordinate ToCurveCoordinate(const SourcePoint& point) {
+        [[nodiscard]]
+        CurveCoordinate ToCurveCoordinate(const SourcePoint& point) {
             return {
                 .sample = static_cast<long double>(point.sample),
                 .center_lane = CenterLane(point.lane),
             };
         }
 
-        [[nodiscard]] CurveCoordinate EvaluateBezier(const s3d::Array<CurveCoordinate>& control_points,
-                                                     const long double t) {
+        [[nodiscard]]
+        CurveCoordinate EvaluateBezier(const s3d::Array<CurveCoordinate>& control_points, const long double t) {
             auto work = control_points;
             for (std::size_t remaining = work.size(); remaining > 1; --remaining) {
                 for (std::size_t index = 0; index + 1 < remaining; ++index) {
@@ -111,13 +116,15 @@ namespace xlair::sheets::formats::sus {
             return work.front();
         }
 
-        [[nodiscard]] s3d::int64 RoundSample(const long double sample) {
+        [[nodiscard]]
+        s3d::int64 RoundSample(const long double sample) {
             constexpr auto Minimum = static_cast<long double>(std::numeric_limits<s3d::int64>::min());
             constexpr auto Maximum = static_cast<long double>(std::numeric_limits<s3d::int64>::max());
             return static_cast<s3d::int64>(s3d::Clamp(std::round(sample), Minimum, Maximum));
         }
 
-        [[nodiscard]] ::xlair::sheets::LaneSpan QuantizeLane(const long double center_lane, const long double width) {
+        [[nodiscard]]
+        ::xlair::sheets::LaneSpan QuantizeLane(const long double center_lane, const long double width) {
             const long double left_edge = center_lane - (width / 2.0L);
             const long double right_edge = center_lane + (width / 2.0L);
             const auto left =
@@ -130,7 +137,8 @@ namespace xlair::sheets::formats::sus {
             };
         }
 
-        [[nodiscard]] long double ParameterAtSample(const CurveSegment& segment, const s3d::int64 sample) {
+        [[nodiscard]]
+        long double ParameterAtSample(const CurveSegment& segment, const s3d::int64 sample) {
             const long double first_sample = segment.control_points.front().sample;
             const long double last_sample = segment.control_points.back().sample;
             if (sample <= first_sample) {
@@ -155,7 +163,8 @@ namespace xlair::sheets::formats::sus {
             return (lower + upper) / 2.0L;
         }
 
-        [[nodiscard]] ::xlair::sheets::LaneSpan LaneAtSample(const CurveSegment& segment, const s3d::int64 sample) {
+        [[nodiscard]]
+        ::xlair::sheets::LaneSpan LaneAtSample(const CurveSegment& segment, const s3d::int64 sample) {
             const long double t = ParameterAtSample(segment, sample);
             const auto coordinate = EvaluateBezier(segment.control_points, t);
             const long double segment_duration =
@@ -166,8 +175,8 @@ namespace xlair::sheets::formats::sus {
             return QuantizeLane(coordinate.center_lane, width);
         }
 
-        [[nodiscard]] Result<std::size_t> CurveSubdivisionCount(const CurveSegment& segment,
-                                                                const s3d::int64 sample_rate) {
+        [[nodiscard]]
+        Result<std::size_t> CurveSubdivisionCount(const CurveSegment& segment, const s3d::int64 sample_rate) {
             const long double duration_samples =
                 segment.control_points.back().sample - segment.control_points.front().sample;
             if (duration_samples <= 0.0L) {
@@ -184,8 +193,9 @@ namespace xlair::sheets::formats::sus {
             return Result<std::size_t>{ static_cast<std::size_t>(s3d::Max(subdivisions, 2.0L)) };
         }
 
-        [[nodiscard]] Result<SliderHold> BuildHold(const HoldBuilder& builder, const s3d::int64 sample_rate,
-                                                   const s3d::Array<TempoChange>& tempo_changes) {
+        [[nodiscard]]
+        Result<SliderHold> BuildHold(const HoldBuilder& builder, const s3d::int64 sample_rate,
+                                     const s3d::Array<TempoChange>& tempo_changes) {
             SliderHold hold;
             s3d::Array<CurveSegment> curve_segments;
             s3d::Array<CurveCoordinate> pending_control_points;

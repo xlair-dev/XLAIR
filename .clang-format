@@ -17,6 +17,7 @@ IndentPPDirectives: None
 
 BreakBeforeBraces: Attach
 BreakConstructorInitializers: BeforeColon
+BreakAfterAttributes: Always
 AllowShortBlocksOnASingleLine: Never
 AllowShortFunctionsOnASingleLine: Empty
 AllowShortIfStatementsOnASingleLine: Never

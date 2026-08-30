@@ -13,11 +13,15 @@ namespace xlair::sheets::formats::sus {
 
     class TimingMap {
     public:
-        [[nodiscard]] static Result<TimingMap> Build(const Document& document, const TimingOptions& options);
+        [[nodiscard]]
+        static Result<TimingMap> Build(const Document& document, const TimingOptions& options);
 
-        [[nodiscard]] s3d::int64 toSample(const Position& position) const;
-        [[nodiscard]] s3d::int64 toSample(const TickPosition& position) const;
-        [[nodiscard]] double bpmAt(const Position& position) const;
+        [[nodiscard]]
+        s3d::int64 toSample(const Position& position) const;
+        [[nodiscard]]
+        s3d::int64 toSample(const TickPosition& position) const;
+        [[nodiscard]]
+        double bpmAt(const Position& position) const;
 
     private:
         struct MeasureSegment {
@@ -34,11 +38,16 @@ namespace xlair::sheets::formats::sus {
 
         TimingMap(s3d::int64 sample_rate, s3d::uint32 ticks_per_beat, long double offset_samples);
 
-        [[nodiscard]] const MeasureSegment& measureSegmentAt(s3d::uint32 measure) const;
-        [[nodiscard]] const Segment& segmentAt(long double beat) const;
-        [[nodiscard]] s3d::int64 sampleAt(long double beat) const;
-        [[nodiscard]] long double absoluteBeat(const Position& position) const;
-        [[nodiscard]] long double absoluteBeat(const TickPosition& position) const;
+        [[nodiscard]]
+        const MeasureSegment& measureSegmentAt(s3d::uint32 measure) const;
+        [[nodiscard]]
+        const Segment& segmentAt(long double beat) const;
+        [[nodiscard]]
+        s3d::int64 sampleAt(long double beat) const;
+        [[nodiscard]]
+        long double absoluteBeat(const Position& position) const;
+        [[nodiscard]]
+        long double absoluteBeat(const TickPosition& position) const;
 
         s3d::int64 m_sample_rate = 44'100;
         s3d::uint32 m_ticks_per_beat = 480;

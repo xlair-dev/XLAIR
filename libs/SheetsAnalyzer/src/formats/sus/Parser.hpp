@@ -6,7 +6,9 @@
 #include "Document.hpp"
 
 namespace xlair::sheets::formats::sus {
-    [[nodiscard]] Result<Document> Parse(const s3d::FilePath& path);
+    [[nodiscard]]
+    Result<Document> Parse(const s3d::FilePath& path);
 
-    [[nodiscard]] Result<Document> ParseText(s3d::StringView text, const s3d::FilePath& path = U"");
+    [[nodiscard]]
+    Result<Document> ParseText(s3d::StringView text, const s3d::FilePath& path = U"");
 }

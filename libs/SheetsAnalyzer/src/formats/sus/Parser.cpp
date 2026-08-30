@@ -57,7 +57,8 @@ namespace xlair::sheets::formats::sus {
             }
         }
 
-        [[nodiscard]] s3d::Optional<std::size_t> ArgumentColumn(const CommandLine& command) {
+        [[nodiscard]]
+        s3d::Optional<std::size_t> ArgumentColumn(const CommandLine& command) {
             if (command.argument_column == 0) {
                 return s3d::none;
             }
@@ -65,7 +66,8 @@ namespace xlair::sheets::formats::sus {
             return command.argument_column;
         }
 
-        [[nodiscard]] s3d::Optional<s3d::uint32> ParseDecimalUInt32(const s3d::StringView value) {
+        [[nodiscard]]
+        s3d::Optional<s3d::uint32> ParseDecimalUInt32(const s3d::StringView value) {
             if (value.isEmpty() || !s3d::String{ value }.all(s3d::IsDigit)) {
                 return s3d::none;
             }
@@ -73,8 +75,9 @@ namespace xlair::sheets::formats::sus {
             return s3d::ParseIntOpt<s3d::uint32>(value, s3d::Arg::radix = 10);
         }
 
-        [[nodiscard]] s3d::Optional<s3d::uint32> EffectiveMeasure(ParseState& state, const s3d::uint32 measure,
-                                                                  const s3d::FilePath& path, const std::size_t line) {
+        [[nodiscard]]
+        s3d::Optional<s3d::uint32> EffectiveMeasure(ParseState& state, const s3d::uint32 measure,
+                                                    const s3d::FilePath& path, const std::size_t line) {
             if (measure > (std::numeric_limits<s3d::uint32>::max() - state.measure_base)) {
                 AddError(state, U"Measure number exceeds the uint32 range after applying #MEASUREBS.", path, line);
                 return s3d::none;
@@ -83,8 +86,9 @@ namespace xlair::sheets::formats::sus {
             return state.measure_base + measure;
         }
 
-        [[nodiscard]] s3d::Optional<s3d::Array<NoteToken>>
-        ParseNoteTokens(ParseState& state, const DataLine& data, const s3d::FilePath& path, const std::size_t line) {
+        [[nodiscard]]
+        s3d::Optional<s3d::Array<NoteToken>> ParseNoteTokens(ParseState& state, const DataLine& data,
+                                                             const s3d::FilePath& path, const std::size_t line) {
             const auto measure = EffectiveMeasure(state, data.measure, path, line);
             if (!measure) {
                 return s3d::none;
@@ -136,8 +140,9 @@ namespace xlair::sheets::formats::sus {
             return tokens;
         }
 
-        [[nodiscard]] s3d::Optional<s3d::uint8> ParseLane(ParseState& state, const DataLine& data,
-                                                          const s3d::FilePath& path, const std::size_t line) {
+        [[nodiscard]]
+        s3d::Optional<s3d::uint8> ParseLane(ParseState& state, const DataLine& data, const s3d::FilePath& path,
+                                            const std::size_t line) {
             const auto lane = ParseBase36(data.code.substr(1, 1), line, 6, path);
             if (!lane) {
                 AppendDiagnostics(state, lane.diagnostics);
@@ -147,8 +152,9 @@ namespace xlair::sheets::formats::sus {
             return static_cast<s3d::uint8>(*lane);
         }
 
-        [[nodiscard]] s3d::Optional<ChannelId> ParseChannel(ParseState& state, const DataLine& data,
-                                                            const s3d::FilePath& path, const std::size_t line) {
+        [[nodiscard]]
+        s3d::Optional<ChannelId> ParseChannel(ParseState& state, const DataLine& data, const s3d::FilePath& path,
+                                              const std::size_t line) {
             const auto channel = ParseBase36(data.code.substr(2, 1), line, 7, path);
             if (!channel) {
                 AppendDiagnostics(state, channel.diagnostics);
@@ -158,7 +164,8 @@ namespace xlair::sheets::formats::sus {
             return *channel;
         }
 
-        [[nodiscard]] s3d::Optional<SliderNoteKind> ToSliderNoteKind(const s3d::uint32 kind) {
+        [[nodiscard]]
+        s3d::Optional<SliderNoteKind> ToSliderNoteKind(const s3d::uint32 kind) {
             switch (kind) {
                 case 1:
                     return SliderNoteKind::Tap1;
@@ -177,7 +184,8 @@ namespace xlair::sheets::formats::sus {
             }
         }
 
-        [[nodiscard]] s3d::Optional<DirectionalKind> ToDirectionalKind(const s3d::uint32 kind) {
+        [[nodiscard]]
+        s3d::Optional<DirectionalKind> ToDirectionalKind(const s3d::uint32 kind) {
             switch (kind) {
                 case 1:
                     return DirectionalKind::Up;
@@ -196,7 +204,8 @@ namespace xlair::sheets::formats::sus {
             }
         }
 
-        [[nodiscard]] s3d::Optional<SliderHoldPointKind> ToSliderHoldPointKind(const s3d::uint32 kind) {
+        [[nodiscard]]
+        s3d::Optional<SliderHoldPointKind> ToSliderHoldPointKind(const s3d::uint32 kind) {
             switch (kind) {
                 case 1:
                     return SliderHoldPointKind::Start;
@@ -213,7 +222,8 @@ namespace xlair::sheets::formats::sus {
             }
         }
 
-        [[nodiscard]] s3d::Optional<SideLongPointKind> ToSideLongPointKind(const s3d::uint32 kind) {
+        [[nodiscard]]
+        s3d::Optional<SideLongPointKind> ToSideLongPointKind(const s3d::uint32 kind) {
             switch (kind) {
                 case 1:
                     return SideLongPointKind::Start;
@@ -633,7 +643,8 @@ namespace xlair::sheets::formats::sus {
             }
         }
 
-        [[nodiscard]] Result<Document> ParseLines(const s3d::Array<s3d::String>& lines, const s3d::FilePath& path) {
+        [[nodiscard]]
+        Result<Document> ParseLines(const s3d::Array<s3d::String>& lines, const s3d::FilePath& path) {
             ParseState state;
 
             for (std::size_t index = 0; index < lines.size(); ++index) {

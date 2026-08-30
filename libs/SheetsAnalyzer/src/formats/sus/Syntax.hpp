@@ -25,9 +25,10 @@ namespace xlair::sheets::formats::sus {
 
     using ParsedLine = std::variant<IgnoredLine, CommandLine, DataLine>;
 
-    [[nodiscard]] Result<ParsedLine> ParseLine(s3d::StringView line, std::size_t line_number,
-                                               const s3d::FilePath& path = U"");
+    [[nodiscard]]
+    Result<ParsedLine> ParseLine(s3d::StringView line, std::size_t line_number, const s3d::FilePath& path = U"");
 
-    [[nodiscard]] Result<s3d::uint32> ParseBase36(s3d::StringView value, std::size_t line_number, std::size_t column,
-                                                  const s3d::FilePath& path = U"");
+    [[nodiscard]]
+    Result<s3d::uint32> ParseBase36(s3d::StringView value, std::size_t line_number, std::size_t column,
+                                    const s3d::FilePath& path = U"");
 }

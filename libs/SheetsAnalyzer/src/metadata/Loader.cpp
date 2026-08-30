@@ -10,8 +10,9 @@ namespace xlair::sheets::metadata {
     namespace {
         constexpr s3d::int64 SupportedVersion = 1;
 
-        [[nodiscard]] inline s3d::FilePath ResolvePath(const s3d::FilePathView& source_path,
-                                                       const s3d::FilePathView referenced_path) {
+        [[nodiscard]]
+        inline s3d::FilePath ResolvePath(const s3d::FilePathView& source_path,
+                                         const s3d::FilePathView referenced_path) {
             if (referenced_path.isEmpty()) {
                 return U"";
             }
@@ -51,7 +52,8 @@ namespace xlair::sheets::metadata {
             difficulties.push_back(std::move(difficulty));
         }
 
-        [[nodiscard]] Result<Metadata> Validate(Metadata metadata, const s3d::FilePath& path) {
+        [[nodiscard]]
+        Result<Metadata> Validate(Metadata metadata, const s3d::FilePath& path) {
             if (!std::isfinite(metadata.music_offset_seconds) || !std::isfinite(metadata.demo_start_seconds)) {
                 return Result<Metadata>::makeError(U"Metadata time offsets must be finite numbers.", path);
             }
@@ -66,7 +68,8 @@ namespace xlair::sheets::metadata {
             return Result<Metadata>{ std::move(metadata) };
         }
 
-        [[nodiscard]] Result<Metadata> LoadJson(const s3d::FilePath& path) {
+        [[nodiscard]]
+        Result<Metadata> LoadJson(const s3d::FilePath& path) {
             const s3d::JSON json = s3d::JSON::Load(path);
             if (!json) {
                 return Result<Metadata>::makeError(U"Failed to read JSON metadata.", path);
@@ -125,7 +128,8 @@ namespace xlair::sheets::metadata {
             return Validate(std::move(metadata), path);
         }
 
-        [[nodiscard]] Result<Metadata> LoadToml(const s3d::FilePath& path) {
+        [[nodiscard]]
+        Result<Metadata> LoadToml(const s3d::FilePath& path) {
             const s3d::TOMLReader toml{ path };
             if (!toml) {
                 return Result<Metadata>::makeError(U"Failed to read TOML metadata.", path);

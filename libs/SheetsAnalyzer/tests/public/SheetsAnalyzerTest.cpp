@@ -3,11 +3,13 @@
 #include <SheetsAnalyzer.hpp>
 
 namespace {
-    [[nodiscard]] s3d::FilePath SusFixture(const s3d::StringView name) {
+    [[nodiscard]]
+    s3d::FilePath SusFixture(const s3d::StringView name) {
         return XLAIR_SHEETS_ANALYZER_TEST_FIXTURE_DIR U"sus/" + name;
     }
 
-    [[nodiscard]] std::string FirstDiagnostic(const xlair::sheets::Result<xlair::sheets::Chart>& result) {
+    [[nodiscard]]
+    std::string FirstDiagnostic(const xlair::sheets::Result<xlair::sheets::Chart>& result) {
         return result.diagnostics.isEmpty() ? std::string{} : result.diagnostics.front().message.narrow();
     }
 }

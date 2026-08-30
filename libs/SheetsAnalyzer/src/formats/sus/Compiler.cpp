@@ -34,7 +34,8 @@ namespace xlair::sheets::formats::sus {
             s3d::Array<SideHoldPoint> points;
         };
 
-        [[nodiscard]] s3d::Optional<SideButton> ToSideButton(const DirectionalKind direction) {
+        [[nodiscard]]
+        s3d::Optional<SideButton> ToSideButton(const DirectionalKind direction) {
             switch (direction) {
                 case DirectionalKind::LeftUp:
                     return SideButton::LeftUpper;
@@ -52,7 +53,8 @@ namespace xlair::sheets::formats::sus {
             return s3d::none;
         }
 
-        [[nodiscard]] s3d::Optional<::xlair::sheets::SliderNoteKind> ToChartNoteKind(const SliderNoteKind kind) {
+        [[nodiscard]]
+        s3d::Optional<::xlair::sheets::SliderNoteKind> ToChartNoteKind(const SliderNoteKind kind) {
             // XLAIR assigns its three slider-note types to SUS Tap 1 through Tap 3.
             switch (kind) {
                 case SliderNoteKind::Tap1:
@@ -70,15 +72,16 @@ namespace xlair::sheets::formats::sus {
             return s3d::none;
         }
 
-        [[nodiscard]] ::xlair::sheets::LaneSpan ToChartLane(const LaneSpan lane) {
+        [[nodiscard]]
+        ::xlair::sheets::LaneSpan ToChartLane(const LaneSpan lane) {
             return {
                 .start = lane.start,
                 .width = lane.width,
             };
         }
 
-        [[nodiscard]] s3d::Optional<::xlair::sheets::SideHoldPointKind>
-        ToChartSideHoldPointKind(const SideLongPointKind kind) {
+        [[nodiscard]]
+        s3d::Optional<::xlair::sheets::SideHoldPointKind> ToChartSideHoldPointKind(const SideLongPointKind kind) {
             switch (kind) {
                 case SideLongPointKind::Start:
                     return ::xlair::sheets::SideHoldPointKind::Start;
@@ -91,7 +94,8 @@ namespace xlair::sheets::formats::sus {
             return s3d::none;
         }
 
-        [[nodiscard]] bool PositionComesBefore(const Position& left, const Position& right) {
+        [[nodiscard]]
+        bool PositionComesBefore(const Position& left, const Position& right) {
             if (left.measure != right.measure) {
                 return left.measure < right.measure;
             }
@@ -104,8 +108,9 @@ namespace xlair::sheets::formats::sus {
 
         using TimelineLookup = s3d::HashTable<TimelineId, TimelineIndex>;
 
-        [[nodiscard]] s3d::Optional<TimelineIndex> ResolveTimeline(const s3d::Optional<TimelineId>& source,
-                                                                   const TimelineLookup& lookup) {
+        [[nodiscard]]
+        s3d::Optional<TimelineIndex> ResolveTimeline(const s3d::Optional<TimelineId>& source,
+                                                     const TimelineLookup& lookup) {
             if (!source) {
                 return 0;
             }
@@ -131,11 +136,11 @@ namespace xlair::sheets::formats::sus {
         // Chart should describe the physical controls of the game.
         using ActiveSideHolds = s3d::HashTable<ChannelId, SideHoldBuilder>;
 
-        [[nodiscard]] Result<s3d::Array<SideHold>> CompileSideHolds(const s3d::Array<SideLongPoint>& source_points,
-                                                                    const TimingMap& timing,
-                                                                    const TimelineLookup& timeline_lookup,
-                                                                    const s3d::int64 sample_rate,
-                                                                    const s3d::Array<TempoChange>& tempo_changes) {
+        [[nodiscard]]
+        Result<s3d::Array<SideHold>> CompileSideHolds(const s3d::Array<SideLongPoint>& source_points,
+                                                      const TimingMap& timing, const TimelineLookup& timeline_lookup,
+                                                      const s3d::int64 sample_rate,
+                                                      const s3d::Array<TempoChange>& tempo_changes) {
             const auto ordered_points = source_points.stable_sorted_by([](const auto& left, const auto& right) {
                 return PositionComesBefore(left.position, right.position);
             });

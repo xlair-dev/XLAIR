@@ -13,8 +13,10 @@ namespace xlair::sheets::formats::sus {
     };
 
     namespace detail {
-        [[nodiscard]] s3d::Optional<SideButton> SideButtonFromSideLongLane(s3d::uint8 lane);
+        [[nodiscard]]
+        s3d::Optional<SideButton> SideButtonFromSideLongLane(s3d::uint8 lane);
     }
 
-    [[nodiscard]] Result<Chart> Compile(const Document& document, const CompileOptions& options);
+    [[nodiscard]]
+    Result<Chart> Compile(const Document& document, const CompileOptions& options);
 }

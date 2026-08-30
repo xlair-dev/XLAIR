@@ -10,7 +10,8 @@ namespace xlair::sheets::formats::sus {
         constexpr double DefaultBPM = 120.0;
         constexpr long double DefaultBeatsPerMeasure = 4.0L;
 
-        [[nodiscard]] s3d::int64 RoundSample(const long double sample) {
+        [[nodiscard]]
+        s3d::int64 RoundSample(const long double sample) {
             constexpr auto Minimum = static_cast<long double>(std::numeric_limits<s3d::int64>::min());
             constexpr auto Maximum = static_cast<long double>(std::numeric_limits<s3d::int64>::max());
             return static_cast<s3d::int64>(s3d::Clamp(std::round(sample), Minimum, Maximum));
