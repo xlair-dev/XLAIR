@@ -25,3 +25,7 @@ target_link_libraries(SheetsAnalyzer
 set_target_properties(SheetsAnalyzer PROPERTIES
     FOLDER "Libraries"
 )
+
+if(BUILD_TESTING)
+    add_subdirectory(tests)
+endif()

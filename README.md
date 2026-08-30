@@ -88,6 +88,21 @@ For example, `SheetsViewer` is written to:
 open build/macos-debug/App/SheetsViewer/SheetsViewer.app
 ```
 
+## Testing
+
+SheetsAnalyzer uses the Catch2 version bundled with the Siv3D SDK. Configure the
+project, build the test executable, and run it through CTest:
+
+```bash
+cmake --preset macos-debug
+cmake --build --preset build-sheets-analyzer-tests-macos-debug
+ctest --preset test-sheets-analyzer-macos-debug
+```
+
+Replace `macos` with `linux` or `windows` to use the corresponding platform
+preset. Tests are also included in the platform-wide `build-<platform>-<config>`
+presets while `BUILD_TESTING` is enabled.
+
 ## Project layout
 
 Application targets live under `apps/`. Each application owns its `src/`,
