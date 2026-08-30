@@ -53,11 +53,9 @@ TEST_CASE("ParseText resolves BPM definitions declared after their use", "[Sheet
     CHECK(result->bpm_changes.front().definition == 1);
 }
 
-TEST_CASE("ParseText ignores metadata and note data not handled by the timing parser",
-          "[SheetsAnalyzer][SUS][Parser]") {
+TEST_CASE("ParseText ignores metadata outside the parser's current scope", "[SheetsAnalyzer][SUS][Parser]") {
     const auto result = sus::ParseText(UR"(#TITLE "Song"
 #ARTIST "Artist"
-#00010: 14141414
 )",
                                        U"chart.sus");
 
@@ -95,6 +93,125 @@ TEST_CASE("ParseText validates known REQUEST values and ignores unknown requests
         REQUIRE(result);
         CHECK(result->ticks_per_beat == 480);
         CHECK_FALSE(result->priority_enabled);
+    }
+}
+
+TEST_CASE("ParseText builds short and directional notes with the active hispeed timeline",
+          "[SheetsAnalyzer][SUS][Parser]") {
+    const auto result = sus::ParseText(UR"(#TIL01: "0'0:1"
+#HISPEED 01
+#MEASUREBS 1000
+#0101A: 1Z0024003400
+#0105a: 142434445464
+#NOSPEED
+#01110: 14
+)",
+                                       U"chart.sus");
+
+    REQUIRE(result);
+    REQUIRE(result->slider_notes.size() == 4);
+
+    const auto& tap = result->slider_notes[0];
+    CHECK(tap.kind == sus::SliderNoteKind::Tap);
+    CHECK(tap.position.measure == 1010);
+    CHECK(tap.position.numerator == 0);
+    CHECK(tap.position.denominator == 6);
+    CHECK(tap.lane.start == 10);
+    CHECK(tap.lane.width == 35);
+    REQUIRE(tap.timeline);
+    CHECK(*tap.timeline == 1);
+
+    const auto& x_tap = result->slider_notes[1];
+    CHECK(x_tap.kind == sus::SliderNoteKind::XTap);
+    CHECK(x_tap.position.numerator == 2);
+    CHECK(x_tap.position.denominator == 6);
+
+    const auto& flick = result->slider_notes[2];
+    CHECK(flick.kind == sus::SliderNoteKind::Flick);
+    CHECK(flick.position.numerator == 4);
+    CHECK(flick.position.denominator == 6);
+
+    const auto& note_without_hispeed = result->slider_notes[3];
+    CHECK(note_without_hispeed.position.measure == 1011);
+    CHECK_FALSE(note_without_hispeed.timeline);
+
+    REQUIRE(result->directional_notes.size() == 6);
+    const s3d::Array expected_kinds{
+        sus::DirectionalKind::Up,      sus::DirectionalKind::Down,     sus::DirectionalKind::LeftUp,
+        sus::DirectionalKind::RightUp, sus::DirectionalKind::LeftDown, sus::DirectionalKind::RightDown,
+    };
+    for (std::size_t index = 0; index < expected_kinds.size(); ++index) {
+        const auto& note = result->directional_notes[index];
+        CHECK(note.kind == expected_kinds[index]);
+        CHECK(note.position.measure == 1010);
+        CHECK(note.position.numerator == index);
+        CHECK(note.position.denominator == 6);
+        CHECK(note.lane.start == 10);
+        CHECK(note.lane.width == 4);
+        REQUIRE(note.timeline);
+        CHECK(*note.timeline == 1);
+    }
+}
+
+TEST_CASE("ParseText validates short and directional note data", "[SheetsAnalyzer][SUS][Parser]") {
+    SECTION("odd-length note data") {
+        const auto result = sus::ParseText(UR"(#00010: 1
+)",
+                                           U"broken.sus");
+
+        REQUIRE_FALSE(result);
+        REQUIRE(result.diagnostics.size() == 1);
+        CHECK(result.diagnostics.front().message == U"Note data must contain two characters per subdivision.");
+    }
+
+    SECTION("invalid base36 width") {
+        const auto result = sus::ParseText(UR"(#00010: 1!
+)",
+                                           U"broken.sus");
+
+        REQUIRE_FALSE(result);
+        REQUIRE(result.diagnostics.size() == 1);
+        CHECK(*result.diagnostics.front().column == 10);
+    }
+
+    SECTION("zero width") {
+        const auto result = sus::ParseText(UR"(#00010: 10
+)",
+                                           U"broken.sus");
+
+        REQUIRE_FALSE(result);
+        REQUIRE(result.diagnostics.size() == 1);
+        CHECK(result.diagnostics.front().message == U"Placed notes require a width between 1 and Z.");
+    }
+
+    SECTION("unsupported short note kind") {
+        const auto result = sus::ParseText(UR"(#00010: 44
+)",
+                                           U"broken.sus");
+
+        REQUIRE_FALSE(result);
+        REQUIRE(result.diagnostics.size() == 1);
+        CHECK(result.diagnostics.front().message == U"Short note kinds must be 1 (Tap), 2 (XTap), or 3 (Flick).");
+    }
+
+    SECTION("unsupported directional note kind") {
+        const auto result = sus::ParseText(UR"(#00050: 74
+)",
+                                           U"broken.sus");
+
+        REQUIRE_FALSE(result);
+        REQUIRE(result.diagnostics.size() == 1);
+        CHECK(result.diagnostics.front().message == U"Directional note kinds must be between 1 and 6.");
+    }
+
+    SECTION("invalid short note header") {
+        const auto result = sus::ParseText(UR"(#000100: 14
+)",
+                                           U"broken.sus");
+
+        REQUIRE_FALSE(result);
+        REQUIRE(result.diagnostics.size() == 1);
+        CHECK(result.diagnostics.front().message == U"Short note headers must use the form #mmm1x.");
     }
 }
 

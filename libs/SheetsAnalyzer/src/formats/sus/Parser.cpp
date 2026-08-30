@@ -24,6 +24,13 @@ namespace xlair::sheets::formats::sus {
             std::size_t line = 0;
         };
 
+        struct NoteToken {
+            Position position;
+            s3d::uint32 kind = 0;
+            s3d::uint32 width = 0;
+            std::size_t column = 0;
+        };
+
         struct ParseState {
             Document document;
             s3d::uint32 measure_base = 0;
@@ -74,6 +81,102 @@ namespace xlair::sheets::formats::sus {
             }
 
             return state.measure_base + measure;
+        }
+
+        [[nodiscard]] s3d::Optional<s3d::Array<NoteToken>>
+        ParseNoteTokens(ParseState& state, const DataLine& data, const s3d::FilePath& path, const std::size_t line) {
+            const auto measure = EffectiveMeasure(state, data.measure, path, line);
+            if (!measure) {
+                return s3d::none;
+            }
+
+            if ((data.data.size() % 2) != 0) {
+                AddError(state, U"Note data must contain two characters per subdivision.", path, line,
+                         data.data_column);
+                return s3d::none;
+            }
+
+            const std::size_t subdivision_count = data.data.size() / 2;
+            s3d::Array<NoteToken> tokens;
+            for (std::size_t index = 0; index < subdivision_count; ++index) {
+                const std::size_t column = data.data_column + (index * 2);
+                const auto kind = ParseBase36(data.data.substr(index * 2, 1), line, column, path);
+                const auto width = ParseBase36(data.data.substr((index * 2) + 1, 1), line, column + 1, path);
+                if (!kind || !width) {
+                    if (!kind) {
+                        AppendDiagnostics(state, kind.diagnostics);
+                    }
+                    if (!width) {
+                        AppendDiagnostics(state, width.diagnostics);
+                    }
+                    continue;
+                }
+
+                if (*kind == 0) {
+                    continue;
+                }
+
+                if (*width == 0) {
+                    AddError(state, U"Placed notes require a width between 1 and Z.", path, line, column + 1);
+                    continue;
+                }
+
+                tokens.push_back({
+                    .position = {
+                        .measure = *measure,
+                        .numerator = static_cast<s3d::uint32>(index),
+                        .denominator = static_cast<s3d::uint32>(subdivision_count),
+                    },
+                    .kind = *kind,
+                    .width = *width,
+                    .column = column,
+                });
+            }
+
+            return tokens;
+        }
+
+        [[nodiscard]] s3d::Optional<s3d::uint8> ParseLane(ParseState& state, const DataLine& data,
+                                                          const s3d::FilePath& path, const std::size_t line) {
+            const auto lane = ParseBase36(data.code.substr(1, 1), line, 6, path);
+            if (!lane) {
+                AppendDiagnostics(state, lane.diagnostics);
+                return s3d::none;
+            }
+
+            return static_cast<s3d::uint8>(*lane);
+        }
+
+        [[nodiscard]] s3d::Optional<SliderNoteKind> ToSliderNoteKind(const s3d::uint32 kind) {
+            switch (kind) {
+                case 1:
+                    return SliderNoteKind::Tap;
+                case 2:
+                    return SliderNoteKind::XTap;
+                case 3:
+                    return SliderNoteKind::Flick;
+                default:
+                    return s3d::none;
+            }
+        }
+
+        [[nodiscard]] s3d::Optional<DirectionalKind> ToDirectionalKind(const s3d::uint32 kind) {
+            switch (kind) {
+                case 1:
+                    return DirectionalKind::Up;
+                case 2:
+                    return DirectionalKind::Down;
+                case 3:
+                    return DirectionalKind::LeftUp;
+                case 4:
+                    return DirectionalKind::RightUp;
+                case 5:
+                    return DirectionalKind::LeftDown;
+                case 6:
+                    return DirectionalKind::RightDown;
+                default:
+                    return s3d::none;
+            }
         }
 
         void InterpretRequest(ParseState& state, const CommandLine& command, const s3d::FilePath& path,
@@ -324,11 +427,80 @@ namespace xlair::sheets::formats::sus {
             }
         }
 
+        void InterpretSliderNotes(ParseState& state, const DataLine& data, const s3d::FilePath& path,
+                                  const std::size_t line) {
+            if (data.code.size() != 2) {
+                AddError(state, U"Short note headers must use the form #mmm1x.", path, line, 5);
+                return;
+            }
+
+            const auto lane = ParseLane(state, data, path, line);
+            const auto tokens = ParseNoteTokens(state, data, path, line);
+            if (!lane || !tokens) {
+                return;
+            }
+
+            for (const auto& token : *tokens) {
+                const auto kind = ToSliderNoteKind(token.kind);
+                if (!kind) {
+                    AddError(state, U"Short note kinds must be 1 (Tap), 2 (XTap), or 3 (Flick).", path, line,
+                             token.column);
+                    continue;
+                }
+
+                state.document.slider_notes.push_back({
+                    .kind = *kind,
+                    .position = token.position,
+                    .lane = {
+                        .start = *lane,
+                        .width = static_cast<s3d::uint8>(token.width),
+                    },
+                    .timeline = state.current_timeline,
+                });
+            }
+        }
+
+        void InterpretDirectionalNotes(ParseState& state, const DataLine& data, const s3d::FilePath& path,
+                                       const std::size_t line) {
+            if (data.code.size() != 2) {
+                AddError(state, U"Directional note headers must use the form #mmm5x.", path, line, 5);
+                return;
+            }
+
+            const auto lane = ParseLane(state, data, path, line);
+            const auto tokens = ParseNoteTokens(state, data, path, line);
+            if (!lane || !tokens) {
+                return;
+            }
+
+            for (const auto& token : *tokens) {
+                const auto kind = ToDirectionalKind(token.kind);
+                if (!kind) {
+                    AddError(state, U"Directional note kinds must be between 1 and 6.", path, line, token.column);
+                    continue;
+                }
+
+                state.document.directional_notes.push_back({
+                    .kind = *kind,
+                    .position = token.position,
+                    .lane = {
+                        .start = *lane,
+                        .width = static_cast<s3d::uint8>(token.width),
+                    },
+                    .timeline = state.current_timeline,
+                });
+            }
+        }
+
         void InterpretData(ParseState& state, const DataLine& data, const s3d::FilePath& path, const std::size_t line) {
             if (data.code == U"02") {
                 InterpretBeatsPerMeasure(state, data, path, line);
             } else if (data.code == U"08") {
                 InterpretBPMChanges(state, data, path, line);
+            } else if (data.code.starts_with(U'1')) {
+                InterpretSliderNotes(state, data, path, line);
+            } else if (data.code.starts_with(U'5')) {
+                InterpretDirectionalNotes(state, data, path, line);
             }
         }
 
