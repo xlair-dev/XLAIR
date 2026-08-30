@@ -6,6 +6,7 @@ add_executable(SheetsAnalyzerTests ${sheets_analyzer_test_source_files})
 
 target_compile_features(SheetsAnalyzerTests PRIVATE cxx_std_23)
 target_compile_definitions(SheetsAnalyzerTests PRIVATE NO_S3D_USING)
+target_include_directories(SheetsAnalyzerTests PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/../src")
 
 target_link_libraries(SheetsAnalyzerTests
     PRIVATE

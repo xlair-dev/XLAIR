@@ -28,14 +28,7 @@ namespace xlair::sheets {
 
         const auto extension = s3d::FileSystem::Extension(path).lowercased();
         if (extension != U"sus") {
-            result.diagnostics.push_back({
-                .severity = DiagnosticSeverity::Error,
-                .message = U"Unsupported chart format: " + extension,
-                .path = path,
-                .line = s3d::none,
-                .column = s3d::none,
-            });
-            return result;
+            return Result<Chart>::makeError(U"Unsupported chart format: " + extension, path);
         }
 
         auto parsed = formats::sus::Parse(path);

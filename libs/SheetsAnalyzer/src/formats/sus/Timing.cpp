@@ -5,15 +5,7 @@ namespace xlair::sheets::formats::sus {
         (void)document;
         (void)options;
 
-        Result<TimingMap> result;
-        result.diagnostics.push_back({
-            .severity = DiagnosticSeverity::Error,
-            .message = U"TimingMap has not been migrated yet.",
-            .path = U"",
-            .line = s3d::none,
-            .column = s3d::none,
-        });
-        return result;
+        return Result<TimingMap>::makeError(U"TimingMap has not been migrated yet.");
     }
 
     s3d::int64 TimingMap::toSample(const Position& position) const {

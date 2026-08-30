@@ -46,14 +46,6 @@ namespace xlair::sheets::formats::sus {
         (void)ToSideButton;
         (void)sizeof(ActiveSideHolds);
 
-        Result<Chart> result;
-        result.diagnostics.push_back({
-            .severity = DiagnosticSeverity::Error,
-            .message = U"The new SUS compiler has not been migrated yet.",
-            .path = U"",
-            .line = s3d::none,
-            .column = s3d::none,
-        });
-        return result;
+        return Result<Chart>::makeError(U"The new SUS compiler has not been migrated yet.");
     }
 }
