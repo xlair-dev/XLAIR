@@ -109,6 +109,82 @@ TEST_CASE("Compile builds timing, timelines, and simple notes", "[SheetsAnalyzer
     CHECK(result->total_combo == 3);
 }
 
+TEST_CASE("Compile assembles interleaved SideLong channels in musical order", "[SheetsAnalyzer][SUS][Compiler]") {
+    sus::Document document;
+    document.hispeed_definitions[1] = {};
+    document.side_long_points = {
+        {
+            .kind = sus::SideLongPointKind::Relay,
+            .position = { .measure = 0, .numerator = 1, .denominator = 2 },
+            .lane = { .start = 8 },
+            .channel = 2,
+            .timeline = 1,
+        },
+        {
+            .kind = sus::SideLongPointKind::End,
+            .position = { .measure = 1, .numerator = 0, .denominator = 1 },
+            .lane = { .start = 8 },
+            .channel = 1,
+        },
+        {
+            .kind = sus::SideLongPointKind::End,
+            .position = { .measure = 1, .numerator = 1, .denominator = 2 },
+            .lane = { .start = 8 },
+            .channel = 2,
+            .timeline = 1,
+        },
+        {
+            .kind = sus::SideLongPointKind::Start,
+            .position = { .measure = 0, .numerator = 0, .denominator = 1 },
+            .lane = { .start = 0 },
+            .channel = 1,
+        },
+        {
+            .kind = sus::SideLongPointKind::Start,
+            .position = { .measure = 0, .numerator = 1, .denominator = 4 },
+            .lane = { .start = 14 },
+            .channel = 2,
+            .timeline = 1,
+        },
+        {
+            .kind = sus::SideLongPointKind::Relay,
+            .position = { .measure = 0, .numerator = 3, .denominator = 4 },
+            .lane = { .start = 8 },
+            .channel = 1,
+        },
+    };
+
+    const auto result = sus::Compile(document, { .sample_rate = 480 });
+
+    REQUIRE(result);
+    REQUIRE(result->side_holds.size() == 2);
+
+    const auto& left_upper = result->side_holds[0];
+    CHECK(left_upper.button == xlair::sheets::SideButton::LeftUpper);
+    REQUIRE(left_upper.points.size() == 3);
+    CHECK(left_upper.points[0].kind == xlair::sheets::SideHoldPointKind::Start);
+    CHECK(left_upper.points[0].timeline == 0);
+    CHECK(left_upper.points[0].sample == 0);
+    CHECK(left_upper.points[1].kind == xlair::sheets::SideHoldPointKind::Relay);
+    CHECK(left_upper.points[1].sample == 720);
+    CHECK(left_upper.points[2].kind == xlair::sheets::SideHoldPointKind::End);
+    CHECK(left_upper.points[2].sample == 960);
+    CHECK(left_upper.judge_samples.isEmpty());
+
+    const auto& right_upper = result->side_holds[1];
+    CHECK(right_upper.button == xlair::sheets::SideButton::RightUpper);
+    REQUIRE(right_upper.points.size() == 3);
+    CHECK(right_upper.points[0].kind == xlair::sheets::SideHoldPointKind::Start);
+    CHECK(right_upper.points[0].timeline == 1);
+    CHECK(right_upper.points[0].sample == 240);
+    CHECK(right_upper.points[1].kind == xlair::sheets::SideHoldPointKind::Relay);
+    CHECK(right_upper.points[1].timeline == 1);
+    CHECK(right_upper.points[1].sample == 480);
+    CHECK(right_upper.points[2].kind == xlair::sheets::SideHoldPointKind::End);
+    CHECK(right_upper.points[2].sample == 1'440);
+    CHECK(right_upper.judge_samples.isEmpty());
+}
+
 TEST_CASE("Compile rejects source data that cannot yet be represented safely", "[SheetsAnalyzer][SUS][Compiler]") {
     SECTION("unsupported SUS short-note kind") {
         sus::Document document;
@@ -152,6 +228,92 @@ TEST_CASE("Compile rejects source data that cannot yet be represented safely", "
 
         REQUIRE_FALSE(result);
         REQUIRE(result.diagnostics.size() == 1);
-        CHECK(result.diagnostics.front().message == U"Slider Hold and SideLong compilation has not been migrated yet.");
+        CHECK(result.diagnostics.front().message == U"Slider Hold compilation has not been migrated yet.");
+    }
+}
+
+TEST_CASE("Compile validates SideLong channel state", "[SheetsAnalyzer][SUS][Compiler]") {
+    SECTION("invalid Start lane") {
+        sus::Document document;
+        document.side_long_points = {
+            { .kind = sus::SideLongPointKind::Start, .lane = { .start = 4 }, .channel = 1 },
+            { .kind = sus::SideLongPointKind::End, .position = { .measure = 1 }, .channel = 1 },
+        };
+
+        const auto result = sus::Compile(document, {});
+
+        REQUIRE_FALSE(result);
+        CHECK(result.diagnostics.front().message ==
+              U"A SideLong Start point does not map to an XLAIR side button.");
+    }
+
+    SECTION("duplicate Start") {
+        sus::Document document;
+        document.side_long_points = {
+            { .kind = sus::SideLongPointKind::Start, .lane = { .start = 0 }, .channel = 1 },
+            {
+                .kind = sus::SideLongPointKind::Start,
+                .position = { .measure = 0, .numerator = 1, .denominator = 2 },
+                .lane = { .start = 0 },
+                .channel = 1,
+            },
+        };
+
+        const auto result = sus::Compile(document, {});
+
+        REQUIRE_FALSE(result);
+        CHECK(result.diagnostics.front().message == U"A SideLong channel starts before its previous hold ends.");
+    }
+
+    SECTION("Relay without Start") {
+        sus::Document document;
+        document.side_long_points.push_back({ .kind = sus::SideLongPointKind::Relay, .channel = 1 });
+
+        const auto result = sus::Compile(document, {});
+
+        REQUIRE_FALSE(result);
+        CHECK(result.diagnostics.front().message ==
+              U"A SideLong Relay point has no active Start point on its channel.");
+    }
+
+    SECTION("End without Start") {
+        sus::Document document;
+        document.side_long_points.push_back({ .kind = sus::SideLongPointKind::End, .channel = 1 });
+
+        const auto result = sus::Compile(document, {});
+
+        REQUIRE_FALSE(result);
+        CHECK(result.diagnostics.front().message ==
+              U"A SideLong End point has no active Start point on its channel.");
+    }
+
+    SECTION("missing End") {
+        sus::Document document;
+        document.side_long_points.push_back({
+            .kind = sus::SideLongPointKind::Start,
+            .lane = { .start = 0 },
+            .channel = 1,
+        });
+
+        const auto result = sus::Compile(document, {});
+
+        REQUIRE_FALSE(result);
+        CHECK(result.diagnostics.front().message == U"A SideLong channel is missing an End point.");
+    }
+
+    SECTION("undefined timeline") {
+        sus::Document document;
+        document.side_long_points.push_back({
+            .kind = sus::SideLongPointKind::Start,
+            .lane = { .start = 0 },
+            .channel = 1,
+            .timeline = 99,
+        });
+
+        const auto result = sus::Compile(document, {});
+
+        REQUIRE_FALSE(result);
+        CHECK(result.diagnostics.front().message ==
+              U"A SideLong point references an undefined hispeed definition.");
     }
 }

@@ -73,6 +73,31 @@ namespace xlair::sheets::formats::sus {
             };
         }
 
+        [[nodiscard]] s3d::Optional<::xlair::sheets::SideHoldPointKind> ToChartSideHoldPointKind(
+            const SideLongPointKind kind) {
+            switch (kind) {
+                case SideLongPointKind::Start:
+                    return ::xlair::sheets::SideHoldPointKind::Start;
+                case SideLongPointKind::End:
+                    return ::xlair::sheets::SideHoldPointKind::End;
+                case SideLongPointKind::Relay:
+                    return ::xlair::sheets::SideHoldPointKind::Relay;
+            }
+
+            return s3d::none;
+        }
+
+        [[nodiscard]] bool PositionComesBefore(const Position& left, const Position& right) {
+            if (left.measure != right.measure) {
+                return left.measure < right.measure;
+            }
+
+            const s3d::uint64 left_denominator = left.denominator == 0 ? 1 : left.denominator;
+            const s3d::uint64 right_denominator = right.denominator == 0 ? 1 : right.denominator;
+            return (static_cast<s3d::uint64>(left.numerator) * right_denominator) <
+                   (static_cast<s3d::uint64>(right.numerator) * left_denominator);
+        }
+
         using TimelineLookup = s3d::HashTable<TimelineId, TimelineIndex>;
 
         [[nodiscard]] s3d::Optional<TimelineIndex> ResolveTimeline(const s3d::Optional<TimelineId>& source,
@@ -101,11 +126,89 @@ namespace xlair::sheets::formats::sus {
         // This builder is kept private to the compiler because sus::Document should describe SUS source data, while
         // Chart should describe the physical controls of the game.
         using ActiveSideHolds = s3d::HashTable<ChannelId, SideHoldBuilder>;
+
+        [[nodiscard]] Result<s3d::Array<SideHold>> CompileSideHolds(const s3d::Array<SideLongPoint>& source_points,
+                                                                    const TimingMap& timing,
+                                                                    const TimelineLookup& timeline_lookup) {
+            auto ordered_points = source_points;
+            ordered_points.stable_sort_by([](const auto& left, const auto& right) {
+                return PositionComesBefore(left.position, right.position);
+            });
+
+            ActiveSideHolds active_holds;
+            s3d::Array<SideHold> side_holds;
+
+            for (const auto& source : ordered_points) {
+                const auto kind = ToChartSideHoldPointKind(source.kind);
+                if (!kind) {
+                    return Result<s3d::Array<SideHold>>::makeError(U"A SideLong point has an unknown kind.");
+                }
+
+                const auto timeline = ResolveTimeline(source.timeline, timeline_lookup);
+                if (!timeline) {
+                    return Result<s3d::Array<SideHold>>::makeError(
+                        U"A SideLong point references an undefined hispeed definition.");
+                }
+
+                const SideHoldPoint point{
+                    .kind = *kind,
+                    .timeline = *timeline,
+                    .sample = timing.toSample(source.position),
+                };
+
+                if (source.kind == SideLongPointKind::Start) {
+                    if (active_holds.contains(source.channel)) {
+                        return Result<s3d::Array<SideHold>>::makeError(
+                            U"A SideLong channel starts before its previous hold ends.");
+                    }
+
+                    const auto button = detail::SideButtonFromSideLongLane(source.lane.start);
+                    if (!button) {
+                        return Result<s3d::Array<SideHold>>::makeError(
+                            U"A SideLong Start point does not map to an XLAIR side button.");
+                    }
+
+                    active_holds[source.channel] = {
+                        .button = *button,
+                        .points = { point },
+                    };
+                    continue;
+                }
+
+                const auto active = active_holds.find(source.channel);
+                if (active == active_holds.end()) {
+                    if (source.kind == SideLongPointKind::Relay) {
+                        return Result<s3d::Array<SideHold>>::makeError(
+                            U"A SideLong Relay point has no active Start point on its channel.");
+                    }
+                    return Result<s3d::Array<SideHold>>::makeError(
+                        U"A SideLong End point has no active Start point on its channel.");
+                }
+
+                active->second.points.push_back(point);
+                if (source.kind == SideLongPointKind::End) {
+                    side_holds.push_back({
+                        .button = active->second.button,
+                        .points = std::move(active->second.points),
+                    });
+                    active_holds.erase(active);
+                }
+            }
+
+            if (!active_holds.empty()) {
+                return Result<s3d::Array<SideHold>>::makeError(U"A SideLong channel is missing an End point.");
+            }
+
+            side_holds.stable_sort_by([](const auto& left, const auto& right) {
+                return left.points.front().sample < right.points.front().sample;
+            });
+            return Result<s3d::Array<SideHold>>{ std::move(side_holds) };
+        }
     }
 
     Result<Chart> Compile(const Document& document, const CompileOptions& options) {
-        if (!document.slider_hold_points.isEmpty() || !document.side_long_points.isEmpty()) {
-            return Result<Chart>::makeError(U"Slider Hold and SideLong compilation has not been migrated yet.");
+        if (!document.slider_hold_points.isEmpty()) {
+            return Result<Chart>::makeError(U"Slider Hold compilation has not been migrated yet.");
         }
 
         auto timing_result = TimingMap::Build(document, {
@@ -216,7 +319,18 @@ namespace xlair::sheets::formats::sus {
             return left.sample < right.sample;
         });
 
+        auto side_holds = CompileSideHolds(document.side_long_points, timing, timeline_lookup);
+        if (!side_holds) {
+            Result<Chart> result;
+            result.diagnostics = std::move(side_holds.diagnostics);
+            return result;
+        }
+        chart.side_holds = std::move(*side_holds);
+
         chart.total_combo = chart.slider_notes.size() + chart.side_notes.size();
+        for (const auto& side_hold : chart.side_holds) {
+            chart.total_combo += side_hold.judge_samples.size();
+        }
 
         return Result<Chart>{ std::move(chart) };
     }
