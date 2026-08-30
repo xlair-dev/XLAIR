@@ -15,7 +15,7 @@ namespace xlair::sheets {
     // Loads one song metadata file (currently JSON / TOML).
     [[nodiscard]] Result<Metadata> LoadMetadata(const s3d::FilePath& path);
 
-    // Recursively searches a directory for supported metadata files.
+    // Recursively searches a directory for music.json and music.toml files.
     [[nodiscard]] Result<s3d::Array<Metadata>> ScanMetadata(const s3d::FilePath& directory);
 
     // Loads and compiles a chart into XLAIR's input-oriented Chart model.
