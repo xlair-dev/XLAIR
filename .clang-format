@@ -15,10 +15,15 @@ IndentCaseLabels: true
 AccessModifierOffset: -4
 IndentPPDirectives: None
 
+BinPackParameters: OnePerLine
+BinPackArguments: false
+AllowAllArgumentsOnNextLine: false
+
+BreakAfterAttributes: Always
+BreakAfterOpenBracketFunction: true
 BreakBeforeBraces: Attach
 BreakBeforeCloseBracketFunction: true
 BreakConstructorInitializers: BeforeColon
-BreakAfterAttributes: Always
 AllowShortBlocksOnASingleLine: Never
 AllowShortFunctionsOnASingleLine: Empty
 AllowShortIfStatementsOnASingleLine: Never

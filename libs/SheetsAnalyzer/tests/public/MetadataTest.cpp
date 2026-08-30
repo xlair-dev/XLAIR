@@ -38,8 +38,11 @@ TEST_CASE("LoadMetadata reads JSON metadata and resolves asset paths", "[SheetsA
     CHECK(result->artist == U"JSON Artist");
     CHECK(result->genre == U"Test");
     CHECK(result->music == s3d::FileSystem::FullPath(MetadataFixture(U"load/audio/song.wav")));
-    CHECK(result->jacket == s3d::FileSystem::FullPath(s3d::FileSystem::PathAppend(s3d::FileSystem::CurrentDirectory(),
-                                                                                  U"shared/jacket.png")));
+    CHECK(
+        result->jacket == s3d::FileSystem::FullPath(
+                              s3d::FileSystem::PathAppend(s3d::FileSystem::CurrentDirectory(), U"shared/jacket.png")
+                          )
+    );
     CHECK(result->url == U"https://example.com/json-song");
     CHECK(result->music_offset_seconds == -0.125);
     CHECK(result->demo_start_seconds == 12.5);

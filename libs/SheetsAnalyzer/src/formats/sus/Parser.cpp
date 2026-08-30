@@ -40,15 +40,22 @@ namespace xlair::sheets::formats::sus {
             s3d::Array<Diagnostic> diagnostics;
         };
 
-        void AddError(ParseState& state, s3d::String message, const s3d::FilePath& path, const std::size_t line,
-                      const s3d::Optional<std::size_t> column = s3d::none) {
-            state.diagnostics.push_back({
-                .severity = DiagnosticSeverity::Error,
-                .message = std::move(message),
-                .path = path,
-                .line = line,
-                .column = column,
-            });
+        void AddError(
+            ParseState& state,
+            s3d::String message,
+            const s3d::FilePath& path,
+            const std::size_t line,
+            const s3d::Optional<std::size_t> column = s3d::none
+        ) {
+            state.diagnostics.push_back(
+                {
+                    .severity = DiagnosticSeverity::Error,
+                    .message = std::move(message),
+                    .path = path,
+                    .line = line,
+                    .column = column,
+                }
+            );
         }
 
         void AppendDiagnostics(ParseState& state, const s3d::Array<Diagnostic>& diagnostics) {
@@ -76,8 +83,9 @@ namespace xlair::sheets::formats::sus {
         }
 
         [[nodiscard]]
-        s3d::Optional<s3d::uint32> EffectiveMeasure(ParseState& state, const s3d::uint32 measure,
-                                                    const s3d::FilePath& path, const std::size_t line) {
+        s3d::Optional<s3d::uint32> EffectiveMeasure(
+            ParseState& state, const s3d::uint32 measure, const s3d::FilePath& path, const std::size_t line
+        ) {
             if (measure > (std::numeric_limits<s3d::uint32>::max() - state.measure_base)) {
                 AddError(state, U"Measure number exceeds the uint32 range after applying #MEASUREBS.", path, line);
                 return s3d::none;
@@ -87,16 +95,21 @@ namespace xlair::sheets::formats::sus {
         }
 
         [[nodiscard]]
-        s3d::Optional<s3d::Array<NoteToken>> ParseNoteTokens(ParseState& state, const DataLine& data,
-                                                             const s3d::FilePath& path, const std::size_t line) {
+        s3d::Optional<s3d::Array<NoteToken>>
+        ParseNoteTokens(ParseState& state, const DataLine& data, const s3d::FilePath& path, const std::size_t line) {
             const auto measure = EffectiveMeasure(state, data.measure, path, line);
             if (!measure) {
                 return s3d::none;
             }
 
             if ((data.data.size() % 2) != 0) {
-                AddError(state, U"Note data must contain two characters per subdivision.", path, line,
-                         data.data_column);
+                AddError(
+                    state,
+                    U"Note data must contain two characters per subdivision.",
+                    path,
+                    line,
+                    data.data_column
+                );
                 return s3d::none;
             }
 
@@ -141,8 +154,8 @@ namespace xlair::sheets::formats::sus {
         }
 
         [[nodiscard]]
-        s3d::Optional<s3d::uint8> ParseLane(ParseState& state, const DataLine& data, const s3d::FilePath& path,
-                                            const std::size_t line) {
+        s3d::Optional<s3d::uint8>
+        ParseLane(ParseState& state, const DataLine& data, const s3d::FilePath& path, const std::size_t line) {
             const auto lane = ParseBase36(data.code.substr(1, 1), line, 6, path);
             if (!lane) {
                 AppendDiagnostics(state, lane.diagnostics);
@@ -153,8 +166,8 @@ namespace xlair::sheets::formats::sus {
         }
 
         [[nodiscard]]
-        s3d::Optional<ChannelId> ParseChannel(ParseState& state, const DataLine& data, const s3d::FilePath& path,
-                                              const std::size_t line) {
+        s3d::Optional<ChannelId>
+        ParseChannel(ParseState& state, const DataLine& data, const s3d::FilePath& path, const std::size_t line) {
             const auto channel = ParseBase36(data.code.substr(2, 1), line, 7, path);
             if (!channel) {
                 AppendDiagnostics(state, channel.diagnostics);
@@ -236,8 +249,9 @@ namespace xlair::sheets::formats::sus {
             }
         }
 
-        void InterpretRequest(ParseState& state, const CommandLine& command, const s3d::FilePath& path,
-                              const std::size_t line) {
+        void InterpretRequest(
+            ParseState& state, const CommandLine& command, const s3d::FilePath& path, const std::size_t line
+        ) {
             if (command.argument.size() < 2 || command.argument.front() != U'"' || command.argument.back() != U'"') {
                 AddError(state, U"#REQUEST arguments must be enclosed in double quotes.", path, line);
                 return;
@@ -278,8 +292,9 @@ namespace xlair::sheets::formats::sus {
             }
         }
 
-        void InterpretBPMDefinition(ParseState& state, const CommandLine& command, const s3d::FilePath& path,
-                                    const std::size_t line) {
+        void InterpretBPMDefinition(
+            ParseState& state, const CommandLine& command, const s3d::FilePath& path, const std::size_t line
+        ) {
             if (command.key.size() != 5) {
                 AddError(state, U"BPM definition names must use the form #BPMzz.", path, line);
                 return;
@@ -305,8 +320,9 @@ namespace xlair::sheets::formats::sus {
             state.document.bpm_definitions[*definition] = *bpm;
         }
 
-        void InterpretHispeedDefinition(ParseState& state, const CommandLine& command, const s3d::FilePath& path,
-                                        const std::size_t line) {
+        void InterpretHispeedDefinition(
+            ParseState& state, const CommandLine& command, const s3d::FilePath& path, const std::size_t line
+        ) {
             if (command.key.size() != 5) {
                 AddError(state, U"Hispeed definition names must use the form #TILzz.", path, line);
                 return;
@@ -319,8 +335,13 @@ namespace xlair::sheets::formats::sus {
             }
 
             if (command.argument.size() < 2 || command.argument.front() != U'"' || command.argument.back() != U'"') {
-                AddError(state, U"#TILzz values must be enclosed in double quotes.", path, line,
-                         ArgumentColumn(command));
+                AddError(
+                    state,
+                    U"#TILzz values must be enclosed in double quotes.",
+                    path,
+                    line,
+                    ArgumentColumn(command)
+                );
                 return;
             }
 
@@ -349,8 +370,12 @@ namespace xlair::sheets::formats::sus {
                 );
                 const auto multiplier = s3d::ParseFloatOpt<double>(entry.substr(speed_separator + 1).trimmed());
                 if (!measure || !tick || !multiplier || !std::isfinite(*multiplier)) {
-                    AddError(state, U"Hispeed changes require a non-negative measure and tick and a finite speed.",
-                             path, line);
+                    AddError(
+                        state,
+                        U"Hispeed changes require a non-negative measure and tick and a finite speed.",
+                        path,
+                        line
+                    );
                     return;
                 }
 
@@ -366,11 +391,17 @@ namespace xlair::sheets::formats::sus {
             state.document.hispeed_definitions[*definition_id] = std::move(definition);
         }
 
-        void InterpretHispeedSelection(ParseState& state, const CommandLine& command, const s3d::FilePath& path,
-                                       const std::size_t line) {
+        void InterpretHispeedSelection(
+            ParseState& state, const CommandLine& command, const s3d::FilePath& path, const std::size_t line
+        ) {
             if (command.argument.size() != 2) {
-                AddError(state, U"#HISPEED requires a two-character Base36 definition ID.", path, line,
-                         ArgumentColumn(command));
+                AddError(
+                    state,
+                    U"#HISPEED requires a two-character Base36 definition ID.",
+                    path,
+                    line,
+                    ArgumentColumn(command)
+                );
                 return;
             }
 
@@ -381,14 +412,17 @@ namespace xlair::sheets::formats::sus {
             }
 
             state.current_timeline = *definition;
-            state.pending_hispeed_references.push_back({
-                .definition = *definition,
-                .line = line,
-            });
+            state.pending_hispeed_references.push_back(
+                {
+                    .definition = *definition,
+                    .line = line,
+                }
+            );
         }
 
-        void InterpretCommand(ParseState& state, const CommandLine& command, const s3d::FilePath& path,
-                              const std::size_t line) {
+        void InterpretCommand(
+            ParseState& state, const CommandLine& command, const s3d::FilePath& path, const std::size_t line
+        ) {
             if (command.key == U"REQUEST") {
                 InterpretRequest(state, command, path, line);
                 return;
@@ -430,8 +464,9 @@ namespace xlair::sheets::formats::sus {
             }
         }
 
-        void InterpretBeatsPerMeasure(ParseState& state, const DataLine& data, const s3d::FilePath& path,
-                                      const std::size_t line) {
+        void InterpretBeatsPerMeasure(
+            ParseState& state, const DataLine& data, const s3d::FilePath& path, const std::size_t line
+        ) {
             const auto measure = EffectiveMeasure(state, data.measure, path, line);
             if (!measure) {
                 return;
@@ -446,8 +481,9 @@ namespace xlair::sheets::formats::sus {
             state.document.beats_per_measure[*measure] = *beats;
         }
 
-        void InterpretBPMChanges(ParseState& state, const DataLine& data, const s3d::FilePath& path,
-                                 const std::size_t line) {
+        void InterpretBPMChanges(
+            ParseState& state, const DataLine& data, const s3d::FilePath& path, const std::size_t line
+        ) {
             const auto measure = EffectiveMeasure(state, data.measure, path, line);
             if (!measure) {
                 return;
@@ -479,15 +515,18 @@ namespace xlair::sheets::formats::sus {
                     },
                     .definition = *definition,
                 });
-                state.pending_bpm_references.push_back({
-                    .definition = *definition,
-                    .line = line,
-                });
+                state.pending_bpm_references.push_back(
+                    {
+                        .definition = *definition,
+                        .line = line,
+                    }
+                );
             }
         }
 
-        void InterpretSliderNotes(ParseState& state, const DataLine& data, const s3d::FilePath& path,
-                                  const std::size_t line) {
+        void InterpretSliderNotes(
+            ParseState& state, const DataLine& data, const s3d::FilePath& path, const std::size_t line
+        ) {
             if (data.code.size() != 2) {
                 AddError(state, U"Short note headers must use the form #mmm1x.", path, line, 5);
                 return;
@@ -518,8 +557,9 @@ namespace xlair::sheets::formats::sus {
             }
         }
 
-        void InterpretDirectionalNotes(ParseState& state, const DataLine& data, const s3d::FilePath& path,
-                                       const std::size_t line) {
+        void InterpretDirectionalNotes(
+            ParseState& state, const DataLine& data, const s3d::FilePath& path, const std::size_t line
+        ) {
             if (data.code.size() != 2) {
                 AddError(state, U"Directional note headers must use the form #mmm5x.", path, line, 5);
                 return;
@@ -550,8 +590,9 @@ namespace xlair::sheets::formats::sus {
             }
         }
 
-        void InterpretSliderHoldPoints(ParseState& state, const DataLine& data, const s3d::FilePath& path,
-                                       const std::size_t line) {
+        void InterpretSliderHoldPoints(
+            ParseState& state, const DataLine& data, const s3d::FilePath& path, const std::size_t line
+        ) {
             if (data.code.size() != 3) {
                 AddError(state, U"Slider hold headers must use the form #mmm3xy.", path, line, 5);
                 return;
@@ -584,8 +625,9 @@ namespace xlair::sheets::formats::sus {
             }
         }
 
-        void InterpretSideLongPoints(ParseState& state, const DataLine& data, const s3d::FilePath& path,
-                                     const std::size_t line) {
+        void InterpretSideLongPoints(
+            ParseState& state, const DataLine& data, const s3d::FilePath& path, const std::size_t line
+        ) {
             if (data.code.size() != 3) {
                 AddError(state, U"SideLong headers must use the form #mmm2xy.", path, line, 5);
                 return;
@@ -601,8 +643,13 @@ namespace xlair::sheets::formats::sus {
             for (const auto& token : *tokens) {
                 const auto kind = ToSideLongPointKind(token.kind);
                 if (!kind) {
-                    AddError(state, U"SideLong point kinds must be 1 (Start), 2 (End), or 3 (Relay).", path, line,
-                             token.column);
+                    AddError(
+                        state,
+                        U"SideLong point kinds must be 1 (Start), 2 (End), or 3 (Relay).",
+                        path,
+                        line,
+                        token.column
+                    );
                     continue;
                 }
 
@@ -635,8 +682,8 @@ namespace xlair::sheets::formats::sus {
             }
         }
 
-        void InterpretLine(ParseState& state, const ParsedLine& parsed, const s3d::FilePath& path,
-                           const std::size_t line) {
+        void
+        InterpretLine(ParseState& state, const ParsedLine& parsed, const s3d::FilePath& path, const std::size_t line) {
             if (const auto* command = std::get_if<CommandLine>(&parsed)) {
                 InterpretCommand(state, *command, path, line);
             } else if (const auto* data = std::get_if<DataLine>(&parsed)) {

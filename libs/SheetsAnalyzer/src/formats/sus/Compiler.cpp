@@ -109,8 +109,8 @@ namespace xlair::sheets::formats::sus {
         using TimelineLookup = s3d::HashTable<TimelineId, TimelineIndex>;
 
         [[nodiscard]]
-        s3d::Optional<TimelineIndex> ResolveTimeline(const s3d::Optional<TimelineId>& source,
-                                                     const TimelineLookup& lookup) {
+        s3d::Optional<TimelineIndex>
+        ResolveTimeline(const s3d::Optional<TimelineId>& source, const TimelineLookup& lookup) {
             if (!source) {
                 return 0;
             }
@@ -137,10 +137,13 @@ namespace xlair::sheets::formats::sus {
         using ActiveSideHolds = s3d::HashTable<ChannelId, SideHoldBuilder>;
 
         [[nodiscard]]
-        Result<s3d::Array<SideHold>> CompileSideHolds(const s3d::Array<SideLongPoint>& source_points,
-                                                      const TimingMap& timing, const TimelineLookup& timeline_lookup,
-                                                      const s3d::int64 sample_rate,
-                                                      const s3d::Array<TempoChange>& tempo_changes) {
+        Result<s3d::Array<SideHold>> CompileSideHolds(
+            const s3d::Array<SideLongPoint>& source_points,
+            const TimingMap& timing,
+            const TimelineLookup& timeline_lookup,
+            const s3d::int64 sample_rate,
+            const s3d::Array<TempoChange>& tempo_changes
+        ) {
             const auto ordered_points = source_points.stable_sorted_by([](const auto& left, const auto& right) {
                 return PositionComesBefore(left.position, right.position);
             });
@@ -207,8 +210,12 @@ namespace xlair::sheets::formats::sus {
 
                 active->second.points.push_back(point);
                 if (source.kind == SideLongPointKind::End) {
-                    auto judge_samples = detail::GenerateHoldJudgeSamples(active->second.points.front().sample,
-                                                                          point.sample, sample_rate, tempo_changes);
+                    auto judge_samples = detail::GenerateHoldJudgeSamples(
+                        active->second.points.front().sample,
+                        point.sample,
+                        sample_rate,
+                        tempo_changes
+                    );
                     if (!judge_samples) {
                         Result<s3d::Array<SideHold>> result;
                         result.diagnostics = std::move(judge_samples.diagnostics);
@@ -220,14 +227,18 @@ namespace xlair::sheets::formats::sus {
                         }
                     }
                     judge_samples->sort();
-                    judge_samples->erase(std::unique(judge_samples->begin(), judge_samples->end()),
-                                         judge_samples->end());
+                    judge_samples->erase(
+                        std::unique(judge_samples->begin(), judge_samples->end()),
+                        judge_samples->end()
+                    );
 
-                    side_holds.push_back({
-                        .button = active->second.button,
-                        .points = std::move(active->second.points),
-                        .judge_samples = std::move(*judge_samples),
-                    });
+                    side_holds.push_back(
+                        {
+                            .button = active->second.button,
+                            .points = std::move(active->second.points),
+                            .judge_samples = std::move(*judge_samples),
+                        }
+                    );
                     active_holds.erase(active);
                 }
             }
@@ -244,10 +255,13 @@ namespace xlair::sheets::formats::sus {
     }
 
     Result<Chart> Compile(const Document& document, const CompileOptions& options) {
-        auto timing_result = TimingMap::Build(document, {
-                                                            .sample_rate = options.sample_rate,
-                                                            .offset_seconds = options.offset_seconds,
-                                                        });
+        auto timing_result = TimingMap::Build(
+            document,
+            {
+                .sample_rate = options.sample_rate,
+                .offset_seconds = options.offset_seconds,
+            }
+        );
         if (!timing_result) {
             Result<Chart> result;
             result.diagnostics = std::move(timing_result.diagnostics);
@@ -259,25 +273,31 @@ namespace xlair::sheets::formats::sus {
         chart.sample_rate = options.sample_rate;
 
         const Position origin;
-        chart.tempo_changes.push_back({
-            .sample = timing.toSample(origin),
-            .bpm = 120.0,
-        });
+        chart.tempo_changes.push_back(
+            {
+                .sample = timing.toSample(origin),
+                .bpm = 120.0,
+            }
+        );
         for (const auto& change : document.bpm_changes) {
-            chart.tempo_changes.push_back({
-                .sample = timing.toSample(change.position),
-                .bpm = document.bpm_definitions.at(change.definition),
-            });
+            chart.tempo_changes.push_back(
+                {
+                    .sample = timing.toSample(change.position),
+                    .bpm = document.bpm_definitions.at(change.definition),
+                }
+            );
         }
         chart.tempo_changes.stable_sort_by([](const auto& left, const auto& right) {
             return left.sample < right.sample;
         });
 
         Timeline default_timeline;
-        default_timeline.speed_changes.push_back({
-            .sample = timing.toSample(origin),
-            .multiplier = 1.0,
-        });
+        default_timeline.speed_changes.push_back(
+            {
+                .sample = timing.toSample(origin),
+                .multiplier = 1.0,
+            }
+        );
         chart.timelines.push_back(std::move(default_timeline));
 
         s3d::Array<TimelineId> timeline_ids;
@@ -293,15 +313,19 @@ namespace xlair::sheets::formats::sus {
             timeline_lookup[id] = index;
 
             Timeline timeline;
-            timeline.speed_changes.push_back({
-                .sample = timing.toSample(origin),
-                .multiplier = 1.0,
-            });
+            timeline.speed_changes.push_back(
+                {
+                    .sample = timing.toSample(origin),
+                    .multiplier = 1.0,
+                }
+            );
             for (const auto& change : document.hispeed_definitions.at(id).changes) {
-                timeline.speed_changes.push_back({
-                    .sample = timing.toSample(change.position),
-                    .multiplier = change.multiplier,
-                });
+                timeline.speed_changes.push_back(
+                    {
+                        .sample = timing.toSample(change.position),
+                        .multiplier = change.multiplier,
+                    }
+                );
             }
             timeline.speed_changes.stable_sort_by([](const auto& left, const auto& right) {
                 return left.sample < right.sample;
@@ -320,19 +344,26 @@ namespace xlair::sheets::formats::sus {
                 return Result<Chart>::makeError(U"A slider note references an undefined hispeed definition.");
             }
 
-            chart.slider_notes.push_back({
-                .kind = *kind,
-                .timeline = *timeline,
-                .sample = timing.toSample(source.position),
-                .lane = ToChartLane(source.lane),
-            });
+            chart.slider_notes.push_back(
+                {
+                    .kind = *kind,
+                    .timeline = *timeline,
+                    .sample = timing.toSample(source.position),
+                    .lane = ToChartLane(source.lane),
+                }
+            );
         }
         chart.slider_notes.stable_sort_by([](const auto& left, const auto& right) {
             return left.sample < right.sample;
         });
 
-        auto slider_holds = detail::CompileSliderHolds(document.slider_hold_points, timing, timeline_lookup,
-                                                       options.sample_rate, chart.tempo_changes);
+        auto slider_holds = detail::CompileSliderHolds(
+            document.slider_hold_points,
+            timing,
+            timeline_lookup,
+            options.sample_rate,
+            chart.tempo_changes
+        );
         if (!slider_holds) {
             Result<Chart> result;
             result.diagnostics = std::move(slider_holds.diagnostics);
@@ -351,18 +382,25 @@ namespace xlair::sheets::formats::sus {
                 return Result<Chart>::makeError(U"A directional note references an undefined hispeed definition.");
             }
 
-            chart.side_notes.push_back({
-                .timeline = *timeline,
-                .sample = timing.toSample(source.position),
-                .button = *button,
-            });
+            chart.side_notes.push_back(
+                {
+                    .timeline = *timeline,
+                    .sample = timing.toSample(source.position),
+                    .button = *button,
+                }
+            );
         }
         chart.side_notes.stable_sort_by([](const auto& left, const auto& right) {
             return left.sample < right.sample;
         });
 
-        auto side_holds = CompileSideHolds(document.side_long_points, timing, timeline_lookup, options.sample_rate,
-                                           chart.tempo_changes);
+        auto side_holds = CompileSideHolds(
+            document.side_long_points,
+            timing,
+            timeline_lookup,
+            options.sample_rate,
+            chart.tempo_changes
+        );
         if (!side_holds) {
             Result<Chart> result;
             result.diagnostics = std::move(side_holds.diagnostics);

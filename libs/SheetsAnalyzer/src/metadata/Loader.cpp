@@ -11,8 +11,8 @@ namespace xlair::sheets::metadata {
         constexpr s3d::int64 SupportedVersion = 1;
 
         [[nodiscard]]
-        inline s3d::FilePath ResolvePath(const s3d::FilePathView& source_path,
-                                         const s3d::FilePathView referenced_path) {
+        inline s3d::FilePath
+        ResolvePath(const s3d::FilePathView& source_path, const s3d::FilePathView referenced_path) {
             if (referenced_path.isEmpty()) {
                 return U"";
             }

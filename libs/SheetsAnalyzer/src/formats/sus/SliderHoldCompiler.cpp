@@ -52,8 +52,8 @@ namespace xlair::sheets::formats::sus {
         }
 
         [[nodiscard]]
-        s3d::Optional<TimelineIndex> ResolveTimeline(const s3d::Optional<TimelineId>& source,
-                                                     const TimelineLookup& lookup) {
+        s3d::Optional<TimelineIndex>
+        ResolveTimeline(const s3d::Optional<TimelineId>& source, const TimelineLookup& lookup) {
             if (!source) {
                 return 0;
             }
@@ -196,19 +196,22 @@ namespace xlair::sheets::formats::sus {
         }
 
         [[nodiscard]]
-        Result<SliderHold> BuildHold(const HoldBuilder& builder, const s3d::int64 sample_rate,
-                                     const s3d::Array<TempoChange>& tempo_changes) {
+        Result<SliderHold> BuildHold(
+            const HoldBuilder& builder, const s3d::int64 sample_rate, const s3d::Array<TempoChange>& tempo_changes
+        ) {
             SliderHold hold;
             s3d::Array<CurveSegment> curve_segments;
             s3d::Array<CurveCoordinate> pending_control_points;
 
             const auto& start = builder.points.front();
-            hold.points.push_back({
-                .kind = ::xlair::sheets::SliderHoldPointKind::Start,
-                .timeline = start.timeline,
-                .sample = start.sample,
-                .lane = start.lane,
-            });
+            hold.points.push_back(
+                {
+                    .kind = ::xlair::sheets::SliderHoldPointKind::Start,
+                    .timeline = start.timeline,
+                    .sample = start.sample,
+                    .lane = start.lane,
+                }
+            );
             pending_control_points.push_back(ToCurveCoordinate(start));
 
             auto previous_anchor = start;
@@ -259,31 +262,39 @@ namespace xlair::sheets::formats::sus {
                         const long double time_ratio =
                             (coordinate.sample - segment.control_points.front().sample) / segment_duration;
                         const long double width = s3d::Math::Lerp(segment.start_width, segment.end_width, time_ratio);
-                        hold.points.push_back({
-                            .kind = ::xlair::sheets::SliderHoldPointKind::Invisible,
-                            // Control points affect geometry only. The preceding real anchor supplies the
-                            // rendering timeline until the next real anchor takes over.
-                            .timeline = segment.timeline,
-                            .sample = generated_sample,
-                            .lane = QuantizeLane(coordinate.center_lane, width),
-                        });
+                        hold.points.push_back(
+                            {
+                                .kind = ::xlair::sheets::SliderHoldPointKind::Invisible,
+                                // Control points affect geometry only. The preceding real anchor supplies the
+                                // rendering timeline until the next real anchor takes over.
+                                .timeline = segment.timeline,
+                                .sample = generated_sample,
+                                .lane = QuantizeLane(coordinate.center_lane, width),
+                            }
+                        );
                     }
                 }
 
-                hold.points.push_back({
-                    .kind = *kind,
-                    .timeline = source.timeline,
-                    .sample = source.sample,
-                    .lane = source.lane,
-                });
+                hold.points.push_back(
+                    {
+                        .kind = *kind,
+                        .timeline = source.timeline,
+                        .sample = source.sample,
+                        .lane = source.lane,
+                    }
+                );
                 previous_anchor = source;
                 pending_control_points = { ToCurveCoordinate(source) };
             }
 
             // Rendering subdivision and judgement density are intentionally independent.
             // Changing the curve's visual precision therefore cannot change its combo count.
-            auto judge_samples = detail::GenerateHoldJudgeSamples(start.sample, builder.points.back().sample,
-                                                                  sample_rate, tempo_changes);
+            auto judge_samples = detail::GenerateHoldJudgeSamples(
+                start.sample,
+                builder.points.back().sample,
+                sample_rate,
+                tempo_changes
+            );
             if (!judge_samples) {
                 Result<SliderHold> result;
                 result.diagnostics = std::move(judge_samples.diagnostics);
@@ -305,20 +316,25 @@ namespace xlair::sheets::formats::sus {
                 if (segment == curve_segments.end()) {
                     return Result<SliderHold>::makeError(U"A Slider Hold judgement could not be mapped to its curve.");
                 }
-                hold.judge_points.push_back({
-                    .sample = sample,
-                    .lane = LaneAtSample(*segment, sample),
-                });
+                hold.judge_points.push_back(
+                    {
+                        .sample = sample,
+                        .lane = LaneAtSample(*segment, sample),
+                    }
+                );
             }
 
             return Result<SliderHold>{ std::move(hold) };
         }
     }
 
-    Result<s3d::Array<SliderHold>>
-    detail::CompileSliderHolds(const s3d::Array<::xlair::sheets::formats::sus::SliderHoldPoint>& source_points,
-                               const TimingMap& timing, const TimelineLookup& timeline_lookup,
-                               const s3d::int64 sample_rate, const s3d::Array<TempoChange>& tempo_changes) {
+    Result<s3d::Array<SliderHold>> detail::CompileSliderHolds(
+        const s3d::Array<::xlair::sheets::formats::sus::SliderHoldPoint>& source_points,
+        const TimingMap& timing,
+        const TimelineLookup& timeline_lookup,
+        const s3d::int64 sample_rate,
+        const s3d::Array<TempoChange>& tempo_changes
+    ) {
         const auto ordered_points = source_points.stable_sorted_by([](const auto& left, const auto& right) {
             return PositionComesBefore(left.position, right.position);
         });

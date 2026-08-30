@@ -17,16 +17,21 @@ namespace xlair::sheets::formats::sus {
 
         [[nodiscard]]
         double BPMAtSample(const s3d::Array<TempoChange>& tempo_changes, const long double sample) {
-            const auto change = std::upper_bound(tempo_changes.begin(), tempo_changes.end(), sample,
-                                                 [](const long double value, const TempoChange& candidate) {
-                                                     return value < candidate.sample;
-                                                 });
+            const auto change = std::upper_bound(
+                tempo_changes.begin(),
+                tempo_changes.end(),
+                sample,
+                [](const long double value, const TempoChange& candidate) {
+                    return value < candidate.sample;
+                }
+            );
             return (change == tempo_changes.begin() ? change : std::prev(change))->bpm;
         }
 
         [[nodiscard]]
-        s3d::int64 NextJudgeSample(const s3d::int64 current_sample, const s3d::int64 sample_rate,
-                                   const s3d::Array<TempoChange>& tempo_changes) {
+        s3d::int64 NextJudgeSample(
+            const s3d::int64 current_sample, const s3d::int64 sample_rate, const s3d::Array<TempoChange>& tempo_changes
+        ) {
             long double cursor = current_sample;
             const double current_bpm = BPMAtSample(tempo_changes, cursor);
             const long double division = current_bpm < 120.0 ? 4.0L : (current_bpm < 240.0 ? 2.0L : 1.0L);
@@ -36,10 +41,14 @@ namespace xlair::sheets::formats::sus {
                 const double bpm = BPMAtSample(tempo_changes, cursor);
                 const long double samples_per_beat =
                     static_cast<long double>(sample_rate) * 60.0L / static_cast<long double>(bpm);
-                const auto next_change = std::upper_bound(tempo_changes.begin(), tempo_changes.end(), cursor,
-                                                          [](const long double value, const TempoChange& candidate) {
-                                                              return value < candidate.sample;
-                                                          });
+                const auto next_change = std::upper_bound(
+                    tempo_changes.begin(),
+                    tempo_changes.end(),
+                    cursor,
+                    [](const long double value, const TempoChange& candidate) {
+                        return value < candidate.sample;
+                    }
+                );
 
                 if (next_change == tempo_changes.end()) {
                     return RoundSample(cursor + (remaining_beats * samples_per_beat));
@@ -59,10 +68,12 @@ namespace xlair::sheets::formats::sus {
         }
     }
 
-    Result<s3d::Array<s3d::int64>> detail::GenerateHoldJudgeSamples(const s3d::int64 start_sample,
-                                                                    const s3d::int64 end_sample,
-                                                                    const s3d::int64 sample_rate,
-                                                                    const s3d::Array<TempoChange>& tempo_changes) {
+    Result<s3d::Array<s3d::int64>> detail::GenerateHoldJudgeSamples(
+        const s3d::int64 start_sample,
+        const s3d::int64 end_sample,
+        const s3d::int64 sample_rate,
+        const s3d::Array<TempoChange>& tempo_changes
+    ) {
         if (end_sample <= start_sample) {
             return Result<s3d::Array<s3d::int64>>::makeError(U"A Hold End point must be placed after its Start point.");
         }

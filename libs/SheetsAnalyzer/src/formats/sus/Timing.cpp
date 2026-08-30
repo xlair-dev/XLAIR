@@ -18,19 +18,24 @@ namespace xlair::sheets::formats::sus {
         }
     }
 
-    TimingMap::TimingMap(const s3d::int64 sample_rate, const s3d::uint32 ticks_per_beat,
-                         const long double offset_samples)
+    TimingMap::TimingMap(
+        const s3d::int64 sample_rate, const s3d::uint32 ticks_per_beat, const long double offset_samples
+    )
         : m_sample_rate{ sample_rate }, m_ticks_per_beat{ ticks_per_beat } {
-        m_measure_segments.push_back({
-            .measure = 0,
-            .beat = 0.0L,
-            .beats_per_measure = DefaultBeatsPerMeasure,
-        });
-        m_segments.push_back({
-            .beat = 0.0L,
-            .sample = offset_samples,
-            .bpm = DefaultBPM,
-        });
+        m_measure_segments.push_back(
+            {
+                .measure = 0,
+                .beat = 0.0L,
+                .beats_per_measure = DefaultBeatsPerMeasure,
+            }
+        );
+        m_segments.push_back(
+            {
+                .beat = 0.0L,
+                .sample = offset_samples,
+                .bpm = DefaultBPM,
+            }
+        );
     }
 
     Result<TimingMap> TimingMap::Build(const Document& document, const TimingOptions& options) {
@@ -75,11 +80,13 @@ namespace xlair::sheets::formats::sus {
             if (measure == previous.measure) {
                 timing.m_measure_segments.back().beats_per_measure = beats;
             } else {
-                timing.m_measure_segments.push_back({
-                    .measure = measure,
-                    .beat = beat,
-                    .beats_per_measure = beats,
-                });
+                timing.m_measure_segments.push_back(
+                    {
+                        .measure = measure,
+                        .beat = beat,
+                        .beats_per_measure = beats,
+                    }
+                );
             }
         }
 
@@ -105,10 +112,12 @@ namespace xlair::sheets::formats::sus {
                 return Result<TimingMap>::makeError(U"BPM values must be positive finite numbers.");
             }
 
-            bpm_events.push_back({
-                .beat = timing.absoluteBeat(change.position),
-                .bpm = definition->second,
-            });
+            bpm_events.push_back(
+                {
+                    .beat = timing.absoluteBeat(change.position),
+                    .bpm = definition->second,
+                }
+            );
         }
         bpm_events.stable_sort_by([](const auto& left, const auto& right) {
             return left.beat < right.beat;
@@ -122,11 +131,13 @@ namespace xlair::sheets::formats::sus {
                 return Result<TimingMap>::makeError(U"BPM changes exceed the supported timing range.");
             }
 
-            timing.m_segments.push_back({
-                .beat = event.beat,
-                .sample = sample,
-                .bpm = event.bpm,
-            });
+            timing.m_segments.push_back(
+                {
+                    .beat = event.beat,
+                    .sample = sample,
+                    .bpm = event.bpm,
+                }
+            );
         }
 
         return Result<TimingMap>{ std::move(timing) };
@@ -146,19 +157,27 @@ namespace xlair::sheets::formats::sus {
 
     const TimingMap::MeasureSegment& TimingMap::measureSegmentAt(const s3d::uint32 measure) const {
         // upper_bound points just after the requested measure; the preceding entry is the active length segment.
-        const auto segment = std::upper_bound(m_measure_segments.begin(), m_measure_segments.end(), measure,
-                                              [](const s3d::uint32 value, const MeasureSegment& candidate) {
-                                                  return value < candidate.measure;
-                                              });
+        const auto segment = std::upper_bound(
+            m_measure_segments.begin(),
+            m_measure_segments.end(),
+            measure,
+            [](const s3d::uint32 value, const MeasureSegment& candidate) {
+                return value < candidate.measure;
+            }
+        );
         return *(segment == m_measure_segments.begin() ? segment : std::prev(segment));
     }
 
     const TimingMap::Segment& TimingMap::segmentAt(const long double beat) const {
         // Multiple BPM changes may share a beat. Stepping back from upper_bound selects the last applied change.
-        const auto segment = std::upper_bound(m_segments.begin(), m_segments.end(), beat,
-                                              [](const long double value, const Segment& candidate) {
-                                                  return value < candidate.beat;
-                                              });
+        const auto segment = std::upper_bound(
+            m_segments.begin(),
+            m_segments.end(),
+            beat,
+            [](const long double value, const Segment& candidate) {
+                return value < candidate.beat;
+            }
+        );
         return *(segment == m_segments.begin() ? segment : std::prev(segment));
     }
 

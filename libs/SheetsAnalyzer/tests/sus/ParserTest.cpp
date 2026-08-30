@@ -5,7 +5,8 @@
 namespace sus = xlair::sheets::formats::sus;
 
 TEST_CASE("ParseText builds SUS timing data", "[SheetsAnalyzer][SUS][Parser]") {
-    const auto result = sus::ParseText(UR"(#REQUEST "ticks_per_beat 960"
+    const auto result = sus::ParseText(
+        UR"(#REQUEST "ticks_per_beat 960"
 #REQUEST "enable_priority TRUE"
 #BPM01: 120.0
 #BPM0a: 180.5
@@ -15,7 +16,8 @@ TEST_CASE("ParseText builds SUS timing data", "[SheetsAnalyzer][SUS][Parser]") {
 #00202: 3.5
 #00208: 000a
 )",
-                                       U"chart.sus");
+        U"chart.sus"
+    );
 
     REQUIRE(result);
     CHECK(result->ticks_per_beat == 960);
@@ -43,10 +45,12 @@ TEST_CASE("ParseText builds SUS timing data", "[SheetsAnalyzer][SUS][Parser]") {
 }
 
 TEST_CASE("ParseText resolves BPM definitions declared after their use", "[SheetsAnalyzer][SUS][Parser]") {
-    const auto result = sus::ParseText(UR"(#00008: 01
+    const auto result = sus::ParseText(
+        UR"(#00008: 01
 #BPM01: 120
 )",
-                                       U"chart.sus");
+        U"chart.sus"
+    );
 
     REQUIRE(result);
     REQUIRE(result->bpm_changes.size() == 1);
@@ -54,10 +58,12 @@ TEST_CASE("ParseText resolves BPM definitions declared after their use", "[Sheet
 }
 
 TEST_CASE("ParseText ignores metadata outside the parser's current scope", "[SheetsAnalyzer][SUS][Parser]") {
-    const auto result = sus::ParseText(UR"(#TITLE "Song"
+    const auto result = sus::ParseText(
+        UR"(#TITLE "Song"
 #ARTIST "Artist"
 )",
-                                       U"chart.sus");
+        U"chart.sus"
+    );
 
     REQUIRE(result);
     CHECK(result->bpm_definitions.empty());
@@ -66,19 +72,23 @@ TEST_CASE("ParseText ignores metadata outside the parser's current scope", "[She
 
 TEST_CASE("ParseText validates known REQUEST values and ignores unknown requests", "[SheetsAnalyzer][SUS][Parser]") {
     SECTION("disable priority") {
-        const auto result = sus::ParseText(UR"(#REQUEST "enable_priority true"
+        const auto result = sus::ParseText(
+            UR"(#REQUEST "enable_priority true"
 #REQUEST "enable_priority false"
 )",
-                                           U"chart.sus");
+            U"chart.sus"
+        );
 
         REQUIRE(result);
         CHECK_FALSE(result->priority_enabled);
     }
 
     SECTION("invalid priority value") {
-        const auto result = sus::ParseText(UR"(#REQUEST "enable_priority maybe"
+        const auto result = sus::ParseText(
+            UR"(#REQUEST "enable_priority maybe"
 )",
-                                           U"broken.sus");
+            U"broken.sus"
+        );
 
         REQUIRE_FALSE(result);
         REQUIRE(result.diagnostics.size() == 1);
@@ -86,9 +96,11 @@ TEST_CASE("ParseText validates known REQUEST values and ignores unknown requests
     }
 
     SECTION("unknown request") {
-        const auto result = sus::ParseText(UR"(#REQUEST "future_option value"
+        const auto result = sus::ParseText(
+            UR"(#REQUEST "future_option value"
 )",
-                                           U"chart.sus");
+            U"chart.sus"
+        );
 
         REQUIRE(result);
         CHECK(result->ticks_per_beat == 480);
@@ -96,9 +108,11 @@ TEST_CASE("ParseText validates known REQUEST values and ignores unknown requests
     }
 }
 
-TEST_CASE("ParseText builds short and directional notes with the active hispeed timeline",
-          "[SheetsAnalyzer][SUS][Parser]") {
-    const auto result = sus::ParseText(UR"(#TIL01: "0'0:1"
+TEST_CASE(
+    "ParseText builds short and directional notes with the active hispeed timeline", "[SheetsAnalyzer][SUS][Parser]"
+) {
+    const auto result = sus::ParseText(
+        UR"(#TIL01: "0'0:1"
 #HISPEED 01
 #MEASUREBS 1000
 #0101A: 1Z0024003400
@@ -106,7 +120,8 @@ TEST_CASE("ParseText builds short and directional notes with the active hispeed 
 #NOSPEED
 #01110: 14
 )",
-                                       U"chart.sus");
+        U"chart.sus"
+    );
 
     REQUIRE(result);
     REQUIRE(result->slider_notes.size() == 4);
@@ -154,9 +169,11 @@ TEST_CASE("ParseText builds short and directional notes with the active hispeed 
 }
 
 TEST_CASE("ParseText preserves all six SUS short-note kinds", "[SheetsAnalyzer][SUS][Parser]") {
-    const auto result = sus::ParseText(UR"(#00010: 142434445464
+    const auto result = sus::ParseText(
+        UR"(#00010: 142434445464
 )",
-                                       U"chart.sus");
+        U"chart.sus"
+    );
 
     REQUIRE(result);
     REQUIRE(result->slider_notes.size() == 6);
@@ -172,9 +189,11 @@ TEST_CASE("ParseText preserves all six SUS short-note kinds", "[SheetsAnalyzer][
 
 TEST_CASE("ParseText validates short and directional note data", "[SheetsAnalyzer][SUS][Parser]") {
     SECTION("odd-length note data") {
-        const auto result = sus::ParseText(UR"(#00010: 1
+        const auto result = sus::ParseText(
+            UR"(#00010: 1
 )",
-                                           U"broken.sus");
+            U"broken.sus"
+        );
 
         REQUIRE_FALSE(result);
         REQUIRE(result.diagnostics.size() == 1);
@@ -182,9 +201,11 @@ TEST_CASE("ParseText validates short and directional note data", "[SheetsAnalyze
     }
 
     SECTION("invalid base36 width") {
-        const auto result = sus::ParseText(UR"(#00010: 1!
+        const auto result = sus::ParseText(
+            UR"(#00010: 1!
 )",
-                                           U"broken.sus");
+            U"broken.sus"
+        );
 
         REQUIRE_FALSE(result);
         REQUIRE(result.diagnostics.size() == 1);
@@ -192,9 +213,11 @@ TEST_CASE("ParseText validates short and directional note data", "[SheetsAnalyze
     }
 
     SECTION("zero width") {
-        const auto result = sus::ParseText(UR"(#00010: 10
+        const auto result = sus::ParseText(
+            UR"(#00010: 10
 )",
-                                           U"broken.sus");
+            U"broken.sus"
+        );
 
         REQUIRE_FALSE(result);
         REQUIRE(result.diagnostics.size() == 1);
@@ -202,9 +225,11 @@ TEST_CASE("ParseText validates short and directional note data", "[SheetsAnalyze
     }
 
     SECTION("unsupported short note kind") {
-        const auto result = sus::ParseText(UR"(#00010: 74
+        const auto result = sus::ParseText(
+            UR"(#00010: 74
 )",
-                                           U"broken.sus");
+            U"broken.sus"
+        );
 
         REQUIRE_FALSE(result);
         REQUIRE(result.diagnostics.size() == 1);
@@ -212,9 +237,11 @@ TEST_CASE("ParseText validates short and directional note data", "[SheetsAnalyze
     }
 
     SECTION("unsupported directional note kind") {
-        const auto result = sus::ParseText(UR"(#00050: 74
+        const auto result = sus::ParseText(
+            UR"(#00050: 74
 )",
-                                           U"broken.sus");
+            U"broken.sus"
+        );
 
         REQUIRE_FALSE(result);
         REQUIRE(result.diagnostics.size() == 1);
@@ -222,9 +249,11 @@ TEST_CASE("ParseText validates short and directional note data", "[SheetsAnalyze
     }
 
     SECTION("invalid short note header") {
-        const auto result = sus::ParseText(UR"(#000100: 14
+        const auto result = sus::ParseText(
+            UR"(#000100: 14
 )",
-                                           U"broken.sus");
+            U"broken.sus"
+        );
 
         REQUIRE_FALSE(result);
         REQUIRE(result.diagnostics.size() == 1);
@@ -232,15 +261,18 @@ TEST_CASE("ParseText validates short and directional note data", "[SheetsAnalyze
     }
 }
 
-TEST_CASE("ParseText builds slider hold points with their channel and active timeline",
-          "[SheetsAnalyzer][SUS][Parser]") {
-    const auto result = sus::ParseText(UR"(#TIL0A: "0'0:1"
+TEST_CASE(
+    "ParseText builds slider hold points with their channel and active timeline", "[SheetsAnalyzer][SUS][Parser]"
+) {
+    const auto result = sus::ParseText(
+        UR"(#TIL0A: "0'0:1"
 #HISPEED 0A
 #02030a: 140034004400550024
 #NOSPEED
 #0213BZ: 1525
 )",
-                                       U"chart.sus");
+        U"chart.sus"
+    );
 
     REQUIRE(result);
     REQUIRE(result->slider_hold_points.size() == 7);
@@ -281,9 +313,11 @@ TEST_CASE("ParseText builds slider hold points with their channel and active tim
 
 TEST_CASE("ParseText validates slider hold point data", "[SheetsAnalyzer][SUS][Parser]") {
     SECTION("unsupported point kind") {
-        const auto result = sus::ParseText(UR"(#000300: 64
+        const auto result = sus::ParseText(
+            UR"(#000300: 64
 )",
-                                           U"broken.sus");
+            U"broken.sus"
+        );
 
         REQUIRE_FALSE(result);
         REQUIRE(result.diagnostics.size() == 1);
@@ -291,9 +325,11 @@ TEST_CASE("ParseText validates slider hold point data", "[SheetsAnalyzer][SUS][P
     }
 
     SECTION("invalid header") {
-        const auto result = sus::ParseText(UR"(#00030: 14
+        const auto result = sus::ParseText(
+            UR"(#00030: 14
 )",
-                                           U"broken.sus");
+            U"broken.sus"
+        );
 
         REQUIRE_FALSE(result);
         REQUIRE(result.diagnostics.size() == 1);
@@ -302,7 +338,8 @@ TEST_CASE("ParseText validates slider hold point data", "[SheetsAnalyzer][SUS][P
 }
 
 TEST_CASE("ParseText builds SideLong points with their channel and active timeline", "[SheetsAnalyzer][SUS][Parser]") {
-    const auto result = sus::ParseText(UR"(#TIL01: "0'0:1"
+    const auto result = sus::ParseText(
+        UR"(#TIL01: "0'0:1"
 #HISPEED 01
 #00020A: 1400
 #00125a: 0034
@@ -310,7 +347,8 @@ TEST_CASE("ParseText builds SideLong points with their channel and active timeli
 #NOSPEED
 #0032CZ: 1424
 )",
-                                       U"chart.sus");
+        U"chart.sus"
+    );
 
     REQUIRE(result);
     REQUIRE(result->side_long_points.size() == 5);
@@ -357,9 +395,11 @@ TEST_CASE("ParseText builds SideLong points with their channel and active timeli
 
 TEST_CASE("ParseText validates SideLong point data", "[SheetsAnalyzer][SUS][Parser]") {
     SECTION("unsupported point kind") {
-        const auto result = sus::ParseText(UR"(#000200: 44
+        const auto result = sus::ParseText(
+            UR"(#000200: 44
 )",
-                                           U"broken.sus");
+            U"broken.sus"
+        );
 
         REQUIRE_FALSE(result);
         REQUIRE(result.diagnostics.size() == 1);
@@ -367,9 +407,11 @@ TEST_CASE("ParseText validates SideLong point data", "[SheetsAnalyzer][SUS][Pars
     }
 
     SECTION("invalid header") {
-        const auto result = sus::ParseText(UR"(#00020: 14
+        const auto result = sus::ParseText(
+            UR"(#00020: 14
 )",
-                                           U"broken.sus");
+            U"broken.sus"
+        );
 
         REQUIRE_FALSE(result);
         REQUIRE(result.diagnostics.size() == 1);
@@ -378,7 +420,8 @@ TEST_CASE("ParseText validates SideLong point data", "[SheetsAnalyzer][SUS][Pars
 }
 
 TEST_CASE("ParseText aggregates syntax and timing diagnostics", "[SheetsAnalyzer][SUS][Parser]") {
-    const auto result = sus::ParseText(UR"(#
+    const auto result = sus::ParseText(
+        UR"(#
 #REQUEST "ticks_per_beat 0"
 #BPM00: 120
 #BPM01: -1
@@ -386,7 +429,8 @@ TEST_CASE("ParseText aggregates syntax and timing diagnostics", "[SheetsAnalyzer
 #00008: 01F
 #00108: 02
 )",
-                                       U"broken.sus");
+        U"broken.sus"
+    );
 
     REQUIRE_FALSE(result);
     CHECK(result.diagnostics.size() == 7);
@@ -401,10 +445,12 @@ TEST_CASE("ParseText aggregates syntax and timing diagnostics", "[SheetsAnalyzer
 }
 
 TEST_CASE("ParseText applies the latest measure base and detects overflow", "[SheetsAnalyzer][SUS][Parser]") {
-    const auto result = sus::ParseText(UR"(#MEASUREBS 4294967295
+    const auto result = sus::ParseText(
+        UR"(#MEASUREBS 4294967295
 #00102: 4
 )",
-                                       U"broken.sus");
+        U"broken.sus"
+    );
 
     REQUIRE_FALSE(result);
     REQUIRE(result.diagnostics.size() == 1);
@@ -413,9 +459,11 @@ TEST_CASE("ParseText applies the latest measure base and detects overflow", "[Sh
 }
 
 TEST_CASE("ParseText reports the source column of invalid BPM data", "[SheetsAnalyzer][SUS][Parser]") {
-    const auto result = sus::ParseText(UR"(#00008: 0!
+    const auto result = sus::ParseText(
+        UR"(#00008: 0!
 )",
-                                       U"broken.sus");
+        U"broken.sus"
+    );
 
     REQUIRE_FALSE(result);
     REQUIRE(result.diagnostics.size() == 1);
@@ -424,11 +472,13 @@ TEST_CASE("ParseText reports the source column of invalid BPM data", "[SheetsAna
 }
 
 TEST_CASE("ParseText builds hispeed definitions from measure and tick positions", "[SheetsAnalyzer][SUS][Parser]") {
-    const auto result = sus::ParseText(UR"(#TIL00: "0'0:1.0, 2'960:-0.5, 3'0:0"
+    const auto result = sus::ParseText(
+        UR"(#TIL00: "0'0:1.0, 2'960:-0.5, 3'0:0"
 #HISPEED 00
 #NOSPEED
 )",
-                                       U"chart.sus");
+        U"chart.sus"
+    );
 
     REQUIRE(result);
     REQUIRE(result->hispeed_definitions.size() == 1);
@@ -446,10 +496,12 @@ TEST_CASE("ParseText builds hispeed definitions from measure and tick positions"
 }
 
 TEST_CASE("ParseText accepts an empty hispeed definition", "[SheetsAnalyzer][SUS][Parser]") {
-    const auto result = sus::ParseText(UR"(#TIL00: ""
+    const auto result = sus::ParseText(
+        UR"(#TIL00: ""
 #HISPEED 00
 )",
-                                       U"chart.sus");
+        U"chart.sus"
+    );
 
     REQUIRE(result);
     REQUIRE(result->hispeed_definitions.contains(0));
@@ -457,10 +509,12 @@ TEST_CASE("ParseText accepts an empty hispeed definition", "[SheetsAnalyzer][SUS
 }
 
 TEST_CASE("ParseText resolves hispeed definitions declared after selection", "[SheetsAnalyzer][SUS][Parser]") {
-    const auto result = sus::ParseText(UR"(#HISPEED 0a
+    const auto result = sus::ParseText(
+        UR"(#HISPEED 0a
 #TIL0A: "0'0:1"
 )",
-                                       U"chart.sus");
+        U"chart.sus"
+    );
 
     REQUIRE(result);
     CHECK(result->hispeed_definitions.contains(10));
@@ -468,9 +522,11 @@ TEST_CASE("ParseText resolves hispeed definitions declared after selection", "[S
 
 TEST_CASE("ParseText validates hispeed definitions and selections", "[SheetsAnalyzer][SUS][Parser]") {
     SECTION("malformed change") {
-        const auto result = sus::ParseText(UR"(#TIL01: "0:1"
+        const auto result = sus::ParseText(
+            UR"(#TIL01: "0:1"
 )",
-                                           U"broken.sus");
+            U"broken.sus"
+        );
 
         REQUIRE_FALSE(result);
         REQUIRE(result.diagnostics.size() == 1);
@@ -478,20 +534,26 @@ TEST_CASE("ParseText validates hispeed definitions and selections", "[SheetsAnal
     }
 
     SECTION("invalid numeric value") {
-        const auto result = sus::ParseText(UR"(#TIL01: "-1'0:1"
+        const auto result = sus::ParseText(
+            UR"(#TIL01: "-1'0:1"
 )",
-                                           U"broken.sus");
+            U"broken.sus"
+        );
 
         REQUIRE_FALSE(result);
         REQUIRE(result.diagnostics.size() == 1);
-        CHECK(result.diagnostics.front().message ==
-              U"Hispeed changes require a non-negative measure and tick and a finite speed.");
+        CHECK(
+            result.diagnostics.front().message ==
+            U"Hispeed changes require a non-negative measure and tick and a finite speed."
+        );
     }
 
     SECTION("undefined selection") {
-        const auto result = sus::ParseText(UR"(#HISPEED ZZ
+        const auto result = sus::ParseText(
+            UR"(#HISPEED ZZ
 )",
-                                           U"broken.sus");
+            U"broken.sus"
+        );
 
         REQUIRE_FALSE(result);
         REQUIRE(result.diagnostics.size() == 1);
@@ -499,9 +561,11 @@ TEST_CASE("ParseText validates hispeed definitions and selections", "[SheetsAnal
     }
 
     SECTION("NOSPEED argument") {
-        const auto result = sus::ParseText(UR"(#NOSPEED 01
+        const auto result = sus::ParseText(
+            UR"(#NOSPEED 01
 )",
-                                           U"broken.sus");
+            U"broken.sus"
+        );
 
         REQUIRE_FALSE(result);
         REQUIRE(result.diagnostics.size() == 1);

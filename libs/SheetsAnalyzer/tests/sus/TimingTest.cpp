@@ -8,10 +8,13 @@ namespace sus = xlair::sheets::formats::sus;
 
 TEST_CASE("TimingMap converts default four-beat measures to samples", "[SheetsAnalyzer][SUS][Timing]") {
     const sus::Document document;
-    const auto timing = sus::TimingMap::Build(document, {
-                                                            .sample_rate = 100,
-                                                            .offset_seconds = 0.25,
-                                                        });
+    const auto timing = sus::TimingMap::Build(
+        document,
+        {
+            .sample_rate = 100,
+            .offset_seconds = 0.25,
+        }
+    );
 
     REQUIRE(timing);
     CHECK(timing->toSample({ .measure = 0, .numerator = 0, .denominator = 1 }) == 25);
@@ -75,14 +78,20 @@ TEST_CASE("TimingMap converts #TIL tick positions to samples", "[SheetsAnalyzer]
 }
 
 TEST_CASE("TimingMap clamps samples to the int64 range", "[SheetsAnalyzer][SUS][Timing]") {
-    const auto maximum = sus::TimingMap::Build({}, {
-                                                       .sample_rate = 1,
-                                                       .offset_seconds = std::numeric_limits<double>::max(),
-                                                   });
-    const auto minimum = sus::TimingMap::Build({}, {
-                                                       .sample_rate = 1,
-                                                       .offset_seconds = std::numeric_limits<double>::lowest(),
-                                                   });
+    const auto maximum = sus::TimingMap::Build(
+        {},
+        {
+            .sample_rate = 1,
+            .offset_seconds = std::numeric_limits<double>::max(),
+        }
+    );
+    const auto minimum = sus::TimingMap::Build(
+        {},
+        {
+            .sample_rate = 1,
+            .offset_seconds = std::numeric_limits<double>::lowest(),
+        }
+    );
 
     REQUIRE(maximum);
     REQUIRE(minimum);
@@ -113,30 +122,36 @@ TEST_CASE("TimingMap validates timing inputs", "[SheetsAnalyzer][SUS][Timing]") 
 
     SECTION("undefined BPM") {
         sus::Document document;
-        document.bpm_changes.push_back({
-            .position = { .measure = 0, .numerator = 0, .denominator = 1 },
-            .definition = 1,
-        });
+        document.bpm_changes.push_back(
+            {
+                .position = { .measure = 0, .numerator = 0, .denominator = 1 },
+                .definition = 1,
+            }
+        );
         CHECK_FALSE(sus::TimingMap::Build(document, {}));
     }
 
     SECTION("invalid BPM") {
         sus::Document document;
         document.bpm_definitions[1] = -120.0;
-        document.bpm_changes.push_back({
-            .position = { .measure = 0, .numerator = 0, .denominator = 1 },
-            .definition = 1,
-        });
+        document.bpm_changes.push_back(
+            {
+                .position = { .measure = 0, .numerator = 0, .denominator = 1 },
+                .definition = 1,
+            }
+        );
         CHECK_FALSE(sus::TimingMap::Build(document, {}));
     }
 
     SECTION("invalid position") {
         sus::Document document;
         document.bpm_definitions[1] = 120.0;
-        document.bpm_changes.push_back({
-            .position = { .measure = 0, .numerator = 1, .denominator = 1 },
-            .definition = 1,
-        });
+        document.bpm_changes.push_back(
+            {
+                .position = { .measure = 0, .numerator = 1, .denominator = 1 },
+                .definition = 1,
+            }
+        );
         CHECK_FALSE(sus::TimingMap::Build(document, {}));
     }
 }

@@ -97,8 +97,9 @@ TEST_CASE("Compile assembles interleaved Slider Hold channels in musical order",
     }
 }
 
-TEST_CASE("Compile expands Slider Hold Control points into generated Invisible points",
-          "[SheetsAnalyzer][SUS][Compiler]") {
+TEST_CASE(
+    "Compile expands Slider Hold Control points into generated Invisible points", "[SheetsAnalyzer][SUS][Compiler]"
+) {
     sus::Document document;
     document.slider_hold_points = {
         {
@@ -143,8 +144,9 @@ TEST_CASE("Compile expands Slider Hold Control points into generated Invisible p
     CHECK(hold.judge_points[4].lane.width == 3);
 }
 
-TEST_CASE("Compile supports multiple Control points in one Slider Hold Bezier segment",
-          "[SheetsAnalyzer][SUS][Compiler]") {
+TEST_CASE(
+    "Compile supports multiple Control points in one Slider Hold Bezier segment", "[SheetsAnalyzer][SUS][Compiler]"
+) {
     sus::Document document;
     document.slider_hold_points = {
         {
@@ -181,8 +183,9 @@ TEST_CASE("Compile supports multiple Control points in one Slider Hold Bezier se
     CHECK(midpoint.lane.width == 3);
 }
 
-TEST_CASE("Compile generates Slider Hold judgements independently from rendering points",
-          "[SheetsAnalyzer][SUS][Compiler]") {
+TEST_CASE(
+    "Compile generates Slider Hold judgements independently from rendering points", "[SheetsAnalyzer][SUS][Compiler]"
+) {
     sus::Document document;
     document.slider_hold_points = {
         {
@@ -220,14 +223,18 @@ TEST_CASE("Compile generates Slider Hold judgements independently from rendering
     CHECK(result->total_combo == hold.judge_points.size());
 }
 
-TEST_CASE("Compile keeps periodic Slider Hold judgements in musical time across BPM changes",
-          "[SheetsAnalyzer][SUS][Compiler]") {
+TEST_CASE(
+    "Compile keeps periodic Slider Hold judgements in musical time across BPM changes",
+    "[SheetsAnalyzer][SUS][Compiler]"
+) {
     sus::Document document;
     document.bpm_definitions[1] = 180.0;
-    document.bpm_changes.push_back({
-        .position = { .measure = 0, .numerator = 1, .denominator = 2 },
-        .definition = 1,
-    });
+    document.bpm_changes.push_back(
+        {
+            .position = { .measure = 0, .numerator = 1, .denominator = 2 },
+            .definition = 1,
+        }
+    );
     document.slider_hold_points = {
         {
             .kind = sus::SliderHoldPointKind::Start,
@@ -288,8 +295,9 @@ TEST_CASE("Compile validates Slider Hold channel state", "[SheetsAnalyzer][SUS][
         const auto result = sus::Compile(document, {});
 
         REQUIRE_FALSE(result);
-        CHECK(result.diagnostics.front().message ==
-              U"A Slider Hold End point has no active Start point on its channel.");
+        CHECK(
+            result.diagnostics.front().message == U"A Slider Hold End point has no active Start point on its channel."
+        );
     }
 
     SECTION("missing End") {
@@ -304,11 +312,13 @@ TEST_CASE("Compile validates Slider Hold channel state", "[SheetsAnalyzer][SUS][
 
     SECTION("undefined timeline") {
         sus::Document document;
-        document.slider_hold_points.push_back({
-            .kind = sus::SliderHoldPointKind::Start,
-            .channel = 1,
-            .timeline = 99,
-        });
+        document.slider_hold_points.push_back(
+            {
+                .kind = sus::SliderHoldPointKind::Start,
+                .channel = 1,
+                .timeline = 99,
+            }
+        );
 
         const auto result = sus::Compile(document, {});
 
@@ -326,8 +336,10 @@ TEST_CASE("Compile validates Slider Hold channel state", "[SheetsAnalyzer][SUS][
         const auto result = sus::Compile(document, {});
 
         REQUIRE_FALSE(result);
-        CHECK(result.diagnostics.front().message ==
-              U"Slider Hold anchors must be placed in strictly increasing time order.");
+        CHECK(
+            result.diagnostics.front().message ==
+            U"Slider Hold anchors must be placed in strictly increasing time order."
+        );
     }
 
     SECTION("point outside the slider") {
@@ -345,7 +357,9 @@ TEST_CASE("Compile validates Slider Hold channel state", "[SheetsAnalyzer][SUS][
         const auto result = sus::Compile(document, {});
 
         REQUIRE_FALSE(result);
-        CHECK(result.diagnostics.front().message ==
-              U"Slider Hold points must have a positive width and fit within XLAIR's 16 slider lanes.");
+        CHECK(
+            result.diagnostics.front().message ==
+            U"Slider Hold points must have a positive width and fit within XLAIR's 16 slider lanes."
+        );
     }
 }

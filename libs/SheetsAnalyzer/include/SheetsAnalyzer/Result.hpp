@@ -27,17 +27,22 @@ namespace xlair::sheets {
         explicit Result(T success_value) : value{ std::move(success_value) } {}
 
         [[nodiscard]]
-        static Result makeError(s3d::String message, s3d::FilePath path = U"",
-                                s3d::Optional<std::size_t> line = s3d::none,
-                                s3d::Optional<std::size_t> column = s3d::none) {
+        static Result makeError(
+            s3d::String message,
+            s3d::FilePath path = U"",
+            s3d::Optional<std::size_t> line = s3d::none,
+            s3d::Optional<std::size_t> column = s3d::none
+        ) {
             Result result;
-            result.diagnostics.push_back({
-                .severity = DiagnosticSeverity::Error,
-                .message = std::move(message),
-                .path = std::move(path),
-                .line = line,
-                .column = column,
-            });
+            result.diagnostics.push_back(
+                {
+                    .severity = DiagnosticSeverity::Error,
+                    .message = std::move(message),
+                    .path = std::move(path),
+                    .line = line,
+                    .column = column,
+                }
+            );
             return result;
         }
 

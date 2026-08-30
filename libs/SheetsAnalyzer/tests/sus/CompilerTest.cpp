@@ -29,10 +29,12 @@ TEST_CASE("SideLong start lanes map to XLAIR side buttons", "[SheetsAnalyzer][SU
 TEST_CASE("Compile builds timing, timelines, and simple notes", "[SheetsAnalyzer][SUS][Compiler]") {
     sus::Document document;
     document.bpm_definitions[1] = 60.0;
-    document.bpm_changes.push_back({
-        .position = { .measure = 0, .numerator = 1, .denominator = 2 },
-        .definition = 1,
-    });
+    document.bpm_changes.push_back(
+        {
+            .position = { .measure = 0, .numerator = 1, .denominator = 2 },
+            .definition = 1,
+        }
+    );
     document.hispeed_definitions[2] = {};
     document.hispeed_definitions[10].changes = {
         {
@@ -58,17 +60,22 @@ TEST_CASE("Compile builds timing, timelines, and simple notes", "[SheetsAnalyzer
             .timeline = s3d::none,
         },
     };
-    document.directional_notes.push_back({
-        .kind = sus::DirectionalKind::LeftUp,
-        .position = { .measure = 0, .numerator = 1, .denominator = 2 },
-        .lane = { .start = 0, .width = 2 },
-        .timeline = 10,
-    });
+    document.directional_notes.push_back(
+        {
+            .kind = sus::DirectionalKind::LeftUp,
+            .position = { .measure = 0, .numerator = 1, .denominator = 2 },
+            .lane = { .start = 0, .width = 2 },
+            .timeline = 10,
+        }
+    );
 
-    const auto result = sus::Compile(document, {
-                                                   .sample_rate = 480,
-                                                   .offset_seconds = 0.25,
-                                               });
+    const auto result = sus::Compile(
+        document,
+        {
+            .sample_rate = 480,
+            .offset_seconds = 0.25,
+        }
+    );
 
     REQUIRE(result);
     CHECK(result->sample_rate == 480);
@@ -294,8 +301,9 @@ TEST_CASE("Compile validates SideLong channel state", "[SheetsAnalyzer][SUS][Com
         const auto result = sus::Compile(document, {});
 
         REQUIRE_FALSE(result);
-        CHECK(result.diagnostics.front().message ==
-              U"A SideLong Relay point has no active Start point on its channel.");
+        CHECK(
+            result.diagnostics.front().message == U"A SideLong Relay point has no active Start point on its channel."
+        );
     }
 
     SECTION("End without Start") {
@@ -310,11 +318,13 @@ TEST_CASE("Compile validates SideLong channel state", "[SheetsAnalyzer][SUS][Com
 
     SECTION("missing End") {
         sus::Document document;
-        document.side_long_points.push_back({
-            .kind = sus::SideLongPointKind::Start,
-            .lane = { .start = 0 },
-            .channel = 1,
-        });
+        document.side_long_points.push_back(
+            {
+                .kind = sus::SideLongPointKind::Start,
+                .lane = { .start = 0 },
+                .channel = 1,
+            }
+        );
 
         const auto result = sus::Compile(document, {});
 
@@ -324,12 +334,14 @@ TEST_CASE("Compile validates SideLong channel state", "[SheetsAnalyzer][SUS][Com
 
     SECTION("undefined timeline") {
         sus::Document document;
-        document.side_long_points.push_back({
-            .kind = sus::SideLongPointKind::Start,
-            .lane = { .start = 0 },
-            .channel = 1,
-            .timeline = 99,
-        });
+        document.side_long_points.push_back(
+            {
+                .kind = sus::SideLongPointKind::Start,
+                .lane = { .start = 0 },
+                .channel = 1,
+                .timeline = 99,
+            }
+        );
 
         const auto result = sus::Compile(document, {});
 
@@ -348,7 +360,8 @@ TEST_CASE("Compile validates SideLong channel state", "[SheetsAnalyzer][SUS][Com
         const auto result = sus::Compile(document, {});
 
         REQUIRE_FALSE(result);
-        CHECK(result.diagnostics.front().message ==
-              U"SideLong points must be placed in strictly increasing time order.");
+        CHECK(
+            result.diagnostics.front().message == U"SideLong points must be placed in strictly increasing time order."
+        );
     }
 }

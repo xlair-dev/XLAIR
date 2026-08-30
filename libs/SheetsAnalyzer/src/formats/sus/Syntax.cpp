@@ -21,28 +21,42 @@ namespace xlair::sheets::formats::sus {
 
         if (s3d::IsDigit(body.front())) {
             if (body.size() < 3 || !s3d::IsDigit(body[1]) || !s3d::IsDigit(body[2])) {
-                return Result<ParsedLine>::makeError(U"Data line measures must contain exactly three decimal digits.",
-                                                     path, line_number, 2);
+                return Result<ParsedLine>::makeError(
+                    U"Data line measures must contain exactly three decimal digits.",
+                    path,
+                    line_number,
+                    2
+                );
             }
 
             const std::size_t separator = body.indexOf(U':');
             if (separator == s3d::String::npos) {
-                return Result<ParsedLine>::makeError(U"Data lines require a ':' separator.", path, line_number,
-                                                     body.size() + 2);
+                return Result<ParsedLine>::makeError(
+                    U"Data lines require a ':' separator.",
+                    path,
+                    line_number,
+                    body.size() + 2
+                );
             }
 
             if (separator < 5) {
                 return Result<ParsedLine>::makeError(
-                    U"Data line headers require at least a two-character data code after the measure.", path,
-                    line_number, separator + 2
+                    U"Data line headers require at least a two-character data code after the measure.",
+                    path,
+                    line_number,
+                    separator + 2
                 );
             }
 
             const s3d::String code = body.substr(3, separator - 3).lowercased();
             for (std::size_t index = 0; index < code.size(); ++index) {
                 if (!s3d::IsAlnum(code[index])) {
-                    return Result<ParsedLine>::makeError(U"Data line codes must use ASCII alphanumeric characters.",
-                                                         path, line_number, index + 5);
+                    return Result<ParsedLine>::makeError(
+                        U"Data line codes must use ASCII alphanumeric characters.",
+                        path,
+                        line_number,
+                        index + 5
+                    );
                 }
             }
 
@@ -54,8 +68,12 @@ namespace xlair::sheets::formats::sus {
 
             const s3d::String data = raw_data.trimmed();
             if (data.isEmpty()) {
-                return Result<ParsedLine>::makeError(U"Data lines require a value after ':'.", path, line_number,
-                                                     separator + 3);
+                return Result<ParsedLine>::makeError(
+                    U"Data lines require a value after ':'.",
+                    path,
+                    line_number,
+                    separator + 3
+                );
             }
 
             const s3d::uint32 measure =
@@ -84,8 +102,12 @@ namespace xlair::sheets::formats::sus {
 
         for (std::size_t index = 0; index < key.size(); ++index) {
             if (!s3d::IsAlnum(key[index])) {
-                return Result<ParsedLine>::makeError(U"SUS directive names must use ASCII alphanumeric characters.",
-                                                     path, line_number, index + 2);
+                return Result<ParsedLine>::makeError(
+                    U"SUS directive names must use ASCII alphanumeric characters.",
+                    path,
+                    line_number,
+                    index + 2
+                );
             }
         }
 
@@ -109,16 +131,21 @@ namespace xlair::sheets::formats::sus {
         } } };
     }
 
-    Result<s3d::uint32> ParseBase36(const s3d::StringView value, const std::size_t line_number,
-                                    const std::size_t column, const s3d::FilePath& path) {
+    Result<s3d::uint32> ParseBase36(
+        const s3d::StringView value, const std::size_t line_number, const std::size_t column, const s3d::FilePath& path
+    ) {
         if (value.isEmpty()) {
             return Result<s3d::uint32>::makeError(U"Base36 values must not be empty.", path, line_number, column);
         }
 
         for (std::size_t index = 0; index < value.size(); ++index) {
             if (!s3d::IsAlnum(value[index])) {
-                return Result<s3d::uint32>::makeError(U"Base36 values may contain only 0-9 and A-Z.", path, line_number,
-                                                      column + index);
+                return Result<s3d::uint32>::makeError(
+                    U"Base36 values may contain only 0-9 and A-Z.",
+                    path,
+                    line_number,
+                    column + index
+                );
             }
         }
 

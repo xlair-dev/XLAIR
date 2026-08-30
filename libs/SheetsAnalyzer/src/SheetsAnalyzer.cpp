@@ -37,10 +37,13 @@ namespace xlair::sheets {
             return result;
         }
 
-        auto compiled = formats::sus::Compile(*parsed, {
-                                                           .sample_rate = options.sample_rate,
-                                                           .offset_seconds = options.offset_seconds,
-                                                       });
+        auto compiled = formats::sus::Compile(
+            *parsed,
+            {
+                .sample_rate = options.sample_rate,
+                .offset_seconds = options.offset_seconds,
+            }
+        );
 
         AppendDiagnostics(result.diagnostics, compiled.diagnostics);
         if (compiled) {

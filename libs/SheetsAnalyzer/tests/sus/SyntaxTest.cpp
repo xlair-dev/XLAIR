@@ -90,8 +90,10 @@ TEST_CASE("ParseLine reports malformed SUS lines with source locations", "[Sheet
 
         REQUIRE_FALSE(result);
         REQUIRE(result.diagnostics.size() == 1);
-        CHECK(result.diagnostics.front().message ==
-              U"Data line headers require at least a two-character data code after the measure.");
+        CHECK(
+            result.diagnostics.front().message ==
+            U"Data line headers require at least a two-character data code after the measure."
+        );
     }
 
     SECTION("missing data") {
