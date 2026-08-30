@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "difficulties": [
+    {
+      "id": "invalid-level",
+      "difficulty": 0,
+      "level": -1
+    }
+  ]
+}

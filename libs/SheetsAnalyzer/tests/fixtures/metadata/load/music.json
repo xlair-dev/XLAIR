@@ -14,9 +14,9 @@
   "difficulties": [
     {
       "id": "expert",
-      "index": 2,
+      "difficulty": 2,
       "level": 9.5,
-      "chart": "charts/expert.sus",
+      "src": "charts/expert.sus",
       "designer": "Chart Author"
     },
     {

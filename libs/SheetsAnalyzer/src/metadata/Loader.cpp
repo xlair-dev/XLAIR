@@ -4,7 +4,6 @@
 #include <Siv3D/TOMLReader.hpp>
 
 #include <cmath>
-#include <limits>
 #include <utility>
 
 namespace xlair::sheets::metadata {
@@ -41,11 +40,15 @@ namespace xlair::sheets::metadata {
             }
         }
 
-        [[nodiscard]] s3d::Optional<s3d::uint32> DifficultyIndex(const s3d::int64 index) {
-            if (index < 0 || index > static_cast<s3d::int64>(std::numeric_limits<s3d::uint32>::max())) {
-                return s3d::none;
+        void StoreDifficulty(s3d::Array<Difficulty>& difficulties, Difficulty difficulty) {
+            for (auto& existing : difficulties) {
+                if (existing.index == difficulty.index) {
+                    existing = std::move(difficulty);
+                    return;
+                }
             }
-            return static_cast<s3d::uint32>(index);
+
+            difficulties.push_back(std::move(difficulty));
         }
 
         [[nodiscard]] Result<Metadata> Validate(Metadata metadata, const s3d::FilePath& path) {
@@ -98,35 +101,23 @@ namespace xlair::sheets::metadata {
 
             if (json.hasElement(U"difficulties")) {
                 const auto difficulties = json[U"difficulties"];
-                if (!difficulties.isArray()) {
-                    return Result<Metadata>::makeError(U"Metadata difficulties must be an array.", path);
-                }
+                if (difficulties.isArray()) {
+                    for (const auto& [_array_index, object] : difficulties) {
+                        if (!object.hasElement(U"id")) {
+                            continue;
+                        }
 
-                for (const auto& [_array_index, object] : difficulties) {
-                    if (!object.isObject()) {
-                        return Result<Metadata>::makeError(U"Each metadata difficulty must be an object.", path);
+                        Difficulty difficulty;
+                        ReadValue(object, U"difficulty", difficulty.index);
+                        ReadValue(object, U"id", difficulty.id);
+                        ReadValue(object, U"level", difficulty.level);
+                        ReadValue(object, U"designer", difficulty.designer);
+
+                        s3d::FilePath chart;
+                        ReadValue(object, U"src", chart);
+                        difficulty.chart = ResolvePath(metadata.source_path, chart);
+                        StoreDifficulty(metadata.difficulties, std::move(difficulty));
                     }
-                    if (!object.hasElement(U"id")) {
-                        continue;
-                    }
-
-                    Difficulty difficulty;
-                    s3d::int64 raw_index = 0;
-                    ReadValue(object, object.hasElement(U"index") ? U"index" : U"difficulty", raw_index);
-                    const auto index = DifficultyIndex(raw_index);
-                    if (!index) {
-                        return Result<Metadata>::makeError(U"Difficulty indices must fit in the uint32 range.", path);
-                    }
-
-                    difficulty.index = *index;
-                    ReadValue(object, U"id", difficulty.id);
-                    ReadValue(object, U"level", difficulty.level);
-                    ReadValue(object, U"designer", difficulty.designer);
-
-                    s3d::FilePath chart;
-                    ReadValue(object, object.hasElement(U"chart") ? U"chart" : U"src", chart);
-                    difficulty.chart = ResolvePath(metadata.source_path, chart);
-                    metadata.difficulties.push_back(std::move(difficulty));
                 }
             }
 
@@ -168,32 +159,23 @@ namespace xlair::sheets::metadata {
 
             if (toml.hasMember(U"difficulties")) {
                 const auto difficulties = toml[U"difficulties"];
-                if (!difficulties.isTableArray()) {
-                    return Result<Metadata>::makeError(U"Metadata difficulties must be an array of tables.", path);
-                }
+                if (difficulties.isTableArray()) {
+                    for (const auto& object : difficulties.tableArrayView()) {
+                        if (!object.hasMember(U"id")) {
+                            continue;
+                        }
 
-                for (const auto& object : difficulties.tableArrayView()) {
-                    if (!object.hasMember(U"id")) {
-                        continue;
+                        Difficulty difficulty;
+                        ReadValue(object, U"difficulty", difficulty.index);
+                        ReadValue(object, U"id", difficulty.id);
+                        ReadValue(object, U"level", difficulty.level);
+                        ReadValue(object, U"designer", difficulty.designer);
+
+                        s3d::FilePath chart;
+                        ReadValue(object, U"src", chart);
+                        difficulty.chart = ResolvePath(metadata.source_path, chart);
+                        StoreDifficulty(metadata.difficulties, std::move(difficulty));
                     }
-
-                    Difficulty difficulty;
-                    s3d::int64 raw_index = 0;
-                    ReadValue(object, object.hasMember(U"index") ? U"index" : U"difficulty", raw_index);
-                    const auto index = DifficultyIndex(raw_index);
-                    if (!index) {
-                        return Result<Metadata>::makeError(U"Difficulty indices must fit in the uint32 range.", path);
-                    }
-
-                    difficulty.index = *index;
-                    ReadValue(object, U"id", difficulty.id);
-                    ReadValue(object, U"level", difficulty.level);
-                    ReadValue(object, U"designer", difficulty.designer);
-
-                    s3d::FilePath chart;
-                    ReadValue(object, object.hasMember(U"chart") ? U"chart" : U"src", chart);
-                    difficulty.chart = ResolvePath(metadata.source_path, chart);
-                    metadata.difficulties.push_back(std::move(difficulty));
                 }
             }
 
@@ -235,7 +217,7 @@ namespace xlair::sheets::metadata {
                 continue;
             }
 
-            const auto file_name = s3d::FileSystem::FileName(path).lowercased();
+            const auto file_name = s3d::FileSystem::FileName(path);
             if (file_name != U"music.json" && file_name != U"music.toml") {
                 continue;
             }

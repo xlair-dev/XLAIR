@@ -69,6 +69,30 @@ TEST_CASE("LoadMetadata reads TOML metadata and version 1 difficulty keys", "[Sh
           s3d::FileSystem::FullPath(MetadataFixture(U"load/charts/advanced.sus")));
 }
 
+TEST_CASE("LoadMetadata applies version 1 difficulty indices", "[SheetsAnalyzer][Metadata]") {
+    const auto result = xlair::sheets::LoadMetadata(MetadataFixture(U"load/difficulties.json"));
+
+    INFO(FirstDiagnostic(result));
+    REQUIRE(result);
+    REQUIRE(result->difficulties.size() == 3);
+    CHECK(result->difficulties[0].index == 0);
+    CHECK(result->difficulties[0].id == U"default-index");
+    CHECK(result->difficulties[1].index == 1);
+    CHECK(result->difficulties[1].id == U"replacement");
+    CHECK(result->difficulties[1].chart ==
+          s3d::FileSystem::FullPath(MetadataFixture(U"load/charts/replacement.sus")));
+    CHECK(result->difficulties[2].index == 10);
+    CHECK(result->difficulties[2].id == U"high-index");
+}
+
+TEST_CASE("LoadMetadata ignores a non-array difficulties value", "[SheetsAnalyzer][Metadata]") {
+    const auto result = xlair::sheets::LoadMetadata(MetadataFixture(U"load/non-array.json"));
+
+    INFO(FirstDiagnostic(result));
+    REQUIRE(result);
+    CHECK(result->difficulties.isEmpty());
+}
+
 TEST_CASE("LoadMetadata reports unsupported and invalid metadata", "[SheetsAnalyzer][Metadata]") {
     SECTION("unsupported extension") {
         const auto result = xlair::sheets::LoadMetadata(U"music.yaml");
@@ -93,6 +117,15 @@ TEST_CASE("LoadMetadata reports unsupported and invalid metadata", "[SheetsAnaly
         REQUIRE(result.diagnostics.size() == 1);
         CHECK(result.diagnostics.front().message == U"Metadata BPM must be a positive finite number.");
     }
+
+    SECTION("invalid difficulty level") {
+        const auto result = xlair::sheets::LoadMetadata(MetadataFixture(U"invalid/level.json"));
+
+        REQUIRE_FALSE(result);
+        REQUIRE(result.diagnostics.size() == 1);
+        CHECK(result.diagnostics.front().message == U"Difficulty levels must be non-negative finite numbers.");
+    }
+
 }
 
 TEST_CASE("ScanMetadata recursively loads conventionally named metadata", "[SheetsAnalyzer][Metadata][Scan]") {
