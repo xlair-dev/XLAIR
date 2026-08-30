@@ -93,7 +93,8 @@ namespace xlair::sheets::formats::sus {
         for (const auto& change : document.bpm_changes) {
             if (change.position.denominator == 0 || change.position.numerator >= change.position.denominator) {
                 return Result<TimingMap>::makeError(
-                    U"Timing positions require a non-zero denominator and a numerator smaller than it.");
+                    U"Timing positions require a non-zero denominator and a numerator smaller than it."
+                );
             }
 
             const auto definition = document.bpm_definitions.find(change.definition);

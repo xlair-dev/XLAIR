@@ -345,7 +345,8 @@ namespace xlair::sheets::formats::sus {
 
                 const auto measure = ParseDecimalUInt32(entry.substr(0, tick_separator).trimmed());
                 const auto tick = ParseDecimalUInt32(
-                    entry.substr(tick_separator + 1, speed_separator - tick_separator - 1).trimmed());
+                    entry.substr(tick_separator + 1, speed_separator - tick_separator - 1).trimmed()
+                );
                 const auto multiplier = s3d::ParseFloatOpt<double>(entry.substr(speed_separator + 1).trimmed());
                 if (!measure || !tick || !multiplier || !std::isfinite(*multiplier)) {
                     AddError(state, U"Hispeed changes require a non-negative measure and tick and a finite speed.",

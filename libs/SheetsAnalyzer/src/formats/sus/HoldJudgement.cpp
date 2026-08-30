@@ -68,7 +68,8 @@ namespace xlair::sheets::formats::sus {
         }
         if (tempo_changes.isEmpty()) {
             return Result<s3d::Array<s3d::int64>>::makeError(
-                U"Hold judgement generation requires at least one tempo definition.");
+                U"Hold judgement generation requires at least one tempo definition."
+            );
         }
 
         s3d::Array<s3d::int64> samples = { start_sample };
@@ -77,7 +78,8 @@ namespace xlair::sheets::formats::sus {
             const s3d::int64 next_sample = NextJudgeSample(current_sample, sample_rate, tempo_changes);
             if (next_sample <= current_sample) {
                 return Result<s3d::Array<s3d::int64>>::makeError(
-                    U"A Hold judgement interval is shorter than one audio sample.");
+                    U"A Hold judgement interval is shorter than one audio sample."
+                );
             }
             if (next_sample >= end_sample) {
                 break;

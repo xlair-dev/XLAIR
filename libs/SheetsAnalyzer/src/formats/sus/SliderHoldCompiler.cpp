@@ -181,13 +181,15 @@ namespace xlair::sheets::formats::sus {
                 segment.control_points.back().sample - segment.control_points.front().sample;
             if (duration_samples <= 0.0L) {
                 return Result<std::size_t>::makeError(
-                    U"A Slider Hold Bezier segment must end after its preceding anchor.");
+                    U"A Slider Hold Bezier segment must end after its preceding anchor."
+                );
             }
 
             const long double subdivisions = std::ceil((duration_samples * CurveSegmentsPerSecond) / sample_rate);
             if (!std::isfinite(subdivisions) || subdivisions > MaximumGeneratedCurvePointCount) {
                 return Result<std::size_t>::makeError(
-                    U"A Slider Hold Bezier segment requires too many generated points.");
+                    U"A Slider Hold Bezier segment requires too many generated points."
+                );
             }
             // A controlled segment always needs at least one generated interior point, even when it is short.
             return Result<std::size_t>{ static_cast<std::size_t>(s3d::Max(subdivisions, 2.0L)) };
@@ -223,7 +225,8 @@ namespace xlair::sheets::formats::sus {
                 }
                 if (source.sample <= previous_anchor.sample) {
                     return Result<SliderHold>::makeError(
-                        U"Slider Hold anchors must be placed in strictly increasing time order.");
+                        U"Slider Hold anchors must be placed in strictly increasing time order."
+                    );
                 }
 
                 pending_control_points.push_back(ToCurveCoordinate(source));
@@ -327,13 +330,15 @@ namespace xlair::sheets::formats::sus {
             if (source.lane.width == 0 || source.lane.start >= SliderLaneCount ||
                 (static_cast<s3d::int32>(source.lane.start) + source.lane.width) > SliderLaneCount) {
                 return Result<s3d::Array<SliderHold>>::makeError(
-                    U"Slider Hold points must have a positive width and fit within XLAIR's 16 slider lanes.");
+                    U"Slider Hold points must have a positive width and fit within XLAIR's 16 slider lanes."
+                );
             }
 
             const auto timeline = ResolveTimeline(source.timeline, timeline_lookup);
             if (!timeline) {
                 return Result<s3d::Array<SliderHold>>::makeError(
-                    U"A Slider Hold point references an undefined hispeed definition.");
+                    U"A Slider Hold point references an undefined hispeed definition."
+                );
             }
 
             const SourcePoint point{
@@ -346,7 +351,8 @@ namespace xlair::sheets::formats::sus {
             if (source.kind == SliderHoldPointKind::Start) {
                 if (active_holds.contains(source.channel)) {
                     return Result<s3d::Array<SliderHold>>::makeError(
-                        U"A Slider Hold channel starts before its previous hold ends.");
+                        U"A Slider Hold channel starts before its previous hold ends."
+                    );
                 }
 
                 active_holds[source.channel] = {
@@ -359,10 +365,12 @@ namespace xlair::sheets::formats::sus {
             if (active == active_holds.end()) {
                 if (source.kind == SliderHoldPointKind::End) {
                     return Result<s3d::Array<SliderHold>>::makeError(
-                        U"A Slider Hold End point has no active Start point on its channel.");
+                        U"A Slider Hold End point has no active Start point on its channel."
+                    );
                 }
                 return Result<s3d::Array<SliderHold>>::makeError(
-                    U"A Slider Hold point has no active Start point on its channel.");
+                    U"A Slider Hold point has no active Start point on its channel."
+                );
             }
 
             active->second.points.push_back(point);

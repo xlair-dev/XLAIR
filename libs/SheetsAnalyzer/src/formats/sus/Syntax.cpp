@@ -34,7 +34,8 @@ namespace xlair::sheets::formats::sus {
             if (separator < 5) {
                 return Result<ParsedLine>::makeError(
                     U"Data line headers require at least a two-character data code after the measure.", path,
-                    line_number, separator + 2);
+                    line_number, separator + 2
+                );
             }
 
             const s3d::String code = body.substr(3, separator - 3).lowercased();

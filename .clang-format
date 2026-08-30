@@ -16,6 +16,7 @@ AccessModifierOffset: -4
 IndentPPDirectives: None
 
 BreakBeforeBraces: Attach
+BreakBeforeCloseBracketFunction: true
 BreakConstructorInitializers: BeforeColon
 BreakAfterAttributes: Always
 AllowShortBlocksOnASingleLine: Never

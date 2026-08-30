@@ -157,7 +157,8 @@ namespace xlair::sheets::formats::sus {
                 const auto timeline = ResolveTimeline(source.timeline, timeline_lookup);
                 if (!timeline) {
                     return Result<s3d::Array<SideHold>>::makeError(
-                        U"A SideLong point references an undefined hispeed definition.");
+                        U"A SideLong point references an undefined hispeed definition."
+                    );
                 }
 
                 const SideHoldPoint point{
@@ -169,13 +170,15 @@ namespace xlair::sheets::formats::sus {
                 if (source.kind == SideLongPointKind::Start) {
                     if (active_holds.contains(source.channel)) {
                         return Result<s3d::Array<SideHold>>::makeError(
-                            U"A SideLong channel starts before its previous hold ends.");
+                            U"A SideLong channel starts before its previous hold ends."
+                        );
                     }
 
                     const auto button = detail::SideButtonFromSideLongLane(source.lane.start);
                     if (!button) {
                         return Result<s3d::Array<SideHold>>::makeError(
-                            U"A SideLong Start point does not map to an XLAIR side button.");
+                            U"A SideLong Start point does not map to an XLAIR side button."
+                        );
                     }
 
                     active_holds[source.channel] = {
@@ -189,14 +192,17 @@ namespace xlair::sheets::formats::sus {
                 if (active == active_holds.end()) {
                     if (source.kind == SideLongPointKind::Relay) {
                         return Result<s3d::Array<SideHold>>::makeError(
-                            U"A SideLong Relay point has no active Start point on its channel.");
+                            U"A SideLong Relay point has no active Start point on its channel."
+                        );
                     }
                     return Result<s3d::Array<SideHold>>::makeError(
-                        U"A SideLong End point has no active Start point on its channel.");
+                        U"A SideLong End point has no active Start point on its channel."
+                    );
                 }
                 if (point.sample <= active->second.points.back().sample) {
                     return Result<s3d::Array<SideHold>>::makeError(
-                        U"SideLong points must be placed in strictly increasing time order.");
+                        U"SideLong points must be placed in strictly increasing time order."
+                    );
                 }
 
                 active->second.points.push_back(point);
