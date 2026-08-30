@@ -147,6 +147,17 @@ namespace xlair::sheets::formats::sus {
             return static_cast<s3d::uint8>(*lane);
         }
 
+        [[nodiscard]] s3d::Optional<ChannelId> ParseChannel(ParseState& state, const DataLine& data,
+                                                            const s3d::FilePath& path, const std::size_t line) {
+            const auto channel = ParseBase36(data.code.substr(2, 1), line, 7, path);
+            if (!channel) {
+                AppendDiagnostics(state, channel.diagnostics);
+                return s3d::none;
+            }
+
+            return *channel;
+        }
+
         [[nodiscard]] s3d::Optional<SliderNoteKind> ToSliderNoteKind(const s3d::uint32 kind) {
             switch (kind) {
                 case 1:
@@ -174,6 +185,23 @@ namespace xlair::sheets::formats::sus {
                     return DirectionalKind::LeftDown;
                 case 6:
                     return DirectionalKind::RightDown;
+                default:
+                    return s3d::none;
+            }
+        }
+
+        [[nodiscard]] s3d::Optional<SliderHoldPointKind> ToSliderHoldPointKind(const s3d::uint32 kind) {
+            switch (kind) {
+                case 1:
+                    return SliderHoldPointKind::Start;
+                case 2:
+                    return SliderHoldPointKind::End;
+                case 3:
+                    return SliderHoldPointKind::Visible;
+                case 4:
+                    return SliderHoldPointKind::Control;
+                case 5:
+                    return SliderHoldPointKind::Invisible;
                 default:
                     return s3d::none;
             }
@@ -492,6 +520,40 @@ namespace xlair::sheets::formats::sus {
             }
         }
 
+        void InterpretSliderHoldPoints(ParseState& state, const DataLine& data, const s3d::FilePath& path,
+                                       const std::size_t line) {
+            if (data.code.size() != 3) {
+                AddError(state, U"Slider hold headers must use the form #mmm3xy.", path, line, 5);
+                return;
+            }
+
+            const auto lane = ParseLane(state, data, path, line);
+            const auto channel = ParseChannel(state, data, path, line);
+            const auto tokens = ParseNoteTokens(state, data, path, line);
+            if (!lane || !channel || !tokens) {
+                return;
+            }
+
+            for (const auto& token : *tokens) {
+                const auto kind = ToSliderHoldPointKind(token.kind);
+                if (!kind) {
+                    AddError(state, U"Slider hold point kinds must be between 1 and 5.", path, line, token.column);
+                    continue;
+                }
+
+                state.document.slider_hold_points.push_back({
+                    .kind = *kind,
+                    .position = token.position,
+                    .lane = {
+                        .start = *lane,
+                        .width = static_cast<s3d::uint8>(token.width),
+                    },
+                    .channel = *channel,
+                    .timeline = state.current_timeline,
+                });
+            }
+        }
+
         void InterpretData(ParseState& state, const DataLine& data, const s3d::FilePath& path, const std::size_t line) {
             if (data.code == U"02") {
                 InterpretBeatsPerMeasure(state, data, path, line);
@@ -499,6 +561,8 @@ namespace xlair::sheets::formats::sus {
                 InterpretBPMChanges(state, data, path, line);
             } else if (data.code.starts_with(U'1')) {
                 InterpretSliderNotes(state, data, path, line);
+            } else if (data.code.starts_with(U'3')) {
+                InterpretSliderHoldPoints(state, data, path, line);
             } else if (data.code.starts_with(U'5')) {
                 InterpretDirectionalNotes(state, data, path, line);
             }

@@ -215,6 +215,75 @@ TEST_CASE("ParseText validates short and directional note data", "[SheetsAnalyze
     }
 }
 
+TEST_CASE("ParseText builds slider hold points with their channel and active timeline",
+          "[SheetsAnalyzer][SUS][Parser]") {
+    const auto result = sus::ParseText(UR"(#TIL0A: "0'0:1"
+#HISPEED 0A
+#02030a: 140034004400550024
+#NOSPEED
+#0213BZ: 1525
+)",
+                                       U"chart.sus");
+
+    REQUIRE(result);
+    REQUIRE(result->slider_hold_points.size() == 7);
+
+    const s3d::Array expected_kinds{
+        sus::SliderHoldPointKind::Start,     sus::SliderHoldPointKind::Visible, sus::SliderHoldPointKind::Control,
+        sus::SliderHoldPointKind::Invisible, sus::SliderHoldPointKind::End,
+    };
+    const s3d::Array<s3d::uint32> expected_numerators{ 0, 2, 4, 6, 8 };
+    for (std::size_t index = 0; index < expected_kinds.size(); ++index) {
+        const auto& point = result->slider_hold_points[index];
+        CHECK(point.kind == expected_kinds[index]);
+        CHECK(point.position.measure == 20);
+        CHECK(point.position.numerator == expected_numerators[index]);
+        CHECK(point.position.denominator == 9);
+        CHECK(point.lane.start == 0);
+        CHECK(point.lane.width == (index == 3 ? 5 : 4));
+        CHECK(point.channel == 10);
+        REQUIRE(point.timeline);
+        CHECK(*point.timeline == 10);
+    }
+
+    const auto& second_start = result->slider_hold_points[5];
+    CHECK(second_start.kind == sus::SliderHoldPointKind::Start);
+    CHECK(second_start.position.measure == 21);
+    CHECK(second_start.position.numerator == 0);
+    CHECK(second_start.position.denominator == 2);
+    CHECK(second_start.lane.start == 11);
+    CHECK(second_start.lane.width == 5);
+    CHECK(second_start.channel == 35);
+    CHECK_FALSE(second_start.timeline);
+
+    const auto& second_end = result->slider_hold_points[6];
+    CHECK(second_end.kind == sus::SliderHoldPointKind::End);
+    CHECK(second_end.position.numerator == 1);
+    CHECK(second_end.position.denominator == 2);
+}
+
+TEST_CASE("ParseText validates slider hold point data", "[SheetsAnalyzer][SUS][Parser]") {
+    SECTION("unsupported point kind") {
+        const auto result = sus::ParseText(UR"(#000300: 64
+)",
+                                           U"broken.sus");
+
+        REQUIRE_FALSE(result);
+        REQUIRE(result.diagnostics.size() == 1);
+        CHECK(result.diagnostics.front().message == U"Slider hold point kinds must be between 1 and 5.");
+    }
+
+    SECTION("invalid header") {
+        const auto result = sus::ParseText(UR"(#00030: 14
+)",
+                                           U"broken.sus");
+
+        REQUIRE_FALSE(result);
+        REQUIRE(result.diagnostics.size() == 1);
+        CHECK(result.diagnostics.front().message == U"Slider hold headers must use the form #mmm3xy.");
+    }
+}
+
 TEST_CASE("ParseText aggregates syntax and timing diagnostics", "[SheetsAnalyzer][SUS][Parser]") {
     const auto result = sus::ParseText(UR"(#
 #REQUEST "ticks_per_beat 0"
