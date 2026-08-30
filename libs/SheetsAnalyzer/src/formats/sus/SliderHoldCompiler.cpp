@@ -1,5 +1,7 @@
 #include "SliderHoldCompiler.hpp"
 
+#include "HoldJudgement.hpp"
+
 #include <algorithm>
 #include <cmath>
 #include <limits>
@@ -7,7 +9,7 @@
 namespace xlair::sheets::formats::sus {
     namespace {
         constexpr long double CurveSegmentsPerSecond = 20.0L;
-        constexpr std::size_t MaximumGeneratedPointCount = 1'000'000;
+        constexpr std::size_t MaximumGeneratedCurvePointCount = 1'000'000;
         constexpr long double LaneEdgeEpsilon = 1e-9L;
         constexpr s3d::int32 SliderLaneCount = 16;
 
@@ -138,8 +140,8 @@ namespace xlair::sheets::formats::sus {
                 return 1.0L;
             }
 
-            // The ordered control-point times make the Bezier time coordinate monotonic. Inverting it lets
-            // judgement use the exact curve instead of the generated rendering polyline.
+            // The ordered control-point times make the Bezier time coordinate monotonic.
+            // Inverting it lets judgement use the exact curve instead of the generated rendering polyline.
             long double lower = 0.0L;
             long double upper = 1.0L;
             for (std::size_t iteration = 0; iteration < 64; ++iteration) {
@@ -164,72 +166,6 @@ namespace xlair::sheets::formats::sus {
             return QuantizeLane(coordinate.center_lane, width);
         }
 
-        [[nodiscard]] double BPMAtSample(const s3d::Array<TempoChange>& tempo_changes, const long double sample) {
-            const auto change = std::upper_bound(tempo_changes.begin(), tempo_changes.end(), sample,
-                                                 [](const long double value, const TempoChange& candidate) {
-                                                     return value < candidate.sample;
-                                                 });
-            return (change == tempo_changes.begin() ? change : std::prev(change))->bpm;
-        }
-
-        [[nodiscard]] s3d::int64 NextJudgeSample(const s3d::int64 current_sample, const s3d::int64 sample_rate,
-                                                 const s3d::Array<TempoChange>& tempo_changes) {
-            long double cursor = current_sample;
-            const double current_bpm = BPMAtSample(tempo_changes, cursor);
-            const long double division = current_bpm < 120.0 ? 4.0L : (current_bpm < 240.0 ? 2.0L : 1.0L);
-            long double remaining_beats = 1.0L / division;
-
-            while (remaining_beats > 0.0L) {
-                const double bpm = BPMAtSample(tempo_changes, cursor);
-                const long double samples_per_beat =
-                    static_cast<long double>(sample_rate) * 60.0L / static_cast<long double>(bpm);
-                const auto next_change = std::upper_bound(tempo_changes.begin(), tempo_changes.end(), cursor,
-                                                          [](const long double value, const TempoChange& candidate) {
-                                                              return value < candidate.sample;
-                                                          });
-
-                if (next_change == tempo_changes.end()) {
-                    return RoundSample(cursor + (remaining_beats * samples_per_beat));
-                }
-
-                const long double beats_until_change =
-                    (static_cast<long double>(next_change->sample) - cursor) / samples_per_beat;
-                if (remaining_beats <= beats_until_change) {
-                    return RoundSample(cursor + (remaining_beats * samples_per_beat));
-                }
-
-                remaining_beats -= beats_until_change;
-                cursor = next_change->sample;
-            }
-
-            return RoundSample(cursor);
-        }
-
-        [[nodiscard]] Result<s3d::Array<s3d::int64>>
-        PeriodicJudgeSamples(const s3d::int64 start_sample, const s3d::int64 end_sample, const s3d::int64 sample_rate,
-                             const s3d::Array<TempoChange>& tempo_changes) {
-            s3d::Array<s3d::int64> samples;
-            s3d::int64 current_sample = start_sample;
-            while (true) {
-                const s3d::int64 next_sample = NextJudgeSample(current_sample, sample_rate, tempo_changes);
-                if (next_sample <= current_sample) {
-                    return Result<s3d::Array<s3d::int64>>::makeError(
-                        U"A Slider Hold judgement interval is shorter than one audio sample.");
-                }
-                if (next_sample >= end_sample) {
-                    break;
-                }
-
-                samples.push_back(next_sample);
-                if (samples.size() > MaximumGeneratedPointCount) {
-                    return Result<s3d::Array<s3d::int64>>::makeError(
-                        U"A Slider Hold requires too many judgement points.");
-                }
-                current_sample = next_sample;
-            }
-            return Result<s3d::Array<s3d::int64>>{ std::move(samples) };
-        }
-
         [[nodiscard]] Result<std::size_t> CurveSubdivisionCount(const CurveSegment& segment,
                                                                 const s3d::int64 sample_rate) {
             const long double duration_samples =
@@ -240,7 +176,7 @@ namespace xlair::sheets::formats::sus {
             }
 
             const long double subdivisions = std::ceil((duration_samples * CurveSegmentsPerSecond) / sample_rate);
-            if (!std::isfinite(subdivisions) || subdivisions > MaximumGeneratedPointCount) {
+            if (!std::isfinite(subdivisions) || subdivisions > MaximumGeneratedCurvePointCount) {
                 return Result<std::size_t>::makeError(
                     U"A Slider Hold Bezier segment requires too many generated points.");
             }
@@ -331,26 +267,24 @@ namespace xlair::sheets::formats::sus {
                 pending_control_points = { ToCurveCoordinate(source) };
             }
 
-            // Rendering subdivision and judgement density are intentionally independent. Changing the curve's
-            // visual precision therefore cannot change its combo count.
-            s3d::Array<s3d::int64> judge_samples = { start.sample, builder.points.back().sample };
-            const auto periodic_samples =
-                PeriodicJudgeSamples(start.sample, builder.points.back().sample, sample_rate, tempo_changes);
-            if (!periodic_samples) {
+            // Rendering subdivision and judgement density are intentionally independent.
+            // Changing the curve's visual precision therefore cannot change its combo count.
+            auto judge_samples = detail::GenerateHoldJudgeSamples(start.sample, builder.points.back().sample,
+                                                                  sample_rate, tempo_changes);
+            if (!judge_samples) {
                 Result<SliderHold> result;
-                result.diagnostics = periodic_samples.diagnostics;
+                result.diagnostics = std::move(judge_samples.diagnostics);
                 return result;
             }
-            judge_samples.append(*periodic_samples);
             for (const auto& source : builder.points) {
                 if (source.kind == SliderHoldPointKind::Visible) {
-                    judge_samples.push_back(source.sample);
+                    judge_samples->push_back(source.sample);
                 }
             }
 
-            judge_samples.sort();
-            judge_samples.erase(std::unique(judge_samples.begin(), judge_samples.end()), judge_samples.end());
-            for (const auto sample : judge_samples) {
+            judge_samples->sort();
+            judge_samples->erase(std::unique(judge_samples->begin(), judge_samples->end()), judge_samples->end());
+            for (const auto sample : *judge_samples) {
                 const auto segment =
                     std::find_if(curve_segments.begin(), curve_segments.end(), [sample](const auto& candidate) {
                         return sample <= candidate.control_points.back().sample;

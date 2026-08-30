@@ -1,7 +1,10 @@
 #include "Compiler.hpp"
 
+#include "HoldJudgement.hpp"
 #include "SliderHoldCompiler.hpp"
 #include "Timing.hpp"
+
+#include <algorithm>
 
 namespace xlair::sheets::formats::sus {
     namespace detail {
@@ -130,7 +133,9 @@ namespace xlair::sheets::formats::sus {
 
         [[nodiscard]] Result<s3d::Array<SideHold>> CompileSideHolds(const s3d::Array<SideLongPoint>& source_points,
                                                                     const TimingMap& timing,
-                                                                    const TimelineLookup& timeline_lookup) {
+                                                                    const TimelineLookup& timeline_lookup,
+                                                                    const s3d::int64 sample_rate,
+                                                                    const s3d::Array<TempoChange>& tempo_changes) {
             auto ordered_points = source_points;
             ordered_points.stable_sort_by([](const auto& left, const auto& right) {
                 return PositionComesBefore(left.position, right.position);
@@ -185,12 +190,33 @@ namespace xlair::sheets::formats::sus {
                     return Result<s3d::Array<SideHold>>::makeError(
                         U"A SideLong End point has no active Start point on its channel.");
                 }
+                if (point.sample <= active->second.points.back().sample) {
+                    return Result<s3d::Array<SideHold>>::makeError(
+                        U"SideLong points must be placed in strictly increasing time order.");
+                }
 
                 active->second.points.push_back(point);
                 if (source.kind == SideLongPointKind::End) {
+                    auto judge_samples = detail::GenerateHoldJudgeSamples(active->second.points.front().sample,
+                                                                          point.sample, sample_rate, tempo_changes);
+                    if (!judge_samples) {
+                        Result<s3d::Array<SideHold>> result;
+                        result.diagnostics = std::move(judge_samples.diagnostics);
+                        return result;
+                    }
+                    for (const auto& hold_point : active->second.points) {
+                        if (hold_point.kind == ::xlair::sheets::SideHoldPointKind::Relay) {
+                            judge_samples->push_back(hold_point.sample);
+                        }
+                    }
+                    judge_samples->sort();
+                    judge_samples->erase(std::unique(judge_samples->begin(), judge_samples->end()),
+                                         judge_samples->end());
+
                     side_holds.push_back({
                         .button = active->second.button,
                         .points = std::move(active->second.points),
+                        .judge_samples = std::move(*judge_samples),
                     });
                     active_holds.erase(active);
                 }
@@ -325,7 +351,8 @@ namespace xlair::sheets::formats::sus {
             return left.sample < right.sample;
         });
 
-        auto side_holds = CompileSideHolds(document.side_long_points, timing, timeline_lookup);
+        auto side_holds = CompileSideHolds(document.side_long_points, timing, timeline_lookup, options.sample_rate,
+                                           chart.tempo_changes);
         if (!side_holds) {
             Result<Chart> result;
             result.diagnostics = std::move(side_holds.diagnostics);

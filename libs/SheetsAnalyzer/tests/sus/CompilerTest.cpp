@@ -169,7 +169,10 @@ TEST_CASE("Compile assembles interleaved SideLong channels in musical order", "[
     CHECK(left_upper.points[1].sample == 720);
     CHECK(left_upper.points[2].kind == xlair::sheets::SideHoldPointKind::End);
     CHECK(left_upper.points[2].sample == 960);
-    CHECK(left_upper.judge_samples.isEmpty());
+    REQUIRE(left_upper.judge_samples.size() == 9);
+    for (std::size_t index = 0; index < left_upper.judge_samples.size(); ++index) {
+        CHECK(left_upper.judge_samples[index] == static_cast<s3d::int64>(index * 120));
+    }
 
     const auto& right_upper = result->side_holds[1];
     CHECK(right_upper.button == xlair::sheets::SideButton::RightUpper);
@@ -182,7 +185,39 @@ TEST_CASE("Compile assembles interleaved SideLong channels in musical order", "[
     CHECK(right_upper.points[1].sample == 480);
     CHECK(right_upper.points[2].kind == xlair::sheets::SideHoldPointKind::End);
     CHECK(right_upper.points[2].sample == 1'440);
-    CHECK(right_upper.judge_samples.isEmpty());
+    REQUIRE(right_upper.judge_samples.size() == 11);
+    for (std::size_t index = 0; index < right_upper.judge_samples.size(); ++index) {
+        CHECK(right_upper.judge_samples[index] == 240 + static_cast<s3d::int64>(index * 120));
+    }
+    CHECK(result->total_combo == 20);
+}
+
+TEST_CASE("Compile includes off-grid SideLong Relay points in judgement samples", "[SheetsAnalyzer][SUS][Compiler]") {
+    sus::Document document;
+    document.side_long_points = {
+        {
+            .kind = sus::SideLongPointKind::Start,
+            .lane = { .start = 0 },
+            .channel = 1,
+        },
+        {
+            .kind = sus::SideLongPointKind::Relay,
+            .position = { .measure = 0, .numerator = 1, .denominator = 3 },
+            .channel = 1,
+        },
+        {
+            .kind = sus::SideLongPointKind::End,
+            .position = { .measure = 1 },
+            .channel = 1,
+        },
+    };
+
+    const auto result = sus::Compile(document, { .sample_rate = 100 });
+
+    REQUIRE(result);
+    const s3d::Array<s3d::int64> expected_samples = { 0, 25, 50, 67, 75, 100, 125, 150, 175, 200 };
+    CHECK(result->side_holds.front().judge_samples == expected_samples);
+    CHECK(result->total_combo == expected_samples.size());
 }
 
 TEST_CASE("Compile rejects source data that cannot yet be represented safely", "[SheetsAnalyzer][SUS][Compiler]") {
@@ -194,8 +229,7 @@ TEST_CASE("Compile rejects source data that cannot yet be represented safely", "
 
         REQUIRE_FALSE(result);
         REQUIRE(result.diagnostics.size() == 1);
-        CHECK(result.diagnostics.front().message ==
-              U"SUS short-note kinds 4 through 6 are not supported by XLAIR.");
+        CHECK(result.diagnostics.front().message == U"SUS short-note kinds 4 through 6 are not supported by XLAIR.");
     }
 
     SECTION("undefined timeline") {
@@ -219,7 +253,6 @@ TEST_CASE("Compile rejects source data that cannot yet be represented safely", "
         REQUIRE(result.diagnostics.size() == 1);
         CHECK(result.diagnostics.front().message == U"Up and down directional notes are not supported by XLAIR.");
     }
-
 }
 
 TEST_CASE("Compile validates SideLong channel state", "[SheetsAnalyzer][SUS][Compiler]") {
@@ -233,8 +266,7 @@ TEST_CASE("Compile validates SideLong channel state", "[SheetsAnalyzer][SUS][Com
         const auto result = sus::Compile(document, {});
 
         REQUIRE_FALSE(result);
-        CHECK(result.diagnostics.front().message ==
-              U"A SideLong Start point does not map to an XLAIR side button.");
+        CHECK(result.diagnostics.front().message == U"A SideLong Start point does not map to an XLAIR side button.");
     }
 
     SECTION("duplicate Start") {
@@ -273,8 +305,7 @@ TEST_CASE("Compile validates SideLong channel state", "[SheetsAnalyzer][SUS][Com
         const auto result = sus::Compile(document, {});
 
         REQUIRE_FALSE(result);
-        CHECK(result.diagnostics.front().message ==
-              U"A SideLong End point has no active Start point on its channel.");
+        CHECK(result.diagnostics.front().message == U"A SideLong End point has no active Start point on its channel.");
     }
 
     SECTION("missing End") {
@@ -303,7 +334,21 @@ TEST_CASE("Compile validates SideLong channel state", "[SheetsAnalyzer][SUS][Com
         const auto result = sus::Compile(document, {});
 
         REQUIRE_FALSE(result);
+        CHECK(result.diagnostics.front().message == U"A SideLong point references an undefined hispeed definition.");
+    }
+
+    SECTION("points at the same time") {
+        sus::Document document;
+        document.side_long_points = {
+            { .kind = sus::SideLongPointKind::Start, .lane = { .start = 0 }, .channel = 1 },
+            { .kind = sus::SideLongPointKind::Relay, .channel = 1 },
+            { .kind = sus::SideLongPointKind::End, .position = { .measure = 1 }, .channel = 1 },
+        };
+
+        const auto result = sus::Compile(document, {});
+
+        REQUIRE_FALSE(result);
         CHECK(result.diagnostics.front().message ==
-              U"A SideLong point references an undefined hispeed definition.");
+              U"SideLong points must be placed in strictly increasing time order.");
     }
 }
