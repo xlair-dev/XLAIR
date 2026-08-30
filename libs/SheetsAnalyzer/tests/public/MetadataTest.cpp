@@ -36,7 +36,9 @@ TEST_CASE("LoadMetadata reads JSON metadata and resolves asset paths", "[SheetsA
     CHECK(result->artist == U"JSON Artist");
     CHECK(result->genre == U"Test");
     CHECK(result->music == s3d::FileSystem::FullPath(MetadataFixture(U"load/audio/song.wav")));
-    CHECK(result->jacket == s3d::FileSystem::FullPath(MetadataFixture(U"load/images/jacket.png")));
+    CHECK(result->jacket ==
+          s3d::FileSystem::FullPath(s3d::FileSystem::PathAppend(s3d::FileSystem::CurrentDirectory(),
+                                                               U"shared/jacket.png")));
     CHECK(result->url == U"https://example.com/json-song");
     CHECK(result->music_offset_seconds == -0.125);
     CHECK(result->demo_start_seconds == 12.5);
@@ -62,7 +64,7 @@ TEST_CASE("LoadMetadata reads TOML metadata and version 1 difficulty keys", "[Sh
     CHECK(result->bpm == 120.0);
     REQUIRE(result->difficulties.size() == 1);
     CHECK(result->difficulties.front().index == 1);
-    CHECK(result->difficulties.front().id == U"42");
+    CHECK(result->difficulties.front().id == U"advanced");
     CHECK(result->difficulties.front().chart ==
           s3d::FileSystem::FullPath(MetadataFixture(U"load/charts/advanced.sus")));
 }

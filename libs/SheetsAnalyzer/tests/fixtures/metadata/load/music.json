@@ -6,7 +6,7 @@
   "artist": "JSON Artist",
   "genre": "Test",
   "music": "audio/song.wav",
-  "jacket": "images/jacket.png",
+  "jacket": "/shared/jacket.png",
   "url": "https://example.com/json-song",
   "music_offset": -0.125,
   "demo_start": 12.5,

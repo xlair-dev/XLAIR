@@ -5,61 +5,40 @@
 
 #include <cmath>
 #include <limits>
+#include <utility>
 
 namespace xlair::sheets::metadata {
     namespace {
         constexpr s3d::int64 SupportedVersion = 1;
 
-        [[nodiscard]] s3d::FilePath ResolvePath(const s3d::FilePath& source_path,
-                                                const s3d::FilePathView referenced_path) {
+        [[nodiscard]] inline s3d::FilePath ResolvePath(const s3d::FilePathView& source_path,
+                                                       const s3d::FilePathView referenced_path) {
             if (referenced_path.isEmpty()) {
                 return U"";
             }
 
-            return s3d::FileSystem::FullPath(
-                s3d::FileSystem::PathAppend(s3d::FileSystem::ParentPath(source_path), referenced_path));
+            const bool is_content_root_relative = referenced_path.starts_with(U'/');
+            const s3d::FilePath base_path = is_content_root_relative ? s3d::FileSystem::CurrentDirectory()
+                                                                     : s3d::FileSystem::ParentPath(source_path);
+            const s3d::FilePathView relative_path =
+                is_content_root_relative ? referenced_path.substr(1) : referenced_path;
+            return s3d::FileSystem::FullPath(s3d::FileSystem::PathAppend(base_path, relative_path));
         }
 
-        [[nodiscard]] s3d::String JsonStringOr(const s3d::JSON& object, const s3d::StringView key,
-                                               const s3d::StringView default_value = U"") {
-            return object.hasElement(key) ? object[key].getOr<s3d::String>(s3d::String{ default_value })
-                                          : s3d::String{ default_value };
-        }
-
-        [[nodiscard]] double JsonDoubleOr(const s3d::JSON& object, const s3d::StringView key,
-                                          const double default_value) {
-            return object.hasElement(key) ? object[key].getOr<double>(default_value) : default_value;
-        }
-
-        [[nodiscard]] s3d::String TomlStringOr(const s3d::TOMLValue& object, const s3d::String& key,
-                                               const s3d::StringView default_value = U"") {
-            return object.hasMember(key) ? object[key].getOr<s3d::String>(s3d::String{ default_value })
-                                         : s3d::String{ default_value };
-        }
-
-        [[nodiscard]] double TomlDoubleOr(const s3d::TOMLValue& object, const s3d::String& key,
-                                          const double default_value) {
-            return object.hasMember(key) ? object[key].getOr<double>(default_value) : default_value;
-        }
-
-        [[nodiscard]] s3d::String JsonId(const s3d::JSON& value) {
-            if (value.isString()) {
-                return value.getOr<s3d::String>(U"");
+        template <class T> inline void ReadValue(const s3d::JSON& object, const s3d::String& key, T& entry) {
+            if (object.hasElement(key)) {
+                if (auto value = object[key].getOpt<T>()) {
+                    entry = std::move(*value);
+                }
             }
-            if (value.isInteger()) {
-                return s3d::Format(value.getOr<s3d::int64>(0));
-            }
-            return U"";
         }
 
-        [[nodiscard]] s3d::String TomlId(const s3d::TOMLValue& value) {
-            if (value.isString()) {
-                return value.getOr<s3d::String>(U"");
+        template <class T> inline void ReadValue(const s3d::TOMLValue& object, const s3d::String& key, T& entry) {
+            if (object.hasMember(key)) {
+                if (auto value = object[key].getOpt<T>()) {
+                    entry = std::move(*value);
+                }
             }
-            if (value.isNumber()) {
-                return s3d::Format(value.getOr<s3d::int64>(0));
-            }
-            return U"";
         }
 
         [[nodiscard]] s3d::Optional<s3d::uint32> DifficultyIndex(const s3d::int64 index) {
@@ -100,17 +79,22 @@ namespace xlair::sheets::metadata {
 
             Metadata metadata;
             metadata.source_path = s3d::FileSystem::FullPath(path);
-            metadata.id = JsonStringOr(json, U"id");
-            metadata.title = JsonStringOr(json, U"title", metadata.title);
-            metadata.title_sort = JsonStringOr(json, U"title_sort", metadata.title_sort);
-            metadata.artist = JsonStringOr(json, U"artist", metadata.artist);
-            metadata.genre = JsonStringOr(json, U"genre", metadata.genre);
-            metadata.music = ResolvePath(metadata.source_path, JsonStringOr(json, U"music"));
-            metadata.jacket = ResolvePath(metadata.source_path, JsonStringOr(json, U"jacket"));
-            metadata.url = JsonStringOr(json, U"url");
-            metadata.music_offset_seconds = JsonDoubleOr(json, U"music_offset", metadata.music_offset_seconds);
-            metadata.demo_start_seconds = JsonDoubleOr(json, U"demo_start", metadata.demo_start_seconds);
-            metadata.bpm = JsonDoubleOr(json, U"bpm", metadata.bpm);
+            ReadValue(json, U"id", metadata.id);
+            ReadValue(json, U"title", metadata.title);
+            ReadValue(json, U"title_sort", metadata.title_sort);
+            ReadValue(json, U"artist", metadata.artist);
+            ReadValue(json, U"genre", metadata.genre);
+            ReadValue(json, U"url", metadata.url);
+            ReadValue(json, U"music_offset", metadata.music_offset_seconds);
+            ReadValue(json, U"demo_start", metadata.demo_start_seconds);
+            ReadValue(json, U"bpm", metadata.bpm);
+
+            s3d::FilePath music;
+            s3d::FilePath jacket;
+            ReadValue(json, U"music", music);
+            ReadValue(json, U"jacket", jacket);
+            metadata.music = ResolvePath(metadata.source_path, music);
+            metadata.jacket = ResolvePath(metadata.source_path, jacket);
 
             if (json.hasElement(U"difficulties")) {
                 const auto difficulties = json[U"difficulties"];
@@ -126,21 +110,23 @@ namespace xlair::sheets::metadata {
                         continue;
                     }
 
-                    const s3d::StringView index_key = object.hasElement(U"index") ? U"index" : U"difficulty";
-                    const auto index = DifficultyIndex(object[index_key].getOr<s3d::int64>(0));
+                    Difficulty difficulty;
+                    s3d::int64 raw_index = 0;
+                    ReadValue(object, object.hasElement(U"index") ? U"index" : U"difficulty", raw_index);
+                    const auto index = DifficultyIndex(raw_index);
                     if (!index) {
                         return Result<Metadata>::makeError(U"Difficulty indices must fit in the uint32 range.", path);
                     }
 
-                    const s3d::FilePath chart =
-                        object.hasElement(U"chart") ? JsonStringOr(object, U"chart") : JsonStringOr(object, U"src");
-                    metadata.difficulties.push_back({
-                        .index = *index,
-                        .level = JsonDoubleOr(object, U"level", 0.0),
-                        .id = JsonId(object[U"id"]),
-                        .chart = ResolvePath(metadata.source_path, chart),
-                        .designer = JsonStringOr(object, U"designer", U"Anonymous"),
-                    });
+                    difficulty.index = *index;
+                    ReadValue(object, U"id", difficulty.id);
+                    ReadValue(object, U"level", difficulty.level);
+                    ReadValue(object, U"designer", difficulty.designer);
+
+                    s3d::FilePath chart;
+                    ReadValue(object, object.hasElement(U"chart") ? U"chart" : U"src", chart);
+                    difficulty.chart = ResolvePath(metadata.source_path, chart);
+                    metadata.difficulties.push_back(std::move(difficulty));
                 }
             }
 
@@ -163,17 +149,22 @@ namespace xlair::sheets::metadata {
 
             Metadata metadata;
             metadata.source_path = s3d::FileSystem::FullPath(path);
-            metadata.id = TomlStringOr(toml, U"id");
-            metadata.title = TomlStringOr(toml, U"title", metadata.title);
-            metadata.title_sort = TomlStringOr(toml, U"title_sort", metadata.title_sort);
-            metadata.artist = TomlStringOr(toml, U"artist", metadata.artist);
-            metadata.genre = TomlStringOr(toml, U"genre", metadata.genre);
-            metadata.music = ResolvePath(metadata.source_path, TomlStringOr(toml, U"music"));
-            metadata.jacket = ResolvePath(metadata.source_path, TomlStringOr(toml, U"jacket"));
-            metadata.url = TomlStringOr(toml, U"url");
-            metadata.music_offset_seconds = TomlDoubleOr(toml, U"music_offset", metadata.music_offset_seconds);
-            metadata.demo_start_seconds = TomlDoubleOr(toml, U"demo_start", metadata.demo_start_seconds);
-            metadata.bpm = TomlDoubleOr(toml, U"bpm", metadata.bpm);
+            ReadValue(toml, U"id", metadata.id);
+            ReadValue(toml, U"title", metadata.title);
+            ReadValue(toml, U"title_sort", metadata.title_sort);
+            ReadValue(toml, U"artist", metadata.artist);
+            ReadValue(toml, U"genre", metadata.genre);
+            ReadValue(toml, U"url", metadata.url);
+            ReadValue(toml, U"music_offset", metadata.music_offset_seconds);
+            ReadValue(toml, U"demo_start", metadata.demo_start_seconds);
+            ReadValue(toml, U"bpm", metadata.bpm);
+
+            s3d::FilePath music;
+            s3d::FilePath jacket;
+            ReadValue(toml, U"music", music);
+            ReadValue(toml, U"jacket", jacket);
+            metadata.music = ResolvePath(metadata.source_path, music);
+            metadata.jacket = ResolvePath(metadata.source_path, jacket);
 
             if (toml.hasMember(U"difficulties")) {
                 const auto difficulties = toml[U"difficulties"];
@@ -186,21 +177,23 @@ namespace xlair::sheets::metadata {
                         continue;
                     }
 
-                    const s3d::String index_key = object.hasMember(U"index") ? U"index" : U"difficulty";
-                    const auto index = DifficultyIndex(object[index_key].getOr<s3d::int64>(0));
+                    Difficulty difficulty;
+                    s3d::int64 raw_index = 0;
+                    ReadValue(object, object.hasMember(U"index") ? U"index" : U"difficulty", raw_index);
+                    const auto index = DifficultyIndex(raw_index);
                     if (!index) {
                         return Result<Metadata>::makeError(U"Difficulty indices must fit in the uint32 range.", path);
                     }
 
-                    const s3d::FilePath chart =
-                        object.hasMember(U"chart") ? TomlStringOr(object, U"chart") : TomlStringOr(object, U"src");
-                    metadata.difficulties.push_back({
-                        .index = *index,
-                        .level = TomlDoubleOr(object, U"level", 0.0),
-                        .id = TomlId(object[U"id"]),
-                        .chart = ResolvePath(metadata.source_path, chart),
-                        .designer = TomlStringOr(object, U"designer", U"Anonymous"),
-                    });
+                    difficulty.index = *index;
+                    ReadValue(object, U"id", difficulty.id);
+                    ReadValue(object, U"level", difficulty.level);
+                    ReadValue(object, U"designer", difficulty.designer);
+
+                    s3d::FilePath chart;
+                    ReadValue(object, object.hasMember(U"chart") ? U"chart" : U"src", chart);
+                    difficulty.chart = ResolvePath(metadata.source_path, chart);
+                    metadata.difficulties.push_back(std::move(difficulty));
                 }
             }
 
@@ -233,8 +226,7 @@ namespace xlair::sheets::metadata {
             return Result<s3d::Array<Metadata>>::makeError(U"Metadata scan path must be a directory.", directory);
         }
 
-        auto paths = s3d::FileSystem::DirectoryContents(directory, s3d::Recursive::Yes);
-        paths.sort();
+        const auto paths = s3d::FileSystem::DirectoryContents(directory, s3d::Recursive::Yes).sorted();
 
         Result<s3d::Array<Metadata>> result;
         s3d::Array<Metadata> metadata_list;
