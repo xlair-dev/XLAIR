@@ -284,6 +284,82 @@ TEST_CASE("ParseText validates slider hold point data", "[SheetsAnalyzer][SUS][P
     }
 }
 
+TEST_CASE("ParseText builds SideLong points with their channel and active timeline", "[SheetsAnalyzer][SUS][Parser]") {
+    const auto result = sus::ParseText(UR"(#TIL01: "0'0:1"
+#HISPEED 01
+#00020A: 1400
+#00125a: 0034
+#0022Fa: 0024
+#NOSPEED
+#0032CZ: 1424
+)",
+                                       U"chart.sus");
+
+    REQUIRE(result);
+    REQUIRE(result->side_long_points.size() == 5);
+
+    const auto& start = result->side_long_points[0];
+    CHECK(start.kind == sus::SideLongPointKind::Start);
+    CHECK(start.position.measure == 0);
+    CHECK(start.position.numerator == 0);
+    CHECK(start.position.denominator == 2);
+    CHECK(start.lane.start == 0);
+    CHECK(start.lane.width == 4);
+    CHECK(start.channel == 10);
+    REQUIRE(start.timeline);
+    CHECK(*start.timeline == 1);
+
+    const auto& relay = result->side_long_points[1];
+    CHECK(relay.kind == sus::SideLongPointKind::Relay);
+    CHECK(relay.position.measure == 1);
+    CHECK(relay.position.numerator == 1);
+    CHECK(relay.position.denominator == 2);
+    CHECK(relay.lane.start == 5);
+    CHECK(relay.channel == 10);
+
+    const auto& end = result->side_long_points[2];
+    CHECK(end.kind == sus::SideLongPointKind::End);
+    CHECK(end.position.measure == 2);
+    CHECK(end.position.numerator == 1);
+    CHECK(end.position.denominator == 2);
+    CHECK(end.lane.start == 15);
+    CHECK(end.channel == 10);
+
+    const auto& second_start = result->side_long_points[3];
+    CHECK(second_start.kind == sus::SideLongPointKind::Start);
+    CHECK(second_start.lane.start == 12);
+    CHECK(second_start.channel == 35);
+    CHECK_FALSE(second_start.timeline);
+
+    const auto& second_end = result->side_long_points[4];
+    CHECK(second_end.kind == sus::SideLongPointKind::End);
+    CHECK(second_end.position.numerator == 1);
+    CHECK(second_end.position.denominator == 2);
+    CHECK(second_end.channel == 35);
+}
+
+TEST_CASE("ParseText validates SideLong point data", "[SheetsAnalyzer][SUS][Parser]") {
+    SECTION("unsupported point kind") {
+        const auto result = sus::ParseText(UR"(#000200: 44
+)",
+                                           U"broken.sus");
+
+        REQUIRE_FALSE(result);
+        REQUIRE(result.diagnostics.size() == 1);
+        CHECK(result.diagnostics.front().message == U"SideLong point kinds must be 1 (Start), 2 (End), or 3 (Relay).");
+    }
+
+    SECTION("invalid header") {
+        const auto result = sus::ParseText(UR"(#00020: 14
+)",
+                                           U"broken.sus");
+
+        REQUIRE_FALSE(result);
+        REQUIRE(result.diagnostics.size() == 1);
+        CHECK(result.diagnostics.front().message == U"SideLong headers must use the form #mmm2xy.");
+    }
+}
+
 TEST_CASE("ParseText aggregates syntax and timing diagnostics", "[SheetsAnalyzer][SUS][Parser]") {
     const auto result = sus::ParseText(UR"(#
 #REQUEST "ticks_per_beat 0"

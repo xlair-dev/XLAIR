@@ -207,6 +207,19 @@ namespace xlair::sheets::formats::sus {
             }
         }
 
+        [[nodiscard]] s3d::Optional<SideLongPointKind> ToSideLongPointKind(const s3d::uint32 kind) {
+            switch (kind) {
+                case 1:
+                    return SideLongPointKind::Start;
+                case 2:
+                    return SideLongPointKind::End;
+                case 3:
+                    return SideLongPointKind::Relay;
+                default:
+                    return s3d::none;
+            }
+        }
+
         void InterpretRequest(ParseState& state, const CommandLine& command, const s3d::FilePath& path,
                               const std::size_t line) {
             if (command.argument.size() < 2 || command.argument.front() != U'"' || command.argument.back() != U'"') {
@@ -554,6 +567,41 @@ namespace xlair::sheets::formats::sus {
             }
         }
 
+        void InterpretSideLongPoints(ParseState& state, const DataLine& data, const s3d::FilePath& path,
+                                     const std::size_t line) {
+            if (data.code.size() != 3) {
+                AddError(state, U"SideLong headers must use the form #mmm2xy.", path, line, 5);
+                return;
+            }
+
+            const auto lane = ParseLane(state, data, path, line);
+            const auto channel = ParseChannel(state, data, path, line);
+            const auto tokens = ParseNoteTokens(state, data, path, line);
+            if (!lane || !channel || !tokens) {
+                return;
+            }
+
+            for (const auto& token : *tokens) {
+                const auto kind = ToSideLongPointKind(token.kind);
+                if (!kind) {
+                    AddError(state, U"SideLong point kinds must be 1 (Start), 2 (End), or 3 (Relay).", path, line,
+                             token.column);
+                    continue;
+                }
+
+                state.document.side_long_points.push_back({
+                    .kind = *kind,
+                    .position = token.position,
+                    .lane = {
+                        .start = *lane,
+                        .width = static_cast<s3d::uint8>(token.width),
+                    },
+                    .channel = *channel,
+                    .timeline = state.current_timeline,
+                });
+            }
+        }
+
         void InterpretData(ParseState& state, const DataLine& data, const s3d::FilePath& path, const std::size_t line) {
             if (data.code == U"02") {
                 InterpretBeatsPerMeasure(state, data, path, line);
@@ -561,6 +609,8 @@ namespace xlair::sheets::formats::sus {
                 InterpretBPMChanges(state, data, path, line);
             } else if (data.code.starts_with(U'1')) {
                 InterpretSliderNotes(state, data, path, line);
+            } else if (data.code.starts_with(U'2')) {
+                InterpretSideLongPoints(state, data, path, line);
             } else if (data.code.starts_with(U'3')) {
                 InterpretSliderHoldPoints(state, data, path, line);
             } else if (data.code.starts_with(U'5')) {

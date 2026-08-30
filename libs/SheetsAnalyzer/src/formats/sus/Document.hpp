@@ -53,7 +53,8 @@ namespace xlair::sheets::formats::sus {
     // XLAIR uses this channel for SideLong notes.
     //
     // x is the lane and y identifies the long-note channel.
-    // A Start point (1?) selects one of the four physical side buttons from its lane.
+    // A Start point (1?) selects one of the four physical side buttons from its start lane:
+    // 0-1 -> LeftUpper, 2-3 -> LeftLower, C-D -> RightLower, E-F -> RightUpper.
     // Relay/End points belong to that same button; their lanes do not select the button again.
     // The parser keeps this source representation intact and the compiler performs the physical-button mapping.
     enum class SideLongPointKind : s3d::uint8 {

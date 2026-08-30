@@ -1,6 +1,27 @@
 #include "Compiler.hpp"
 
 namespace xlair::sheets::formats::sus {
+    namespace detail {
+        s3d::Optional<SideButton> SideButtonFromSideLongLane(const s3d::uint8 lane) {
+            switch (lane) {
+                case 0:
+                case 1:
+                    return SideButton::LeftUpper;
+                case 2:
+                case 3:
+                    return SideButton::LeftLower;
+                case 12:
+                case 13:
+                    return SideButton::RightLower;
+                case 14:
+                case 15:
+                    return SideButton::RightUpper;
+                default:
+                    return s3d::none;
+            }
+        }
+    }
+
     namespace {
         struct SideHoldBuilder {
             SideButton button = SideButton::LeftUpper;
@@ -32,8 +53,8 @@ namespace xlair::sheets::formats::sus {
         //   Relay      -> append to the active hold for channel
         //   End        -> append and finalize the active hold
         //
-        // The exact lane -> SideButton table is intentionally not guessed here until the chart convention is fixed.
-        // Importantly, Relay/End lanes do not re-select the button.
+        // Start lanes 0-1, 2-3, C-D, and E-F select LeftUpper, LeftLower, RightLower, and RightUpper respectively.
+        // Relay/End lanes do not re-select the button.
         //
         // This builder is kept private to the compiler because sus::Document should describe SUS source data, while
         // Chart should describe the physical controls of the game.
@@ -44,6 +65,7 @@ namespace xlair::sheets::formats::sus {
         (void)document;
         (void)options;
         (void)ToSideButton;
+        (void)detail::SideButtonFromSideLongLane;
         (void)sizeof(ActiveSideHolds);
 
         return Result<Chart>::makeError(U"The new SUS compiler has not been migrated yet.");

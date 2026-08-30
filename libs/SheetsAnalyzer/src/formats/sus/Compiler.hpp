@@ -12,5 +12,9 @@ namespace xlair::sheets::formats::sus {
         double offset_seconds = 0.0;
     };
 
+    namespace detail {
+        [[nodiscard]] s3d::Optional<SideButton> SideButtonFromSideLongLane(s3d::uint8 lane);
+    }
+
     [[nodiscard]] Result<Chart> Compile(const Document& document, const CompileOptions& options);
 }
