@@ -5,15 +5,16 @@
 namespace sus = xlair::sheets::formats::sus;
 
 TEST_CASE("ParseText builds SUS timing data", "[SheetsAnalyzer][SUS][Parser]") {
-    const auto result = sus::ParseText(U"#REQUEST \"ticks_per_beat 960\"\n"
-                                       U"#REQUEST \"enable_priority TRUE\"\n"
-                                       U"#BPM01: 120.0\n"
-                                       U"#BPM0a: 180.5\n"
-                                       U"#00002: 4\n"
-                                       U"#00008: 01000A00\n"
-                                       U"#MEASUREBS 1000\n"
-                                       U"#00202: 3.5\n"
-                                       U"#00208: 000a\n",
+    const auto result = sus::ParseText(UR"(#REQUEST "ticks_per_beat 960"
+#REQUEST "enable_priority TRUE"
+#BPM01: 120.0
+#BPM0a: 180.5
+#00002: 4
+#00008: 01000A00
+#MEASUREBS 1000
+#00202: 3.5
+#00208: 000a
+)",
                                        U"chart.sus");
 
     REQUIRE(result);
@@ -42,8 +43,9 @@ TEST_CASE("ParseText builds SUS timing data", "[SheetsAnalyzer][SUS][Parser]") {
 }
 
 TEST_CASE("ParseText resolves BPM definitions declared after their use", "[SheetsAnalyzer][SUS][Parser]") {
-    const auto result = sus::ParseText(U"#00008: 01\n"
-                                       U"#BPM01: 120\n",
+    const auto result = sus::ParseText(UR"(#00008: 01
+#BPM01: 120
+)",
                                        U"chart.sus");
 
     REQUIRE(result);
@@ -53,9 +55,10 @@ TEST_CASE("ParseText resolves BPM definitions declared after their use", "[Sheet
 
 TEST_CASE("ParseText ignores metadata and note data not handled by the timing parser",
           "[SheetsAnalyzer][SUS][Parser]") {
-    const auto result = sus::ParseText(U"#TITLE \"Song\"\n"
-                                       U"#ARTIST \"Artist\"\n"
-                                       U"#00010: 14141414\n",
+    const auto result = sus::ParseText(UR"(#TITLE "Song"
+#ARTIST "Artist"
+#00010: 14141414
+)",
                                        U"chart.sus");
 
     REQUIRE(result);
@@ -65,8 +68,9 @@ TEST_CASE("ParseText ignores metadata and note data not handled by the timing pa
 
 TEST_CASE("ParseText validates known REQUEST values and ignores unknown requests", "[SheetsAnalyzer][SUS][Parser]") {
     SECTION("disable priority") {
-        const auto result = sus::ParseText(U"#REQUEST \"enable_priority true\"\n"
-                                           U"#REQUEST \"enable_priority false\"\n",
+        const auto result = sus::ParseText(UR"(#REQUEST "enable_priority true"
+#REQUEST "enable_priority false"
+)",
                                            U"chart.sus");
 
         REQUIRE(result);
@@ -74,7 +78,9 @@ TEST_CASE("ParseText validates known REQUEST values and ignores unknown requests
     }
 
     SECTION("invalid priority value") {
-        const auto result = sus::ParseText(U"#REQUEST \"enable_priority maybe\"\n", U"broken.sus");
+        const auto result = sus::ParseText(UR"(#REQUEST "enable_priority maybe"
+)",
+                                           U"broken.sus");
 
         REQUIRE_FALSE(result);
         REQUIRE(result.diagnostics.size() == 1);
@@ -82,7 +88,9 @@ TEST_CASE("ParseText validates known REQUEST values and ignores unknown requests
     }
 
     SECTION("unknown request") {
-        const auto result = sus::ParseText(U"#REQUEST \"future_option value\"\n", U"chart.sus");
+        const auto result = sus::ParseText(UR"(#REQUEST "future_option value"
+)",
+                                           U"chart.sus");
 
         REQUIRE(result);
         CHECK(result->ticks_per_beat == 480);
@@ -91,13 +99,14 @@ TEST_CASE("ParseText validates known REQUEST values and ignores unknown requests
 }
 
 TEST_CASE("ParseText aggregates syntax and timing diagnostics", "[SheetsAnalyzer][SUS][Parser]") {
-    const auto result = sus::ParseText(U"#\n"
-                                       U"#REQUEST \"ticks_per_beat 0\"\n"
-                                       U"#BPM00: 120\n"
-                                       U"#BPM01: -1\n"
-                                       U"#00002: 0\n"
-                                       U"#00008: 01F\n"
-                                       U"#00108: 02\n",
+    const auto result = sus::ParseText(UR"(#
+#REQUEST "ticks_per_beat 0"
+#BPM00: 120
+#BPM01: -1
+#00002: 0
+#00008: 01F
+#00108: 02
+)",
                                        U"broken.sus");
 
     REQUIRE_FALSE(result);
@@ -113,8 +122,9 @@ TEST_CASE("ParseText aggregates syntax and timing diagnostics", "[SheetsAnalyzer
 }
 
 TEST_CASE("ParseText applies the latest measure base and detects overflow", "[SheetsAnalyzer][SUS][Parser]") {
-    const auto result = sus::ParseText(U"#MEASUREBS 4294967295\n"
-                                       U"#00102: 4\n",
+    const auto result = sus::ParseText(UR"(#MEASUREBS 4294967295
+#00102: 4
+)",
                                        U"broken.sus");
 
     REQUIRE_FALSE(result);
@@ -124,7 +134,9 @@ TEST_CASE("ParseText applies the latest measure base and detects overflow", "[Sh
 }
 
 TEST_CASE("ParseText reports the source column of invalid BPM data", "[SheetsAnalyzer][SUS][Parser]") {
-    const auto result = sus::ParseText(U"#00008: 0!\n", U"broken.sus");
+    const auto result = sus::ParseText(UR"(#00008: 0!
+)",
+                                       U"broken.sus");
 
     REQUIRE_FALSE(result);
     REQUIRE(result.diagnostics.size() == 1);
@@ -133,9 +145,10 @@ TEST_CASE("ParseText reports the source column of invalid BPM data", "[SheetsAna
 }
 
 TEST_CASE("ParseText builds hispeed definitions from measure and tick positions", "[SheetsAnalyzer][SUS][Parser]") {
-    const auto result = sus::ParseText(U"#TIL00: \"0'0:1.0, 2'960:-0.5, 3'0:0\"\n"
-                                       U"#HISPEED 00\n"
-                                       U"#NOSPEED\n",
+    const auto result = sus::ParseText(UR"(#TIL00: "0'0:1.0, 2'960:-0.5, 3'0:0"
+#HISPEED 00
+#NOSPEED
+)",
                                        U"chart.sus");
 
     REQUIRE(result);
@@ -154,8 +167,9 @@ TEST_CASE("ParseText builds hispeed definitions from measure and tick positions"
 }
 
 TEST_CASE("ParseText resolves hispeed definitions declared after selection", "[SheetsAnalyzer][SUS][Parser]") {
-    const auto result = sus::ParseText(U"#HISPEED 0a\n"
-                                       U"#TIL0A: \"0'0:1\"\n",
+    const auto result = sus::ParseText(UR"(#HISPEED 0a
+#TIL0A: "0'0:1"
+)",
                                        U"chart.sus");
 
     REQUIRE(result);
@@ -164,7 +178,9 @@ TEST_CASE("ParseText resolves hispeed definitions declared after selection", "[S
 
 TEST_CASE("ParseText validates hispeed definitions and selections", "[SheetsAnalyzer][SUS][Parser]") {
     SECTION("malformed change") {
-        const auto result = sus::ParseText(U"#TIL01: \"0:1\"\n", U"broken.sus");
+        const auto result = sus::ParseText(UR"(#TIL01: "0:1"
+)",
+                                           U"broken.sus");
 
         REQUIRE_FALSE(result);
         REQUIRE(result.diagnostics.size() == 1);
@@ -172,7 +188,9 @@ TEST_CASE("ParseText validates hispeed definitions and selections", "[SheetsAnal
     }
 
     SECTION("invalid numeric value") {
-        const auto result = sus::ParseText(U"#TIL01: \"-1'0:1\"\n", U"broken.sus");
+        const auto result = sus::ParseText(UR"(#TIL01: "-1'0:1"
+)",
+                                           U"broken.sus");
 
         REQUIRE_FALSE(result);
         REQUIRE(result.diagnostics.size() == 1);
@@ -181,7 +199,9 @@ TEST_CASE("ParseText validates hispeed definitions and selections", "[SheetsAnal
     }
 
     SECTION("undefined selection") {
-        const auto result = sus::ParseText(U"#HISPEED ZZ\n", U"broken.sus");
+        const auto result = sus::ParseText(UR"(#HISPEED ZZ
+)",
+                                           U"broken.sus");
 
         REQUIRE_FALSE(result);
         REQUIRE(result.diagnostics.size() == 1);
@@ -189,7 +209,9 @@ TEST_CASE("ParseText validates hispeed definitions and selections", "[SheetsAnal
     }
 
     SECTION("NOSPEED argument") {
-        const auto result = sus::ParseText(U"#NOSPEED 01\n", U"broken.sus");
+        const auto result = sus::ParseText(UR"(#NOSPEED 01
+)",
+                                           U"broken.sus");
 
         REQUIRE_FALSE(result);
         REQUIRE(result.diagnostics.size() == 1);
