@@ -17,8 +17,9 @@ namespace xlair::sheets::formats::sus {
         }
     }
 
-    TimingMap::TimingMap(const s3d::int64 sample_rate, const long double offset_samples)
-        : m_sample_rate{ sample_rate } {
+    TimingMap::TimingMap(const s3d::int64 sample_rate, const s3d::uint32 ticks_per_beat,
+                         const long double offset_samples)
+        : m_sample_rate{ sample_rate }, m_ticks_per_beat{ ticks_per_beat } {
         m_measure_segments.push_back({
             .measure = 0,
             .beat = 0.0L,
@@ -35,6 +36,9 @@ namespace xlair::sheets::formats::sus {
         if (options.sample_rate <= 0) {
             return Result<TimingMap>::makeError(U"The sample rate must be a positive integer.");
         }
+        if (document.ticks_per_beat == 0) {
+            return Result<TimingMap>::makeError(U"Ticks per beat must be a positive integer.");
+        }
         if (!std::isfinite(options.offset_seconds)) {
             return Result<TimingMap>::makeError(U"The chart offset must be finite.");
         }
@@ -45,7 +49,7 @@ namespace xlair::sheets::formats::sus {
             return Result<TimingMap>::makeError(U"The chart offset exceeds the supported timing range.");
         }
 
-        TimingMap timing{ options.sample_rate, offset_samples };
+        TimingMap timing{ options.sample_rate, document.ticks_per_beat, offset_samples };
 
         s3d::Array<std::pair<s3d::uint32, double>> measure_changes;
         measure_changes.reserve(document.beats_per_measure.size());
@@ -127,10 +131,11 @@ namespace xlair::sheets::formats::sus {
     }
 
     s3d::int64 TimingMap::toSample(const Position& position) const {
-        const long double beat = absoluteBeat(position);
-        const auto& active = segmentAt(beat);
-        const long double samples_per_beat = static_cast<long double>(m_sample_rate) * 60.0L / active.bpm;
-        return RoundSample(active.sample + ((beat - active.beat) * samples_per_beat));
+        return sampleAt(absoluteBeat(position));
+    }
+
+    s3d::int64 TimingMap::toSample(const TickPosition& position) const {
+        return sampleAt(absoluteBeat(position));
     }
 
     double TimingMap::bpmAt(const Position& position) const {
@@ -155,6 +160,12 @@ namespace xlair::sheets::formats::sus {
         return *(segment == m_segments.begin() ? segment : std::prev(segment));
     }
 
+    s3d::int64 TimingMap::sampleAt(const long double beat) const {
+        const auto& active = segmentAt(beat);
+        const long double samples_per_beat = static_cast<long double>(m_sample_rate) * 60.0L / active.bpm;
+        return RoundSample(active.sample + ((beat - active.beat) * samples_per_beat));
+    }
+
     long double TimingMap::absoluteBeat(const Position& position) const {
         // Convert the measure-relative fraction into one monotonically increasing beat coordinate.
         const auto& active = measureSegmentAt(position.measure);
@@ -162,5 +173,13 @@ namespace xlair::sheets::formats::sus {
             active.beat + (static_cast<long double>(position.measure - active.measure) * active.beats_per_measure);
         const long double denominator = position.denominator == 0 ? 1.0L : position.denominator;
         return measure_beat + (active.beats_per_measure * static_cast<long double>(position.numerator) / denominator);
+    }
+
+    long double TimingMap::absoluteBeat(const TickPosition& position) const {
+        // #TIL ticks are beat-based and may extend beyond the nominal end of their source measure.
+        const auto& active = measureSegmentAt(position.measure);
+        const long double measure_beat =
+            active.beat + (static_cast<long double>(position.measure - active.measure) * active.beats_per_measure);
+        return measure_beat + (static_cast<long double>(position.tick) / m_ticks_per_beat);
     }
 }

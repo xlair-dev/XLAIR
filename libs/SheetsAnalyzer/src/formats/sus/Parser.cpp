@@ -161,11 +161,17 @@ namespace xlair::sheets::formats::sus {
         [[nodiscard]] s3d::Optional<SliderNoteKind> ToSliderNoteKind(const s3d::uint32 kind) {
             switch (kind) {
                 case 1:
-                    return SliderNoteKind::Tap;
+                    return SliderNoteKind::Tap1;
                 case 2:
-                    return SliderNoteKind::XTap;
+                    return SliderNoteKind::Tap2;
                 case 3:
-                    return SliderNoteKind::Flick;
+                    return SliderNoteKind::Tap3;
+                case 4:
+                    return SliderNoteKind::Tap4;
+                case 5:
+                    return SliderNoteKind::Tap5;
+                case 6:
+                    return SliderNoteKind::Tap6;
                 default:
                     return s3d::none;
             }
@@ -484,8 +490,7 @@ namespace xlair::sheets::formats::sus {
             for (const auto& token : *tokens) {
                 const auto kind = ToSliderNoteKind(token.kind);
                 if (!kind) {
-                    AddError(state, U"Short note kinds must be 1 (Tap), 2 (XTap), or 3 (Flick).", path, line,
-                             token.column);
+                    AddError(state, U"Short note kinds must be between 1 and 6.", path, line, token.column);
                     continue;
                 }
 

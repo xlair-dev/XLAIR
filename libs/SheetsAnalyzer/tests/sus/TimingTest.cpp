@@ -63,6 +63,17 @@ TEST_CASE("TimingMap handles distant measures without scanning every measure", "
     CHECK(timing->toSample({ .measure = 1'000'001, .numerator = 0, .denominator = 1 }) == 2'000'002);
 }
 
+TEST_CASE("TimingMap converts #TIL tick positions to samples", "[SheetsAnalyzer][SUS][Timing]") {
+    sus::Document document;
+    document.ticks_per_beat = 480;
+    const auto timing = sus::TimingMap::Build(document, { .sample_rate = 480 });
+
+    REQUIRE(timing);
+    CHECK(timing->toSample(sus::TickPosition{ .measure = 0, .tick = 480 }) == 240);
+    CHECK(timing->toSample(sus::TickPosition{ .measure = 0, .tick = 1'920 }) == 960);
+    CHECK(timing->toSample(sus::TickPosition{ .measure = 1, .tick = 0 }) == 960);
+}
+
 TEST_CASE("TimingMap clamps samples to the int64 range", "[SheetsAnalyzer][SUS][Timing]") {
     const auto maximum = sus::TimingMap::Build({}, {
                                                        .sample_rate = 1,
@@ -75,13 +86,19 @@ TEST_CASE("TimingMap clamps samples to the int64 range", "[SheetsAnalyzer][SUS][
 
     REQUIRE(maximum);
     REQUIRE(minimum);
-    CHECK(maximum->toSample({}) == std::numeric_limits<s3d::int64>::max());
-    CHECK(minimum->toSample({}) == std::numeric_limits<s3d::int64>::min());
+    CHECK(maximum->toSample(sus::Position{}) == std::numeric_limits<s3d::int64>::max());
+    CHECK(minimum->toSample(sus::Position{}) == std::numeric_limits<s3d::int64>::min());
 }
 
 TEST_CASE("TimingMap validates timing inputs", "[SheetsAnalyzer][SUS][Timing]") {
     SECTION("sample rate") {
         CHECK_FALSE(sus::TimingMap::Build({}, { .sample_rate = 0 }));
+    }
+
+    SECTION("ticks per beat") {
+        sus::Document document;
+        document.ticks_per_beat = 0;
+        CHECK_FALSE(sus::TimingMap::Build(document, {}));
     }
 
     SECTION("offset") {

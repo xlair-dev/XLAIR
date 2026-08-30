@@ -111,25 +111,25 @@ TEST_CASE("ParseText builds short and directional notes with the active hispeed 
     REQUIRE(result);
     REQUIRE(result->slider_notes.size() == 4);
 
-    const auto& tap = result->slider_notes[0];
-    CHECK(tap.kind == sus::SliderNoteKind::Tap);
-    CHECK(tap.position.measure == 1010);
-    CHECK(tap.position.numerator == 0);
-    CHECK(tap.position.denominator == 6);
-    CHECK(tap.lane.start == 10);
-    CHECK(tap.lane.width == 35);
-    REQUIRE(tap.timeline);
-    CHECK(*tap.timeline == 1);
+    const auto& tap1 = result->slider_notes[0];
+    CHECK(tap1.kind == sus::SliderNoteKind::Tap1);
+    CHECK(tap1.position.measure == 1010);
+    CHECK(tap1.position.numerator == 0);
+    CHECK(tap1.position.denominator == 6);
+    CHECK(tap1.lane.start == 10);
+    CHECK(tap1.lane.width == 35);
+    REQUIRE(tap1.timeline);
+    CHECK(*tap1.timeline == 1);
 
-    const auto& x_tap = result->slider_notes[1];
-    CHECK(x_tap.kind == sus::SliderNoteKind::XTap);
-    CHECK(x_tap.position.numerator == 2);
-    CHECK(x_tap.position.denominator == 6);
+    const auto& tap2 = result->slider_notes[1];
+    CHECK(tap2.kind == sus::SliderNoteKind::Tap2);
+    CHECK(tap2.position.numerator == 2);
+    CHECK(tap2.position.denominator == 6);
 
-    const auto& flick = result->slider_notes[2];
-    CHECK(flick.kind == sus::SliderNoteKind::Flick);
-    CHECK(flick.position.numerator == 4);
-    CHECK(flick.position.denominator == 6);
+    const auto& tap3 = result->slider_notes[2];
+    CHECK(tap3.kind == sus::SliderNoteKind::Tap3);
+    CHECK(tap3.position.numerator == 4);
+    CHECK(tap3.position.denominator == 6);
 
     const auto& note_without_hispeed = result->slider_notes[3];
     CHECK(note_without_hispeed.position.measure == 1011);
@@ -150,6 +150,23 @@ TEST_CASE("ParseText builds short and directional notes with the active hispeed 
         CHECK(note.lane.width == 4);
         REQUIRE(note.timeline);
         CHECK(*note.timeline == 1);
+    }
+}
+
+TEST_CASE("ParseText preserves all six SUS short-note kinds", "[SheetsAnalyzer][SUS][Parser]") {
+    const auto result = sus::ParseText(UR"(#00010: 142434445464
+)",
+                                       U"chart.sus");
+
+    REQUIRE(result);
+    REQUIRE(result->slider_notes.size() == 6);
+
+    const s3d::Array expected_kinds{
+        sus::SliderNoteKind::Tap1, sus::SliderNoteKind::Tap2, sus::SliderNoteKind::Tap3,
+        sus::SliderNoteKind::Tap4, sus::SliderNoteKind::Tap5, sus::SliderNoteKind::Tap6,
+    };
+    for (std::size_t index = 0; index < expected_kinds.size(); ++index) {
+        CHECK(result->slider_notes[index].kind == expected_kinds[index]);
     }
 }
 
@@ -185,13 +202,13 @@ TEST_CASE("ParseText validates short and directional note data", "[SheetsAnalyze
     }
 
     SECTION("unsupported short note kind") {
-        const auto result = sus::ParseText(UR"(#00010: 44
+        const auto result = sus::ParseText(UR"(#00010: 74
 )",
                                            U"broken.sus");
 
         REQUIRE_FALSE(result);
         REQUIRE(result.diagnostics.size() == 1);
-        CHECK(result.diagnostics.front().message == U"Short note kinds must be 1 (Tap), 2 (XTap), or 3 (Flick).");
+        CHECK(result.diagnostics.front().message == U"Short note kinds must be between 1 and 6.");
     }
 
     SECTION("unsupported directional note kind") {

@@ -20,14 +20,19 @@ namespace xlair::sheets::formats::sus {
         s3d::uint8 width = 1;
     };
 
+    // SUS reserves values 1 through 6 as generic Tap 1 through Tap 6.
+    // Their game-specific meanings are assigned when the document is compiled.
     enum class SliderNoteKind : s3d::uint8 {
-        Tap,
-        XTap,
-        Flick,
+        Tap1,
+        Tap2,
+        Tap3,
+        Tap4,
+        Tap5,
+        Tap6,
     };
 
     struct SliderNote {
-        SliderNoteKind kind = SliderNoteKind::Tap;
+        SliderNoteKind kind = SliderNoteKind::Tap1;
         Position position;
         LaneSpan lane;
         s3d::Optional<TimelineId> timeline;
