@@ -1,26 +1,4 @@
-# Normalize text files to LF in both the repository and working tree.
 * text=auto eol=lf
 
-# Keep Windows command scripts in their native line-ending format.
 *.bat text eol=crlf
 *.cmd text eol=crlf
-
-# Runtime assets are binary.
-*.7z binary
-*.dll binary
-*.dylib binary
-*.flac binary
-*.gif binary
-*.icns binary
-*.ico binary
-*.jpeg binary
-*.jpg binary
-*.mp3 binary
-*.ogg binary
-*.otf binary
-*.png binary
-*.so binary
-*.ttf binary
-*.wav binary
-*.webp binary
-*.zip binary
