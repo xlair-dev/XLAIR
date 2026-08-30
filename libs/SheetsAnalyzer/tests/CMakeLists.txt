@@ -5,7 +5,11 @@ file(GLOB_RECURSE sheets_analyzer_test_source_files CONFIGURE_DEPENDS
 add_executable(SheetsAnalyzerTests ${sheets_analyzer_test_source_files})
 
 target_compile_features(SheetsAnalyzerTests PRIVATE cxx_std_23)
-target_compile_definitions(SheetsAnalyzerTests PRIVATE NO_S3D_USING)
+target_compile_definitions(SheetsAnalyzerTests
+    PRIVATE
+        NO_S3D_USING
+        XLAIR_SHEETS_ANALYZER_TEST_FIXTURE_DIR=U"${CMAKE_CURRENT_SOURCE_DIR}/fixtures/"
+)
 target_include_directories(SheetsAnalyzerTests PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/../src")
 
 target_link_libraries(SheetsAnalyzerTests

@@ -445,6 +445,17 @@ TEST_CASE("ParseText builds hispeed definitions from measure and tick positions"
     CHECK(definition.changes[2].multiplier == 0.0);
 }
 
+TEST_CASE("ParseText accepts an empty hispeed definition", "[SheetsAnalyzer][SUS][Parser]") {
+    const auto result = sus::ParseText(UR"(#TIL00: ""
+#HISPEED 00
+)",
+                                       U"chart.sus");
+
+    REQUIRE(result);
+    REQUIRE(result->hispeed_definitions.contains(0));
+    CHECK(result->hispeed_definitions.at(0).changes.isEmpty());
+}
+
 TEST_CASE("ParseText resolves hispeed definitions declared after selection", "[SheetsAnalyzer][SUS][Parser]") {
     const auto result = sus::ParseText(UR"(#HISPEED 0a
 #TIL0A: "0'0:1"

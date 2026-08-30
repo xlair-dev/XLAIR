@@ -315,11 +315,12 @@ namespace xlair::sheets::formats::sus {
             }
 
             const s3d::String value = command.argument.substr(1, command.argument.size() - 2);
-            const auto entries = value.split(U',');
-            if (entries.isEmpty()) {
-                AddError(state, U"#TILzz requires at least one hispeed change.", path, line, ArgumentColumn(command));
+            if (value.trimmed().isEmpty()) {
+                state.document.hispeed_definitions[*definition_id] = {};
                 return;
             }
+
+            const auto entries = value.split(U',');
 
             HispeedDefinition definition;
             for (const auto& raw_entry : entries) {
