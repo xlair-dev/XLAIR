@@ -22,6 +22,10 @@ namespace xlair::sheets {
         s3d::Optional<T> value;
         s3d::Array<Diagnostic> diagnostics;
 
+        Result() = default;
+
+        explicit Result(T success_value) : value{ std::move(success_value) } {}
+
         [[nodiscard]] static Result makeError(s3d::String message, s3d::FilePath path = U"",
                                               s3d::Optional<std::size_t> line = s3d::none,
                                               s3d::Optional<std::size_t> column = s3d::none) {

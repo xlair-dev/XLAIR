@@ -63,6 +63,22 @@ TEST_CASE("TimingMap handles distant measures without scanning every measure", "
     CHECK(timing->toSample({ .measure = 1'000'001, .numerator = 0, .denominator = 1 }) == 2'000'002);
 }
 
+TEST_CASE("TimingMap clamps samples to the int64 range", "[SheetsAnalyzer][SUS][Timing]") {
+    const auto maximum = sus::TimingMap::Build({}, {
+                                                       .sample_rate = 1,
+                                                       .offset_seconds = std::numeric_limits<double>::max(),
+                                                   });
+    const auto minimum = sus::TimingMap::Build({}, {
+                                                       .sample_rate = 1,
+                                                       .offset_seconds = std::numeric_limits<double>::lowest(),
+                                                   });
+
+    REQUIRE(maximum);
+    REQUIRE(minimum);
+    CHECK(maximum->toSample({}) == std::numeric_limits<s3d::int64>::max());
+    CHECK(minimum->toSample({}) == std::numeric_limits<s3d::int64>::min());
+}
+
 TEST_CASE("TimingMap validates timing inputs", "[SheetsAnalyzer][SUS][Timing]") {
     SECTION("sample rate") {
         CHECK_FALSE(sus::TimingMap::Build({}, { .sample_rate = 0 }));

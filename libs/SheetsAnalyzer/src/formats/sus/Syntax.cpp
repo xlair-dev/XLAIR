@@ -11,9 +11,7 @@ namespace xlair::sheets::formats::sus {
         }
 
         if (source.isEmpty() || source.front() != U'#') {
-            Result<ParsedLine> result;
-            result.value = ParsedLine{ IgnoredLine{} };
-            return result;
+            return Result<ParsedLine>{ ParsedLine{ IgnoredLine{} } };
         }
 
         const s3d::String body = s3d::String{ source.substr(1) }.rtrimmed();
@@ -62,14 +60,12 @@ namespace xlair::sheets::formats::sus {
             const s3d::uint32 measure =
                 static_cast<s3d::uint32>((body[0] - U'0') * 100 + (body[1] - U'0') * 10 + (body[2] - U'0'));
 
-            Result<ParsedLine> result;
-            result.value = ParsedLine{ DataLine{
+            return Result<ParsedLine>{ ParsedLine{ DataLine{
                 .measure = measure,
                 .code = code,
                 .data = data,
                 .data_column = separator + 3 + leading_whitespace,
-            } };
-            return result;
+            } } };
         }
 
         std::size_t separator = s3d::String::npos;
@@ -105,13 +101,11 @@ namespace xlair::sheets::formats::sus {
             argument_column = separator + 3 + leading_whitespace;
         }
 
-        Result<ParsedLine> result;
-        result.value = ParsedLine{ CommandLine{
+        return Result<ParsedLine>{ ParsedLine{ CommandLine{
             .key = key,
             .argument = argument,
             .argument_column = argument_column,
-        } };
-        return result;
+        } } };
     }
 
     Result<s3d::uint32> ParseBase36(const s3d::StringView value, const std::size_t line_number,
@@ -132,6 +126,6 @@ namespace xlair::sheets::formats::sus {
             return Result<s3d::uint32>::makeError(U"Base36 value exceeds the uint32 range.", path, line_number, column);
         }
 
-        return { .value = *parsed };
+        return Result<s3d::uint32>{ *parsed };
     }
 }

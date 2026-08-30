@@ -15,6 +15,14 @@ TEST_CASE("Result reports whether it contains a value", "[SheetsAnalyzer][Result
     CHECK(*result == 42);
 }
 
+TEST_CASE("Result constructs a successful result from a value", "[SheetsAnalyzer][Result]") {
+    const xlair::sheets::Result<s3d::int32> result{ 42 };
+
+    REQUIRE(result);
+    CHECK(*result == 42);
+    CHECK(result.diagnostics.isEmpty());
+}
+
 TEST_CASE("Result creates an error with source information", "[SheetsAnalyzer][Result]") {
     const auto result = xlair::sheets::Result<s3d::int32>::makeError(U"Invalid value.", U"chart.sus", 12, 7);
 

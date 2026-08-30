@@ -31,6 +31,10 @@ namespace xlair::sheets::formats::sus {
             double bpm = 120.0;
         };
 
+        TimingMap(s3d::int64 sample_rate, long double offset_samples);
+
+        [[nodiscard]] const MeasureSegment& measureSegmentAt(s3d::uint32 measure) const;
+        [[nodiscard]] const Segment& segmentAt(long double beat) const;
         [[nodiscard]] long double absoluteBeat(const Position& position) const;
 
         s3d::int64 m_sample_rate = 44'100;

@@ -653,11 +653,12 @@ namespace xlair::sheets::formats::sus {
                 }
             }
 
+            if (state.diagnostics.isEmpty()) {
+                return Result<Document>{ std::move(state.document) };
+            }
+
             Result<Document> result;
             result.diagnostics = std::move(state.diagnostics);
-            if (result.diagnostics.isEmpty()) {
-                result.value = std::move(state.document);
-            }
             return result;
         }
     }
