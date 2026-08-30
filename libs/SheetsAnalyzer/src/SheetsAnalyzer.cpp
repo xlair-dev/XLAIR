@@ -4,6 +4,8 @@
 #include "formats/sus/Parser.hpp"
 #include "metadata/Loader.hpp"
 
+#include <utility>
+
 namespace xlair::sheets {
     namespace {
         void AppendDiagnostics(s3d::Array<Diagnostic>& destination, const s3d::Array<Diagnostic>& source) {

@@ -1,7 +1,7 @@
 #pragma once
-#define NO_S3D_USING
 
 #include <Siv3D.hpp>
+#include <cstddef>
 
 namespace xlair::sheets {
     using TimelineIndex = std::size_t;

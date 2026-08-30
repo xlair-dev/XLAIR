@@ -1,6 +1,4 @@
 #pragma once
-#include <Siv3D/HashTable.hpp>
-#define NO_S3D_USING
 
 #include <Siv3D.hpp>
 
