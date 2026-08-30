@@ -93,8 +93,15 @@ namespace xlair::sheets::formats::sus {
         DefinitionId definition = 0;
     };
 
+    // #TILzz uses an exact measure-and-tick position.
+    // It is normalized against ticks_per_beat and measure lengths when building the timing map.
+    struct TickPosition {
+        s3d::uint32 measure = 0;
+        s3d::uint32 tick = 0;
+    };
+
     struct HispeedChange {
-        Position position;
+        TickPosition position;
         double multiplier = 1.0;
     };
 

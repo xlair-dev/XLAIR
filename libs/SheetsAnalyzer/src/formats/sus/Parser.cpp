@@ -19,20 +19,28 @@ namespace xlair::sheets::formats::sus {
             std::size_t line = 0;
         };
 
+        struct PendingHispeedReference {
+            TimelineId definition = 0;
+            std::size_t line = 0;
+        };
+
         struct ParseState {
             Document document;
             s3d::uint32 measure_base = 0;
+            s3d::Optional<TimelineId> current_timeline;
             s3d::Array<PendingBPMReference> pending_bpm_references;
+            s3d::Array<PendingHispeedReference> pending_hispeed_references;
             s3d::Array<Diagnostic> diagnostics;
         };
 
-        void AddError(ParseState& state, s3d::String message, const s3d::FilePath& path, const std::size_t line) {
+        void AddError(ParseState& state, s3d::String message, const s3d::FilePath& path, const std::size_t line,
+                      const s3d::Optional<std::size_t> column = s3d::none) {
             state.diagnostics.push_back({
                 .severity = DiagnosticSeverity::Error,
                 .message = std::move(message),
                 .path = path,
                 .line = line,
-                .column = s3d::none,
+                .column = column,
             });
         }
 
@@ -40,6 +48,14 @@ namespace xlair::sheets::formats::sus {
             for (const auto& diagnostic : diagnostics) {
                 state.diagnostics.push_back(diagnostic);
             }
+        }
+
+        [[nodiscard]] s3d::Optional<std::size_t> ArgumentColumn(const CommandLine& command) {
+            if (command.argument_column == 0) {
+                return s3d::none;
+            }
+
+            return command.argument_column;
         }
 
         [[nodiscard]] s3d::Optional<s3d::uint32> ParseDecimalUInt32(const s3d::StringView value) {
@@ -129,6 +145,86 @@ namespace xlair::sheets::formats::sus {
             state.document.bpm_definitions[*definition] = *bpm;
         }
 
+        void InterpretHispeedDefinition(ParseState& state, const CommandLine& command, const s3d::FilePath& path,
+                                        const std::size_t line) {
+            if (command.key.size() != 5) {
+                AddError(state, U"Hispeed definition names must use the form #TILzz.", path, line);
+                return;
+            }
+
+            const auto definition_id = ParseBase36(command.key.substr(3), line, 5, path);
+            if (!definition_id) {
+                AppendDiagnostics(state, definition_id.diagnostics);
+                return;
+            }
+
+            if (command.argument.size() < 2 || command.argument.front() != U'"' || command.argument.back() != U'"') {
+                AddError(state, U"#TILzz values must be enclosed in double quotes.", path, line,
+                         ArgumentColumn(command));
+                return;
+            }
+
+            const s3d::String value = command.argument.substr(1, command.argument.size() - 2);
+            const auto entries = value.split(U',');
+            if (entries.isEmpty()) {
+                AddError(state, U"#TILzz requires at least one hispeed change.", path, line, ArgumentColumn(command));
+                return;
+            }
+
+            HispeedDefinition definition;
+            for (const auto& raw_entry : entries) {
+                const s3d::String entry = raw_entry.trimmed();
+                const std::size_t speed_separator = entry.indexOf(U':');
+                const std::size_t tick_separator = entry.indexOf(U'\'');
+                if (speed_separator == s3d::String::npos || tick_separator == s3d::String::npos ||
+                    tick_separator >= speed_separator) {
+                    AddError(state, U"Hispeed changes must use the form measure'tick:speed.", path, line);
+                    return;
+                }
+
+                const auto measure = ParseDecimalUInt32(entry.substr(0, tick_separator).trimmed());
+                const auto tick = ParseDecimalUInt32(
+                    entry.substr(tick_separator + 1, speed_separator - tick_separator - 1).trimmed());
+                const auto multiplier = s3d::ParseFloatOpt<double>(entry.substr(speed_separator + 1).trimmed());
+                if (!measure || !tick || !multiplier || !std::isfinite(*multiplier)) {
+                    AddError(state, U"Hispeed changes require a non-negative measure and tick and a finite speed.",
+                             path, line);
+                    return;
+                }
+
+                definition.changes.push_back({
+                    .position = {
+                        .measure = *measure,
+                        .tick = *tick,
+                    },
+                    .multiplier = *multiplier,
+                });
+            }
+
+            state.document.hispeed_definitions[*definition_id] = std::move(definition);
+        }
+
+        void InterpretHispeedSelection(ParseState& state, const CommandLine& command, const s3d::FilePath& path,
+                                       const std::size_t line) {
+            if (command.argument.size() != 2) {
+                AddError(state, U"#HISPEED requires a two-character Base36 definition ID.", path, line,
+                         ArgumentColumn(command));
+                return;
+            }
+
+            const auto definition = ParseBase36(command.argument, line, command.argument_column, path);
+            if (!definition) {
+                AppendDiagnostics(state, definition.diagnostics);
+                return;
+            }
+
+            state.current_timeline = *definition;
+            state.pending_hispeed_references.push_back({
+                .definition = *definition,
+                .line = line,
+            });
+        }
+
         void InterpretCommand(ParseState& state, const CommandLine& command, const s3d::FilePath& path,
                               const std::size_t line) {
             if (command.key == U"REQUEST") {
@@ -147,8 +243,28 @@ namespace xlair::sheets::formats::sus {
                 return;
             }
 
+            if (command.key == U"HISPEED") {
+                InterpretHispeedSelection(state, command, path, line);
+                return;
+            }
+
+            if (command.key == U"NOSPEED") {
+                if (!command.argument.isEmpty()) {
+                    AddError(state, U"#NOSPEED does not accept an argument.", path, line, ArgumentColumn(command));
+                    return;
+                }
+
+                state.current_timeline = s3d::none;
+                return;
+            }
+
             if (command.key.starts_with(U"BPM")) {
                 InterpretBPMDefinition(state, command, path, line);
+                return;
+            }
+
+            if (command.key.starts_with(U"TIL")) {
+                InterpretHispeedDefinition(state, command, path, line);
             }
         }
 
@@ -242,6 +358,12 @@ namespace xlair::sheets::formats::sus {
             for (const auto& reference : state.pending_bpm_references) {
                 if (!state.document.bpm_definitions.contains(reference.definition)) {
                     AddError(state, U"BPM change references an undefined BPM ID.", path, reference.line);
+                }
+            }
+
+            for (const auto& reference : state.pending_hispeed_references) {
+                if (!state.document.hispeed_definitions.contains(reference.definition)) {
+                    AddError(state, U"#HISPEED references an undefined hispeed definition.", path, reference.line);
                 }
             }
 

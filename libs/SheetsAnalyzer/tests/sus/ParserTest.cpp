@@ -131,3 +131,68 @@ TEST_CASE("ParseText reports the source column of invalid BPM data", "[SheetsAna
     CHECK(*result.diagnostics.front().line == 1);
     CHECK(*result.diagnostics.front().column == 10);
 }
+
+TEST_CASE("ParseText builds hispeed definitions from measure and tick positions", "[SheetsAnalyzer][SUS][Parser]") {
+    const auto result = sus::ParseText(U"#TIL00: \"0'0:1.0, 2'960:-0.5, 3'0:0\"\n"
+                                       U"#HISPEED 00\n"
+                                       U"#NOSPEED\n",
+                                       U"chart.sus");
+
+    REQUIRE(result);
+    REQUIRE(result->hispeed_definitions.size() == 1);
+    const auto& definition = result->hispeed_definitions.at(0);
+    REQUIRE(definition.changes.size() == 3);
+    CHECK(definition.changes[0].position.measure == 0);
+    CHECK(definition.changes[0].position.tick == 0);
+    CHECK(definition.changes[0].multiplier == 1.0);
+    CHECK(definition.changes[1].position.measure == 2);
+    CHECK(definition.changes[1].position.tick == 960);
+    CHECK(definition.changes[1].multiplier == -0.5);
+    CHECK(definition.changes[2].position.measure == 3);
+    CHECK(definition.changes[2].position.tick == 0);
+    CHECK(definition.changes[2].multiplier == 0.0);
+}
+
+TEST_CASE("ParseText resolves hispeed definitions declared after selection", "[SheetsAnalyzer][SUS][Parser]") {
+    const auto result = sus::ParseText(U"#HISPEED 0a\n"
+                                       U"#TIL0A: \"0'0:1\"\n",
+                                       U"chart.sus");
+
+    REQUIRE(result);
+    CHECK(result->hispeed_definitions.contains(10));
+}
+
+TEST_CASE("ParseText validates hispeed definitions and selections", "[SheetsAnalyzer][SUS][Parser]") {
+    SECTION("malformed change") {
+        const auto result = sus::ParseText(U"#TIL01: \"0:1\"\n", U"broken.sus");
+
+        REQUIRE_FALSE(result);
+        REQUIRE(result.diagnostics.size() == 1);
+        CHECK(result.diagnostics.front().message == U"Hispeed changes must use the form measure'tick:speed.");
+    }
+
+    SECTION("invalid numeric value") {
+        const auto result = sus::ParseText(U"#TIL01: \"-1'0:1\"\n", U"broken.sus");
+
+        REQUIRE_FALSE(result);
+        REQUIRE(result.diagnostics.size() == 1);
+        CHECK(result.diagnostics.front().message ==
+              U"Hispeed changes require a non-negative measure and tick and a finite speed.");
+    }
+
+    SECTION("undefined selection") {
+        const auto result = sus::ParseText(U"#HISPEED ZZ\n", U"broken.sus");
+
+        REQUIRE_FALSE(result);
+        REQUIRE(result.diagnostics.size() == 1);
+        CHECK(result.diagnostics.front().message == U"#HISPEED references an undefined hispeed definition.");
+    }
+
+    SECTION("NOSPEED argument") {
+        const auto result = sus::ParseText(U"#NOSPEED 01\n", U"broken.sus");
+
+        REQUIRE_FALSE(result);
+        REQUIRE(result.diagnostics.size() == 1);
+        CHECK(result.diagnostics.front().message == U"#NOSPEED does not accept an argument.");
+    }
+}

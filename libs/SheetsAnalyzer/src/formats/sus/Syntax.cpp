@@ -93,14 +93,23 @@ namespace xlair::sheets::formats::sus {
         }
 
         s3d::String argument;
+        std::size_t argument_column = 0;
         if (separator != s3d::String::npos) {
-            argument = body.substr(separator + 1).trimmed();
+            const s3d::String raw_argument = body.substr(separator + 1);
+            std::size_t leading_whitespace = 0;
+            while (leading_whitespace < raw_argument.size() && s3d::IsSpace(raw_argument[leading_whitespace])) {
+                ++leading_whitespace;
+            }
+
+            argument = raw_argument.trimmed();
+            argument_column = separator + 3 + leading_whitespace;
         }
 
         Result<ParsedLine> result;
         result.value = ParsedLine{ CommandLine{
             .key = key,
             .argument = argument,
+            .argument_column = argument_column,
         } };
         return result;
     }

@@ -29,6 +29,7 @@ TEST_CASE("ParseLine parses SUS commands", "[SheetsAnalyzer][SUS][Syntax]") {
         const auto& command = std::get<sus::CommandLine>(*result);
         CHECK(command.key == U"TITLE");
         CHECK(command.argument == U"\"Song Title\"");
+        CHECK(command.argument_column == 8);
     }
 
     SECTION("colon-separated definition") {
@@ -38,6 +39,7 @@ TEST_CASE("ParseLine parses SUS commands", "[SheetsAnalyzer][SUS][Syntax]") {
         const auto& command = std::get<sus::CommandLine>(*result);
         CHECK(command.key == U"BPM0A");
         CHECK(command.argument == U"140.0");
+        CHECK(command.argument_column == 9);
     }
 
     SECTION("argument-less command") {
@@ -47,6 +49,7 @@ TEST_CASE("ParseLine parses SUS commands", "[SheetsAnalyzer][SUS][Syntax]") {
         const auto& command = std::get<sus::CommandLine>(*result);
         CHECK(command.key == U"NOSPEED");
         CHECK(command.argument.isEmpty());
+        CHECK(command.argument_column == 0);
     }
 }
 

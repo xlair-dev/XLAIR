@@ -13,6 +13,7 @@ namespace xlair::sheets::formats::sus {
     struct CommandLine {
         s3d::String key;
         s3d::String argument;
+        std::size_t argument_column = 0;
     };
 
     struct DataLine {
