@@ -36,9 +36,8 @@ TEST_CASE("LoadMetadata reads JSON metadata and resolves asset paths", "[SheetsA
     CHECK(result->artist == U"JSON Artist");
     CHECK(result->genre == U"Test");
     CHECK(result->music == s3d::FileSystem::FullPath(MetadataFixture(U"load/audio/song.wav")));
-    CHECK(result->jacket ==
-          s3d::FileSystem::FullPath(s3d::FileSystem::PathAppend(s3d::FileSystem::CurrentDirectory(),
-                                                               U"shared/jacket.png")));
+    CHECK(result->jacket == s3d::FileSystem::FullPath(s3d::FileSystem::PathAppend(s3d::FileSystem::CurrentDirectory(),
+                                                                                  U"shared/jacket.png")));
     CHECK(result->url == U"https://example.com/json-song");
     CHECK(result->music_offset_seconds == -0.125);
     CHECK(result->demo_start_seconds == 12.5);
@@ -47,7 +46,7 @@ TEST_CASE("LoadMetadata reads JSON metadata and resolves asset paths", "[SheetsA
     REQUIRE(result->difficulties.size() == 2);
     CHECK(result->difficulties[0].index == 0);
     CHECK(result->difficulties[0].id == U"basic");
-    CHECK(result->difficulties[0].chart == s3d::FileSystem::FullPath(MetadataFixture(U"load/charts/basic.sus")));
+    CHECK(result->difficulties[0].src == s3d::FileSystem::FullPath(MetadataFixture(U"load/charts/basic.sus")));
     CHECK(result->difficulties[1].index == 2);
     CHECK(result->difficulties[1].id == U"expert");
     CHECK(result->difficulties[1].designer == U"Chart Author");
@@ -65,8 +64,7 @@ TEST_CASE("LoadMetadata reads TOML metadata and version 1 difficulty keys", "[Sh
     REQUIRE(result->difficulties.size() == 1);
     CHECK(result->difficulties.front().index == 1);
     CHECK(result->difficulties.front().id == U"advanced");
-    CHECK(result->difficulties.front().chart ==
-          s3d::FileSystem::FullPath(MetadataFixture(U"load/charts/advanced.sus")));
+    CHECK(result->difficulties.front().src == s3d::FileSystem::FullPath(MetadataFixture(U"load/charts/advanced.sus")));
 }
 
 TEST_CASE("LoadMetadata applies version 1 difficulty indices", "[SheetsAnalyzer][Metadata]") {
@@ -79,8 +77,7 @@ TEST_CASE("LoadMetadata applies version 1 difficulty indices", "[SheetsAnalyzer]
     CHECK(result->difficulties[0].id == U"default-index");
     CHECK(result->difficulties[1].index == 1);
     CHECK(result->difficulties[1].id == U"replacement");
-    CHECK(result->difficulties[1].chart ==
-          s3d::FileSystem::FullPath(MetadataFixture(U"load/charts/replacement.sus")));
+    CHECK(result->difficulties[1].src == s3d::FileSystem::FullPath(MetadataFixture(U"load/charts/replacement.sus")));
     CHECK(result->difficulties[2].index == 10);
     CHECK(result->difficulties[2].id == U"high-index");
 }
@@ -125,7 +122,6 @@ TEST_CASE("LoadMetadata reports unsupported and invalid metadata", "[SheetsAnaly
         REQUIRE(result.diagnostics.size() == 1);
         CHECK(result.diagnostics.front().message == U"Difficulty levels must be non-negative finite numbers.");
     }
-
 }
 
 TEST_CASE("ScanMetadata recursively loads conventionally named metadata", "[SheetsAnalyzer][Metadata][Scan]") {

@@ -7,8 +7,10 @@ namespace xlair::sheets {
         s3d::uint32 index = 0;
         double level = 0.0;
         s3d::String id;
-        s3d::FilePath chart;
+        s3d::FilePath src;
         s3d::String designer = U"Anonymous";
+
+        friend auto operator<=>(const Difficulty&, const Difficulty&) = default;
     };
 
     struct Metadata {

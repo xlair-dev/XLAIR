@@ -136,8 +136,7 @@ namespace xlair::sheets::formats::sus {
                                                                     const TimelineLookup& timeline_lookup,
                                                                     const s3d::int64 sample_rate,
                                                                     const s3d::Array<TempoChange>& tempo_changes) {
-            auto ordered_points = source_points;
-            ordered_points.stable_sort_by([](const auto& left, const auto& right) {
+            const auto ordered_points = source_points.stable_sorted_by([](const auto& left, const auto& right) {
                 return PositionComesBefore(left.position, right.position);
             });
 

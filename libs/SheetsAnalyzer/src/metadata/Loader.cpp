@@ -115,15 +115,13 @@ namespace xlair::sheets::metadata {
 
                         s3d::FilePath chart;
                         ReadValue(object, U"src", chart);
-                        difficulty.chart = ResolvePath(metadata.source_path, chart);
+                        difficulty.src = ResolvePath(metadata.source_path, chart);
                         StoreDifficulty(metadata.difficulties, std::move(difficulty));
                     }
                 }
             }
 
-            metadata.difficulties.stable_sort_by([](const auto& left, const auto& right) {
-                return left.index < right.index;
-            });
+            metadata.difficulties.stable_sort();
             return Validate(std::move(metadata), path);
         }
 
@@ -173,15 +171,13 @@ namespace xlair::sheets::metadata {
 
                         s3d::FilePath chart;
                         ReadValue(object, U"src", chart);
-                        difficulty.chart = ResolvePath(metadata.source_path, chart);
+                        difficulty.src = ResolvePath(metadata.source_path, chart);
                         StoreDifficulty(metadata.difficulties, std::move(difficulty));
                     }
                 }
             }
 
-            metadata.difficulties.stable_sort_by([](const auto& left, const auto& right) {
-                return left.index < right.index;
-            });
+            metadata.difficulties.stable_sort();
             return Validate(std::move(metadata), path);
         }
 
