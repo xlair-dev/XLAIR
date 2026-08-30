@@ -12,6 +12,7 @@
       "generator": "Ninja",
       "binaryDir": "${sourceDir}/build/${presetName}",
       "cacheVariables": {
+        "BUILD_TESTING": "ON",
         "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
       }
     },
@@ -144,6 +145,21 @@
     { "name": "build-sheets-analyzer-macos-debug", "displayName": "Build SheetsAnalyzer (macOS Debug)", "inherits": "build-macos-debug-base", "targets": ["SheetsAnalyzer"] },
     { "name": "build-sheets-analyzer-macos-release", "displayName": "Build SheetsAnalyzer (macOS Release)", "inherits": "build-macos-release-base", "targets": ["SheetsAnalyzer"] },
     { "name": "build-sheets-analyzer-windows-debug", "displayName": "Build SheetsAnalyzer (Windows Debug)", "inherits": "build-windows-debug-base", "targets": ["SheetsAnalyzer"] },
-    { "name": "build-sheets-analyzer-windows-release", "displayName": "Build SheetsAnalyzer (Windows Release)", "inherits": "build-windows-release-base", "targets": ["SheetsAnalyzer"] }
+    { "name": "build-sheets-analyzer-windows-release", "displayName": "Build SheetsAnalyzer (Windows Release)", "inherits": "build-windows-release-base", "targets": ["SheetsAnalyzer"] },
+
+    { "name": "build-sheets-analyzer-tests-linux-debug", "displayName": "Build SheetsAnalyzer tests (Linux Debug)", "inherits": "build-linux-debug-base", "targets": ["SheetsAnalyzerTests"] },
+    { "name": "build-sheets-analyzer-tests-linux-release", "displayName": "Build SheetsAnalyzer tests (Linux Release)", "inherits": "build-linux-release-base", "targets": ["SheetsAnalyzerTests"] },
+    { "name": "build-sheets-analyzer-tests-macos-debug", "displayName": "Build SheetsAnalyzer tests (macOS Debug)", "inherits": "build-macos-debug-base", "targets": ["SheetsAnalyzerTests"] },
+    { "name": "build-sheets-analyzer-tests-macos-release", "displayName": "Build SheetsAnalyzer tests (macOS Release)", "inherits": "build-macos-release-base", "targets": ["SheetsAnalyzerTests"] },
+    { "name": "build-sheets-analyzer-tests-windows-debug", "displayName": "Build SheetsAnalyzer tests (Windows Debug)", "inherits": "build-windows-debug-base", "targets": ["SheetsAnalyzerTests"] },
+    { "name": "build-sheets-analyzer-tests-windows-release", "displayName": "Build SheetsAnalyzer tests (Windows Release)", "inherits": "build-windows-release-base", "targets": ["SheetsAnalyzerTests"] }
+  ],
+  "testPresets": [
+    { "name": "test-sheets-analyzer-linux-debug", "displayName": "Test SheetsAnalyzer (Linux Debug)", "configurePreset": "linux-debug", "output": { "outputOnFailure": true } },
+    { "name": "test-sheets-analyzer-linux-release", "displayName": "Test SheetsAnalyzer (Linux Release)", "configurePreset": "linux-release", "output": { "outputOnFailure": true } },
+    { "name": "test-sheets-analyzer-macos-debug", "displayName": "Test SheetsAnalyzer (macOS Debug)", "configurePreset": "macos-debug", "output": { "outputOnFailure": true } },
+    { "name": "test-sheets-analyzer-macos-release", "displayName": "Test SheetsAnalyzer (macOS Release)", "configurePreset": "macos-release", "output": { "outputOnFailure": true } },
+    { "name": "test-sheets-analyzer-windows-debug", "displayName": "Test SheetsAnalyzer (Windows Debug)", "configurePreset": "windows-debug", "output": { "outputOnFailure": true } },
+    { "name": "test-sheets-analyzer-windows-release", "displayName": "Test SheetsAnalyzer (Windows Release)", "configurePreset": "windows-release", "output": { "outputOnFailure": true } }
   ]
 }

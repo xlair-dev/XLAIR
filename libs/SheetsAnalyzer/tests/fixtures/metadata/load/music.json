@@ -1,0 +1,29 @@
+{
+  "version": 1,
+  "id": "json-song",
+  "title": "JSON Song",
+  "title_sort": "json song",
+  "artist": "JSON Artist",
+  "genre": "Test",
+  "music": "audio/song.wav",
+  "jacket": "/shared/jacket.png",
+  "url": "https://example.com/json-song",
+  "music_offset": -0.125,
+  "demo_start": 12.5,
+  "bpm": 175,
+  "difficulties": [
+    {
+      "id": "expert",
+      "difficulty": 2,
+      "level": 9.5,
+      "src": "charts/expert.sus",
+      "designer": "Chart Author"
+    },
+    {
+      "id": "basic",
+      "difficulty": 0,
+      "level": 2,
+      "src": "charts/basic.sus"
+    }
+  ]
+}

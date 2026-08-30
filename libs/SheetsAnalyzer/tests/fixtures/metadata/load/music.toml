@@ -1,0 +1,9 @@
+version = 1
+id = "toml-song"
+title = "TOML Song"
+
+[[difficulties]]
+id = "advanced"
+difficulty = 1
+level = 4.5
+src = "charts/advanced.sus"
