@@ -44,7 +44,6 @@ namespace xlair::sheets {
         End,
         Visible,
         Invisible,
-        Control,
     };
 
     struct SliderHoldPoint {
