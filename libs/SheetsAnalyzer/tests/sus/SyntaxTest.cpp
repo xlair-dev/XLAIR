@@ -50,15 +50,15 @@ TEST_CASE("ParseLine parses SUS commands", "[SheetsAnalyzer][SUS][Syntax]") {
     }
 }
 
-TEST_CASE("ParseLine parses SUS data lines without interpreting their channel", "[SheetsAnalyzer][SUS][Syntax]") {
-    const auto result = sus::ParseLine(U"\uFEFF#01220a: 14002400\r", 7, U"chart.sus");
+TEST_CASE("ParseLine parses SUS data lines without interpreting their data code", "[SheetsAnalyzer][SUS][Syntax]") {
+    const auto result = sus::ParseLine(U"\uFEFF#01220A: 14002400\r", 7, U"chart.sus");
 
     REQUIRE(result);
     REQUIRE(std::holds_alternative<sus::DataLine>(*result));
 
     const auto& data = std::get<sus::DataLine>(*result);
     CHECK(data.measure == 12);
-    CHECK(data.channel == U"20a");
+    CHECK(data.code == U"20a");
     CHECK(data.data == U"14002400");
 }
 
@@ -81,8 +81,17 @@ TEST_CASE("ParseLine reports malformed SUS lines with source locations", "[Sheet
         CHECK(result.diagnostics.front().message == U"Data lines require a ':' separator.");
     }
 
+    SECTION("missing data code") {
+        const auto result = sus::ParseLine(U"#001:0100", 10, U"broken.sus");
+
+        REQUIRE_FALSE(result);
+        REQUIRE(result.diagnostics.size() == 1);
+        CHECK(result.diagnostics.front().message ==
+              U"Data line headers require at least a two-character data code after the measure.");
+    }
+
     SECTION("missing data") {
-        const auto result = sus::ParseLine(U"#00111:", 10, U"broken.sus");
+        const auto result = sus::ParseLine(U"#00111:", 11, U"broken.sus");
 
         REQUIRE_FALSE(result);
         REQUIRE(result.diagnostics.size() == 1);

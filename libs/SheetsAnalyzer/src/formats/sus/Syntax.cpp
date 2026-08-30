@@ -1,5 +1,7 @@
 #include "Syntax.hpp"
 
+#include <Siv3D/Char.hpp>
+
 namespace xlair::sheets::formats::sus {
     Result<ParsedLine> ParseLine(const s3d::StringView line, const std::size_t line_number, const s3d::FilePath& path) {
         s3d::StringView source = line;
@@ -19,8 +21,8 @@ namespace xlair::sheets::formats::sus {
             return Result<ParsedLine>::makeError(U"Expected a SUS directive after '#'.", path, line_number, 2);
         }
 
-        if (U'0' <= body.front() && body.front() <= U'9') {
-            if (body.size() < 3 || !(U'0' <= body[1] && body[1] <= U'9') || !(U'0' <= body[2] && body[2] <= U'9')) {
+        if (s3d::IsDigit(body.front())) {
+            if (body.size() < 3 || !s3d::IsDigit(body[1]) || !s3d::IsDigit(body[2])) {
                 return Result<ParsedLine>::makeError(U"Data line measures must contain exactly three decimal digits.",
                                                      path, line_number, 2);
             }
@@ -32,14 +34,15 @@ namespace xlair::sheets::formats::sus {
             }
 
             if (separator < 5) {
-                return Result<ParsedLine>::makeError(U"Data line headers require a channel after the measure.", path,
-                                                     line_number, separator + 2);
+                return Result<ParsedLine>::makeError(
+                    U"Data line headers require at least a two-character data code after the measure.", path,
+                    line_number, separator + 2);
             }
 
-            const s3d::String channel = body.substr(3, separator - 3);
-            for (std::size_t index = 0; index < channel.size(); ++index) {
-                if (!s3d::IsAlnum(channel[index])) {
-                    return Result<ParsedLine>::makeError(U"Data line channels must use ASCII alphanumeric characters.",
+            const s3d::String code = body.substr(3, separator - 3).lowercased();
+            for (std::size_t index = 0; index < code.size(); ++index) {
+                if (!s3d::IsAlnum(code[index])) {
+                    return Result<ParsedLine>::makeError(U"Data line codes must use ASCII alphanumeric characters.",
                                                          path, line_number, index + 5);
                 }
             }
@@ -56,7 +59,7 @@ namespace xlair::sheets::formats::sus {
             Result<ParsedLine> result;
             result.value = ParsedLine{ DataLine{
                 .measure = measure,
-                .channel = channel,
+                .code = code,
                 .data = data,
             } };
             return result;

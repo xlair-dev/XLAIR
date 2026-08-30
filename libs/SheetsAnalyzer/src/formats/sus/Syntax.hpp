@@ -17,7 +17,7 @@ namespace xlair::sheets::formats::sus {
 
     struct DataLine {
         s3d::uint32 measure = 0;
-        s3d::String channel;
+        s3d::String code;
         s3d::String data;
     };
 
