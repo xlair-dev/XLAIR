@@ -60,6 +60,7 @@ TEST_CASE("ParseLine parses SUS data lines without interpreting their data code"
     CHECK(data.measure == 12);
     CHECK(data.code == U"20a");
     CHECK(data.data == U"14002400");
+    CHECK(data.data_column == 10);
 }
 
 TEST_CASE("ParseLine reports malformed SUS lines with source locations", "[SheetsAnalyzer][SUS][Syntax]") {

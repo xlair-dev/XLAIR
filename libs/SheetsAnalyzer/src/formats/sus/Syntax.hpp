@@ -19,6 +19,7 @@ namespace xlair::sheets::formats::sus {
         s3d::uint32 measure = 0;
         s3d::String code;
         s3d::String data;
+        std::size_t data_column = 0;
     };
 
     using ParsedLine = std::variant<IgnoredLine, CommandLine, DataLine>;

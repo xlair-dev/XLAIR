@@ -47,7 +47,13 @@ namespace xlair::sheets::formats::sus {
                 }
             }
 
-            const s3d::String data = body.substr(separator + 1).trimmed();
+            const s3d::String raw_data = body.substr(separator + 1);
+            std::size_t leading_whitespace = 0;
+            while (leading_whitespace < raw_data.size() && s3d::IsSpace(raw_data[leading_whitespace])) {
+                ++leading_whitespace;
+            }
+
+            const s3d::String data = raw_data.trimmed();
             if (data.isEmpty()) {
                 return Result<ParsedLine>::makeError(U"Data lines require a value after ':'.", path, line_number,
                                                      separator + 3);
@@ -61,6 +67,7 @@ namespace xlair::sheets::formats::sus {
                 .measure = measure,
                 .code = code,
                 .data = data,
+                .data_column = separator + 3 + leading_whitespace,
             } };
             return result;
         }

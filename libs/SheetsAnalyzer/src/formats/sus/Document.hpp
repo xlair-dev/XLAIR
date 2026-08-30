@@ -104,6 +104,7 @@ namespace xlair::sheets::formats::sus {
 
     struct Document {
         s3d::uint32 ticks_per_beat = 480;
+        bool priority_enabled = false;
 
         s3d::HashTable<DefinitionId, double> bpm_definitions;
         s3d::Array<BPMReference> bpm_changes;
