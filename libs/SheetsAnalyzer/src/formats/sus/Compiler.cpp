@@ -30,6 +30,10 @@ namespace xlair::sheets::formats::sus {
             s3d::Array<SideHoldPoint> points;
         };
 
+        struct SliderHoldBuilder {
+            s3d::Array<::xlair::sheets::SliderHoldPoint> points;
+        };
+
         [[nodiscard]] s3d::Optional<SideButton> ToSideButton(const DirectionalKind direction) {
             switch (direction) {
                 case DirectionalKind::LeftUp:
@@ -87,6 +91,24 @@ namespace xlair::sheets::formats::sus {
             return s3d::none;
         }
 
+        [[nodiscard]] s3d::Optional<::xlair::sheets::SliderHoldPointKind> ToChartSliderHoldPointKind(
+            const SliderHoldPointKind kind) {
+            switch (kind) {
+                case SliderHoldPointKind::Start:
+                    return ::xlair::sheets::SliderHoldPointKind::Start;
+                case SliderHoldPointKind::End:
+                    return ::xlair::sheets::SliderHoldPointKind::End;
+                case SliderHoldPointKind::Visible:
+                    return ::xlair::sheets::SliderHoldPointKind::Visible;
+                case SliderHoldPointKind::Invisible:
+                    return ::xlair::sheets::SliderHoldPointKind::Invisible;
+                case SliderHoldPointKind::Control:
+                    return ::xlair::sheets::SliderHoldPointKind::Control;
+            }
+
+            return s3d::none;
+        }
+
         [[nodiscard]] bool PositionComesBefore(const Position& left, const Position& right) {
             if (left.measure != right.measure) {
                 return left.measure < right.measure;
@@ -126,6 +148,79 @@ namespace xlair::sheets::formats::sus {
         // This builder is kept private to the compiler because sus::Document should describe SUS source data, while
         // Chart should describe the physical controls of the game.
         using ActiveSideHolds = s3d::HashTable<ChannelId, SideHoldBuilder>;
+
+        using ActiveSliderHolds = s3d::HashTable<ChannelId, SliderHoldBuilder>;
+
+        [[nodiscard]] Result<s3d::Array<SliderHold>> CompileSliderHolds(
+            const s3d::Array<SliderHoldPoint>& source_points, const TimingMap& timing,
+            const TimelineLookup& timeline_lookup) {
+            auto ordered_points = source_points;
+            ordered_points.stable_sort_by([](const auto& left, const auto& right) {
+                return PositionComesBefore(left.position, right.position);
+            });
+
+            ActiveSliderHolds active_holds;
+            s3d::Array<SliderHold> slider_holds;
+
+            for (const auto& source : ordered_points) {
+                const auto kind = ToChartSliderHoldPointKind(source.kind);
+                if (!kind) {
+                    return Result<s3d::Array<SliderHold>>::makeError(U"A Slider Hold point has an unknown kind.");
+                }
+
+                const auto timeline = ResolveTimeline(source.timeline, timeline_lookup);
+                if (!timeline) {
+                    return Result<s3d::Array<SliderHold>>::makeError(
+                        U"A Slider Hold point references an undefined hispeed definition.");
+                }
+
+                const ::xlair::sheets::SliderHoldPoint point{
+                    .kind = *kind,
+                    .timeline = *timeline,
+                    .sample = timing.toSample(source.position),
+                    .lane = ToChartLane(source.lane),
+                };
+
+                if (source.kind == SliderHoldPointKind::Start) {
+                    if (active_holds.contains(source.channel)) {
+                        return Result<s3d::Array<SliderHold>>::makeError(
+                            U"A Slider Hold channel starts before its previous hold ends.");
+                    }
+
+                    active_holds[source.channel] = {
+                        .points = { point },
+                    };
+                    continue;
+                }
+
+                const auto active = active_holds.find(source.channel);
+                if (active == active_holds.end()) {
+                    if (source.kind == SliderHoldPointKind::End) {
+                        return Result<s3d::Array<SliderHold>>::makeError(
+                            U"A Slider Hold End point has no active Start point on its channel.");
+                    }
+                    return Result<s3d::Array<SliderHold>>::makeError(
+                        U"A Slider Hold point has no active Start point on its channel.");
+                }
+
+                active->second.points.push_back(point);
+                if (source.kind == SliderHoldPointKind::End) {
+                    slider_holds.push_back({
+                        .points = std::move(active->second.points),
+                    });
+                    active_holds.erase(active);
+                }
+            }
+
+            if (!active_holds.empty()) {
+                return Result<s3d::Array<SliderHold>>::makeError(U"A Slider Hold channel is missing an End point.");
+            }
+
+            slider_holds.stable_sort_by([](const auto& left, const auto& right) {
+                return left.points.front().sample < right.points.front().sample;
+            });
+            return Result<s3d::Array<SliderHold>>{ std::move(slider_holds) };
+        }
 
         [[nodiscard]] Result<s3d::Array<SideHold>> CompileSideHolds(const s3d::Array<SideLongPoint>& source_points,
                                                                     const TimingMap& timing,
@@ -207,10 +302,6 @@ namespace xlair::sheets::formats::sus {
     }
 
     Result<Chart> Compile(const Document& document, const CompileOptions& options) {
-        if (!document.slider_hold_points.isEmpty()) {
-            return Result<Chart>::makeError(U"Slider Hold compilation has not been migrated yet.");
-        }
-
         auto timing_result = TimingMap::Build(document, {
                                                             .sample_rate = options.sample_rate,
                                                             .offset_seconds = options.offset_seconds,
@@ -298,6 +389,14 @@ namespace xlair::sheets::formats::sus {
             return left.sample < right.sample;
         });
 
+        auto slider_holds = CompileSliderHolds(document.slider_hold_points, timing, timeline_lookup);
+        if (!slider_holds) {
+            Result<Chart> result;
+            result.diagnostics = std::move(slider_holds.diagnostics);
+            return result;
+        }
+        chart.slider_holds = std::move(*slider_holds);
+
         for (const auto& source : document.directional_notes) {
             const auto button = ToSideButton(source.kind);
             if (!button) {
@@ -328,6 +427,9 @@ namespace xlair::sheets::formats::sus {
         chart.side_holds = std::move(*side_holds);
 
         chart.total_combo = chart.slider_notes.size() + chart.side_notes.size();
+        for (const auto& slider_hold : chart.slider_holds) {
+            chart.total_combo += slider_hold.judge_points.size();
+        }
         for (const auto& side_hold : chart.side_holds) {
             chart.total_combo += side_hold.judge_samples.size();
         }

@@ -220,16 +220,6 @@ TEST_CASE("Compile rejects source data that cannot yet be represented safely", "
         CHECK(result.diagnostics.front().message == U"Up and down directional notes are not supported by XLAIR.");
     }
 
-    SECTION("hold notes") {
-        sus::Document document;
-        document.slider_hold_points.push_back({});
-
-        const auto result = sus::Compile(document, {});
-
-        REQUIRE_FALSE(result);
-        REQUIRE(result.diagnostics.size() == 1);
-        CHECK(result.diagnostics.front().message == U"Slider Hold compilation has not been migrated yet.");
-    }
 }
 
 TEST_CASE("Compile validates SideLong channel state", "[SheetsAnalyzer][SUS][Compiler]") {
