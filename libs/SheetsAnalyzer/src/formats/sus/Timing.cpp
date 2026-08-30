@@ -19,7 +19,9 @@ namespace xlair::sheets::formats::sus {
     }
 
     TimingMap::TimingMap(
-        const s3d::int64 sample_rate, const s3d::uint32 ticks_per_beat, const long double offset_samples
+        const s3d::int64 sample_rate,
+        const s3d::uint32 ticks_per_beat,
+        const long double offset_samples
     )
         : m_sample_rate{ sample_rate }, m_ticks_per_beat{ ticks_per_beat } {
         m_measure_segments.push_back(

@@ -84,7 +84,10 @@ namespace xlair::sheets::formats::sus {
 
         [[nodiscard]]
         s3d::Optional<s3d::uint32> EffectiveMeasure(
-            ParseState& state, const s3d::uint32 measure, const s3d::FilePath& path, const std::size_t line
+            ParseState& state,
+            const s3d::uint32 measure,
+            const s3d::FilePath& path,
+            const std::size_t line
         ) {
             if (measure > (std::numeric_limits<s3d::uint32>::max() - state.measure_base)) {
                 AddError(state, U"Measure number exceeds the uint32 range after applying #MEASUREBS.", path, line);
@@ -250,7 +253,10 @@ namespace xlair::sheets::formats::sus {
         }
 
         void InterpretRequest(
-            ParseState& state, const CommandLine& command, const s3d::FilePath& path, const std::size_t line
+            ParseState& state,
+            const CommandLine& command,
+            const s3d::FilePath& path,
+            const std::size_t line
         ) {
             if (command.argument.size() < 2 || command.argument.front() != U'"' || command.argument.back() != U'"') {
                 AddError(state, U"#REQUEST arguments must be enclosed in double quotes.", path, line);
@@ -293,7 +299,10 @@ namespace xlair::sheets::formats::sus {
         }
 
         void InterpretBPMDefinition(
-            ParseState& state, const CommandLine& command, const s3d::FilePath& path, const std::size_t line
+            ParseState& state,
+            const CommandLine& command,
+            const s3d::FilePath& path,
+            const std::size_t line
         ) {
             if (command.key.size() != 5) {
                 AddError(state, U"BPM definition names must use the form #BPMzz.", path, line);
@@ -321,7 +330,10 @@ namespace xlair::sheets::formats::sus {
         }
 
         void InterpretHispeedDefinition(
-            ParseState& state, const CommandLine& command, const s3d::FilePath& path, const std::size_t line
+            ParseState& state,
+            const CommandLine& command,
+            const s3d::FilePath& path,
+            const std::size_t line
         ) {
             if (command.key.size() != 5) {
                 AddError(state, U"Hispeed definition names must use the form #TILzz.", path, line);
@@ -392,7 +404,10 @@ namespace xlair::sheets::formats::sus {
         }
 
         void InterpretHispeedSelection(
-            ParseState& state, const CommandLine& command, const s3d::FilePath& path, const std::size_t line
+            ParseState& state,
+            const CommandLine& command,
+            const s3d::FilePath& path,
+            const std::size_t line
         ) {
             if (command.argument.size() != 2) {
                 AddError(
@@ -421,7 +436,10 @@ namespace xlair::sheets::formats::sus {
         }
 
         void InterpretCommand(
-            ParseState& state, const CommandLine& command, const s3d::FilePath& path, const std::size_t line
+            ParseState& state,
+            const CommandLine& command,
+            const s3d::FilePath& path,
+            const std::size_t line
         ) {
             if (command.key == U"REQUEST") {
                 InterpretRequest(state, command, path, line);
@@ -465,7 +483,10 @@ namespace xlair::sheets::formats::sus {
         }
 
         void InterpretBeatsPerMeasure(
-            ParseState& state, const DataLine& data, const s3d::FilePath& path, const std::size_t line
+            ParseState& state,
+            const DataLine& data,
+            const s3d::FilePath& path,
+            const std::size_t line
         ) {
             const auto measure = EffectiveMeasure(state, data.measure, path, line);
             if (!measure) {
@@ -482,7 +503,10 @@ namespace xlair::sheets::formats::sus {
         }
 
         void InterpretBPMChanges(
-            ParseState& state, const DataLine& data, const s3d::FilePath& path, const std::size_t line
+            ParseState& state,
+            const DataLine& data,
+            const s3d::FilePath& path,
+            const std::size_t line
         ) {
             const auto measure = EffectiveMeasure(state, data.measure, path, line);
             if (!measure) {
@@ -525,7 +549,10 @@ namespace xlair::sheets::formats::sus {
         }
 
         void InterpretSliderNotes(
-            ParseState& state, const DataLine& data, const s3d::FilePath& path, const std::size_t line
+            ParseState& state,
+            const DataLine& data,
+            const s3d::FilePath& path,
+            const std::size_t line
         ) {
             if (data.code.size() != 2) {
                 AddError(state, U"Short note headers must use the form #mmm1x.", path, line, 5);
@@ -558,7 +585,10 @@ namespace xlair::sheets::formats::sus {
         }
 
         void InterpretDirectionalNotes(
-            ParseState& state, const DataLine& data, const s3d::FilePath& path, const std::size_t line
+            ParseState& state,
+            const DataLine& data,
+            const s3d::FilePath& path,
+            const std::size_t line
         ) {
             if (data.code.size() != 2) {
                 AddError(state, U"Directional note headers must use the form #mmm5x.", path, line, 5);
@@ -591,7 +621,10 @@ namespace xlair::sheets::formats::sus {
         }
 
         void InterpretSliderHoldPoints(
-            ParseState& state, const DataLine& data, const s3d::FilePath& path, const std::size_t line
+            ParseState& state,
+            const DataLine& data,
+            const s3d::FilePath& path,
+            const std::size_t line
         ) {
             if (data.code.size() != 3) {
                 AddError(state, U"Slider hold headers must use the form #mmm3xy.", path, line, 5);
@@ -626,7 +659,10 @@ namespace xlair::sheets::formats::sus {
         }
 
         void InterpretSideLongPoints(
-            ParseState& state, const DataLine& data, const s3d::FilePath& path, const std::size_t line
+            ParseState& state,
+            const DataLine& data,
+            const s3d::FilePath& path,
+            const std::size_t line
         ) {
             if (data.code.size() != 3) {
                 AddError(state, U"SideLong headers must use the form #mmm2xy.", path, line, 5);

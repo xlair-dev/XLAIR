@@ -30,7 +30,9 @@ namespace xlair::sheets::formats::sus {
 
         [[nodiscard]]
         s3d::int64 NextJudgeSample(
-            const s3d::int64 current_sample, const s3d::int64 sample_rate, const s3d::Array<TempoChange>& tempo_changes
+            const s3d::int64 current_sample,
+            const s3d::int64 sample_rate,
+            const s3d::Array<TempoChange>& tempo_changes
         ) {
             long double cursor = current_sample;
             const double current_bpm = BPMAtSample(tempo_changes, cursor);

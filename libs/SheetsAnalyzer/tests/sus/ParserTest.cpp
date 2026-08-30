@@ -109,7 +109,8 @@ TEST_CASE("ParseText validates known REQUEST values and ignores unknown requests
 }
 
 TEST_CASE(
-    "ParseText builds short and directional notes with the active hispeed timeline", "[SheetsAnalyzer][SUS][Parser]"
+    "ParseText builds short and directional notes with the active hispeed timeline",
+    "[SheetsAnalyzer][SUS][Parser]"
 ) {
     const auto result = sus::ParseText(
         UR"(#TIL01: "0'0:1"
@@ -262,7 +263,8 @@ TEST_CASE("ParseText validates short and directional note data", "[SheetsAnalyze
 }
 
 TEST_CASE(
-    "ParseText builds slider hold points with their channel and active timeline", "[SheetsAnalyzer][SUS][Parser]"
+    "ParseText builds slider hold points with their channel and active timeline",
+    "[SheetsAnalyzer][SUS][Parser]"
 ) {
     const auto result = sus::ParseText(
         UR"(#TIL0A: "0'0:1"

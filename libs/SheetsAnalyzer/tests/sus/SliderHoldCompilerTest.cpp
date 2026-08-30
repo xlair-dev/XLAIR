@@ -98,7 +98,8 @@ TEST_CASE("Compile assembles interleaved Slider Hold channels in musical order",
 }
 
 TEST_CASE(
-    "Compile expands Slider Hold Control points into generated Invisible points", "[SheetsAnalyzer][SUS][Compiler]"
+    "Compile expands Slider Hold Control points into generated Invisible points",
+    "[SheetsAnalyzer][SUS][Compiler]"
 ) {
     sus::Document document;
     document.slider_hold_points = {
@@ -145,7 +146,8 @@ TEST_CASE(
 }
 
 TEST_CASE(
-    "Compile supports multiple Control points in one Slider Hold Bezier segment", "[SheetsAnalyzer][SUS][Compiler]"
+    "Compile supports multiple Control points in one Slider Hold Bezier segment",
+    "[SheetsAnalyzer][SUS][Compiler]"
 ) {
     sus::Document document;
     document.slider_hold_points = {
@@ -184,7 +186,8 @@ TEST_CASE(
 }
 
 TEST_CASE(
-    "Compile generates Slider Hold judgements independently from rendering points", "[SheetsAnalyzer][SUS][Compiler]"
+    "Compile generates Slider Hold judgements independently from rendering points",
+    "[SheetsAnalyzer][SUS][Compiler]"
 ) {
     sus::Document document;
     document.slider_hold_points = {

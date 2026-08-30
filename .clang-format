@@ -16,6 +16,7 @@ AccessModifierOffset: -4
 IndentPPDirectives: None
 
 BinPackParameters: OnePerLine
+AllowAllParametersOfDeclarationOnNextLine: false
 BinPackArguments: false
 AllowAllArgumentsOnNextLine: false
 

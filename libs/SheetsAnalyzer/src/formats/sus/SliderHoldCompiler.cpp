@@ -197,7 +197,9 @@ namespace xlair::sheets::formats::sus {
 
         [[nodiscard]]
         Result<SliderHold> BuildHold(
-            const HoldBuilder& builder, const s3d::int64 sample_rate, const s3d::Array<TempoChange>& tempo_changes
+            const HoldBuilder& builder,
+            const s3d::int64 sample_rate,
+            const s3d::Array<TempoChange>& tempo_changes
         ) {
             SliderHold hold;
             s3d::Array<CurveSegment> curve_segments;

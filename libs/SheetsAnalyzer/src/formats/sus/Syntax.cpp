@@ -132,7 +132,10 @@ namespace xlair::sheets::formats::sus {
     }
 
     Result<s3d::uint32> ParseBase36(
-        const s3d::StringView value, const std::size_t line_number, const std::size_t column, const s3d::FilePath& path
+        const s3d::StringView value,
+        const std::size_t line_number,
+        const std::size_t column,
+        const s3d::FilePath& path
     ) {
         if (value.isEmpty()) {
             return Result<s3d::uint32>::makeError(U"Base36 values must not be empty.", path, line_number, column);
