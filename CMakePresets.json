@@ -152,14 +152,35 @@
     { "name": "build-sheets-analyzer-tests-macos-debug", "displayName": "Build SheetsAnalyzer tests (macOS Debug)", "inherits": "build-macos-debug-base", "targets": ["SheetsAnalyzerTests"] },
     { "name": "build-sheets-analyzer-tests-macos-release", "displayName": "Build SheetsAnalyzer tests (macOS Release)", "inherits": "build-macos-release-base", "targets": ["SheetsAnalyzerTests"] },
     { "name": "build-sheets-analyzer-tests-windows-debug", "displayName": "Build SheetsAnalyzer tests (Windows Debug)", "inherits": "build-windows-debug-base", "targets": ["SheetsAnalyzerTests"] },
-    { "name": "build-sheets-analyzer-tests-windows-release", "displayName": "Build SheetsAnalyzer tests (Windows Release)", "inherits": "build-windows-release-base", "targets": ["SheetsAnalyzerTests"] }
+    { "name": "build-sheets-analyzer-tests-windows-release", "displayName": "Build SheetsAnalyzer tests (Windows Release)", "inherits": "build-windows-release-base", "targets": ["SheetsAnalyzerTests"] },
+
+    { "name": "build-playfield-linux-debug", "displayName": "Build Playfield (Linux Debug)", "inherits": "build-linux-debug-base", "targets": ["Playfield"] },
+    { "name": "build-playfield-linux-release", "displayName": "Build Playfield (Linux Release)", "inherits": "build-linux-release-base", "targets": ["Playfield"] },
+    { "name": "build-playfield-macos-debug", "displayName": "Build Playfield (macOS Debug)", "inherits": "build-macos-debug-base", "targets": ["Playfield"] },
+    { "name": "build-playfield-macos-release", "displayName": "Build Playfield (macOS Release)", "inherits": "build-macos-release-base", "targets": ["Playfield"] },
+    { "name": "build-playfield-windows-debug", "displayName": "Build Playfield (Windows Debug)", "inherits": "build-windows-debug-base", "targets": ["Playfield"] },
+    { "name": "build-playfield-windows-release", "displayName": "Build Playfield (Windows Release)", "inherits": "build-windows-release-base", "targets": ["Playfield"] },
+
+    { "name": "build-playfield-tests-linux-debug", "displayName": "Build Playfield tests (Linux Debug)", "inherits": "build-linux-debug-base", "targets": ["PlayfieldTests"] },
+    { "name": "build-playfield-tests-linux-release", "displayName": "Build Playfield tests (Linux Release)", "inherits": "build-linux-release-base", "targets": ["PlayfieldTests"] },
+    { "name": "build-playfield-tests-macos-debug", "displayName": "Build Playfield tests (macOS Debug)", "inherits": "build-macos-debug-base", "targets": ["PlayfieldTests"] },
+    { "name": "build-playfield-tests-macos-release", "displayName": "Build Playfield tests (macOS Release)", "inherits": "build-macos-release-base", "targets": ["PlayfieldTests"] },
+    { "name": "build-playfield-tests-windows-debug", "displayName": "Build Playfield tests (Windows Debug)", "inherits": "build-windows-debug-base", "targets": ["PlayfieldTests"] },
+    { "name": "build-playfield-tests-windows-release", "displayName": "Build Playfield tests (Windows Release)", "inherits": "build-windows-release-base", "targets": ["PlayfieldTests"] }
   ],
   "testPresets": [
-    { "name": "test-sheets-analyzer-linux-debug", "displayName": "Test SheetsAnalyzer (Linux Debug)", "configurePreset": "linux-debug", "output": { "outputOnFailure": true } },
-    { "name": "test-sheets-analyzer-linux-release", "displayName": "Test SheetsAnalyzer (Linux Release)", "configurePreset": "linux-release", "output": { "outputOnFailure": true } },
-    { "name": "test-sheets-analyzer-macos-debug", "displayName": "Test SheetsAnalyzer (macOS Debug)", "configurePreset": "macos-debug", "output": { "outputOnFailure": true } },
-    { "name": "test-sheets-analyzer-macos-release", "displayName": "Test SheetsAnalyzer (macOS Release)", "configurePreset": "macos-release", "output": { "outputOnFailure": true } },
-    { "name": "test-sheets-analyzer-windows-debug", "displayName": "Test SheetsAnalyzer (Windows Debug)", "configurePreset": "windows-debug", "output": { "outputOnFailure": true } },
-    { "name": "test-sheets-analyzer-windows-release", "displayName": "Test SheetsAnalyzer (Windows Release)", "configurePreset": "windows-release", "output": { "outputOnFailure": true } }
+    { "name": "test-sheets-analyzer-linux-debug", "displayName": "Test SheetsAnalyzer (Linux Debug)", "configurePreset": "linux-debug", "filter": { "include": { "name": "^SheetsAnalyzerTests$" } }, "output": { "outputOnFailure": true } },
+    { "name": "test-sheets-analyzer-linux-release", "displayName": "Test SheetsAnalyzer (Linux Release)", "configurePreset": "linux-release", "filter": { "include": { "name": "^SheetsAnalyzerTests$" } }, "output": { "outputOnFailure": true } },
+    { "name": "test-sheets-analyzer-macos-debug", "displayName": "Test SheetsAnalyzer (macOS Debug)", "configurePreset": "macos-debug", "filter": { "include": { "name": "^SheetsAnalyzerTests$" } }, "output": { "outputOnFailure": true } },
+    { "name": "test-sheets-analyzer-macos-release", "displayName": "Test SheetsAnalyzer (macOS Release)", "configurePreset": "macos-release", "filter": { "include": { "name": "^SheetsAnalyzerTests$" } }, "output": { "outputOnFailure": true } },
+    { "name": "test-sheets-analyzer-windows-debug", "displayName": "Test SheetsAnalyzer (Windows Debug)", "configurePreset": "windows-debug", "filter": { "include": { "name": "^SheetsAnalyzerTests$" } }, "output": { "outputOnFailure": true } },
+    { "name": "test-sheets-analyzer-windows-release", "displayName": "Test SheetsAnalyzer (Windows Release)", "configurePreset": "windows-release", "filter": { "include": { "name": "^SheetsAnalyzerTests$" } }, "output": { "outputOnFailure": true } },
+
+    { "name": "test-playfield-linux-debug", "displayName": "Test Playfield (Linux Debug)", "configurePreset": "linux-debug", "filter": { "include": { "name": "^PlayfieldTests$" } }, "output": { "outputOnFailure": true } },
+    { "name": "test-playfield-linux-release", "displayName": "Test Playfield (Linux Release)", "configurePreset": "linux-release", "filter": { "include": { "name": "^PlayfieldTests$" } }, "output": { "outputOnFailure": true } },
+    { "name": "test-playfield-macos-debug", "displayName": "Test Playfield (macOS Debug)", "configurePreset": "macos-debug", "filter": { "include": { "name": "^PlayfieldTests$" } }, "output": { "outputOnFailure": true } },
+    { "name": "test-playfield-macos-release", "displayName": "Test Playfield (macOS Release)", "configurePreset": "macos-release", "filter": { "include": { "name": "^PlayfieldTests$" } }, "output": { "outputOnFailure": true } },
+    { "name": "test-playfield-windows-debug", "displayName": "Test Playfield (Windows Debug)", "configurePreset": "windows-debug", "filter": { "include": { "name": "^PlayfieldTests$" } }, "output": { "outputOnFailure": true } },
+    { "name": "test-playfield-windows-release", "displayName": "Test Playfield (Windows Release)", "configurePreset": "windows-release", "filter": { "include": { "name": "^PlayfieldTests$" } }, "output": { "outputOnFailure": true } }
   ]
 }
