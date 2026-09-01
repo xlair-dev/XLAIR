@@ -83,6 +83,12 @@ file(REMOVE_RECURSE
 add_library(Siv3DWindows INTERFACE)
 add_library(Siv3D::Siv3D ALIAS Siv3DWindows)
 
+# Siv3D's Windows headers enable the SSSE3 implementation of parallel_hashmap.
+# Clang requires the corresponding target feature to use those intrinsics.
+target_compile_options(Siv3DWindows INTERFACE
+    "$<$<COMPILE_LANG_AND_ID:CXX,Clang>:-mssse3>"
+)
+
 # lld-link misparses forward-slash library paths (e.g. /curl/... as flags).
 # Pass -libpath per directory and link by filename only.
 set(SIV3D_WINDOWS_LINK_DIRS

@@ -7,7 +7,7 @@ XLAIR is a rhythm game built with [Siv3D](https://siv3d.github.io/) v0.6.16.
 | Target       | Siv3D source                               | Build environment                       |
 | ------------ | ------------------------------------------ | --------------------------------------- |
 | Linux x86_64 | Preinstalled in the XLAIR container image  | Docker / devcontainer                   |
-| Windows x64  | Official SDK and v0.6.16 runtime resources | Visual Studio Build Tools, clang, Ninja |
+| Windows x64  | Official SDK and v0.6.16 runtime resources | Visual Studio Build Tools, MSVC, Ninja   |
 | macOS x86_64 | Official SDK                               | Xcode Command Line Tools, Ninja         |
 
 CMake 3.22 or newer is required.
