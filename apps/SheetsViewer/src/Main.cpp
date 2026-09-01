@@ -1,12 +1,19 @@
 #include <Siv3D.hpp>
 
 #include "SheetsViewer/AnalysisRenderer.hpp"
+#include "SheetsViewer/SideMenu.hpp"
 #include "SheetsViewer/ViewerSession.hpp"
 
+#include <Siv3D/SimpleGUI.hpp>
 #include <algorithm>
 
 namespace {
-    constexpr double SidebarWidth = 360.0;
+    constexpr s3d::int32 TransportHeight = 35;
+    constexpr s3d::int32 ButtonWidth = 45;
+
+    constexpr MenuBarItemIndex OpenMetadataItem{ 0, 0 };
+    constexpr MenuBarItemIndex ReloadMetadataItem{ 0, 1 };
+    constexpr MenuBarItemIndex ExitItem{ 0, 2 };
 
     [[nodiscard]]
     bool IsMetadataPath(const FilePathView path) {
@@ -30,43 +37,15 @@ namespace {
         return location + U": " + diagnostic.message;
     }
 
-    void DrawMetadata(xlair::sheets_viewer::ViewerSession& session, const Font& font) {
-        const auto& metadata = session.metadata();
-        if (!metadata) {
-            font(U"Open metadata to begin.").draw(20, Vec2{ 24, 88 }, Palette::Lightgray);
-            return;
-        }
-
-        font(metadata->title).draw(26, Vec2{ 24, 82 }, Palette::White);
-        font(metadata->artist).draw(18, Vec2{ 24, 118 }, Palette::Lightgray);
-
-        if (session.jacket()) {
-            session.jacket()->resized(128).draw(24, 154);
-        }
-
-        font(U"Difficulties").draw(18, Vec2{ 24, 302 }, Palette::Skyblue);
-        for (const auto& [position, difficulty] : IndexedRef(metadata->difficulties)) {
-            const bool selected = session.selectedDifficultyPosition() == position;
-            const String label = U"{}  {}  Lv. {}"_fmt(difficulty.index, difficulty.id, difficulty.level);
-            const double y = 334.0 + static_cast<double>(position) * 36.0;
-            if (SimpleGUI::Button(label, Vec2{ 24, y }, 312, true) && !selected) {
-                (void)session.selectDifficulty(position);
-            }
-
-            if (selected) {
-                RectF{ 18, y, 4, 28 }.draw(Palette::Skyblue);
-            }
-        }
-    }
-
     void DrawDiagnostics(const xlair::sheets_viewer::ViewerSession& session, const Font& font) {
-        double y = Scene::Height() - 76.0;
+        double y = Scene::Height() - TransportHeight - 12.0;
         const auto& diagnostics = session.diagnostics();
         for (std::size_t index = diagnostics.size(); index > 0; --index) {
             const auto& diagnostic = diagnostics[index - 1];
             const ColorF color =
                 diagnostic.severity == xlair::sheets::DiagnosticSeverity::Error ? Palette::Lightcoral : Palette::Orange;
-            font(FormatDiagnostic(diagnostic)).draw(15, Arg::bottomLeft = Vec2{ SidebarWidth + 40, y }, color);
+            font(FormatDiagnostic(diagnostic))
+                .draw(15, Arg::bottomLeft = Vec2{ xlair::sheets_viewer::SideMenu::Width + 20, y }, color);
             y -= 24.0;
             if (y < Scene::Height() * 0.55) {
                 break;
@@ -74,31 +53,57 @@ namespace {
         }
     }
 
-    void DrawTransport(xlair::sheets_viewer::ViewerSession& session, const Font& font) {
+    void DrawTransport(xlair::sheets_viewer::ViewerSession& session, double& pixels_per_second) {
         const auto& chart = session.chart();
         const bool enabled = static_cast<bool>(chart);
-        const double y = Scene::Height() - 48.0;
+        const double y = Scene::Height() - TransportHeight;
+        RectF{
+            xlair::sheets_viewer::SideMenu::Width,
+            y,
+            std::max(0, Scene::Width() - xlair::sheets_viewer::SideMenu::Width),
+            TransportHeight,
+        }
+            .draw(ColorF{ 0.12, 0.13, 0.16 });
 
-        if (SimpleGUI::Button(session.isPlaying() ? U"Pause" : U"Play", Vec2{ SidebarWidth + 20, y }, 72, enabled)) {
+        const String play_icon = session.isPlaying() ? U"\U000F03E4" : U"\U000F040A";
+        if (SimpleGUI::Button(play_icon, Vec2{ xlair::sheets_viewer::SideMenu::Width, y }, ButtonWidth, enabled)) {
             session.togglePlayback();
         }
-        if (SimpleGUI::Button(U"Stop", Vec2{ SidebarWidth + 96, y }, 64, enabled)) {
+        if (SimpleGUI::Button(
+                U"\U000F04DB",
+                Vec2{ xlair::sheets_viewer::SideMenu::Width + ButtonWidth, y },
+                ButtonWidth,
+                enabled
+            )) {
             session.stopPlayback();
         }
 
         const s3d::int64 duration = session.durationSamples();
         double progress = duration > 0 ? static_cast<double>(session.currentSample()) / duration : 0.0;
-        const double slider_width = std::max(80.0, Scene::Width() - SidebarWidth - 370.0);
-        if (SimpleGUI::Slider(progress, 0.0, 1.0, Vec2{ SidebarWidth + 176, y + 4 }, slider_width, enabled)) {
-            session.seekSample(static_cast<s3d::int64>(progress * duration));
-        }
-
         const s3d::int64 sample_rate = chart ? chart->sample_rate : 44'100;
         const String time = U"{} / {}"_fmt(
             FormatTime(SecondsF{ static_cast<double>(session.currentSample()) / sample_rate }, U"M:ss"),
             FormatTime(SecondsF{ static_cast<double>(duration) / sample_rate }, U"M:ss")
         );
-        font(time).draw(15, Vec2{ Scene::Width() - 170, y + 7 }, Palette::Lightgray);
+        const double seek_x = xlair::sheets_viewer::SideMenu::Width + ButtonWidth * 2;
+        const bool show_scale = (Scene::Width() >= 900);
+        const double scale_width = show_scale ? 195.0 : 0.0;
+        const double seek_width = std::max(80.0, Scene::Width() - seek_x - scale_width - 100.0);
+        if (SimpleGUI::Slider(time, progress, 0.0, 1.0, Vec2{ seek_x, y }, 100.0, seek_width, enabled)) {
+            session.seekSample(static_cast<s3d::int64>(progress * duration));
+        }
+
+        if (show_scale) {
+            SimpleGUI::Slider(
+                U"Scale",
+                pixels_per_second,
+                80.0,
+                1'000.0,
+                Vec2{ Scene::Width() - scale_width, y },
+                55,
+                140
+            );
+        }
     }
 }
 
@@ -108,11 +113,23 @@ void Main() {
     Window::Resize(1280, 720);
     Scene::SetBackground(ColorF{ 0.10, 0.11, 0.14 });
 
-    const Font title_font{ 32 };
     const Font font{ 20 };
     xlair::sheets_viewer::ViewerSession session;
     const xlair::sheets_viewer::AnalysisRenderer renderer;
+    const xlair::sheets_viewer::SideMenu side_menu;
     double pixels_per_second = 420.0;
+
+    const Array<std::pair<String, Array<String>>> menu_items{
+        {
+            U"File",
+            {
+                U"\U000F0214 Open Metadata...",
+                U"\U000F0453 Reload Metadata",
+                U"\U000F05AD Exit",
+            },
+        },
+    };
+    SimpleMenuBar menu_bar{ menu_items };
 
     const auto& arguments = System::GetCommandLineArgs();
     for (std::size_t index = 1; index < arguments.size(); ++index) {
@@ -125,6 +142,20 @@ void Main() {
     while (System::Update()) {
         session.update(Scene::DeltaTime());
 
+        menu_bar.setItemEnabled(ReloadMetadataItem, static_cast<bool>(session.metadata()));
+        if (const auto item = menu_bar.update()) {
+            if (*item == OpenMetadataItem) {
+                const auto path = Dialog::OpenFile({ FileFilter::JSON(), FileFilter::TOML() });
+                if (path) {
+                    (void)session.loadMetadata(*path);
+                }
+            } else if (*item == ReloadMetadataItem) {
+                (void)session.reloadMetadata();
+            } else if (*item == ExitItem) {
+                System::Exit();
+            }
+        }
+
         if (DragDrop::HasNewFilePaths()) {
             for (const auto& dropped : DragDrop::GetDroppedFilePaths()) {
                 if (IsMetadataPath(dropped.path)) {
@@ -134,36 +165,46 @@ void Main() {
             }
         }
 
-        RectF{ 0, 0, SidebarWidth, Scene::Height() }.draw(ColorF{ 0.15, 0.16, 0.20 });
-        title_font(U"SheetsViewer").draw(20, Vec2{ 24, 18 }, Palette::White);
-
-        if (SimpleGUI::Button(U"Open metadata", Vec2{ SidebarWidth + 40, 24 }, 180)) {
-            const auto path = Dialog::OpenFile({ FileFilter::JSON(), FileFilter::TOML() });
-            if (path) {
-                (void)session.loadMetadata(*path);
-            }
-        }
-        if (SimpleGUI::Button(U"Reload", Vec2{ SidebarWidth + 228, 24 }, 88, static_cast<bool>(session.metadata()))) {
-            (void)session.reloadMetadata();
-        }
-
-        SimpleGUI::Slider(U"Scale", pixels_per_second, 80.0, 1'000.0, Vec2{ Scene::Width() - 280, 24 }, 55, 200);
-
-        DrawMetadata(session, font);
+        const s3d::int32 content_height = std::max(1, Scene::Height() - SimpleMenuBar::MenuBarHeight);
         if (session.chart() && session.projection()) {
             const Rect viewport{
-                static_cast<s3d::int32>(SidebarWidth),
-                64,
-                std::max(1, Scene::Width() - static_cast<s3d::int32>(SidebarWidth)),
-                std::max(1, Scene::Height() - 128),
+                xlair::sheets_viewer::SideMenu::Width,
+                SimpleMenuBar::MenuBarHeight,
+                std::max(1, Scene::Width() - xlair::sheets_viewer::SideMenu::Width),
+                content_height,
             };
             renderer
                 .draw(*session.chart(), *session.projection(), session.currentSample(), viewport, pixels_per_second);
         } else {
-            font(U"No chart is loaded.").draw(22, Vec2{ SidebarWidth + 40, 88 }, Palette::Gray);
+            Rect{
+                xlair::sheets_viewer::SideMenu::Width,
+                SimpleMenuBar::MenuBarHeight,
+                std::max(1, Scene::Width() - xlair::sheets_viewer::SideMenu::Width),
+                content_height,
+            }
+                .draw(ColorF{ 0.08, 0.09, 0.12 });
+            font(U"No chart is loaded.")
+                .draw(
+                    22,
+                    Vec2{
+                        xlair::sheets_viewer::SideMenu::Width + 24,
+                        SimpleMenuBar::MenuBarHeight + 24,
+                    },
+                    Palette::Gray
+                );
         }
 
+        side_menu.draw(
+            session,
+            Rect{
+                0,
+                SimpleMenuBar::MenuBarHeight,
+                xlair::sheets_viewer::SideMenu::Width,
+                std::max(1, Scene::Height() - SimpleMenuBar::MenuBarHeight),
+            }
+        );
         DrawDiagnostics(session, font);
-        DrawTransport(session, font);
+        DrawTransport(session, pixels_per_second);
+        menu_bar.draw();
     }
 }
