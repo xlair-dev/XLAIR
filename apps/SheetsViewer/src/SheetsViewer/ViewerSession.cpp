@@ -43,6 +43,24 @@ namespace xlair::sheets_viewer {
     }
 
     bool ViewerSession::loadMetadata(const s3d::FilePath& path) {
+        return loadMetadataAndSelect(path, s3d::none);
+    }
+
+    bool ViewerSession::reloadMetadata() {
+        if (!m_metadata) {
+            return false;
+        }
+
+        const s3d::FilePath path = m_metadata->source_path;
+        s3d::Optional<s3d::String> difficulty_id;
+        if (m_selected_difficulty_position) {
+            difficulty_id = m_metadata->difficulties[*m_selected_difficulty_position].id;
+        }
+        return loadMetadataAndSelect(path, difficulty_id);
+    }
+
+    bool
+    ViewerSession::loadMetadataAndSelect(const s3d::FilePath& path, const s3d::Optional<s3d::String>& difficulty_id) {
         clear();
 
         auto result = sheets::LoadMetadata(path);
@@ -59,7 +77,20 @@ namespace xlair::sheets_viewer {
             return true;
         }
 
-        return selectDifficulty(0);
+        std::size_t position = 0;
+        if (difficulty_id) {
+            const auto difficulty = std::find_if(
+                m_metadata->difficulties.begin(),
+                m_metadata->difficulties.end(),
+                [&difficulty_id](const sheets::Difficulty& candidate) {
+                    return candidate.id == *difficulty_id;
+                }
+            );
+            if (difficulty != m_metadata->difficulties.end()) {
+                position = static_cast<std::size_t>(std::distance(m_metadata->difficulties.begin(), difficulty));
+            }
+        }
+        return selectDifficulty(position);
     }
 
     bool ViewerSession::selectDifficulty(const std::size_t position) {

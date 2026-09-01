@@ -10,6 +10,9 @@ namespace xlair::sheets_viewer {
         bool loadMetadata(const s3d::FilePath& path);
 
         [[nodiscard]]
+        bool reloadMetadata();
+
+        [[nodiscard]]
         bool selectDifficulty(std::size_t position);
 
         void update(double delta_seconds);
@@ -49,6 +52,9 @@ namespace xlair::sheets_viewer {
         bool isPlaying() const;
 
     private:
+        [[nodiscard]]
+        bool loadMetadataAndSelect(const s3d::FilePath& path, const s3d::Optional<s3d::String>& difficulty_id);
+
         void loadAssets();
         void addAssetWarning(s3d::String message, s3d::FilePath path);
         void refreshDiagnostics();

@@ -8,6 +8,28 @@
 namespace {
     constexpr double SidebarWidth = 360.0;
 
+    [[nodiscard]]
+    bool IsMetadataPath(const FilePathView path) {
+        const String extension = FileSystem::Extension(path).lowercased();
+        return (extension == U"json" || extension == U"toml");
+    }
+
+    [[nodiscard]]
+    String FormatDiagnostic(const xlair::sheets::Diagnostic& diagnostic) {
+        if (diagnostic.path.isEmpty()) {
+            return diagnostic.message;
+        }
+
+        String location = FileSystem::RelativePath(diagnostic.path);
+        if (diagnostic.line) {
+            location += U":" + Format(*diagnostic.line);
+            if (diagnostic.column) {
+                location += U":" + Format(*diagnostic.column);
+            }
+        }
+        return location + U": " + diagnostic.message;
+    }
+
     void DrawMetadata(xlair::sheets_viewer::ViewerSession& session, const Font& font) {
         const auto& metadata = session.metadata();
         if (!metadata) {
@@ -44,7 +66,7 @@ namespace {
             const auto& diagnostic = diagnostics[index - 1];
             const ColorF color =
                 diagnostic.severity == xlair::sheets::DiagnosticSeverity::Error ? Palette::Lightcoral : Palette::Orange;
-            font(diagnostic.message).draw(15, Arg::bottomLeft = Vec2{ SidebarWidth + 40, y }, color);
+            font(FormatDiagnostic(diagnostic)).draw(15, Arg::bottomLeft = Vec2{ SidebarWidth + 40, y }, color);
             y -= 24.0;
             if (y < Scene::Height() * 0.55) {
                 break;
@@ -92,8 +114,25 @@ void Main() {
     const xlair::sheets_viewer::AnalysisRenderer renderer;
     double pixels_per_second = 420.0;
 
+    const auto& arguments = System::GetCommandLineArgs();
+    for (std::size_t index = 1; index < arguments.size(); ++index) {
+        if (IsMetadataPath(arguments[index])) {
+            (void)session.loadMetadata(arguments[index]);
+            break;
+        }
+    }
+
     while (System::Update()) {
         session.update(Scene::DeltaTime());
+
+        if (DragDrop::HasNewFilePaths()) {
+            for (const auto& dropped : DragDrop::GetDroppedFilePaths()) {
+                if (IsMetadataPath(dropped.path)) {
+                    (void)session.loadMetadata(dropped.path);
+                    break;
+                }
+            }
+        }
 
         RectF{ 0, 0, SidebarWidth, Scene::Height() }.draw(ColorF{ 0.15, 0.16, 0.20 });
         title_font(U"SheetsViewer").draw(20, Vec2{ 24, 18 }, Palette::White);
@@ -103,6 +142,9 @@ void Main() {
             if (path) {
                 (void)session.loadMetadata(*path);
             }
+        }
+        if (SimpleGUI::Button(U"Reload", Vec2{ SidebarWidth + 228, 24 }, 88, static_cast<bool>(session.metadata()))) {
+            (void)session.reloadMetadata();
         }
 
         SimpleGUI::Slider(U"Scale", pixels_per_second, 80.0, 1'000.0, Vec2{ Scene::Width() - 280, 24 }, 55, 200);
