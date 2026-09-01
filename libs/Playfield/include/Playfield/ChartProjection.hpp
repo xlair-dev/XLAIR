@@ -13,6 +13,12 @@ namespace xlair::playfield {
         [[nodiscard]]
         long double distanceBetween(sheets::TimelineIndex timeline, s3d::int64 from_sample, s3d::int64 to_sample) const;
 
+        // Returns a note's signed distance from the judgement line, using 1.0x
+        // after the note has passed it.
+        [[nodiscard]]
+        long double
+        noteDistance(sheets::TimelineIndex timeline, s3d::int64 current_sample, s3d::int64 note_sample) const;
+
         [[nodiscard]]
         std::size_t timelineCount() const noexcept;
 

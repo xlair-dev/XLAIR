@@ -48,7 +48,7 @@ namespace xlair::sheets_viewer {
             const double judge_y,
             const double pixels_per_second
         ) {
-            const long double distance = projection.distanceBetween(timeline, current_sample, sample);
+            const long double distance = projection.noteDistance(timeline, current_sample, sample);
             return judge_y - static_cast<double>(distance) * pixels_per_second;
         }
 

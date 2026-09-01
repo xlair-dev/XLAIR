@@ -16,6 +16,10 @@ TEST_CASE("ChartProjection keeps independent scroll timelines", "[Playfield][Cha
     CHECK(projection.timelineCount() == 2);
     CHECK(static_cast<double>(projection.positionAt(0, 100)) == Approx(1.0));
     CHECK(static_cast<double>(projection.positionAt(1, 100)) == Approx(2.0));
+    CHECK(static_cast<double>(projection.noteDistance(0, 0, 100)) == Approx(1.0));
+    CHECK(static_cast<double>(projection.noteDistance(1, 0, 100)) == Approx(2.0));
+    CHECK(static_cast<double>(projection.noteDistance(0, 200, 100)) == Approx(-1.0));
+    CHECK(static_cast<double>(projection.noteDistance(1, 200, 100)) == Approx(-1.0));
 }
 
 TEST_CASE("ChartProjection supplies a normal timeline for an empty chart", "[Playfield][ChartProjection]") {

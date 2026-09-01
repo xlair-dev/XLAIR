@@ -81,4 +81,14 @@ namespace xlair::playfield {
     long double ScrollTimeline::distanceBetween(const s3d::int64 from_sample, const s3d::int64 to_sample) const {
         return positionAt(to_sample) - positionAt(from_sample);
     }
+
+    long double ScrollTimeline::noteDistance(const s3d::int64 current_sample, const s3d::int64 note_sample) const {
+        if (note_sample < current_sample) {
+            const long double elapsed_samples =
+                static_cast<long double>(note_sample) - static_cast<long double>(current_sample);
+            return elapsed_samples / m_sample_rate;
+        }
+
+        return distanceBetween(current_sample, note_sample);
+    }
 }

@@ -44,6 +44,21 @@ TEST_CASE("ScrollTimeline supports stops and reverse scrolling", "[Playfield][Sc
     CHECK(static_cast<double>(timeline.positionAt(100)) == Approx(1.0));
     CHECK(static_cast<double>(timeline.positionAt(200)) == Approx(1.0));
     CHECK(static_cast<double>(timeline.positionAt(300)) == Approx(0.0));
+    CHECK(static_cast<double>(timeline.noteDistance(200, 100)) == Approx(-1.0));
+    CHECK(static_cast<double>(timeline.noteDistance(300, 200)) == Approx(-1.0));
+}
+
+TEST_CASE("ScrollTimeline moves judged notes at normal speed", "[Playfield][ScrollTimeline]") {
+    const xlair::sheets::Timeline source{
+        .speed_changes = {
+            { .sample = 0, .multiplier = 2.0 },
+        },
+    };
+    const xlair::playfield::ScrollTimeline timeline{ source, SampleRate };
+
+    CHECK(static_cast<double>(timeline.noteDistance(50, 150)) == Approx(2.0));
+    CHECK(static_cast<double>(timeline.noteDistance(150, 50)) == Approx(-1.0));
+    CHECK(static_cast<double>(timeline.noteDistance(150, 150)) == Approx(0.0));
 }
 
 TEST_CASE("ScrollTimeline sorts changes and uses the last change at the same sample", "[Playfield][ScrollTimeline]") {

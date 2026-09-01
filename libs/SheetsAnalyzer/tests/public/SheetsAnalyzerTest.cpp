@@ -44,12 +44,20 @@ TEST_CASE("LoadChart compiles SUS fixtures end to end", "[SheetsAnalyzer][Chart]
 
         INFO(FirstDiagnostic(result));
         REQUIRE(result);
-        REQUIRE(result->timelines.size() == 2);
-        REQUIRE(result->timelines[1].speed_changes.size() == 4);
-        CHECK(result->timelines[1].speed_changes[2].sample == 1'920);
+        REQUIRE(result->timelines.size() == 3);
+        REQUIRE(result->timelines[1].speed_changes.size() == 3);
+        CHECK(result->timelines[1].speed_changes[1].multiplier == 0.5);
+        CHECK(result->timelines[1].speed_changes[2].sample == 2'880);
         CHECK(result->timelines[1].speed_changes[2].multiplier == 2.0);
-        CHECK(result->slider_notes.size() == 12);
-        CHECK(result->total_combo == 12);
+        REQUIRE(result->timelines[2].speed_changes.size() == 3);
+        CHECK(result->timelines[2].speed_changes[1].multiplier == 2.0);
+        CHECK(result->timelines[2].speed_changes[2].sample == 2'880);
+        CHECK(result->timelines[2].speed_changes[2].multiplier == 0.5);
+        REQUIRE(result->slider_notes.size() == 15);
+        CHECK(result->slider_notes[0].timeline == 1);
+        CHECK(result->slider_notes[1].timeline == 2);
+        CHECK(result->slider_notes[2].timeline == 0);
+        CHECK(result->total_combo == 15);
     }
 
     SECTION("slider hold") {

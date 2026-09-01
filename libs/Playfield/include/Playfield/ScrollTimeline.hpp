@@ -13,6 +13,11 @@ namespace xlair::playfield {
         [[nodiscard]]
         long double distanceBetween(s3d::int64 from_sample, s3d::int64 to_sample) const;
 
+        // Returns a note's signed distance from the judgement line. Timeline speed is
+        // applied before judgement; after judgement, the note always moves at 1.0x.
+        [[nodiscard]]
+        long double noteDistance(s3d::int64 current_sample, s3d::int64 note_sample) const;
+
     private:
         struct Segment {
             s3d::int64 sample = 0;
