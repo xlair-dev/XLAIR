@@ -3,6 +3,8 @@
 #include "SheetsViewer/AnalysisRenderer.hpp"
 #include "SheetsViewer/SideMenu.hpp"
 #include "SheetsViewer/ViewerSession.hpp"
+#include "SheetsViewer/addon/LoadingAnimationAddon.hpp"
+#include "SheetsViewer/addon/NotificationAddon.hpp"
 
 #include <Siv3D/SimpleGUI.hpp>
 #include <algorithm>
@@ -35,6 +37,41 @@ namespace {
             }
         }
         return location + U": " + diagnostic.message;
+    }
+
+    [[nodiscard]]
+    xlair::sheets_viewer::NotificationAddon::Type
+    ToNotificationType(const xlair::sheets_viewer::ViewerSession::EventType type) {
+        using EventType = xlair::sheets_viewer::ViewerSession::EventType;
+        using NotificationType = xlair::sheets_viewer::NotificationAddon::Type;
+
+        switch (type) {
+            case EventType::Information:
+                return NotificationType::Information;
+            case EventType::Success:
+                return NotificationType::Success;
+            case EventType::Warning:
+                return NotificationType::Warning;
+            case EventType::Error:
+                return NotificationType::Error;
+        }
+        return NotificationType::Information;
+    }
+
+    void UpdateSessionFeedback(xlair::sheets_viewer::ViewerSession& session) {
+        for (const auto& event : session.takeEvents()) {
+            xlair::sheets_viewer::NotificationAddon::Show(event.message, ToNotificationType(event.type));
+        }
+
+        if (session.isLoading()) {
+            if (xlair::sheets_viewer::LoadingAnimationAddon::IsActive()) {
+                xlair::sheets_viewer::LoadingAnimationAddon::SetMessage(session.loadingMessage());
+            } else {
+                xlair::sheets_viewer::LoadingAnimationAddon::Begin(session.loadingMessage());
+            }
+        } else if (xlair::sheets_viewer::LoadingAnimationAddon::IsActive()) {
+            xlair::sheets_viewer::LoadingAnimationAddon::End();
+        }
     }
 
     void DrawDiagnostics(const xlair::sheets_viewer::ViewerSession& session, const Font& font) {
@@ -113,6 +150,14 @@ void Main() {
     Window::Resize(1280, 720);
     Scene::SetBackground(ColorF{ 0.10, 0.11, 0.14 });
 
+    // The loading overlay is drawn first so notifications remain readable while a later stage is still loading.
+    Addon::Register<xlair::sheets_viewer::NotificationAddon>(xlair::sheets_viewer::NotificationAddon::Name, 0, -1);
+    Addon::Register<xlair::sheets_viewer::LoadingAnimationAddon>(
+        xlair::sheets_viewer::LoadingAnimationAddon::Name,
+        0,
+        0
+    );
+
     const Font font{ 20 };
     xlair::sheets_viewer::ViewerSession session;
     const xlair::sheets_viewer::AnalysisRenderer renderer;
@@ -142,7 +187,8 @@ void Main() {
     while (System::Update()) {
         session.update(Scene::DeltaTime());
 
-        menu_bar.setItemEnabled(ReloadMetadataItem, static_cast<bool>(session.metadata()));
+        menu_bar.setItemEnabled(OpenMetadataItem, !session.isLoading());
+        menu_bar.setItemEnabled(ReloadMetadataItem, static_cast<bool>(session.metadata()) && !session.isLoading());
         if (const auto item = menu_bar.update()) {
             if (*item == OpenMetadataItem) {
                 const auto path = Dialog::OpenFile({ FileFilter::JSON(), FileFilter::TOML() });
@@ -156,7 +202,7 @@ void Main() {
             }
         }
 
-        if (DragDrop::HasNewFilePaths()) {
+        if (!session.isLoading() && DragDrop::HasNewFilePaths()) {
             for (const auto& dropped : DragDrop::GetDroppedFilePaths()) {
                 if (IsMetadataPath(dropped.path)) {
                     (void)session.loadMetadata(dropped.path);
@@ -206,5 +252,6 @@ void Main() {
         DrawDiagnostics(session, font);
         DrawTransport(session, pixels_per_second);
         menu_bar.draw();
+        UpdateSessionFeedback(session);
     }
 }

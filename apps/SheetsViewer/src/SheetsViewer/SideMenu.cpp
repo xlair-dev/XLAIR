@@ -118,7 +118,7 @@ namespace xlair::sheets_viewer {
                 area.w - Margin * 2,
                 DifficultyHeight,
             };
-            const bool enabled = !difficulty.src.isEmpty();
+            const bool enabled = !session.isLoading() && !difficulty.src.isEmpty();
             const bool selected = session.selectedDifficultyPosition() == position;
             const s3d::ColorF color = enabled ? s3d::ColorF{ 0.95 } : s3d::ColorF{ 0.5 };
 
