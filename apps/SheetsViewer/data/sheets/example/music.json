@@ -6,6 +6,8 @@
   "artist": "XLAIR",
   "genre": "Test Data",
   "bpm": 120,
+  "music": "example.wav",
+  "jacket": "jacket.png",
   "difficulties": [
     {
       "id": "basic-notes",
