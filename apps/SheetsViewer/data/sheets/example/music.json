@@ -1,0 +1,48 @@
+{
+  "version": 1,
+  "id": "sheets-viewer-example",
+  "title": "SheetsViewer Example",
+  "title_sort": "SheetsViewer Example",
+  "artist": "XLAIR",
+  "genre": "Test Data",
+  "bpm": 120,
+  "music": "example.wav",
+  "jacket": "jacket.png",
+  "difficulties": [
+    {
+      "id": "basic-notes",
+      "difficulty": 0,
+      "level": 2.0,
+      "src": "basic.sus",
+      "designer": "XLAIR"
+    },
+    {
+      "id": "speed-changes",
+      "difficulty": 1,
+      "level": 3.0,
+      "src": "hispeed.sus",
+      "designer": "XLAIR"
+    },
+    {
+      "id": "timeline",
+      "difficulty": 2,
+      "level": 3.0,
+      "src": "timeline.sus",
+      "designer": "XLAIR"
+    },
+    {
+      "id": "slider-holds",
+      "difficulty": 3,
+      "level": 4.0,
+      "src": "hold.sus",
+      "designer": "XLAIR"
+    },
+    {
+      "id": "side-notes",
+      "difficulty": 4,
+      "level": 5.0,
+      "src": "side.sus",
+      "designer": "XLAIR"
+    }
+  ]
+}

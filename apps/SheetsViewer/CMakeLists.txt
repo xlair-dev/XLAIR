@@ -12,4 +12,8 @@ xlair_add_siv3d_application(SheetsViewer
         WINDOWS COPY  "dll"
 )
 
-target_link_libraries(SheetsViewer PRIVATE XLAIR::SheetsAnalyzer)
+target_link_libraries(SheetsViewer
+    PRIVATE
+        XLAIR::Playfield
+        XLAIR::SheetsAnalyzer
+)
