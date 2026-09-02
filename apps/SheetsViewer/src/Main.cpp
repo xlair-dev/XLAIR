@@ -211,6 +211,10 @@ void Main() {
             }
         }
 
+        if (KeySpace.down()) {
+            session.togglePlayback();
+        }
+
         const s3d::int32 content_height = std::max(1, Scene::Height() - SimpleMenuBar::MenuBarHeight);
         if (session.chart() && session.projection()) {
             const Rect viewport{
