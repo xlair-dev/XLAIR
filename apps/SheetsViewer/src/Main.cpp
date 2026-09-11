@@ -1,10 +1,10 @@
 #include <Siv3D.hpp>
 
-#include "SheetsViewer/AnalysisRenderer.hpp"
-#include "SheetsViewer/SideMenu.hpp"
-#include "SheetsViewer/ViewerSession.hpp"
-#include "SheetsViewer/addon/LoadingAnimationAddon.hpp"
-#include "SheetsViewer/addon/NotificationAddon.hpp"
+#include "ViewerSession.hpp"
+#include "ui/AnalysisRenderer.hpp"
+#include "ui/SideMenu.hpp"
+#include "ui/addon/LoadingAnimationAddon.hpp"
+#include "ui/addon/NotificationAddon.hpp"
 
 #include <Siv3D/SimpleGUI.hpp>
 #include <algorithm>
