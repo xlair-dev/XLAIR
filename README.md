@@ -2,13 +2,16 @@
 
 XLAIR is a rhythm game built with [Siv3D](https://siv3d.github.io/) v0.6.16.
 
+<!-- TODO: 画像入れる -->
+<!-- TODO: 無理に英語よりも日本語にしてしまってもよいかも -->
+
 ## Supported platforms
 
-| Target       | Siv3D source                               | Build environment                       |
-| ------------ | ------------------------------------------ | --------------------------------------- |
-| Linux x86_64 | Preinstalled in the XLAIR container image  | Docker / devcontainer                   |
-| Windows x64  | Official SDK and v0.6.16 runtime resources | Visual Studio Build Tools, MSVC, Ninja   |
-| macOS x86_64 | Official SDK                               | Xcode Command Line Tools, Ninja         |
+| Target       | Siv3D source                               | Build environment                      |
+| ------------ | ------------------------------------------ | -------------------------------------- |
+| Linux x86_64 | Preinstalled in the XLAIR container image  | Docker / devcontainer                  |
+| Windows x64  | Official SDK and v0.6.16 runtime resources | Visual Studio Build Tools, MSVC, Ninja |
+| macOS x86_64 | Official SDK                               | Xcode Command Line Tools, Ninja        |
 
 CMake 3.22 or newer is required.
 
@@ -59,52 +62,26 @@ open build/macos-debug/App/XLAIR/XLAIR.app
 
 The macOS bundle identifier is `dev.xlair.XLAIR`.
 
-### Release builds
-
-Replace `debug` with `release` in the configure and build preset names. For example:
-
-```bash
-cmake --preset macos-release
-cmake --build --preset build-macos-release
-```
-
-Build artifacts are written to `build/<preset>/App/<target>/`.
-
-The root CMake project acts as the task runner for this monorepo. Configure once
-per platform/configuration, then build either all targets or a single target:
-
-```bash
-cmake --preset macos-debug
-cmake --build --preset build-macos-debug
-cmake --build --preset build-xlair-macos-debug
-cmake --build --preset build-sheets-viewer-macos-debug
-cmake --build --preset build-sheets-analyzer-macos-debug
-```
-
-For example, `SheetsViewer` is written to:
-
-```bash
-./build/linux-debug/App/SheetsViewer/SheetsViewer
-open build/macos-debug/App/SheetsViewer/SheetsViewer.app
-```
-
 ## Testing
 
-SheetsAnalyzer uses the Catch2 version bundled with the Siv3D SDK. Configure the
-project, build the test executable, and run it through CTest:
+SheetsAnalyzer uses the Catch2 version bundled with the Siv3D SDK.
+Configure the project, build the test executable, and run it through CTest:
 
 ```bash
-cmake --preset macos-debug
-cmake --build --preset build-sheets-analyzer-tests-macos-debug
+cmake --preset <platform>-debug
+cmake --build --preset build-sheets-analyzer-tests-<platform>-debug
 ctest --preset test-sheets-analyzer-macos-debug
 ```
 
-Replace `macos` with `linux` or `windows` to use the corresponding platform
-preset. Tests are also included in the platform-wide `build-<platform>-<config>`
-presets while `BUILD_TESTING` is enabled.
+Replace `<platform>` with `linux`, `macos` or `windows` to use the corresponding platform preset.
+Tests are also included in the platform-wide `build-<platform>-<config>` presets while `BUILD_TESTING` is enabled.
 
 ## Project layout
 
-Application targets live under `apps/`. Each application owns its `src/`,
-`data/`, and `resources/` directories. Shared libraries should live under
-`libs/`, and reusable CMake helpers live under `cmake/`.
+```
+.
+├── apps/            # Applications
+├── build/           # Build artifacts
+├── cmake/           # Cmake helpers
+└── libs/            # Shared libraries
+```
