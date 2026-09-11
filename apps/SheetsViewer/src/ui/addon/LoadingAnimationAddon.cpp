@@ -1,37 +1,37 @@
 #include "LoadingAnimationAddon.hpp"
 
 namespace xlair::sheets_viewer {
-    void LoadingAnimationAddon::Begin(const s3d::StringView message) {
-        if (auto addon = s3d::Addon::GetAddon<LoadingAnimationAddon>(Name)) {
+    void LoadingAnimationAddon::Begin(const StringView message) {
+        if (auto addon = Addon::GetAddon<LoadingAnimationAddon>(Name)) {
             addon->begin(message);
         }
     }
 
-    void LoadingAnimationAddon::SetMessage(const s3d::StringView message) {
-        if (auto addon = s3d::Addon::GetAddon<LoadingAnimationAddon>(Name)) {
+    void LoadingAnimationAddon::SetMessage(const StringView message) {
+        if (auto addon = Addon::GetAddon<LoadingAnimationAddon>(Name)) {
             addon->m_message = message;
         }
     }
 
     void LoadingAnimationAddon::End() {
-        if (auto addon = s3d::Addon::GetAddon<LoadingAnimationAddon>(Name)) {
+        if (auto addon = Addon::GetAddon<LoadingAnimationAddon>(Name)) {
             addon->end();
         }
     }
 
     bool LoadingAnimationAddon::IsActive() {
-        if (const auto addon = s3d::Addon::GetAddon<LoadingAnimationAddon>(Name)) {
+        if (const auto addon = Addon::GetAddon<LoadingAnimationAddon>(Name)) {
             return addon->m_active;
         }
         return false;
     }
 
     bool LoadingAnimationAddon::init() {
-        m_trail = s3d::Trail{ LifeTime,
-                              [](double) {
-                                  return 1.0;
-                              },
-                              s3d::EaseOutExpo };
+        m_trail = Trail{ LifeTime,
+                         [](double) {
+                             return 1.0;
+                         },
+                         EaseOutExpo };
         return true;
     }
 
@@ -40,12 +40,12 @@ namespace xlair::sheets_viewer {
             return true;
         }
 
-        m_accumulated_time += s3d::Scene::DeltaTime();
+        m_accumulated_time += Scene::DeltaTime();
         while (UpdateInterval <= m_accumulated_time) {
-            m_theta = s3d::Math::NormalizeAngle(m_theta + AngleStep);
-            const s3d::Vec2 position = s3d::OffsetCircular{ s3d::Scene::Center(), 80, m_theta };
+            m_theta = Math::NormalizeAngle(m_theta + AngleStep);
+            const Vec2 position = OffsetCircular{ Scene::Center(), 80, m_theta };
             m_trail.update(UpdateInterval);
-            m_trail.add(position, s3d::ColorF{ 0.8, 0.9, 1.0 }, 10);
+            m_trail.add(position, ColorF{ 0.8, 0.9, 1.0 }, 10);
             m_accumulated_time -= UpdateInterval;
         }
         return true;
@@ -56,13 +56,12 @@ namespace xlair::sheets_viewer {
             return;
         }
 
-        s3d::Scene::Rect().draw(s3d::ColorF{ 0, 0.55 });
+        Scene::Rect().draw(ColorF{ 0, 0.55 });
         m_trail.draw();
-        s3d::SimpleGUI::GetFont()(m_message)
-            .draw(18, s3d::Arg::topCenter = s3d::Scene::Center().movedBy(0, 110), s3d::Palette::White);
+        SimpleGUI::GetFont()(m_message).draw(18, Arg::topCenter = Scene::Center().movedBy(0, 110), Palette::White);
     }
 
-    void LoadingAnimationAddon::begin(const s3d::StringView message) {
+    void LoadingAnimationAddon::begin(const StringView message) {
         m_message = message;
         if (m_active) {
             return;

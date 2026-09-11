@@ -1,11 +1,11 @@
 #pragma once
 
-#include <Siv3D.hpp>
+#include "Common.hpp"
 
 namespace xlair::sheets_viewer {
-    class NotificationAddon : public s3d::IAddon {
+    class NotificationAddon : public IAddon {
     public:
-        inline static constexpr s3d::StringView Name = U"SheetsViewer.Notification";
+        inline static constexpr StringView Name = U"SheetsViewer.Notification";
 
         enum class Type {
             Information,
@@ -16,24 +16,24 @@ namespace xlair::sheets_viewer {
 
         struct Style {
             double width = 380.0;
-            s3d::ColorF background_color{ 0.0, 0.82 };
-            s3d::ColorF frame_color{ 0.75 };
-            s3d::ColorF text_color{ 1.0 };
-            s3d::ColorF information_color{ 0.0, 0.72, 0.83 };
-            s3d::ColorF success_color{ 0.0, 0.78, 0.33 };
-            s3d::ColorF warning_color{ 1.0, 0.57, 0.0 };
-            s3d::ColorF error_color{ 1.0, 0.32, 0.32 };
+            ColorF background_color{ 0.0, 0.82 };
+            ColorF frame_color{ 0.75 };
+            ColorF text_color{ 1.0 };
+            ColorF information_color{ 0.0, 0.72, 0.83 };
+            ColorF success_color{ 0.0, 0.78, 0.33 };
+            ColorF warning_color{ 1.0, 0.57, 0.0 };
+            ColorF error_color{ 1.0, 0.32, 0.32 };
         };
 
-        static void Show(s3d::StringView message, Type type = Type::Information);
+        static void Show(StringView message, Type type = Type::Information);
         static void SetLifeTime(double life_time);
         static void SetStyle(const Style& style);
 
     private:
-        static constexpr s3d::StringView Icons = U"\U000F02FC\U000F0E1E\U000F0029\U000F1398";
+        static constexpr StringView Icons = U"\U000F02FC\U000F0E1E\U000F0029\U000F1398";
 
         struct Notification {
-            s3d::String message;
+            String message;
             double time = 0.0;
             double current_index = 0.0;
             double velocity = 0.0;
@@ -42,10 +42,10 @@ namespace xlair::sheets_viewer {
 
         bool update() override;
         void draw() const override;
-        void show(s3d::StringView message, Type type);
+        void show(StringView message, Type type);
 
         Style m_style;
-        s3d::Array<Notification> m_notifications;
+        Array<Notification> m_notifications;
         double m_life_time = 5.0;
     };
 }

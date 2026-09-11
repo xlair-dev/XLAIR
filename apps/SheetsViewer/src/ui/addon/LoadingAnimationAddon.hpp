@@ -1,14 +1,14 @@
 #pragma once
 
-#include <Siv3D.hpp>
+#include "Common.hpp"
 
 namespace xlair::sheets_viewer {
-    class LoadingAnimationAddon : public s3d::IAddon {
+    class LoadingAnimationAddon : public IAddon {
     public:
-        inline static constexpr s3d::StringView Name = U"SheetsViewer.LoadingAnimation";
+        inline static constexpr StringView Name = U"SheetsViewer.LoadingAnimation";
 
-        static void Begin(s3d::StringView message);
-        static void SetMessage(s3d::StringView message);
+        static void Begin(StringView message);
+        static void SetMessage(StringView message);
         static void End();
 
         [[nodiscard]]
@@ -22,12 +22,12 @@ namespace xlair::sheets_viewer {
         bool init() override;
         bool update() override;
         void draw() const override;
-        void begin(s3d::StringView message);
+        void begin(StringView message);
         void end();
         void prewarm();
 
-        s3d::String m_message;
-        s3d::Trail m_trail;
+        String m_message;
+        Trail m_trail;
         double m_accumulated_time = 0.0;
         double m_theta = 180_deg;
         bool m_active = false;

@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Common.hpp"
+
 #include <Playfield.hpp>
 #include <SheetsAnalyzer.hpp>
 
@@ -9,8 +11,8 @@ namespace xlair::sheets_viewer {
         void draw(
             const sheets::Chart& chart,
             const playfield::ChartProjection& projection,
-            s3d::int64 current_sample,
-            const s3d::Rect& viewport,
+            int64 current_sample,
+            const Rect& viewport,
             double pixels_per_second
         ) const;
     };
