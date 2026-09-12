@@ -70,7 +70,7 @@ Configure the project, build the test executable, and run it through CTest:
 ```bash
 cmake --preset <platform>-debug
 cmake --build --preset build-sheets-analyzer-tests-<platform>-debug
-ctest --preset test-sheets-analyzer-macos-debug
+ctest --preset test-sheets-analyzer-<platform>-debug
 ```
 
 Replace `<platform>` with `linux`, `macos` or `windows` to use the corresponding platform preset.
@@ -82,6 +82,6 @@ Tests are also included in the platform-wide `build-<platform>-<config>` presets
 .
 ├── apps/            # Applications
 ├── build/           # Build artifacts
-├── cmake/           # Cmake helpers
+├── cmake/           # CMake helpers
 └── libs/            # Shared libraries
 ```
