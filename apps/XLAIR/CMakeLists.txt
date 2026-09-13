@@ -15,3 +15,5 @@ xlair_add_siv3d_application(XLAIR
 )
 
 target_link_libraries(XLAIR PRIVATE Siv3D::Siv3D)
+
+target_include_directories(XLAIR PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/src")

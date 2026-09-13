@@ -39,8 +39,8 @@ function(xlair_add_siv3d_application target)
         set(APP_BUNDLE_IDENTIFIER "dev.xlair.${target}")
     endif()
 
-    if(NOT APP_INFO_PLIST AND EXISTS "${APP_SOURCE_DIR}/macOS/Info.plist")
-        set(APP_INFO_PLIST "${APP_SOURCE_DIR}/macOS/Info.plist")
+    if(NOT APP_INFO_PLIST AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/macOS/Info.plist")
+        set(APP_INFO_PLIST "${CMAKE_CURRENT_SOURCE_DIR}/macOS/Info.plist")
     endif()
 
     file(GLOB_RECURSE app_source_files CONFIGURE_DEPENDS

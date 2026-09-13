@@ -1,15 +1,13 @@
-#include <Siv3D.hpp>
-#include "XLAIR/DataDirectory.hpp"
+#include "Common.hpp"
+#include "app/Application.hpp"
+#include "infra/filesystem/DataDirectory.hpp"
+#include "ui/RootView.hpp"
 
 void Main() {
-    Scene::SetBackground(ColorF{ 0.18, 0.20, 0.24 });
-
-    const Font font{ 28 };
-    const FilePath dataDirectory = xlair::DataDirectory();
+    xlair::app::Application application{ xlair::infra::filesystem::DataDirectory() };
+    const xlair::ui::RootView root_view;
 
     while (System::Update()) {
-        font(U"XLAIR").draw(40, 40, Palette::White);
-        font(U"Edit apps/XLAIR/src/Main.cpp and rebuild").draw(40, 84, Palette::Skyblue);
-        font(U"Data: {}"_fmt(dataDirectory)).draw(40, 128, Palette::Lightgray);
+        root_view.draw(application);
     }
 }
