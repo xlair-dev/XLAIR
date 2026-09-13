@@ -8,10 +8,7 @@
 namespace xlair::app {
     class Application {
     public:
-        Application(FilePath data_directory, std::unique_ptr<interfaces::IConfigLoader> config_loader);
-
-        [[nodiscard]]
-        const FilePath& dataDirectory() const noexcept;
+        Application(std::unique_ptr<interfaces::IConfigLoader> config_loader);
 
         [[nodiscard]]
         bool loadConfig();
@@ -23,9 +20,8 @@ namespace xlair::app {
         const Optional<interfaces::ConfigLoadError>& configLoadError() const noexcept;
 
     private:
-        FilePath m_data_directory;
-        std::unique_ptr<interfaces::IConfigLoader> m_config_loader;
         Optional<Config> m_config;
+        std::unique_ptr<interfaces::IConfigLoader> m_config_loader;
         Optional<interfaces::ConfigLoadError> m_config_load_error;
     };
 }

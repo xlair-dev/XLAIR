@@ -3,12 +3,8 @@
 #include <utility>
 
 namespace xlair::app {
-    Application::Application(FilePath data_directory, std::unique_ptr<interfaces::IConfigLoader> config_loader)
-        : m_data_directory{ std::move(data_directory) }, m_config_loader{ std::move(config_loader) } {}
-
-    const FilePath& Application::dataDirectory() const noexcept {
-        return m_data_directory;
-    }
+    Application::Application(std::unique_ptr<interfaces::IConfigLoader> config_loader)
+        : m_config_loader{ std::move(config_loader) } {}
 
     bool Application::loadConfig() {
         m_config.reset();
