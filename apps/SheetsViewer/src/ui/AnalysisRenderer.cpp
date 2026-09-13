@@ -43,8 +43,8 @@ namespace xlair::sheets_viewer {
         double SampleY(
             const playfield::ChartProjection& projection,
             const sheets::TimelineIndex timeline,
-            const s3d::int64 current_sample,
-            const s3d::int64 sample,
+            const int64 current_sample,
+            const int64 sample,
             const double judge_y,
             const double pixels_per_second
         ) {
@@ -53,7 +53,7 @@ namespace xlair::sheets_viewer {
         }
 
         [[nodiscard]]
-        s3d::RectF LaneRect(
+        RectF LaneRect(
             const LaneRange range,
             const double stage_left,
             const double lane_width,
@@ -70,15 +70,11 @@ namespace xlair::sheets_viewer {
 
         template <class Point>
         [[nodiscard]]
-        sheets::TimelineIndex TimelineAtSample(const s3d::Array<Point>& points, const s3d::int64 sample) {
-            const auto point = std::upper_bound(
-                points.begin(),
-                points.end(),
-                sample,
-                [](const s3d::int64 value, const Point& candidate) {
+        sheets::TimelineIndex TimelineAtSample(const Array<Point>& points, const int64 sample) {
+            const auto point =
+                std::upper_bound(points.begin(), points.end(), sample, [](const int64 value, const Point& candidate) {
                     return value < candidate.sample;
-                }
-            );
+                });
             return (point == points.begin() ? points.front() : *std::prev(point)).timeline;
         }
 
@@ -88,27 +84,27 @@ namespace xlair::sheets_viewer {
         }
 
         [[nodiscard]]
-        s3d::ColorF SliderNoteColor(const sheets::SliderNoteKind kind) {
+        ColorF SliderNoteColor(const sheets::SliderNoteKind kind) {
             switch (kind) {
                 case sheets::SliderNoteKind::Tap:
-                    return s3d::ColorF{ 0.95, 0.28, 0.32 };
+                    return ColorF{ 0.95, 0.28, 0.32 };
                 case sheets::SliderNoteKind::XTap:
-                    return s3d::ColorF{ 1.0, 0.84, 0.22 };
+                    return ColorF{ 1.0, 0.84, 0.22 };
                 case sheets::SliderNoteKind::Flick:
-                    return s3d::ColorF{ 0.30, 0.62, 1.0 };
+                    return ColorF{ 0.30, 0.62, 1.0 };
             }
-            return s3d::Palette::White;
+            return Palette::White;
         }
     }
 
     void AnalysisRenderer::draw(
         const sheets::Chart& chart,
         const playfield::ChartProjection& projection,
-        const s3d::int64 current_sample,
-        const s3d::Rect& viewport,
+        const int64 current_sample,
+        const Rect& viewport,
         const double pixels_per_second
     ) const {
-        const s3d::ScopedViewport2D scoped_viewport{ viewport };
+        const ScopedViewport2D scoped_viewport{ viewport };
         const double width = viewport.w;
         const double height = viewport.h;
         const double lane_width = std::min(36.0, (width - 32.0) / PlayfieldLaneCount);
@@ -116,15 +112,15 @@ namespace xlair::sheets_viewer {
         const double stage_left = (width - stage_width) * 0.5;
         const double judge_y = height - JudgeMargin;
 
-        s3d::RectF{ 0, 0, width, height }.draw(s3d::ColorF{ 0.08, 0.09, 0.12 });
-        LaneRect({ .start = 0, .width = 2 }, stage_left, lane_width, 0, height).draw(s3d::ColorF{ 0.13, 0.14, 0.18 });
-        LaneRect({ .start = 2, .width = 16 }, stage_left, lane_width, 0, height).draw(s3d::ColorF{ 0.09, 0.10, 0.13 });
-        LaneRect({ .start = 18, .width = 2 }, stage_left, lane_width, 0, height).draw(s3d::ColorF{ 0.13, 0.14, 0.18 });
+        RectF{ 0, 0, width, height }.draw(ColorF{ 0.08, 0.09, 0.12 });
+        LaneRect({ .start = 0, .width = 2 }, stage_left, lane_width, 0, height).draw(ColorF{ 0.13, 0.14, 0.18 });
+        LaneRect({ .start = 2, .width = 16 }, stage_left, lane_width, 0, height).draw(ColorF{ 0.09, 0.10, 0.13 });
+        LaneRect({ .start = 18, .width = 2 }, stage_left, lane_width, 0, height).draw(ColorF{ 0.13, 0.14, 0.18 });
 
-        for (s3d::int32 lane = 0; lane <= static_cast<s3d::int32>(PlayfieldLaneCount); ++lane) {
+        for (int32 lane = 0; lane <= static_cast<int32>(PlayfieldLaneCount); ++lane) {
             const double x = stage_left + lane * lane_width;
             const bool edge = (lane == 0 || lane == 2 || lane == 18 || lane == 20);
-            s3d::Line{ x, 0, x, height }.draw(edge ? 1.5 : 1.0, s3d::ColorF{ 0.55, edge ? 0.75 : 0.35 });
+            Line{ x, 0, x, height }.draw(edge ? 1.5 : 1.0, ColorF{ 0.55, edge ? 0.75 : 0.35 });
         }
 
         // Hold bodies are drawn first so their anchors and short notes stay readable.
@@ -143,13 +139,13 @@ namespace xlair::sheets_viewer {
                 const double previous_width = previous_range.width * lane_width;
                 const double current_width = current_range.width * lane_width;
 
-                s3d::Quad{
-                    s3d::Vec2{ previous_x, previous_y },
-                    s3d::Vec2{ previous_x + previous_width, previous_y },
-                    s3d::Vec2{ current_x + current_width, current_y },
-                    s3d::Vec2{ current_x, current_y },
+                Quad{
+                    Vec2{ previous_x, previous_y },
+                    Vec2{ previous_x + previous_width, previous_y },
+                    Vec2{ current_x + current_width, current_y },
+                    Vec2{ current_x, current_y },
                 }
-                    .draw(s3d::ColorF{ 0.20, 0.58, 0.95, 0.42 });
+                    .draw(ColorF{ 0.20, 0.58, 0.95, 0.42 });
             }
 
             for (const auto& judge : hold.judge_points) {
@@ -161,7 +157,7 @@ namespace xlair::sheets_viewer {
                     SampleY(projection, timeline, current_sample, judge.sample, judge_y, pixels_per_second);
                 if (IsVisible(y, height)) {
                     LaneRect(SliderLaneRange(judge.lane), stage_left, lane_width, y - 2, 4)
-                        .draw(s3d::ColorF{ 0.75, 0.88, 1.0, 0.65 });
+                        .draw(ColorF{ 0.75, 0.88, 1.0, 0.65 });
                 }
             }
 
@@ -174,9 +170,9 @@ namespace xlair::sheets_viewer {
 
                 const auto rect = LaneRect(SliderLaneRange(point.lane), stage_left, lane_width, y - 4, 8);
                 if (point.kind == sheets::SliderHoldPointKind::Invisible) {
-                    rect.drawFrame(1, s3d::ColorF{ 0.45, 0.75, 1.0, 0.8 });
+                    rect.drawFrame(1, ColorF{ 0.45, 0.75, 1.0, 0.8 });
                 } else {
-                    rect.draw(s3d::ColorF{ 0.28, 0.72, 1.0 });
+                    rect.draw(ColorF{ 0.28, 0.72, 1.0 });
                 }
             }
         }
@@ -192,7 +188,7 @@ namespace xlair::sheets_viewer {
                     SampleY(projection, current.timeline, current_sample, current.sample, judge_y, pixels_per_second);
                 const double top = std::min(previous_y, current_y);
                 LaneRect(range, stage_left, lane_width, top, std::abs(current_y - previous_y))
-                    .draw(s3d::ColorF{ 0.72, 0.28, 0.92, 0.45 });
+                    .draw(ColorF{ 0.72, 0.28, 0.92, 0.45 });
             }
 
             for (const auto sample : hold.judge_samples) {
@@ -202,7 +198,7 @@ namespace xlair::sheets_viewer {
                 const auto timeline = TimelineAtSample(hold.points, sample);
                 const double y = SampleY(projection, timeline, current_sample, sample, judge_y, pixels_per_second);
                 if (IsVisible(y, height)) {
-                    LaneRect(range, stage_left, lane_width, y - 2, 4).draw(s3d::ColorF{ 0.92, 0.70, 1.0, 0.75 });
+                    LaneRect(range, stage_left, lane_width, y - 2, 4).draw(ColorF{ 0.92, 0.70, 1.0, 0.75 });
                 }
             }
         }
@@ -223,10 +219,10 @@ namespace xlair::sheets_viewer {
             if (IsVisible(y, height)) {
                 LaneRect(SideButtonRange(note.button), stage_left, lane_width, y - NoteHeight * 0.5, NoteHeight)
                     .rounded(2)
-                    .draw(s3d::ColorF{ 0.92, 0.38, 0.92 });
+                    .draw(ColorF{ 0.92, 0.38, 0.92 });
             }
         }
 
-        s3d::Line{ stage_left, judge_y, stage_left + stage_width, judge_y }.draw(3, s3d::ColorF{ 1.0, 0.30, 0.32 });
+        Line{ stage_left, judge_y, stage_left + stage_width, judge_y }.draw(3, ColorF{ 1.0, 0.30, 0.32 });
     }
 }

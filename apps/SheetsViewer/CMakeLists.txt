@@ -17,3 +17,5 @@ target_link_libraries(SheetsViewer
         XLAIR::Playfield
         XLAIR::SheetsAnalyzer
 )
+
+target_include_directories(SheetsViewer PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/src")

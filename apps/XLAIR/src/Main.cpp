@@ -1,15 +1,21 @@
-#include <Siv3D.hpp>
-#include "XLAIR/DataDirectory.hpp"
+#include "Common.hpp"
+
+#include "app/Application.hpp"
+#include "infra/config/Loader.hpp"
+#include "infra/filesystem/RuntimePaths.hpp"
+#include "ui/Scene.hpp"
 
 void Main() {
-    Scene::SetBackground(ColorF{ 0.18, 0.20, 0.24 });
+    // namespace core = xlair::core;
+    namespace app = xlair::app;
+    namespace infra = xlair::infra;
+    namespace ui = xlair::ui;
 
-    const Font font{ 28 };
-    const FilePath dataDirectory = xlair::DataDirectory();
+    const auto paths = infra::filesystem::ResolveRuntimePaths();
+    auto config_loader = std::make_unique<infra::config::Loader>(paths.config_file);
+    auto application = std::make_shared<app::Application>(std::move(config_loader));
+    auto scene_manager = ui::CreateSceneManager(application);
 
-    while (System::Update()) {
-        font(U"XLAIR").draw(40, 40, Palette::White);
-        font(U"Edit apps/XLAIR/src/Main.cpp and rebuild").draw(40, 84, Palette::Skyblue);
-        font(U"Data: {}"_fmt(dataDirectory)).draw(40, 128, Palette::Lightgray);
+    while (System::Update() && scene_manager.update()) {
     }
 }

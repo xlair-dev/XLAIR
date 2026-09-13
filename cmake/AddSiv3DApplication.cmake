@@ -1,7 +1,7 @@
 function(xlair_add_siv3d_application target)
     cmake_parse_arguments(APP
         ""
-        "BUNDLE_IDENTIFIER;BUNDLE_NAME;DATA_DIR;INFO_PLIST;OUTPUT_DIRECTORY;RESOURCES_DIR;SOURCE_DIR"
+        "BUNDLE_IDENTIFIER;BUNDLE_NAME;CONFIG_EXAMPLE_FILE;CONFIG_FILE;DATA_DIR;INFO_PLIST;OUTPUT_DIRECTORY;RESOURCES_DIR;SOURCE_DIR"
         "RESOURCE_ENTRIES"
         ${ARGN}
     )
@@ -39,8 +39,8 @@ function(xlair_add_siv3d_application target)
         set(APP_BUNDLE_IDENTIFIER "dev.xlair.${target}")
     endif()
 
-    if(NOT APP_INFO_PLIST AND EXISTS "${APP_SOURCE_DIR}/macOS/Info.plist")
-        set(APP_INFO_PLIST "${APP_SOURCE_DIR}/macOS/Info.plist")
+    if(NOT APP_INFO_PLIST AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/macOS/Info.plist")
+        set(APP_INFO_PLIST "${CMAKE_CURRENT_SOURCE_DIR}/macOS/Info.plist")
     endif()
 
     file(GLOB_RECURSE app_source_files CONFIGURE_DEPENDS
@@ -90,6 +90,26 @@ function(xlair_add_siv3d_application target)
         )
         set_target_properties(${target}Data PROPERTIES FOLDER "Apps")
         add_dependencies(${target} ${target}Data)
+    endif()
+
+    if(APP_CONFIG_FILE OR APP_CONFIG_EXAMPLE_FILE)
+        if(NOT APP_CONFIG_FILE OR NOT APP_CONFIG_EXAMPLE_FILE)
+            message(FATAL_ERROR
+                "xlair_add_siv3d_application: CONFIG_FILE and CONFIG_EXAMPLE_FILE must be specified together")
+        endif()
+
+        add_custom_target(${target}Config
+            COMMAND "${CMAKE_COMMAND}"
+                "-DAPP_NAME=${target}"
+                "-DCONFIG_FILE=${APP_CONFIG_FILE}"
+                "-DCONFIG_EXAMPLE_FILE=${APP_CONFIG_EXAMPLE_FILE}"
+                "-DDESTINATION_FILE=${APP_OUTPUT_DIRECTORY}/config.toml"
+                -P "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/SyncConfig.cmake"
+            COMMENT "Synchronizing ${target} runtime config"
+            VERBATIM
+        )
+        set_target_properties(${target}Config PROPERTIES FOLDER "Apps")
+        add_dependencies(${target} ${target}Config)
     endif()
 
     if(APP_RESOURCE_ENTRIES)

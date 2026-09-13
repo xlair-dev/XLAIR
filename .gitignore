@@ -17,3 +17,4 @@ compile_commands.json
 .ccache/
 /AS_DEBUG/
 .DS_Store
+/apps/XLAIR/config.toml

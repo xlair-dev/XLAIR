@@ -7,9 +7,9 @@
 namespace xlair::sheets_viewer {
     namespace {
         [[nodiscard]]
-        s3d::int64 ChartEndSample(const sheets::Chart& chart) {
-            s3d::int64 end_sample = 0;
-            const auto include = [&end_sample](const s3d::int64 sample) {
+        int64 ChartEndSample(const sheets::Chart& chart) {
+            int64 end_sample = 0;
+            const auto include = [&end_sample](const int64 sample) {
                 end_sample = std::max(end_sample, sample);
             };
 
@@ -36,22 +36,22 @@ namespace xlair::sheets_viewer {
                 }
             }
 
-            const s3d::int64 available = std::numeric_limits<s3d::int64>::max() - end_sample;
-            const s3d::int64 tail = std::min(chart.sample_rate, available / 2) * 2;
+            const int64 available = std::numeric_limits<int64>::max() - end_sample;
+            const int64 tail = std::min(chart.sample_rate, available / 2) * 2;
             return end_sample + tail;
         }
 
         [[nodiscard]]
-        s3d::String FormatDiagnostic(const sheets::Diagnostic& diagnostic) {
+        String FormatDiagnostic(const sheets::Diagnostic& diagnostic) {
             if (diagnostic.path.isEmpty()) {
                 return diagnostic.message;
             }
 
-            s3d::String location = s3d::FileSystem::RelativePath(diagnostic.path);
+            String location = FileSystem::RelativePath(diagnostic.path);
             if (diagnostic.line) {
-                location += U":" + s3d::Format(*diagnostic.line);
+                location += U":" + Format(*diagnostic.line);
                 if (diagnostic.column) {
-                    location += U":" + s3d::Format(*diagnostic.column);
+                    location += U":" + Format(*diagnostic.column);
                 }
             }
             return location + U": " + diagnostic.message;
@@ -63,8 +63,8 @@ namespace xlair::sheets_viewer {
         releaseAssets();
     }
 
-    bool ViewerSession::loadMetadata(const s3d::FilePath& path) {
-        return beginMetadataLoading(path, s3d::none);
+    bool ViewerSession::loadMetadata(const FilePath& path) {
+        return beginMetadataLoading(path, none);
     }
 
     bool ViewerSession::reloadMetadata() {
@@ -72,16 +72,15 @@ namespace xlair::sheets_viewer {
             return false;
         }
 
-        const s3d::FilePath path = m_metadata->source_path;
-        s3d::Optional<s3d::String> difficulty_id;
+        const FilePath path = m_metadata->source_path;
+        Optional<String> difficulty_id;
         if (m_selected_difficulty_position && *m_selected_difficulty_position < m_metadata->difficulties.size()) {
             difficulty_id = m_metadata->difficulties[*m_selected_difficulty_position].id;
         }
         return beginMetadataLoading(path, difficulty_id);
     }
 
-    bool
-    ViewerSession::beginMetadataLoading(const s3d::FilePath& path, const s3d::Optional<s3d::String>& difficulty_id) {
+    bool ViewerSession::beginMetadataLoading(const FilePath& path, const Optional<String>& difficulty_id) {
         if (path.isEmpty() || isLoading()) {
             return false;
         }
@@ -89,7 +88,7 @@ namespace xlair::sheets_viewer {
         clear();
         m_pending_difficulty_id = difficulty_id;
         m_state = State::LoadingMetadata;
-        m_metadata_task = s3d::AsyncTask<sheets::Result<sheets::Metadata>>{ [path]() {
+        m_metadata_task = AsyncTask<sheets::Result<sheets::Metadata>>{ [path]() {
             return sheets::LoadMetadata(path);
         } };
         return true;
@@ -140,7 +139,7 @@ namespace xlair::sheets_viewer {
 
         m_metadata = std::move(*result);
         publishDiagnostics(m_metadata_diagnostics);
-        pushEvent(EventType::Success, U"Loaded metadata: " + s3d::FileSystem::RelativePath(m_metadata->source_path));
+        pushEvent(EventType::Success, U"Loaded metadata: " + FileSystem::RelativePath(m_metadata->source_path));
         beginAssetLoading();
     }
 
@@ -150,9 +149,9 @@ namespace xlair::sheets_viewer {
         m_jacket_loading = false;
 
         if (!m_metadata->music.isEmpty()) {
-            if (s3d::AudioAsset::Register(MusicAssetName, m_metadata->music)) {
+            if (AudioAsset::Register(MusicAssetName, m_metadata->music)) {
                 m_music_loading = true;
-                s3d::AudioAsset::LoadAsync(MusicAssetName);
+                AudioAsset::LoadAsync(MusicAssetName);
             } else {
                 addAssetWarning(
                     U"Failed to register the music file. Manual transport will be used.",
@@ -162,9 +161,9 @@ namespace xlair::sheets_viewer {
         }
 
         if (!m_metadata->jacket.isEmpty()) {
-            if (s3d::TextureAsset::Register(JacketAssetName, m_metadata->jacket)) {
+            if (TextureAsset::Register(JacketAssetName, m_metadata->jacket)) {
                 m_jacket_loading = true;
-                s3d::TextureAsset::LoadAsync(JacketAssetName);
+                TextureAsset::LoadAsync(JacketAssetName);
             } else {
                 addAssetWarning(U"Failed to register the jacket image.", m_metadata->jacket);
             }
@@ -174,8 +173,8 @@ namespace xlair::sheets_viewer {
     }
 
     void ViewerSession::updateAssetLoading() {
-        if (m_music_loading && s3d::AudioAsset::IsReady(MusicAssetName)) {
-            s3d::Audio audio = s3d::AudioAsset{ MusicAssetName };
+        if (m_music_loading && AudioAsset::IsReady(MusicAssetName)) {
+            Audio audio = AudioAsset{ MusicAssetName };
             if (audio) {
                 m_audio = std::move(audio);
             } else {
@@ -184,8 +183,8 @@ namespace xlair::sheets_viewer {
             m_music_loading = false;
         }
 
-        if (m_jacket_loading && s3d::TextureAsset::IsReady(JacketAssetName)) {
-            s3d::Texture jacket = s3d::TextureAsset{ JacketAssetName };
+        if (m_jacket_loading && TextureAsset::IsReady(JacketAssetName)) {
+            Texture jacket = TextureAsset{ JacketAssetName };
             if (jacket) {
                 m_jacket = std::move(jacket);
             } else {
@@ -258,12 +257,12 @@ namespace xlair::sheets_viewer {
             return false;
         }
 
-        const s3d::FilePath source_path = difficulty.src;
-        const s3d::int64 sample_rate = m_audio ? m_audio->sampleRate() : 44'100;
+        const FilePath source_path = difficulty.src;
+        const int64 sample_rate = m_audio ? m_audio->sampleRate() : 44'100;
         const double offset_seconds = m_metadata->music_offset_seconds;
         m_selected_difficulty_position = position;
         m_state = State::LoadingChart;
-        m_chart_task = s3d::AsyncTask<sheets::Result<sheets::Chart>>{ [source_path, sample_rate, offset_seconds]() {
+        m_chart_task = AsyncTask<sheets::Result<sheets::Chart>>{ [source_path, sample_rate, offset_seconds]() {
             return sheets::LoadChart(
                 source_path,
                 {
@@ -342,12 +341,12 @@ namespace xlair::sheets_viewer {
         m_manual_playing = false;
     }
 
-    void ViewerSession::seekSample(const s3d::int64 sample) {
+    void ViewerSession::seekSample(const int64 sample) {
         if (isLoading()) {
             return;
         }
 
-        const s3d::int64 clamped = std::clamp<s3d::int64>(sample, 0, durationSamples());
+        const int64 clamped = std::clamp<int64>(sample, 0, durationSamples());
         if (m_audio) {
             m_audio->seekSamples(static_cast<std::size_t>(clamped));
         } else {
@@ -385,7 +384,7 @@ namespace xlair::sheets_viewer {
         return m_state == State::LoadingMetadata || m_state == State::LoadingAssets || m_state == State::LoadingChart;
     }
 
-    s3d::StringView ViewerSession::loadingMessage() const noexcept {
+    StringView ViewerSession::loadingMessage() const noexcept {
         switch (m_state) {
             case State::LoadingMetadata:
                 return U"Loading metadata...";
@@ -398,55 +397,53 @@ namespace xlair::sheets_viewer {
         }
     }
 
-    s3d::Array<ViewerSession::Event> ViewerSession::takeEvents() {
-        s3d::Array<Event> events = std::move(m_events);
+    Array<ViewerSession::Event> ViewerSession::takeEvents() {
+        Array<Event> events = std::move(m_events);
         m_events.clear();
         return events;
     }
 
-    const s3d::Optional<sheets::Metadata>& ViewerSession::metadata() const noexcept {
+    const Optional<sheets::Metadata>& ViewerSession::metadata() const noexcept {
         return m_metadata;
     }
 
-    const s3d::Optional<sheets::Chart>& ViewerSession::chart() const noexcept {
+    const Optional<sheets::Chart>& ViewerSession::chart() const noexcept {
         return m_chart;
     }
 
-    const s3d::Optional<playfield::ChartProjection>& ViewerSession::projection() const noexcept {
+    const Optional<playfield::ChartProjection>& ViewerSession::projection() const noexcept {
         return m_projection;
     }
 
-    const s3d::Optional<s3d::Audio>& ViewerSession::audio() const noexcept {
+    const Optional<Audio>& ViewerSession::audio() const noexcept {
         return m_audio;
     }
 
-    const s3d::Optional<s3d::Texture>& ViewerSession::jacket() const noexcept {
+    const Optional<Texture>& ViewerSession::jacket() const noexcept {
         return m_jacket;
     }
 
-    const s3d::Optional<std::size_t>& ViewerSession::selectedDifficultyPosition() const noexcept {
+    const Optional<std::size_t>& ViewerSession::selectedDifficultyPosition() const noexcept {
         return m_selected_difficulty_position;
     }
 
-    const s3d::Array<sheets::Diagnostic>& ViewerSession::diagnostics() const noexcept {
+    const Array<sheets::Diagnostic>& ViewerSession::diagnostics() const noexcept {
         return m_diagnostics;
     }
 
-    s3d::int64 ViewerSession::currentSample() const {
+    int64 ViewerSession::currentSample() const {
         if (m_audio) {
             return m_audio->posSample();
         }
 
-        constexpr long double minimum = std::numeric_limits<s3d::int64>::min();
-        constexpr long double maximum = std::numeric_limits<s3d::int64>::max();
-        return static_cast<s3d::int64>(std::clamp(std::round(m_manual_sample), minimum, maximum));
+        constexpr long double minimum = std::numeric_limits<int64>::min();
+        constexpr long double maximum = std::numeric_limits<int64>::max();
+        return static_cast<int64>(std::clamp(std::round(m_manual_sample), minimum, maximum));
     }
 
-    s3d::int64 ViewerSession::durationSamples() const {
+    int64 ViewerSession::durationSamples() const {
         if (m_audio) {
-            return static_cast<s3d::int64>(
-                std::min<std::size_t>(m_audio->samples(), std::numeric_limits<s3d::int64>::max())
-            );
+            return static_cast<int64>(std::min<std::size_t>(m_audio->samples(), std::numeric_limits<int64>::max()));
         }
         return m_chart_end_sample;
     }
@@ -465,11 +462,11 @@ namespace xlair::sheets_viewer {
     }
 
     void ViewerSession::releaseAssets() {
-        if (m_music_loading && s3d::AudioAsset::IsRegistered(MusicAssetName)) {
-            s3d::AudioAsset::Wait(MusicAssetName);
+        if (m_music_loading && AudioAsset::IsRegistered(MusicAssetName)) {
+            AudioAsset::Wait(MusicAssetName);
         }
-        if (m_jacket_loading && s3d::TextureAsset::IsRegistered(JacketAssetName)) {
-            s3d::TextureAsset::Wait(JacketAssetName);
+        if (m_jacket_loading && TextureAsset::IsRegistered(JacketAssetName)) {
+            TextureAsset::Wait(JacketAssetName);
         }
 
         if (m_audio) {
@@ -478,15 +475,15 @@ namespace xlair::sheets_viewer {
         m_audio.reset();
         m_jacket.reset();
 
-        if (s3d::AudioAsset::IsRegistered(MusicAssetName)) {
-            s3d::AudioAsset::Unregister(MusicAssetName);
+        if (AudioAsset::IsRegistered(MusicAssetName)) {
+            AudioAsset::Unregister(MusicAssetName);
         }
-        if (s3d::TextureAsset::IsRegistered(JacketAssetName)) {
-            s3d::TextureAsset::Unregister(JacketAssetName);
+        if (TextureAsset::IsRegistered(JacketAssetName)) {
+            TextureAsset::Unregister(JacketAssetName);
         }
     }
 
-    void ViewerSession::addAssetWarning(s3d::String message, s3d::FilePath path) {
+    void ViewerSession::addAssetWarning(String message, FilePath path) {
         m_asset_diagnostics.push_back(
             {
                 .severity = sheets::DiagnosticSeverity::Warning,
@@ -498,7 +495,7 @@ namespace xlair::sheets_viewer {
         publishDiagnostics({ m_asset_diagnostics.back() });
     }
 
-    void ViewerSession::publishDiagnostics(const s3d::Array<sheets::Diagnostic>& diagnostics) {
+    void ViewerSession::publishDiagnostics(const Array<sheets::Diagnostic>& diagnostics) {
         if (diagnostics.isEmpty()) {
             return;
         }
@@ -508,7 +505,7 @@ namespace xlair::sheets_viewer {
                 return diagnostic.severity == sheets::DiagnosticSeverity::Error;
             });
         const auto& representative = error != diagnostics.end() ? *error : diagnostics.front();
-        s3d::String message = FormatDiagnostic(representative);
+        String message = FormatDiagnostic(representative);
         if (1 < diagnostics.size()) {
             message += U" (and {} more)"_fmt(diagnostics.size() - 1);
         }
@@ -517,7 +514,7 @@ namespace xlair::sheets_viewer {
         pushEvent(type, std::move(message));
     }
 
-    void ViewerSession::pushEvent(const EventType type, s3d::String message) {
+    void ViewerSession::pushEvent(const EventType type, String message) {
         m_events.push_back({ .type = type, .message = std::move(message) });
     }
 

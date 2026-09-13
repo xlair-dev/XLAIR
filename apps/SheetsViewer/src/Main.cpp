@@ -1,17 +1,17 @@
-#include <Siv3D.hpp>
+#include "Common.hpp"
 
-#include "SheetsViewer/AnalysisRenderer.hpp"
-#include "SheetsViewer/SideMenu.hpp"
-#include "SheetsViewer/ViewerSession.hpp"
-#include "SheetsViewer/addon/LoadingAnimationAddon.hpp"
-#include "SheetsViewer/addon/NotificationAddon.hpp"
+#include "ViewerSession.hpp"
+#include "ui/AnalysisRenderer.hpp"
+#include "ui/SideMenu.hpp"
+#include "ui/addon/LoadingAnimationAddon.hpp"
+#include "ui/addon/NotificationAddon.hpp"
 
 #include <Siv3D/SimpleGUI.hpp>
 #include <algorithm>
 
 namespace {
-    constexpr s3d::int32 TransportHeight = 35;
-    constexpr s3d::int32 ButtonWidth = 45;
+    constexpr int32 TransportHeight = 35;
+    constexpr int32 ButtonWidth = 45;
 
     constexpr MenuBarItemIndex OpenMetadataItem{ 0, 0 };
     constexpr MenuBarItemIndex ReloadMetadataItem{ 0, 1 };
@@ -115,9 +115,9 @@ namespace {
             session.stopPlayback();
         }
 
-        const s3d::int64 duration = session.durationSamples();
+        const int64 duration = session.durationSamples();
         double progress = duration > 0 ? static_cast<double>(session.currentSample()) / duration : 0.0;
-        const s3d::int64 sample_rate = chart ? chart->sample_rate : 44'100;
+        const int64 sample_rate = chart ? chart->sample_rate : 44'100;
         const String time = U"{} / {}"_fmt(
             FormatTime(SecondsF{ static_cast<double>(session.currentSample()) / sample_rate }, U"M:ss"),
             FormatTime(SecondsF{ static_cast<double>(duration) / sample_rate }, U"M:ss")
@@ -127,7 +127,7 @@ namespace {
         const double scale_width = show_scale ? 195.0 : 0.0;
         const double seek_width = std::max(80.0, Scene::Width() - seek_x - scale_width - 100.0);
         if (SimpleGUI::Slider(time, progress, 0.0, 1.0, Vec2{ seek_x, y }, 100.0, seek_width, enabled)) {
-            session.seekSample(static_cast<s3d::int64>(progress * duration));
+            session.seekSample(static_cast<int64>(progress * duration));
         }
 
         if (show_scale) {
@@ -215,7 +215,7 @@ void Main() {
             session.togglePlayback();
         }
 
-        const s3d::int32 content_height = std::max(1, Scene::Height() - SimpleMenuBar::MenuBarHeight);
+        const int32 content_height = std::max(1, Scene::Height() - SimpleMenuBar::MenuBarHeight);
         if (session.chart() && session.projection()) {
             const Rect viewport{
                 xlair::sheets_viewer::SideMenu::Width,

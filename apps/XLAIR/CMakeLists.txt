@@ -1,5 +1,7 @@
 xlair_add_siv3d_application(XLAIR
     BUNDLE_IDENTIFIER "dev.xlair.XLAIR"
+    CONFIG_FILE "${CMAKE_CURRENT_SOURCE_DIR}/config.toml"
+    CONFIG_EXAMPLE_FILE "${CMAKE_CURRENT_SOURCE_DIR}/config.example.toml"
     RESOURCE_ENTRIES
         ALL     EMBED "engine/font"
         MACOS   EMBED "engine/lib/soundtouch"
@@ -15,3 +17,5 @@ xlair_add_siv3d_application(XLAIR
 )
 
 target_link_libraries(XLAIR PRIVATE Siv3D::Siv3D)
+
+target_include_directories(XLAIR PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/src")
