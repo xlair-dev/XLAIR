@@ -15,6 +15,12 @@ src/
 
 `Common.hpp` only aggregates common external headers such as Siv3D.hpp; it must not include headers from XLAIR architecture layers.
 
+## Config
+
+XLAIR reads TOML config from `config.toml` beside the executable, or beside `XLAIR.app` on macOS.
+Copy `config.example.toml` to `config.toml`. The local file is ignored by Git.
+When the local file does not exist, the example file is used as the default during builds.
+
 ### Dependency direction:
 
 ```text

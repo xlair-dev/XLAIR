@@ -1,0 +1,14 @@
+[system]
+arcade = false
+playable = 3
+menu_timer_seconds = 90
+
+[window]
+width = 1920
+height = 1080
+sizable = true
+fullscreen = false
+letterbox_color = "#000000"
+
+[input]
+latency_offset_seconds = 0.0
