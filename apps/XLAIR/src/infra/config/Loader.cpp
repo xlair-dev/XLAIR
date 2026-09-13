@@ -22,19 +22,20 @@ namespace xlair::infra::config {
         template <class Type>
         [[nodiscard]]
         Optional<String> ReadValue(const TOMLReader& toml, const String& key, Type& destination) {
-            if (!toml.hasMember(key)) {
+            const auto node = toml[key];
+            if (node.isEmpty()) {
                 return none;
             }
 
             if constexpr (std::integral<Type> && !std::same_as<Type, bool> && (sizeof(Type) < sizeof(int64))) {
-                const auto value = toml[key].getOpt<int64>();
+                const auto value = node.getOpt<int64>();
                 if (!value || !std::in_range<Type>(*value)) {
                     return U"Config value '{}' is invalid."_fmt(key);
                 }
 
                 destination = static_cast<Type>(*value);
             } else {
-                const auto value = toml[key].getOpt<Type>();
+                const auto value = node.getOpt<Type>();
                 if (!value) {
                     return U"Config value '{}' is invalid."_fmt(key);
                 }
