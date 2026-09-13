@@ -161,12 +161,26 @@
     { "name": "build-playfield-windows-debug", "displayName": "Build Playfield (Windows Debug)", "inherits": "build-windows-debug-base", "targets": ["Playfield"] },
     { "name": "build-playfield-windows-release", "displayName": "Build Playfield (Windows Release)", "inherits": "build-windows-release-base", "targets": ["Playfield"] },
 
+    { "name": "build-api-client-linux-debug", "displayName": "Build ApiClient (Linux Debug)", "inherits": "build-linux-debug-base", "targets": ["ApiClient"] },
+    { "name": "build-api-client-linux-release", "displayName": "Build ApiClient (Linux Release)", "inherits": "build-linux-release-base", "targets": ["ApiClient"] },
+    { "name": "build-api-client-macos-debug", "displayName": "Build ApiClient (macOS Debug)", "inherits": "build-macos-debug-base", "targets": ["ApiClient"] },
+    { "name": "build-api-client-macos-release", "displayName": "Build ApiClient (macOS Release)", "inherits": "build-macos-release-base", "targets": ["ApiClient"] },
+    { "name": "build-api-client-windows-debug", "displayName": "Build ApiClient (Windows Debug)", "inherits": "build-windows-debug-base", "targets": ["ApiClient"] },
+    { "name": "build-api-client-windows-release", "displayName": "Build ApiClient (Windows Release)", "inherits": "build-windows-release-base", "targets": ["ApiClient"] },
+
     { "name": "build-playfield-tests-linux-debug", "displayName": "Build Playfield tests (Linux Debug)", "inherits": "build-linux-debug-base", "targets": ["PlayfieldTests"] },
     { "name": "build-playfield-tests-linux-release", "displayName": "Build Playfield tests (Linux Release)", "inherits": "build-linux-release-base", "targets": ["PlayfieldTests"] },
     { "name": "build-playfield-tests-macos-debug", "displayName": "Build Playfield tests (macOS Debug)", "inherits": "build-macos-debug-base", "targets": ["PlayfieldTests"] },
     { "name": "build-playfield-tests-macos-release", "displayName": "Build Playfield tests (macOS Release)", "inherits": "build-macos-release-base", "targets": ["PlayfieldTests"] },
     { "name": "build-playfield-tests-windows-debug", "displayName": "Build Playfield tests (Windows Debug)", "inherits": "build-windows-debug-base", "targets": ["PlayfieldTests"] },
-    { "name": "build-playfield-tests-windows-release", "displayName": "Build Playfield tests (Windows Release)", "inherits": "build-windows-release-base", "targets": ["PlayfieldTests"] }
+    { "name": "build-playfield-tests-windows-release", "displayName": "Build Playfield tests (Windows Release)", "inherits": "build-windows-release-base", "targets": ["PlayfieldTests"] },
+
+    { "name": "build-api-client-tests-linux-debug", "displayName": "Build ApiClient tests (Linux Debug)", "inherits": "build-linux-debug-base", "targets": ["ApiClientTests"] },
+    { "name": "build-api-client-tests-linux-release", "displayName": "Build ApiClient tests (Linux Release)", "inherits": "build-linux-release-base", "targets": ["ApiClientTests"] },
+    { "name": "build-api-client-tests-macos-debug", "displayName": "Build ApiClient tests (macOS Debug)", "inherits": "build-macos-debug-base", "targets": ["ApiClientTests"] },
+    { "name": "build-api-client-tests-macos-release", "displayName": "Build ApiClient tests (macOS Release)", "inherits": "build-macos-release-base", "targets": ["ApiClientTests"] },
+    { "name": "build-api-client-tests-windows-debug", "displayName": "Build ApiClient tests (Windows Debug)", "inherits": "build-windows-debug-base", "targets": ["ApiClientTests"] },
+    { "name": "build-api-client-tests-windows-release", "displayName": "Build ApiClient tests (Windows Release)", "inherits": "build-windows-release-base", "targets": ["ApiClientTests"] }
   ],
   "testPresets": [
     { "name": "test-sheets-analyzer-linux-debug", "displayName": "Test SheetsAnalyzer (Linux Debug)", "configurePreset": "linux-debug", "filter": { "include": { "name": "^SheetsAnalyzerTests$" } }, "output": { "outputOnFailure": true } },
@@ -181,6 +195,13 @@
     { "name": "test-playfield-macos-debug", "displayName": "Test Playfield (macOS Debug)", "configurePreset": "macos-debug", "filter": { "include": { "name": "^PlayfieldTests$" } }, "output": { "outputOnFailure": true } },
     { "name": "test-playfield-macos-release", "displayName": "Test Playfield (macOS Release)", "configurePreset": "macos-release", "filter": { "include": { "name": "^PlayfieldTests$" } }, "output": { "outputOnFailure": true } },
     { "name": "test-playfield-windows-debug", "displayName": "Test Playfield (Windows Debug)", "configurePreset": "windows-debug", "filter": { "include": { "name": "^PlayfieldTests$" } }, "output": { "outputOnFailure": true } },
-    { "name": "test-playfield-windows-release", "displayName": "Test Playfield (Windows Release)", "configurePreset": "windows-release", "filter": { "include": { "name": "^PlayfieldTests$" } }, "output": { "outputOnFailure": true } }
+    { "name": "test-playfield-windows-release", "displayName": "Test Playfield (Windows Release)", "configurePreset": "windows-release", "filter": { "include": { "name": "^PlayfieldTests$" } }, "output": { "outputOnFailure": true } },
+
+    { "name": "test-api-client-linux-debug", "displayName": "Test ApiClient (Linux Debug)", "configurePreset": "linux-debug", "filter": { "include": { "name": "^ApiClientTests$" } }, "output": { "outputOnFailure": true } },
+    { "name": "test-api-client-linux-release", "displayName": "Test ApiClient (Linux Release)", "configurePreset": "linux-release", "filter": { "include": { "name": "^ApiClientTests$" } }, "output": { "outputOnFailure": true } },
+    { "name": "test-api-client-macos-debug", "displayName": "Test ApiClient (macOS Debug)", "configurePreset": "macos-debug", "filter": { "include": { "name": "^ApiClientTests$" } }, "output": { "outputOnFailure": true } },
+    { "name": "test-api-client-macos-release", "displayName": "Test ApiClient (macOS Release)", "configurePreset": "macos-release", "filter": { "include": { "name": "^ApiClientTests$" } }, "output": { "outputOnFailure": true } },
+    { "name": "test-api-client-windows-debug", "displayName": "Test ApiClient (Windows Debug)", "configurePreset": "windows-debug", "filter": { "include": { "name": "^ApiClientTests$" } }, "output": { "outputOnFailure": true } },
+    { "name": "test-api-client-windows-release", "displayName": "Test ApiClient (Windows Release)", "configurePreset": "windows-release", "filter": { "include": { "name": "^ApiClientTests$" } }, "output": { "outputOnFailure": true } }
   ]
 }
