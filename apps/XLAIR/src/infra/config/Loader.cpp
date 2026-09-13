@@ -44,25 +44,26 @@ namespace xlair::infra::config {
             return none;
         }
 
-        [[nodiscard]]
-        bool IsColorCode(const StringView value) {
-            if (value.isEmpty() || value.front() != U'#') {
-                return false;
-            }
+        class ConfigReader {
+        public:
+            explicit ConfigReader(const TOMLReader& toml) : m_toml{ toml } {}
 
-            const std::size_t digit_count = value.size() - 1;
-            if (digit_count != 3 && digit_count != 4 && digit_count != 6 && digit_count != 8) {
-                return false;
-            }
-
-            for (const auto character : value.substr(1)) {
-                if (!IsXdigit(character)) {
-                    return false;
+            template <class Type> ConfigReader& read(const String& key, Type& destination) {
+                if (!m_error) {
+                    m_error = ReadValue(m_toml, key, destination);
                 }
+                return *this;
             }
 
-            return true;
-        }
+            [[nodiscard]]
+            const Optional<String>& error() const noexcept {
+                return m_error;
+            }
+
+        private:
+            const TOMLReader& m_toml;
+            Optional<String> m_error;
+        };
     }
 
     Loader::Loader(FilePath path) : m_path{ std::move(path) } {}
@@ -73,43 +74,25 @@ namespace xlair::infra::config {
             return MakeError(U"Failed to open or parse the config file.", m_path);
         }
 
+        ConfigReader reader{ toml };
         app::Config config;
 
-        if (const auto error = ReadValue(toml, U"system.arcade", config.system.arcade)) {
-            return MakeError(*error, m_path);
-        }
-        if (const auto error = ReadValue(toml, U"system.playable", config.system.playable)) {
-            return MakeError(*error, m_path);
-        }
-        if (const auto error = ReadValue(toml, U"system.menu_timer_seconds", config.system.menu_timer_seconds)) {
-            return MakeError(*error, m_path);
-        }
+        // reflection 使いたい
+        reader
+            // system
+            .read(U"system.arcade", config.system.arcade)
+            .read(U"system.playable", config.system.playable)
+            .read(U"system.menu_timer_seconds", config.system.menu_timer_seconds)
+            // window
+            .read(U"window.width", config.window.width)
+            .read(U"window.height", config.window.height)
+            .read(U"window.sizable", config.window.sizable)
+            .read(U"window.fullscreen", config.window.fullscreen)
+            .read(U"window.letterbox_color", config.window.letterbox_color)
+            // input
+            .read(U"input.latency_offset_seconds", config.input.latency_offset_seconds);
 
-        if (const auto error = ReadValue(toml, U"window.width", config.window.width)) {
-            return MakeError(*error, m_path);
-        }
-        if (const auto error = ReadValue(toml, U"window.height", config.window.height)) {
-            return MakeError(*error, m_path);
-        }
-        if (const auto error = ReadValue(toml, U"window.sizable", config.window.sizable)) {
-            return MakeError(*error, m_path);
-        }
-        if (const auto error = ReadValue(toml, U"window.fullscreen", config.window.fullscreen)) {
-            return MakeError(*error, m_path);
-        }
-
-        String letterbox_color;
-        if (const auto error = ReadValue(toml, U"window.letterbox_color", letterbox_color)) {
-            return MakeError(*error, m_path);
-        }
-        if (!letterbox_color.isEmpty()) {
-            if (!IsColorCode(letterbox_color)) {
-                return MakeError(U"Config value 'window.letterbox_color' must be a hexadecimal color code.", m_path);
-            }
-            config.window.letterbox_color = ColorF{ letterbox_color };
-        }
-
-        if (const auto error = ReadValue(toml, U"input.latency_offset_seconds", config.input.latency_offset_seconds)) {
+        if (const auto& error = reader.error()) {
             return MakeError(*error, m_path);
         }
 
