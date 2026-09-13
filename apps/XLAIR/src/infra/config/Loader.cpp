@@ -90,7 +90,14 @@ namespace xlair::infra::config {
             .read(U"window.fullscreen", config.window.fullscreen)
             .read(U"window.letterbox_color", config.window.letterbox_color)
             // input
-            .read(U"input.latency_offset_seconds", config.input.latency_offset_seconds);
+            .read(U"input.latency_offset_seconds", config.input.latency_offset_seconds)
+            // api
+            .read(U"api.endpoint", config.api.endpoint)
+            .read(U"api.timeout_seconds", config.api.timeout_seconds)
+            .read(U"api.auth.domain", config.api.auth.domain)
+            .read(U"api.auth.client_id", config.api.auth.client_id)
+            .read(U"api.auth.client_secret", config.api.auth.client_secret)
+            .read(U"api.auth.audience", config.api.auth.audience);
 
         if (const auto& error = reader.error()) {
             return MakeError(*error, m_path);

@@ -12,3 +12,13 @@ letterbox_color = "#000000"
 
 [input]
 latency_offset_seconds = 0.0
+
+[api]
+endpoint = "https://api.xlair.dev"
+timeout_seconds = 10.0
+
+[api.auth]
+domain = ""
+client_id = ""
+client_secret = ""
+audience = "https://api.xlair.dev"
