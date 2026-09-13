@@ -15,6 +15,7 @@ namespace xlair::ui::scenes {
             Waiting,
             Loading,
             Loaded,
+            Ready,
             Failed,
         };
 

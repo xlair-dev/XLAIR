@@ -37,7 +37,18 @@ namespace xlair::ui::scenes {
         }
 
         if (m_state == State::Loaded) {
-            ClearPrint();
+            Print << U"[Boot] Initializing API client...";
+            if (!getData().initializeApi()) {
+                Print << U"[Boot] Failed to initialize the API client.";
+                m_state = State::Failed;
+                return;
+            }
+            m_state = State::Ready;
+            return;
+        }
+
+        if (m_state == State::Ready) {
+            // ClearPrint();
             changeScene(SceneState::Title, 0);
         }
     }
