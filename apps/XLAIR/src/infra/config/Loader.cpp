@@ -1,6 +1,7 @@
 #include "Loader.hpp"
 
 #include <Siv3D/Color.hpp>
+#include "infra/api/ClientOptions.hpp"
 #include <cmath>
 #include <concepts>
 #include <utility>
@@ -114,6 +115,10 @@ namespace xlair::infra::config {
         }
         if (!std::isfinite(config.input.latency_offset_seconds)) {
             return MakeError(U"Config value 'input.latency_offset_seconds' must be finite.", m_path);
+        }
+
+        if (const auto error = xlair::api::ValidateClientOptions(infra::api::ToClientOptions(config.api))) {
+            return MakeError(U"Config value 'api.{}': {}"_fmt(error->field, error->message), m_path);
         }
 
         return ConfigLoadResult{ std::move(config) };
