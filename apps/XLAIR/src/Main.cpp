@@ -1,7 +1,8 @@
 #include "Common.hpp"
 
 #include "app/Application.hpp"
-#include "infra/filesystem/DataDirectory.hpp"
+#include "infra/config/Loader.hpp"
+#include "infra/filesystem/RuntimePaths.hpp"
 #include "ui/Scene.hpp"
 
 void Main() {
@@ -10,7 +11,9 @@ void Main() {
     namespace infra = xlair::infra;
     namespace ui = xlair::ui;
 
-    auto application = std::make_shared<app::Application>(infra::filesystem::DataDirectory());
+    const auto paths = infra::filesystem::ResolveRuntimePaths();
+    auto config_loader = std::make_unique<infra::config::Loader>(paths.config_file);
+    auto application = std::make_shared<app::Application>(paths.data_directory, std::move(config_loader));
     auto scene_manager = ui::CreateSceneManager(application);
 
     while (System::Update() && scene_manager.update()) {

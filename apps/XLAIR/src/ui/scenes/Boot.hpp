@@ -9,5 +9,15 @@ namespace xlair::ui::scenes {
 
         void update() override;
         void draw() const override;
+
+    private:
+        enum class State {
+            Waiting,
+            Loading,
+            Loaded,
+            Failed,
+        };
+
+        State m_state = State::Waiting;
     };
 }
