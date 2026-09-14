@@ -29,5 +29,8 @@ namespace xlair::api {
 
         [[nodiscard]]
         virtual Request<s3d::Array<Music>> fetchCatalog() = 0;
+
+        // Only server-origin-relative asset URLs are accepted. The caller owns the destination.
+        virtual Request<s3d::FilePath> downloadAsset(s3d::URLView url, s3d::FilePathView destination) = 0;
     };
 }

@@ -172,3 +172,20 @@ TEST_CASE("The client owns its authentication settings independently of the call
     CHECK(error->kind == api::ErrorKind::Configuration);
     CHECK(error->message == U"The authentication domain must be a hostname.");
 }
+
+TEST_CASE("Asset download rejects non-server paths before authentication", "[API]") {
+    api::HttpClient client{ api::ClientOptions{} };
+    for (const auto* url : { U"https://other.test/file",
+                             U"//other.test/file",
+                             U"/musics/../secret",
+                             U"/musics/%2e%2e/secret",
+                             U"/musics/file?redirect=1" }) {
+        auto request = client.downloadAsset(url, U"unused.part");
+        request->update();
+        REQUIRE(request->result().has_value());
+        const auto* error = std::get_if<api::ApiError>(&*request->result());
+        REQUIRE(error);
+        CHECK(error->kind == api::ErrorKind::Configuration);
+        CHECK(error->message == U"Invalid server asset URL.");
+    }
+}

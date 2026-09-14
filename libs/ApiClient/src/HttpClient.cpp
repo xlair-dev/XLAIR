@@ -145,10 +145,12 @@ namespace xlair::api {
                 s3d::String path,
                 s3d::Optional<std::string> body,
                 s3d::int32 expected_status,
-                Parser parser
+                Parser parser,
+                s3d::Optional<s3d::FilePath> destination = s3d::none
             )
                 : m_session{ std::move(session) }, m_path{ std::move(path) }, m_body{ std::move(body) },
-                  m_expected_status{ expected_status }, m_parser{ std::move(parser) } {
+                  m_expected_status{ expected_status }, m_parser{ std::move(parser) },
+                  m_destination{ std::move(destination) } {
                 // A new explicit operation may retry authentication after an earlier failure.
                 m_session->auth_error.reset();
             }
@@ -161,6 +163,15 @@ namespace xlair::api {
 
             void update() override {
                 if (m_result) {
+                    return;
+                }
+                if (m_destination && (!m_path.starts_with(U'/') || m_path.starts_with(U"//") ||
+                                      m_path.contains(U'\\') || m_path.contains(U'%') || m_path.contains(U"..") ||
+                                      m_path.contains(U'?') || m_path.contains(U'#') || m_path.any([](char32_t ch) {
+                                          return ch <= 32 || ch == 127;
+                                      }) ||
+                                      !(m_path.starts_with(U"/musics/") || m_path.starts_with(U"/sheets/")))) {
+                    fail(ErrorKind::Configuration, U"Invalid server asset URL.");
                     return;
                 }
                 if (const auto& error = m_session->options_error) {
@@ -198,10 +209,17 @@ namespace xlair::api {
                                 U"application/json",
                             },
                         };
-                        const s3d::URL url = m_session->endpoint + m_path;
+                        // Asset URLs are origin-relative, not relative to an API path prefix.
+                        const auto origin_end =
+                            m_session->endpoint.indexOf(U'/', m_session->endpoint.indexOf(U"://") + 3);
+                        const s3d::URL url =
+                            (m_destination ? m_session->endpoint.substr(0, origin_end) : m_session->endpoint) + m_path;
                         if (m_body) {
                             headers[U"Content-Type"] = U"application/json";
                             m_task = s3d::SimpleHTTP::PostAsync(url, headers, m_body->data(), m_body->size());
+                        } else if (m_destination) {
+                            headers[U"Accept"] = U"*/*";
+                            m_task = s3d::SimpleHTTP::GetAsync(url, headers, *m_destination);
                         } else {
                             m_task = s3d::SimpleHTTP::GetAsync(url, headers);
                         }
@@ -219,6 +237,11 @@ namespace xlair::api {
                         if (status == 401 && m_token == m_session->token) {
                             m_session->token.clear();
                         }
+                        if (status == 401 && !m_body && !m_retried) {
+                            m_retried = true;
+                            m_task = {};
+                            return;
+                        }
                         // Never replay a write: an interrupted request may already have been applied.
                         fail(
                             status == 401 ? ErrorKind::Authentication : ErrorKind::Http,
@@ -226,6 +249,12 @@ namespace xlair::api {
                             status
                         );
                         return;
+                    }
+                    if constexpr (std::same_as<T, s3d::FilePath>) {
+                        if (m_destination) {
+                            m_result = *m_destination;
+                            return;
+                        }
                     }
                     const auto json = m_task.getAsJSON();
                     if (!json) {
@@ -263,6 +292,8 @@ namespace xlair::api {
             s3d::Optional<std::string> m_body;
             s3d::int32 m_expected_status;
             Parser m_parser;
+            s3d::Optional<s3d::FilePath> m_destination;
+            bool m_retried = false;
             s3d::Optional<Clock::time_point> m_started;
             s3d::String m_token;
             s3d::AsyncHTTPTask m_task;
@@ -321,5 +352,18 @@ namespace xlair::api {
 
     Request<s3d::Array<Music>> HttpClient::fetchCatalog() {
         return MakeRequest(m_session, U"/sync", ParseCatalog);
+    }
+
+    Request<s3d::FilePath> HttpClient::downloadAsset(s3d::URLView url, s3d::FilePathView destination) {
+        return std::make_unique<HttpRequest<s3d::FilePath>>(
+            m_session,
+            s3d::String{ url },
+            s3d::none,
+            200,
+            [](const s3d::JSON&) {
+                return s3d::FilePath{};
+            },
+            s3d::FilePath{ destination }
+        );
     }
 }

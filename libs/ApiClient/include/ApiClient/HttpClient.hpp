@@ -25,6 +25,8 @@ namespace xlair::api {
 
         Request<s3d::Array<Music>> fetchCatalog() override;
 
+        Request<s3d::FilePath> downloadAsset(s3d::URLView url, s3d::FilePathView destination) override;
+
     private:
         std::shared_ptr<HttpSession> m_session;
     };
