@@ -1,0 +1,91 @@
+#include "BootFlow.hpp"
+
+#include <algorithm>
+#include <cmath>
+#include <utility>
+
+namespace xlair::app {
+    BootFlow::BootFlow(
+        Application& application,
+        std::unique_ptr<interfaces::IConfigLoader> config_loader,
+        ApiClientFactory api_client_factory,
+        CatalogSync::LocalSyncFactory local_sync_factory
+    )
+        : m_application{ application }, m_config_loader{ std::move(config_loader) },
+          m_api_client_factory{ std::move(api_client_factory) }, m_catalog_sync{ std::move(local_sync_factory) } {}
+
+    void BootFlow::update(double delta_seconds) {
+        switch (m_state) {
+            case State::LoadingConfig:
+                loadConfig();
+                break;
+
+            case State::WaitingForSync:
+                if (std::isfinite(delta_seconds) && delta_seconds > 0.0) {
+                    m_sync_wait_remaining = std::max(0.0, m_sync_wait_remaining - delta_seconds);
+                }
+                if (m_sync_wait_remaining == 0.0) {
+                    startSync();
+                }
+                break;
+
+            case State::Syncing:
+                m_catalog_sync.update();
+                if (m_catalog_sync.state() == CatalogSync::State::Succeeded) {
+                    m_application.setCatalog(m_catalog_sync.takeCatalog());
+                    m_state = State::Ready;
+                } else if (m_catalog_sync.state() == CatalogSync::State::Failed) {
+                    m_state = State::SyncFailed;
+                }
+                break;
+
+            case State::SyncFailed:
+            case State::Ready:
+            case State::Failed:
+                break;
+        }
+    }
+
+    void BootFlow::skipSync() {
+        if (m_state == State::WaitingForSync) {
+            m_state = State::Ready;
+        }
+    }
+
+    void BootFlow::retrySync() {
+        if (m_state == State::SyncFailed) {
+            startSync();
+        }
+    }
+
+    void BootFlow::loadConfig() {
+        if (!m_config_loader) {
+            m_config_error = interfaces::ConfigLoadError{ U"A config loader is not available.", U"" };
+            m_state = State::Failed;
+            return;
+        }
+
+        auto result = m_config_loader->load();
+        if (!result) {
+            m_config_error = std::move(result.error);
+            m_state = State::Failed;
+            return;
+        }
+
+        m_application.setConfig(std::move(*result.value));
+        auto client = m_api_client_factory ? m_api_client_factory(m_application.config()->api) : nullptr;
+        if (!client) {
+            m_config_error = interfaces::ConfigLoadError{ U"Failed to initialize the API client.", U"" };
+            m_state = State::Failed;
+            return;
+        }
+        m_application.setApiClient(std::move(client));
+        m_sync_wait_remaining = SyncWaitSeconds;
+        m_state = State::WaitingForSync;
+    }
+
+    void BootFlow::startSync() {
+        m_catalog_sync.start(*m_application.apiClient(), m_application.config()->api.endpoint);
+        m_state = m_catalog_sync.state() == CatalogSync::State::Failed ? State::SyncFailed : State::Syncing;
+    }
+}
