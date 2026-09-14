@@ -42,12 +42,19 @@ namespace xlair::api {
         s3d::String updated_at;
     };
 
+    struct Asset {
+        // Preserve server URL references, including origin-relative paths.
+        s3d::URL url;
+        s3d::String updated_at;
+    };
+
     struct Sheet {
         s3d::String id;
         s3d::String music_id;
         s3d::String difficulty;
         double level = 0;
         s3d::String notes_designer;
+        s3d::Optional<Asset> chart;
     };
 
     struct Music {
@@ -56,7 +63,8 @@ namespace xlair::api {
         s3d::String artist;
         double bpm = 0;
         s3d::String genre;
-        s3d::String jacket;
+        s3d::Optional<Asset> jacket;
+        s3d::Optional<Asset> audio;
         s3d::String registration_date;
         bool is_test = false;
         s3d::Array<Sheet> sheets;

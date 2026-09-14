@@ -64,7 +64,7 @@ TEST_CASE("Authentication options allow empty credentials but reject incomplete 
     CHECK_FALSE(api::ValidateClientOptions(options).has_value());
 }
 
-TEST_CASE("Record responses accept the current server shape without userId", "[API]") {
+TEST_CASE("Record responses parse sheet results", "[API]") {
     const auto records = api::ParseRecords(s3d::JSON::Parse(UR"([
         {"id":"record-1","sheetId":"sheet-1","score":1000000,
          "clearType":"fullcombo","playCount":3,"updatedAt":"2026-09-13T00:00:00Z"}
@@ -74,6 +74,20 @@ TEST_CASE("Record responses accept the current server shape without userId", "[A
     CHECK(records[0].clear_type == api::ClearType::FullCombo);
     CHECK(records[0].play_count == 3);
     CHECK(api::ParseRecords(s3d::JSON::Parse(U"[]")).isEmpty());
+}
+
+TEST_CASE("User visibility and administrator flags are required", "[API][User]") {
+    auto json = s3d::JSON::Parse(UR"({
+        "id":"u", "card":"c", "displayName":"User", "rating":0,
+        "xp":0, "credits":0, "createdAt":"2026-09-14T00:00:00Z"
+    })");
+    CHECK_THROWS_AS(api::ParseUser(json), s3d::Error);
+    json[U"isPublic"] = false;
+    CHECK_THROWS_AS(api::ParseUser(json), s3d::Error);
+    json[U"isAdmin"] = false;
+    const auto user = api::ParseUser(json);
+    CHECK_FALSE(user.is_public);
+    CHECK_FALSE(user.is_admin);
 }
 
 TEST_CASE("API integer fields reject negative, fractional and overflowing values", "[API]") {

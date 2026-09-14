@@ -33,6 +33,18 @@ namespace xlair::api {
             throw s3d::Error{ U"Invalid API response field: {}"_fmt(key) };
         }
 
+        s3d::Optional<Asset> ReadAsset(const s3d::JSON& json, s3d::StringView key) {
+            if (!json.isObject()) {
+                throw s3d::Error{ U"Expected an API response object." };
+            }
+            if (!json.hasElement(key) || json[key].isNull())
+                return s3d::none;
+            return Asset{
+                .url = Read<s3d::URL>(json[key], U"url"),
+                .updated_at = Read<s3d::String>(json[key], U"updatedAt"),
+            };
+        }
+
         template <class T, class Parser> s3d::Array<T> ReadArray(const s3d::JSON& json, Parser parser) {
             if (!json.isArray()) {
                 throw s3d::Error{ U"Expected an API response array." };
@@ -79,8 +91,8 @@ namespace xlair::api {
             .rating = Read<s3d::uint32>(json, U"rating"),
             .xp = Read<s3d::uint32>(json, U"xp"),
             .credits = Read<s3d::uint32>(json, U"credits"),
-            .is_public = json.hasElement(U"isPublic") ? Read<bool>(json, U"isPublic") : false,
-            .is_admin = json.hasElement(U"isAdmin") ? Read<bool>(json, U"isAdmin") : false,
+            .is_public = Read<bool>(json, U"isPublic"),
+            .is_admin = Read<bool>(json, U"isAdmin"),
             .created_at = Read<s3d::String>(json, U"createdAt"),
         };
     }
@@ -122,14 +134,15 @@ namespace xlair::api {
                 .artist = Read<s3d::String>(music, U"artist"),
                 .bpm = Read<double>(music, U"bpm"),
                 .genre = Read<s3d::String>(music, U"genre"),
-                .jacket = Read<s3d::String>(music, U"jacket"),
+                .jacket = ReadAsset(music, U"jacket"),
+                .audio = ReadAsset(music, U"audio"),
                 .registration_date = Read<s3d::String>(music, U"registrationDate"),
                 .is_test = Read<bool>(music, U"isTest"),
                 .sheets = ReadArray<Sheet>(
                     entry[U"sheets"],
                     [](const s3d::JSON& sheet) -> Sheet {
                         const auto difficulty = Read<s3d::String>(sheet, U"difficulty");
-                        if (difficulty != U"easy" && difficulty != U"normal" && difficulty != U"hard") {
+                        if (difficulty != U"basic" && difficulty != U"advanced" && difficulty != U"master") {
                             throw s3d::Error{ U"Invalid API response field: difficulty" };
                         }
                         return {
@@ -138,6 +151,7 @@ namespace xlair::api {
                             .difficulty = difficulty,
                             .level = Read<double>(sheet, U"level"),
                             .notes_designer = Read<s3d::String>(sheet, U"notesDesigner"),
+                            .chart = ReadAsset(sheet, U"chart"),
                         };
                     }
                 ),
