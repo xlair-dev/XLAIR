@@ -10,15 +10,35 @@
 namespace xlair::app {
     class Application {
     public:
-        using ApiClientFactory = std::function<std::unique_ptr<api::IClient>(const Config::Api&)>;
+        enum class CatalogSyncState { Idle, Loading, Succeeded, Failed };
 
-        Application(std::unique_ptr<interfaces::IConfigLoader> config_loader, ApiClientFactory api_factory);
+        using ApiClientFactory = std::function<std::unique_ptr<api::IClient>(const Config::Api&)>;
+        using LocalSyncFactory = std::function<api::Request<bool>(api::IClient&, const Array<api::Music>&, URLView)>;
+
+        Application(
+            std::unique_ptr<interfaces::IConfigLoader> config_loader,
+            ApiClientFactory api_factory,
+            LocalSyncFactory sync_factory
+        );
 
         [[nodiscard]]
         bool initializeApi();
 
         [[nodiscard]]
         api::IClient* apiClient() noexcept;
+
+        void startCatalogSync();
+
+        void updateCatalogSync();
+
+        [[nodiscard]]
+        CatalogSyncState catalogSyncState() const noexcept;
+
+        [[nodiscard]]
+        const Array<api::Music>& catalog() const noexcept;
+
+        [[nodiscard]]
+        const Optional<api::ApiError>& catalogSyncError() const noexcept;
 
         [[nodiscard]]
         bool loadConfig();
@@ -35,5 +55,12 @@ namespace xlair::app {
         Optional<interfaces::ConfigLoadError> m_config_load_error;
         ApiClientFactory m_api_factory;
         std::unique_ptr<api::IClient> m_api_client;
+        LocalSyncFactory m_sync_factory;
+        api::Request<bool> m_local_sync;
+        Array<api::Music> m_pending_catalog;
+        api::Request<Array<api::Music>> m_catalog_request;
+        CatalogSyncState m_catalog_sync_state = CatalogSyncState::Idle;
+        Array<api::Music> m_catalog;
+        Optional<api::ApiError> m_catalog_sync_error;
     };
 }

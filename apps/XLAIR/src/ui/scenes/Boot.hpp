@@ -15,10 +15,14 @@ namespace xlair::ui::scenes {
             Waiting,
             Loading,
             Loaded,
+            WaitingForSync,
+            Syncing,
+            SyncFailed,
             Ready,
             Failed,
         };
 
         State m_state = State::Waiting;
+        Stopwatch m_sync_wait;
     };
 }
