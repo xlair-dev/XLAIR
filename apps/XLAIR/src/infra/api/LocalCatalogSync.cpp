@@ -1,4 +1,5 @@
 #include "LocalCatalogSync.hpp"
+#include "MusicMetadata.hpp"
 #include "infra/filesystem/FileHash.hpp"
 #include <filesystem>
 
@@ -53,7 +54,21 @@ namespace xlair::infra::api {
             return FileSystem::Rename(from, to);
         }
 
+        bool IsMusicId(const String& id) {
+            return !id.isEmpty() && id.all([](char32_t ch) {
+                return IsAlnum(ch) || ch == U'-' || ch == U'_';
+            });
+        }
+
+        bool IsMetadataPath(const String& path) {
+            const auto parts = path.split(U'/');
+            return parts.size() == 3 && parts[0] == U"musics" && IsMusicId(parts[1]) && parts[2] == U"music.json";
+        }
+
         bool IsManagedPath(const String& path) {
+            if (IsMetadataPath(path)) {
+                return true;
+            }
             if (path.starts_with(U"assets/")) {
                 const auto filename = path.substr(7);
                 return !filename.contains(U'/') && ParseAsset(U"/musics/" + filename).has_value();
@@ -70,11 +85,17 @@ namespace xlair::infra::api {
                     server.pop_back();
                 }
                 m_root = FileSystem::PathAppend(directory, U"sync/");
-                m_manifest[U"version"] = 2;
                 m_manifest[U"endpoint"] = server;
                 m_manifest[U"musics"] = JSON::Parse(U"[]");
+                HashSet<String> ids;
                 for (const auto& music : catalog) {
+                    if (!IsMusicId(music.id) || ids.contains(music.id)) {
+                        fail(U"Invalid or duplicate catalog music ID.");
+                        return;
+                    }
+                    ids.insert(music.id);
                     JSON entry;
+                    entry[U"metadataPath"] = U"musics/" + music.id + U"/music.json";
                     entry[U"id"] = music.id;
                     entry[U"title"] = music.title;
                     entry[U"artist"] = music.artist;
@@ -208,6 +229,13 @@ namespace xlair::infra::api {
                         candidates.insert(*relative);
                     };
                     for (const auto& music : old[U"musics"]) {
+                        if (music.value.hasElement(U"metadataPath")) {
+                            const auto path = music.value[U"metadataPath"].getOpt<String>();
+                            if (!path || !IsMetadataPath(*path)) {
+                                throw Error{ U"Invalid metadata path." };
+                            }
+                            candidates.insert(*path);
+                        }
                         collect(music.value[U"jacket"]);
                         collect(music.value[U"audio"]);
                         for (const auto& sheet : music.value[U"sheets"]) {
@@ -229,6 +257,9 @@ namespace xlair::infra::api {
                 }
                 for (const auto& asset : m_assets) {
                     candidates.erase(asset.relative);
+                }
+                for (const auto& music : m_manifest[U"musics"]) {
+                    candidates.erase(music.value[U"metadataPath"].get<String>());
                 }
                 m_manifest[U"pendingDeletes"] = JSON::Parse(U"[]");
                 for (const auto& relative : candidates) {
@@ -290,6 +321,23 @@ namespace xlair::infra::api {
                 // Keep the journal until the next successful sync; replay is idempotent,
                 // including after a crash between manifest publication and deletion.
             }
+            bool writeMetadata() {
+                for (const auto& entry : m_manifest[U"musics"]) {
+                    const auto path = m_root + entry.value[U"metadataPath"].get<String>();
+                    if (!FileSystem::CreateDirectories(FileSystem::ParentPath(path))) {
+                        fail(U"Could not create music metadata directory.");
+                        return false;
+                    }
+                    m_partial = path + U"." + UUIDValue::Generate().str() + U".part";
+                    if (!MakeMusicMetadata(entry.value).save(m_partial) || !Replace(m_partial, path)) {
+                        fail(U"Could not write local music metadata: " + path);
+                        return false;
+                    }
+                    m_partial.clear();
+                }
+                return true;
+            }
+
             void step() {
                 if (!m_endpoint_checked) {
                     const auto path = m_root + U"manifest.json";
@@ -318,6 +366,9 @@ namespace xlair::infra::api {
                         return;
                     }
                     if (!prepareDeletions()) {
+                        return;
+                    }
+                    if (!writeMetadata()) {
                         return;
                     }
                     m_partial = m_root + U"manifest." + UUIDValue::Generate().str() + U".part";
