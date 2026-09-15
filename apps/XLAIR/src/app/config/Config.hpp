@@ -4,6 +4,18 @@
 
 namespace xlair::app {
     struct Config {
+        struct Api {
+            URL endpoint = U"https://api.xlair.dev";
+            double timeout_seconds = 10.0;
+
+            struct Auth {
+                String domain;
+                String client_id;
+                String client_secret;
+                String audience = U"https://api.xlair.dev";
+            } auth;
+        } api;
+
         struct System {
             bool arcade = false;
             int32 playable = 3;

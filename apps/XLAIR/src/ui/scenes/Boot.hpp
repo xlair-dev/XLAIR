@@ -11,13 +11,6 @@ namespace xlair::ui::scenes {
         void draw() const override;
 
     private:
-        enum class State {
-            Waiting,
-            Loading,
-            Loaded,
-            Failed,
-        };
-
-        State m_state = State::Waiting;
+        void handleStateChange(app::BootFlow::State previous);
     };
 }

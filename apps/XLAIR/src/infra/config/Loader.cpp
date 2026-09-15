@@ -1,6 +1,7 @@
 #include "Loader.hpp"
 
 #include <Siv3D/Color.hpp>
+#include "infra/api/ClientOptions.hpp"
 #include <cmath>
 #include <concepts>
 #include <utility>
@@ -21,19 +22,20 @@ namespace xlair::infra::config {
         template <class Type>
         [[nodiscard]]
         Optional<String> ReadValue(const TOMLReader& toml, const String& key, Type& destination) {
-            if (!toml.hasMember(key)) {
+            const auto node = toml[key];
+            if (node.isEmpty()) {
                 return none;
             }
 
             if constexpr (std::integral<Type> && !std::same_as<Type, bool> && (sizeof(Type) < sizeof(int64))) {
-                const auto value = toml[key].getOpt<int64>();
+                const auto value = node.getOpt<int64>();
                 if (!value || !std::in_range<Type>(*value)) {
                     return U"Config value '{}' is invalid."_fmt(key);
                 }
 
                 destination = static_cast<Type>(*value);
             } else {
-                const auto value = toml[key].getOpt<Type>();
+                const auto value = node.getOpt<Type>();
                 if (!value) {
                     return U"Config value '{}' is invalid."_fmt(key);
                 }
@@ -90,7 +92,14 @@ namespace xlair::infra::config {
             .read(U"window.fullscreen", config.window.fullscreen)
             .read(U"window.letterbox_color", config.window.letterbox_color)
             // input
-            .read(U"input.latency_offset_seconds", config.input.latency_offset_seconds);
+            .read(U"input.latency_offset_seconds", config.input.latency_offset_seconds)
+            // api
+            .read(U"api.endpoint", config.api.endpoint)
+            .read(U"api.timeout_seconds", config.api.timeout_seconds)
+            .read(U"api.auth.domain", config.api.auth.domain)
+            .read(U"api.auth.client_id", config.api.auth.client_id)
+            .read(U"api.auth.client_secret", config.api.auth.client_secret)
+            .read(U"api.auth.audience", config.api.auth.audience);
 
         if (const auto& error = reader.error()) {
             return MakeError(*error, m_path);
@@ -107,6 +116,10 @@ namespace xlair::infra::config {
         }
         if (!std::isfinite(config.input.latency_offset_seconds)) {
             return MakeError(U"Config value 'input.latency_offset_seconds' must be finite.", m_path);
+        }
+
+        if (const auto error = xlair::api::ValidateClientOptions(infra::api::ToClientOptions(config.api))) {
+            return MakeError(U"Config value 'api.{}': {}"_fmt(error->field, error->message), m_path);
         }
 
         return ConfigLoadResult{ std::move(config) };

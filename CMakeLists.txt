@@ -42,5 +42,6 @@ set(SIV3D_VERSION "0.6.16")
 include(cmake/Siv3D/Siv3D.cmake)
 include(cmake/AddSiv3DApplication.cmake)
 
+add_subdirectory(third_party)
 add_subdirectory(libs)
 add_subdirectory(apps)
