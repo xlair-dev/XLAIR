@@ -1,10 +1,10 @@
 #include "SliderHoldCompiler.hpp"
 
 #include "HoldJudgement.hpp"
+#include "SampleMath.hpp"
 
 #include <algorithm>
 #include <cmath>
-#include <limits>
 
 namespace xlair::sheets::formats::sus {
     namespace {
@@ -114,13 +114,6 @@ namespace xlair::sheets::formats::sus {
                 }
             }
             return work.front();
-        }
-
-        [[nodiscard]]
-        s3d::int64 RoundSample(const long double sample) {
-            constexpr auto Minimum = static_cast<long double>(std::numeric_limits<s3d::int64>::min());
-            constexpr auto Maximum = static_cast<long double>(std::numeric_limits<s3d::int64>::max());
-            return static_cast<s3d::int64>(s3d::Clamp(std::round(sample), Minimum, Maximum));
         }
 
         [[nodiscard]]
@@ -254,7 +247,7 @@ namespace xlair::sheets::formats::sus {
                     for (std::size_t subdivision = 1; subdivision < *subdivision_count; ++subdivision) {
                         const long double t = static_cast<long double>(subdivision) / *subdivision_count;
                         const auto coordinate = EvaluateBezier(segment.control_points, t);
-                        const auto generated_sample = RoundSample(coordinate.sample);
+                        const auto generated_sample = detail::RoundSample(coordinate.sample);
                         if (generated_sample <= hold.points.back().sample || generated_sample >= source.sample) {
                             continue;
                         }
