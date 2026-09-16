@@ -85,7 +85,7 @@ namespace xlair::app {
     }
 
     void BootFlow::startSync() {
-        m_catalog_sync.start(*m_application.apiClient(), m_application.config()->api.endpoint);
+        m_catalog_sync.start(*m_application.apiClient(), m_application.config()->api.syncSource());
         m_state = m_catalog_sync.state() == CatalogSync::State::Failed ? State::SyncFailed : State::Syncing;
     }
 }
