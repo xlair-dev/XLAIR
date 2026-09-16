@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.22)
 
 project(XLAIR VERSION 0.1.0 LANGUAGES CXX)
 
+add_compile_options("$<$<COMPILE_LANG_AND_ID:CXX,MSVC>:/utf-8>")
+
 include(CTest)
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
@@ -42,5 +44,6 @@ set(SIV3D_VERSION "0.6.16")
 include(cmake/Siv3D/Siv3D.cmake)
 include(cmake/AddSiv3DApplication.cmake)
 
+add_subdirectory(third_party)
 add_subdirectory(libs)
 add_subdirectory(apps)

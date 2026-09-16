@@ -1,21 +1,15 @@
 #include "Timing.hpp"
 
+#include "SampleMath.hpp"
+
 #include <algorithm>
 #include <cmath>
-#include <limits>
 #include <utility>
 
 namespace xlair::sheets::formats::sus {
     namespace {
         constexpr double DefaultBPM = 120.0;
         constexpr long double DefaultBeatsPerMeasure = 4.0L;
-
-        [[nodiscard]]
-        s3d::int64 RoundSample(const long double sample) {
-            constexpr auto Minimum = static_cast<long double>(std::numeric_limits<s3d::int64>::min());
-            constexpr auto Maximum = static_cast<long double>(std::numeric_limits<s3d::int64>::max());
-            return static_cast<s3d::int64>(s3d::Clamp(std::round(sample), Minimum, Maximum));
-        }
     }
 
     TimingMap::TimingMap(
@@ -186,7 +180,7 @@ namespace xlair::sheets::formats::sus {
     s3d::int64 TimingMap::sampleAt(const long double beat) const {
         const auto& active = segmentAt(beat);
         const long double samples_per_beat = static_cast<long double>(m_sample_rate) * 60.0L / active.bpm;
-        return RoundSample(active.sample + ((beat - active.beat) * samples_per_beat));
+        return detail::RoundSample(active.sample + ((beat - active.beat) * samples_per_beat));
     }
 
     long double TimingMap::absoluteBeat(const Position& position) const {

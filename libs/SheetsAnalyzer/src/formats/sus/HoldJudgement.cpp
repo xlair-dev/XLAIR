@@ -1,19 +1,13 @@
 #include "HoldJudgement.hpp"
 
+#include "SampleMath.hpp"
+
 #include <algorithm>
 #include <cmath>
-#include <limits>
 
 namespace xlair::sheets::formats::sus {
     namespace {
         constexpr std::size_t MaximumJudgePointCount = 1'000'000;
-
-        [[nodiscard]]
-        s3d::int64 RoundSample(const long double sample) {
-            constexpr auto Minimum = static_cast<long double>(std::numeric_limits<s3d::int64>::min());
-            constexpr auto Maximum = static_cast<long double>(std::numeric_limits<s3d::int64>::max());
-            return static_cast<s3d::int64>(s3d::Clamp(std::round(sample), Minimum, Maximum));
-        }
 
         [[nodiscard]]
         double BPMAtSample(const s3d::Array<TempoChange>& tempo_changes, const long double sample) {
@@ -53,20 +47,20 @@ namespace xlair::sheets::formats::sus {
                 );
 
                 if (next_change == tempo_changes.end()) {
-                    return RoundSample(cursor + (remaining_beats * samples_per_beat));
+                    return detail::RoundSample(cursor + (remaining_beats * samples_per_beat));
                 }
 
                 const long double beats_until_change =
                     (static_cast<long double>(next_change->sample) - cursor) / samples_per_beat;
                 if (remaining_beats <= beats_until_change) {
-                    return RoundSample(cursor + (remaining_beats * samples_per_beat));
+                    return detail::RoundSample(cursor + (remaining_beats * samples_per_beat));
                 }
 
                 remaining_beats -= beats_until_change;
                 cursor = next_change->sample;
             }
 
-            return RoundSample(cursor);
+            return detail::RoundSample(cursor);
         }
     }
 

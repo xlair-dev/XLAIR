@@ -1,0 +1,23 @@
+{
+  "users": [
+    {
+      "id": "mock-user",
+      "card": "MOCK-CARD",
+      "displayName": "Mock Player",
+      "rating": 0,
+      "xp": 0,
+      "credits": 3,
+      "isPublic": false,
+      "isAdmin": false,
+      "createdAt": "2026-09-16T00:00:00Z"
+    }
+  ],
+  "records": [],
+  "playOptions": [
+    {
+      "userId": "mock-user",
+      "noteSpeed": 5.0,
+      "judgmentOffset": 0
+    }
+  ]
+}

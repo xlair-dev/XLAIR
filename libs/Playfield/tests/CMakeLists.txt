@@ -6,16 +6,8 @@ add_executable(PlayfieldTests ${playfield_test_source_files})
 
 target_compile_features(PlayfieldTests PRIVATE cxx_std_23)
 target_compile_definitions(PlayfieldTests PRIVATE NO_S3D_USING)
-
-target_link_libraries(PlayfieldTests
-    PRIVATE
-        XLAIR::Playfield
-)
-
-set_target_properties(PlayfieldTests PROPERTIES
-    FOLDER "Tests"
-    WIN32_EXECUTABLE OFF
-)
+target_link_libraries(PlayfieldTests PRIVATE XLAIR::Playfield)
+set_target_properties(PlayfieldTests PROPERTIES FOLDER "Tests" WIN32_EXECUTABLE OFF)
 
 if(APPLE)
     find_library(FOUNDATION_FRAMEWORK Foundation REQUIRED)

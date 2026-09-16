@@ -1,0 +1,16 @@
+[
+  {
+    "music": {
+      "id": "mock-music",
+      "title": "Mock Music",
+      "artist": "XLAIR",
+      "bpm": 120.0,
+      "genre": "ORIGINAL",
+      "jacket": null,
+      "audio": null,
+      "registrationDate": "2026-09-16T00:00:00Z",
+      "isTest": true
+    },
+    "sheets": []
+  }
+]
