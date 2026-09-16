@@ -78,6 +78,7 @@ namespace xlair::infra::config {
 
         ConfigReader reader{ toml };
         app::Config config;
+        String api_mode = U"http";
 
         // reflection 使いたい
         reader
@@ -94,8 +95,10 @@ namespace xlair::infra::config {
             // input
             .read(U"input.latency_offset_seconds", config.input.latency_offset_seconds)
             // api
+            .read(U"api.mode", api_mode)
             .read(U"api.endpoint", config.api.endpoint)
             .read(U"api.timeout_seconds", config.api.timeout_seconds)
+            .read(U"api.mock.data_directory", config.api.mock.data_directory)
             .read(U"api.auth.domain", config.api.auth.domain)
             .read(U"api.auth.client_id", config.api.auth.client_id)
             .read(U"api.auth.client_secret", config.api.auth.client_secret)
@@ -118,8 +121,23 @@ namespace xlair::infra::config {
             return MakeError(U"Config value 'input.latency_offset_seconds' must be finite.", m_path);
         }
 
-        if (const auto error = xlair::api::ValidateClientOptions(infra::api::ToClientOptions(config.api))) {
-            return MakeError(U"Config value 'api.{}': {}"_fmt(error->field, error->message), m_path);
+        if (api_mode == U"http") {
+            config.api.mode = app::Config::Api::Mode::Http;
+            if (const auto error = xlair::api::ValidateClientOptions(infra::api::ToClientOptions(config.api))) {
+                return MakeError(U"Config value 'api.{}': {}"_fmt(error->field, error->message), m_path);
+            }
+        } else if (api_mode == U"mock") {
+            config.api.mode = app::Config::Api::Mode::Mock;
+            if (config.api.mock.data_directory.isEmpty()) {
+                return MakeError(U"Config value 'api.mock.data_directory' is required in mock mode.", m_path);
+            }
+            const bool content_root_relative = config.api.mock.data_directory.starts_with(U'/');
+            const auto base = content_root_relative ? FileSystem::CurrentDirectory() : FileSystem::ParentPath(m_path);
+            const auto relative =
+                content_root_relative ? config.api.mock.data_directory.substr(1) : config.api.mock.data_directory;
+            config.api.mock.data_directory = FileSystem::FullPath(FileSystem::PathAppend(base, relative));
+        } else {
+            return MakeError(U"Config value 'api.mode' must be 'http' or 'mock'.", m_path);
         }
 
         return ConfigLoadResult{ std::move(config) };

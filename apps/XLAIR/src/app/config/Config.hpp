@@ -5,8 +5,15 @@
 namespace xlair::app {
     struct Config {
         struct Api {
+            enum class Mode { Http, Mock };
+
+            Mode mode = Mode::Http;
             URL endpoint = U"https://api.xlair.dev";
             double timeout_seconds = 10.0;
+
+            struct Mock {
+                FilePath data_directory;
+            } mock;
 
             struct Auth {
                 String domain;
@@ -14,6 +21,11 @@ namespace xlair::app {
                 String client_secret;
                 String audience = U"https://api.xlair.dev";
             } auth;
+
+            [[nodiscard]]
+            inline URL syncSource() const {
+                return mode == Mode::Mock ? U"mock://" + mock.data_directory : endpoint;
+            }
         } api;
 
         struct System {

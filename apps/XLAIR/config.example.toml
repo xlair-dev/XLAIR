@@ -14,8 +14,12 @@ letterbox_color = "#000000"
 latency_offset_seconds = 0.0
 
 [api]
+mode = "http"
 endpoint = "https://api.xlair.dev"
 timeout_seconds = 10.0
+
+[api.mock]
+data_directory = "data/mock/api"
 
 [api.auth]
 domain = ""
