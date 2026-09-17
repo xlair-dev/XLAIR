@@ -1,4 +1,4 @@
-#include "PasoriRCS3xx.hpp"
+#include "infra/card/PasoriRCS3xx.hpp"
 
 #include <algorithm>
 #include <array>
@@ -8,13 +8,11 @@
 #include <utility>
 #include <vector>
 
-#if SIV3D_PLATFORM(WINDOWS)
 #ifndef NOMINMAX
 #define NOMINMAX
 #endif
 #include <Windows.h>
 #include <winscard.h>
-#endif
 
 namespace xlair::infra::card {
     namespace {
@@ -28,7 +26,6 @@ namespace xlair::infra::card {
             };
         }
 
-#if SIV3D_PLATFORM(WINDOWS)
         class PcscContext {
         public:
             ~PcscContext() {
@@ -213,12 +210,9 @@ namespace xlair::infra::card {
 
             return Error(app::card::ErrorKind::Cancelled, U"Card scan cancelled.");
         }
-#endif
-
         class PcscScan final : public app::card::IScan {
         public:
             PcscScan() {
-#if SIV3D_PLATFORM(WINDOWS)
                 m_task = Async([cancelled = &m_cancelled]() {
                     try {
                         return ReadCard(*cancelled);
@@ -226,12 +220,6 @@ namespace xlair::infra::card {
                         return Error(app::card::ErrorKind::Communication, U"An unexpected card reader error occurred.");
                     }
                 });
-#else
-                m_result = Error(
-                    app::card::ErrorKind::Unavailable,
-                    U"The PC/SC card reader is currently supported only on Windows."
-                );
-#endif
             }
 
             ~PcscScan() override {
@@ -242,11 +230,9 @@ namespace xlair::infra::card {
                 if (m_result) {
                     return;
                 }
-#if SIV3D_PLATFORM(WINDOWS)
                 if (m_task.isReady()) {
                     m_result = m_task.get();
                 }
-#endif
             }
 
             void cancel() override {
@@ -254,11 +240,9 @@ namespace xlair::infra::card {
                     return;
                 }
                 m_cancelled.store(true, std::memory_order_release);
-#if SIV3D_PLATFORM(WINDOWS)
                 if (m_task.isValid()) {
                     m_task.wait();
                 }
-#endif
                 m_result = Error(app::card::ErrorKind::Cancelled, U"Card scan cancelled.");
             }
 
@@ -268,9 +252,7 @@ namespace xlair::infra::card {
 
         private:
             std::atomic_bool m_cancelled{ false };
-#if SIV3D_PLATFORM(WINDOWS)
             AsyncTask<ScanResult> m_task;
-#endif
             Optional<app::card::Result> m_result;
         };
     }
