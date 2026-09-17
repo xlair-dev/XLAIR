@@ -146,7 +146,7 @@ namespace xlair::ui::scenes {
         }
 
         jackets.update();
-        if (jackets.state() != assets::JacketRepository::State::Ready) {
+        if (jackets.state() != assets::JacketAssets::State::Ready) {
             return;
         }
 

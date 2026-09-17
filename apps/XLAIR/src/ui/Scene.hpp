@@ -2,7 +2,7 @@
 
 #include "app/Application.hpp"
 #include "app/BootFlow.hpp"
-#include "ui/assets/JacketRepository.hpp"
+#include "ui/assets/JacketAssets.hpp"
 
 #include <utility>
 
@@ -18,7 +18,7 @@ namespace xlair::ui {
 
         std::shared_ptr<app::Application> application;
         std::shared_ptr<app::BootFlow> boot_flow;
-        assets::JacketRepository jackets;
+        assets::JacketAssets jackets;
     };
 
     using SceneManager = s3d::SceneManager<SceneState, SceneData>;

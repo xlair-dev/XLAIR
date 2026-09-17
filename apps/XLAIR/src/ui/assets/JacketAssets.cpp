@@ -1,13 +1,13 @@
-#include "JacketRepository.hpp"
+#include "JacketAssets.hpp"
 
 namespace xlair::ui::assets {
-    JacketRepository::JacketRepository() : m_fallback{ Image{ 8, 8, Color{ 32, 36, 48 } }, TextureDesc::Mipped } {}
+    JacketAssets::JacketAssets() : m_fallback{ Image{ 8, 8, Color{ 32, 36, 48 } }, TextureDesc::Mipped } {}
 
-    JacketRepository::~JacketRepository() {
+    JacketAssets::~JacketAssets() {
         clear();
     }
 
-    void JacketRepository::start(const Array<sheets::Metadata>& metadata) {
+    void JacketAssets::start(const Array<sheets::Metadata>& metadata) {
         clear();
         m_entries.reserve(metadata.size());
         m_indices.reserve(metadata.size());
@@ -33,7 +33,7 @@ namespace xlair::ui::assets {
         startPendingLoads();
     }
 
-    void JacketRepository::update() {
+    void JacketAssets::update() {
         if (m_state != State::Loading) {
             return;
         }
@@ -61,7 +61,7 @@ namespace xlair::ui::assets {
         }
     }
 
-    void JacketRepository::clear() {
+    void JacketAssets::clear() {
         for (const auto& entry : m_entries) {
             if ((entry.state != EntryState::Loading && entry.state != EntryState::Loaded) ||
                 !TextureAsset::IsRegistered(entry.asset_name)) {
@@ -82,7 +82,7 @@ namespace xlair::ui::assets {
         m_state = State::Idle;
     }
 
-    Texture JacketRepository::get(const StringView music_id) const {
+    Texture JacketAssets::get(const StringView music_id) const {
         if (const auto iterator = m_indices.find(music_id); iterator != m_indices.end()) {
             const auto& entry = m_entries[iterator->second];
             if (entry.state == EntryState::Loaded && TextureAsset::IsRegistered(entry.asset_name)) {
@@ -92,31 +92,31 @@ namespace xlair::ui::assets {
         return m_fallback;
     }
 
-    JacketRepository::State JacketRepository::state() const noexcept {
+    JacketAssets::State JacketAssets::state() const noexcept {
         return m_state;
     }
 
-    std::size_t JacketRepository::completedCount() const noexcept {
+    std::size_t JacketAssets::completedCount() const noexcept {
         return m_completed_count;
     }
 
-    std::size_t JacketRepository::totalCount() const noexcept {
+    std::size_t JacketAssets::totalCount() const noexcept {
         return m_entries.size();
     }
 
-    std::size_t JacketRepository::fallbackCount() const noexcept {
+    std::size_t JacketAssets::fallbackCount() const noexcept {
         return m_fallback_count;
     }
 
-    const Array<sheets::Diagnostic>& JacketRepository::diagnostics() const noexcept {
+    const Array<sheets::Diagnostic>& JacketAssets::diagnostics() const noexcept {
         return m_diagnostics;
     }
 
-    AssetName JacketRepository::MakeAssetName(const StringView music_id) {
+    AssetName JacketAssets::MakeAssetName(const StringView music_id) {
         return AssetName{ U"XLAIR.Jacket." + music_id };
     }
 
-    void JacketRepository::startPendingLoads() {
+    void JacketAssets::startPendingLoads() {
         while (m_active_count < MaxConcurrentLoads && m_next_load_index < m_entries.size()) {
             auto& entry = m_entries[m_next_load_index++];
             if (entry.state != EntryState::Pending) {
@@ -137,7 +137,7 @@ namespace xlair::ui::assets {
         }
     }
 
-    void JacketRepository::addWarning(String message, FilePath path) {
+    void JacketAssets::addWarning(String message, FilePath path) {
         m_diagnostics.push_back(
             {
                 .severity = sheets::DiagnosticSeverity::Warning,

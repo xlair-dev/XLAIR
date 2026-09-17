@@ -6,7 +6,7 @@
 #include <SheetsAnalyzer/Result.hpp>
 
 namespace xlair::ui::assets {
-    class JacketRepository {
+    class JacketAssets {
     public:
         enum class State {
             Idle,
@@ -14,11 +14,11 @@ namespace xlair::ui::assets {
             Ready,
         };
 
-        JacketRepository();
-        ~JacketRepository();
+        JacketAssets();
+        ~JacketAssets();
 
-        JacketRepository(const JacketRepository&) = delete;
-        JacketRepository& operator=(const JacketRepository&) = delete;
+        JacketAssets(const JacketAssets&) = delete;
+        JacketAssets& operator=(const JacketAssets&) = delete;
 
         void start(const Array<sheets::Metadata>& metadata);
         void update();
