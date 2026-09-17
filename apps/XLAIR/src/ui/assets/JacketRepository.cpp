@@ -22,21 +22,15 @@ namespace xlair::ui::assets {
             m_indices.emplace(entry.music_id, index);
 
             if (entry.path.isEmpty()) {
+                entry.state = EntryState::Fallback;
                 ++m_completed_count;
                 ++m_fallback_count;
-            } else if (!TextureAsset::Register(entry.asset_name, entry.path, TextureDesc::Mipped)) {
-                addWarning(U"Failed to register the jacket image.", entry.path);
-                ++m_completed_count;
-                ++m_fallback_count;
-            } else {
-                entry.registered = true;
-                entry.loading = true;
-                TextureAsset::LoadAsync(entry.asset_name);
             }
             m_entries.push_back(std::move(entry));
         }
 
         m_state = m_completed_count == m_entries.size() ? State::Ready : State::Loading;
+        startPendingLoads();
     }
 
     void JacketRepository::update() {
@@ -45,20 +39,23 @@ namespace xlair::ui::assets {
         }
 
         for (auto& entry : m_entries) {
-            if (!entry.loading || !TextureAsset::IsReady(entry.asset_name)) {
+            if (entry.state != EntryState::Loading || !TextureAsset::IsReady(entry.asset_name)) {
                 continue;
             }
 
             if (TextureAsset{ entry.asset_name }) {
-                entry.loaded = true;
+                entry.state = EntryState::Loaded;
             } else {
                 addWarning(U"Failed to load the jacket image.", entry.path);
+                TextureAsset::Unregister(entry.asset_name);
+                entry.state = EntryState::Fallback;
                 ++m_fallback_count;
             }
-            entry.loading = false;
+            --m_active_count;
             ++m_completed_count;
         }
 
+        startPendingLoads();
         if (m_completed_count == m_entries.size()) {
             m_state = State::Ready;
         }
@@ -66,10 +63,11 @@ namespace xlair::ui::assets {
 
     void JacketRepository::clear() {
         for (const auto& entry : m_entries) {
-            if (!entry.registered || !TextureAsset::IsRegistered(entry.asset_name)) {
+            if ((entry.state != EntryState::Loading && entry.state != EntryState::Loaded) ||
+                !TextureAsset::IsRegistered(entry.asset_name)) {
                 continue;
             }
-            if (entry.loading) {
+            if (entry.state == EntryState::Loading) {
                 TextureAsset::Wait(entry.asset_name);
             }
             TextureAsset::Unregister(entry.asset_name);
@@ -79,13 +77,15 @@ namespace xlair::ui::assets {
         m_diagnostics.clear();
         m_completed_count = 0;
         m_fallback_count = 0;
+        m_active_count = 0;
+        m_next_load_index = 0;
         m_state = State::Idle;
     }
 
     Texture JacketRepository::get(const StringView music_id) const {
         if (const auto iterator = m_indices.find(music_id); iterator != m_indices.end()) {
             const auto& entry = m_entries[iterator->second];
-            if (entry.loaded && TextureAsset::IsRegistered(entry.asset_name)) {
+            if (entry.state == EntryState::Loaded && TextureAsset::IsRegistered(entry.asset_name)) {
                 return TextureAsset{ entry.asset_name };
             }
         }
@@ -114,6 +114,27 @@ namespace xlair::ui::assets {
 
     AssetName JacketRepository::MakeAssetName(const StringView music_id) {
         return AssetName{ U"XLAIR.Jacket." + music_id };
+    }
+
+    void JacketRepository::startPendingLoads() {
+        while (m_active_count < MaxConcurrentLoads && m_next_load_index < m_entries.size()) {
+            auto& entry = m_entries[m_next_load_index++];
+            if (entry.state != EntryState::Pending) {
+                continue;
+            }
+
+            if (!TextureAsset::Register(entry.asset_name, entry.path, TextureDesc::Mipped)) {
+                addWarning(U"Failed to register the jacket image.", entry.path);
+                entry.state = EntryState::Fallback;
+                ++m_completed_count;
+                ++m_fallback_count;
+                continue;
+            }
+
+            TextureAsset::LoadAsync(entry.asset_name);
+            entry.state = EntryState::Loading;
+            ++m_active_count;
+        }
     }
 
     void JacketRepository::addWarning(String message, FilePath path) {
