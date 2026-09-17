@@ -10,10 +10,12 @@ namespace xlair::app {
         std::unique_ptr<interfaces::IConfigLoader> config_loader,
         std::unique_ptr<interfaces::IMetadataLoader> metadata_loader,
         ApiClientFactory api_client_factory,
+        CardReaderFactory card_reader_factory,
         CatalogSync::LocalSyncFactory local_sync_factory
     )
         : m_application{ application }, m_config_loader{ std::move(config_loader) },
-          m_api_client_factory{ std::move(api_client_factory) }, m_catalog_sync{ std::move(local_sync_factory) },
+          m_api_client_factory{ std::move(api_client_factory) },
+          m_card_reader_factory{ std::move(card_reader_factory) }, m_catalog_sync{ std::move(local_sync_factory) },
           m_metadata_load{ std::move(metadata_loader) } {}
 
     void BootFlow::update(double delta_seconds) {
@@ -90,14 +92,23 @@ namespace xlair::app {
             return;
         }
 
-        m_application.setConfig(std::move(*result.value));
-        auto client = m_api_client_factory ? m_api_client_factory(m_application.config()->api) : nullptr;
+        auto client = m_api_client_factory ? m_api_client_factory(result.value->api) : nullptr;
         if (!client) {
             m_config_error = interfaces::ConfigLoadError{ U"Failed to initialize the API client.", U"" };
             m_state = State::Failed;
             return;
         }
+
+        auto card_reader = m_card_reader_factory ? m_card_reader_factory(result.value->card_reader) : nullptr;
+        if (!card_reader) {
+            m_config_error = interfaces::ConfigLoadError{ U"Failed to initialize the card reader.", U"" };
+            m_state = State::Failed;
+            return;
+        }
+
+        m_application.setConfig(std::move(*result.value));
         m_application.setApiClient(std::move(client));
+        m_application.setCardReader(std::move(card_reader));
         m_sync_wait_remaining = SyncWaitSeconds;
         m_state = State::WaitingForSync;
     }
