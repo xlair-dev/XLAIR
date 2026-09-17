@@ -8,11 +8,13 @@ namespace xlair::app {
     BootFlow::BootFlow(
         Application& application,
         std::unique_ptr<interfaces::IConfigLoader> config_loader,
+        std::unique_ptr<interfaces::IMetadataLoader> metadata_loader,
         ApiClientFactory api_client_factory,
         CatalogSync::LocalSyncFactory local_sync_factory
     )
         : m_application{ application }, m_config_loader{ std::move(config_loader) },
-          m_api_client_factory{ std::move(api_client_factory) }, m_catalog_sync{ std::move(local_sync_factory) } {}
+          m_api_client_factory{ std::move(api_client_factory) }, m_catalog_sync{ std::move(local_sync_factory) },
+          m_metadata_load{ std::move(metadata_loader) } {}
 
     void BootFlow::update(double delta_seconds) {
         switch (m_state) {
@@ -32,14 +34,24 @@ namespace xlair::app {
             case State::Syncing:
                 m_catalog_sync.update();
                 if (m_catalog_sync.state() == CatalogSync::State::Succeeded) {
-                    m_application.setCatalog(m_catalog_sync.takeCatalog());
-                    m_state = State::Ready;
+                    startMetadataLoad();
                 } else if (m_catalog_sync.state() == CatalogSync::State::Failed) {
                     m_state = State::SyncFailed;
                 }
                 break;
 
+            case State::LoadingMetadata:
+                m_metadata_load.update();
+                if (m_metadata_load.state() == MetadataLoad::State::Succeeded) {
+                    m_application.setMusicCatalog(m_metadata_load.takeMetadata());
+                    m_state = State::Ready;
+                } else if (m_metadata_load.state() == MetadataLoad::State::Failed) {
+                    m_state = State::MetadataFailed;
+                }
+                break;
+
             case State::SyncFailed:
+            case State::MetadataFailed:
             case State::Ready:
             case State::Failed:
                 break;
@@ -48,13 +60,19 @@ namespace xlair::app {
 
     void BootFlow::skipSync() {
         if (m_state == State::WaitingForSync) {
-            m_state = State::Ready;
+            startMetadataLoad();
         }
     }
 
     void BootFlow::retrySync() {
         if (m_state == State::SyncFailed) {
             startSync();
+        }
+    }
+
+    void BootFlow::retryMetadata() {
+        if (m_state == State::MetadataFailed) {
+            startMetadataLoad();
         }
     }
 
@@ -87,5 +105,11 @@ namespace xlair::app {
     void BootFlow::startSync() {
         m_catalog_sync.start(*m_application.apiClient(), m_application.config()->api.syncSource());
         m_state = m_catalog_sync.state() == CatalogSync::State::Failed ? State::SyncFailed : State::Syncing;
+    }
+
+    void BootFlow::startMetadataLoad() {
+        m_metadata_load.start();
+        m_state =
+            m_metadata_load.state() == MetadataLoad::State::Failed ? State::MetadataFailed : State::LoadingMetadata;
     }
 }

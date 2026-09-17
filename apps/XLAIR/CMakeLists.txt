@@ -16,6 +16,6 @@ xlair_add_siv3d_application(XLAIR
         WINDOWS EMBED "icon.ico"
 )
 
-target_link_libraries(XLAIR PRIVATE Siv3D::Siv3D XLAIR::ApiClient PicoSHA2::PicoSHA2)
+target_link_libraries(XLAIR PRIVATE Siv3D::Siv3D XLAIR::ApiClient XLAIR::SheetsAnalyzer PicoSHA2::PicoSHA2)
 
 target_include_directories(XLAIR PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/src")

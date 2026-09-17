@@ -25,11 +25,6 @@ namespace xlair::app {
         }
 
         [[nodiscard]]
-        inline Array<api::Music> takeCatalog() {
-            return std::move(m_pending_catalog);
-        }
-
-        [[nodiscard]]
         inline const Optional<api::ApiError>& error() const noexcept {
             return m_error;
         }

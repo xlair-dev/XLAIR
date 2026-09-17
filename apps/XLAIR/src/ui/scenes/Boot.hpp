@@ -12,5 +12,8 @@ namespace xlair::ui::scenes {
 
     private:
         void handleStateChange(app::BootFlow::State previous);
+        void updateJacketLoading();
+
+        bool m_jacket_loading_started = false;
     };
 }

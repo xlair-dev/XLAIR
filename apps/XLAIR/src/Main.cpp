@@ -5,6 +5,7 @@
 #include "infra/api/Factories.hpp"
 #include "infra/config/Loader.hpp"
 #include "infra/filesystem/RuntimePaths.hpp"
+#include "infra/sheets/MetadataLoader.hpp"
 #include "ui/Scene.hpp"
 
 void Main() {
@@ -14,11 +15,11 @@ void Main() {
     namespace ui = xlair::ui;
 
     const auto paths = infra::filesystem::ResolveRuntimePaths();
-    auto config_loader = std::make_unique<infra::config::Loader>(paths.config_file);
     auto application = std::make_shared<app::Application>();
     auto boot_flow = std::make_shared<app::BootFlow>(
         *application,
-        std::move(config_loader),
+        std::make_unique<infra::config::Loader>(paths.config_file),
+        std::make_unique<infra::sheets::MetadataLoader>(paths.sheets_directory),
         infra::api::CreateClient,
         infra::api::LocalCatalogSyncFactory{ paths.sheets_directory }
     );
