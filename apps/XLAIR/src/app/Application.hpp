@@ -4,6 +4,7 @@
 #include "app/config/Config.hpp"
 
 #include <ApiClient/IClient.hpp>
+#include <SheetsAnalyzer/Metadata.hpp>
 
 #include <memory>
 
@@ -17,17 +18,17 @@ namespace xlair::app {
         api::IClient* apiClient() noexcept;
 
         [[nodiscard]]
-        const Array<api::Music>& catalog() const noexcept;
+        const Array<sheets::Metadata>& musicCatalog() const noexcept;
 
     private:
         friend class BootFlow;
 
         void setConfig(Config config);
         void setApiClient(std::unique_ptr<api::IClient> client);
-        void setCatalog(Array<api::Music> catalog);
+        void setMusicCatalog(Array<sheets::Metadata> catalog);
 
         Optional<Config> m_config;
         std::unique_ptr<api::IClient> m_api_client;
-        Array<api::Music> m_catalog;
+        Array<sheets::Metadata> m_music_catalog;
     };
 }

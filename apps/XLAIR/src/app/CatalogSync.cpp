@@ -37,6 +37,7 @@ namespace xlair::app {
             if (const auto* error = std::get_if<api::ApiError>(&*result)) {
                 fail(*error);
             } else {
+                m_pending_catalog.clear();
                 m_state = State::Succeeded;
             }
             m_local_sync_request.reset();

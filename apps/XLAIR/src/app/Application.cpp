@@ -11,8 +11,8 @@ namespace xlair::app {
         return m_api_client.get();
     }
 
-    const Array<api::Music>& Application::catalog() const noexcept {
-        return m_catalog;
+    const Array<sheets::Metadata>& Application::musicCatalog() const noexcept {
+        return m_music_catalog;
     }
 
     void Application::setConfig(Config config) {
@@ -23,7 +23,7 @@ namespace xlair::app {
         m_api_client = std::move(client);
     }
 
-    void Application::setCatalog(Array<api::Music> catalog) {
-        m_catalog = std::move(catalog);
+    void Application::setMusicCatalog(Array<sheets::Metadata> catalog) {
+        m_music_catalog = std::move(catalog);
     }
 }

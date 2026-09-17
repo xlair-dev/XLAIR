@@ -5,6 +5,7 @@
 #include "infra/api/Factories.hpp"
 #include "infra/config/Loader.hpp"
 #include "infra/filesystem/RuntimePaths.hpp"
+#include "infra/sheets/MetadataLoader.hpp"
 #include "ui/Scene.hpp"
 
 void Main() {
@@ -19,6 +20,7 @@ void Main() {
     auto boot_flow = std::make_shared<app::BootFlow>(
         *application,
         std::move(config_loader),
+        std::make_unique<infra::sheets::MetadataLoader>(paths.sheets_directory),
         infra::api::CreateClient,
         infra::api::LocalCatalogSyncFactory{ paths.sheets_directory }
     );
