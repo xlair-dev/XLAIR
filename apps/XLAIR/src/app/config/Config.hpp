@@ -4,6 +4,19 @@
 
 namespace xlair::app {
     struct Config {
+        struct CardReader {
+            enum class Mode {
+                Mock,
+                Pasori,
+            };
+
+            Mode mode = Mode::Mock;
+
+            struct Mock {
+                String card_id = U"00000000";
+            } mock;
+        } card_reader;
+
         struct Api {
             enum class Mode { Http, Mock };
 
