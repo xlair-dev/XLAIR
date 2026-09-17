@@ -48,6 +48,25 @@ function(xlair_add_siv3d_application target)
         "${APP_SOURCE_DIR}/*.hpp"
     )
 
+    set(app_platform_suffix "")
+    if(WIN32)
+        set(app_platform_suffix "windows")
+    elseif(APPLE)
+        set(app_platform_suffix "macos")
+    elseif(UNIX)
+        set(app_platform_suffix "linux")
+    endif()
+
+    # Compile only the sources in the directory matching the current platform.
+    # Platform-specific files live under `platform/<platform>/`.
+    set(app_platform_source_files ${app_source_files})
+    list(FILTER app_source_files EXCLUDE REGEX "/platform/(windows|macos|linux)/")
+
+    if(app_platform_suffix)
+        list(FILTER app_platform_source_files INCLUDE REGEX "/platform/${app_platform_suffix}/")
+        list(APPEND app_source_files ${app_platform_source_files})
+    endif()
+
     if(NOT app_source_files)
         message(FATAL_ERROR
             "xlair_add_siv3d_application: no source files found in ${APP_SOURCE_DIR}")
