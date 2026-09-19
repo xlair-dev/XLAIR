@@ -1,6 +1,6 @@
 #pragma once
 
-#include "app/flows/Login.hpp"
+#include "app/flows/Title.hpp"
 #include "ui/Scene.hpp"
 
 namespace xlair::ui::scenes {
@@ -14,7 +14,6 @@ namespace xlair::ui::scenes {
     private:
         void reportState() const;
 
-        Font m_font{ 28 };
-        std::unique_ptr<app::flows::Login> m_login_flow;
+        std::unique_ptr<app::flows::Title> m_title_flow;
     };
 }

@@ -9,12 +9,17 @@
 #include "infra/filesystem/RuntimePaths.hpp"
 #include "infra/sheets/MetadataLoader.hpp"
 #include "ui/Scene.hpp"
+#include "ui/assets/Assets.hpp"
+#include "ui/localization/Localization.hpp"
 
 void Main() {
     // namespace core = xlair::core;
     namespace app = xlair::app;
     namespace infra = xlair::infra;
     namespace ui = xlair::ui;
+
+    ui::assets::Initialize();
+    ui::localization::Initialize();
 
     const auto paths = infra::filesystem::ResolveRuntimePaths();
     auto application = std::make_shared<app::Application>();

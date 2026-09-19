@@ -1,15 +1,15 @@
-#include "app/flows/Login.hpp"
+#include "app/flows/Title.hpp"
 
 #include <utility>
 
 namespace xlair::app::flows {
-    Login::Login(interfaces::ICardReader& card_reader) : m_card_reader{ card_reader } {}
+    Title::Title(interfaces::ICardReader& card_reader) : m_card_reader{ card_reader } {}
 
-    Login::~Login() {
+    Title::~Title() {
         cancel();
     }
 
-    void Login::start() {
+    void Title::start() {
         cancel();
         m_card.reset();
         m_error.reset();
@@ -28,7 +28,7 @@ namespace xlair::app::flows {
         m_state = State::WaitingForCard;
     }
 
-    void Login::update() {
+    void Title::update() {
         if (m_state != State::WaitingForCard || !m_scan) {
             return;
         }
@@ -48,7 +48,7 @@ namespace xlair::app::flows {
         m_scan.reset();
     }
 
-    void Login::cancel() {
+    void Title::cancel() {
         if (m_scan) {
             m_scan->cancel();
             m_scan.reset();
@@ -56,19 +56,19 @@ namespace xlair::app::flows {
         m_state = State::Idle;
     }
 
-    Login::State Login::state() const noexcept {
+    Title::State Title::state() const noexcept {
         return m_state;
     }
 
-    const Optional<card::Card>& Login::card() const noexcept {
+    const Optional<card::Card>& Title::card() const noexcept {
         return m_card;
     }
 
-    const Optional<card::Error>& Login::error() const noexcept {
+    const Optional<card::Error>& Title::error() const noexcept {
         return m_error;
     }
 
-    void Login::fail(card::Error error) {
+    void Title::fail(card::Error error) {
         m_error = std::move(error);
         m_state = State::Failed;
     }

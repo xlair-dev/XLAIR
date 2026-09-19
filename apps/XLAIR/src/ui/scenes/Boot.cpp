@@ -1,13 +1,18 @@
 #include "Boot.hpp"
 
+#include "ui/Design.hpp"
+
 namespace xlair::ui::scenes {
     namespace {
         constexpr auto PrimaryMaintenanceButton = app::controller::MaintenanceButton::Button1;
 
         void ApplyConfig(const app::Config& config) {
+            Window::SetTitle(U"XLAIR");
             Window::SetStyle(config.window.sizable ? WindowStyle::Sizable : WindowStyle::Fixed);
             Window::Resize(config.window.width, config.window.height);
             Window::SetFullscreen(config.window.fullscreen);
+            Scene::Resize(DesignSize);
+            Scene::SetResizeMode(ResizeMode::Keep);
             Scene::SetLetterbox(config.window.letterbox_color);
         }
 
