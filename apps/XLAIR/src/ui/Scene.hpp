@@ -1,7 +1,7 @@
 #pragma once
 
 #include "app/Application.hpp"
-#include "app/BootFlow.hpp"
+#include "app/flows/Boot.hpp"
 #include "ui/assets/JacketAssets.hpp"
 
 #include <utility>
@@ -13,11 +13,11 @@ namespace xlair::ui {
     };
 
     struct SceneData {
-        SceneData(std::shared_ptr<app::Application> application, std::shared_ptr<app::BootFlow> boot_flow)
+        SceneData(std::shared_ptr<app::Application> application, std::shared_ptr<app::flows::Boot> boot_flow)
             : application{ std::move(application) }, boot_flow{ std::move(boot_flow) } {}
 
         std::shared_ptr<app::Application> application;
-        std::shared_ptr<app::BootFlow> boot_flow;
+        std::shared_ptr<app::flows::Boot> boot_flow;
         assets::JacketAssets jackets;
     };
 
@@ -26,6 +26,6 @@ namespace xlair::ui {
 
     SceneManager CreateSceneManager(
         const std::shared_ptr<app::Application>& application,
-        const std::shared_ptr<app::BootFlow>& boot_flow
+        const std::shared_ptr<app::flows::Boot>& boot_flow
     );
 }

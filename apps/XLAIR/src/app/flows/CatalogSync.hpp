@@ -5,11 +5,17 @@
 #include <ApiClient/IClient.hpp>
 
 #include <functional>
+#include <utility>
 
-namespace xlair::app {
+namespace xlair::app::flows {
     class CatalogSync {
     public:
-        enum class State { Idle, Loading, Succeeded, Failed };
+        enum class State {
+            Idle,
+            Loading,
+            Succeeded,
+            Failed,
+        };
         using LocalSyncFactory = std::function<api::Request<bool>(api::IClient&, const Array<api::Music>&, URLView)>;
 
         explicit CatalogSync(LocalSyncFactory local_sync_factory);

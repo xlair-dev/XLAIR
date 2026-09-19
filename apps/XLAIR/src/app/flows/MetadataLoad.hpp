@@ -4,7 +4,7 @@
 
 #include <memory>
 
-namespace xlair::app {
+namespace xlair::app::flows {
     class MetadataLoad {
     public:
         enum class State {

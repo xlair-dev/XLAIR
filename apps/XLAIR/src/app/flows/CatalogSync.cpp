@@ -1,8 +1,8 @@
-#include "CatalogSync.hpp"
+#include "app/flows/CatalogSync.hpp"
 
 #include <utility>
 
-namespace xlair::app {
+namespace xlair::app::flows {
     CatalogSync::CatalogSync(LocalSyncFactory local_sync_factory)
         : m_local_sync_factory{ std::move(local_sync_factory) } {}
 

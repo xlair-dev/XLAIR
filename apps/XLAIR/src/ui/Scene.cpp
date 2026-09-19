@@ -6,7 +6,7 @@
 namespace xlair::ui {
     SceneManager CreateSceneManager(
         const std::shared_ptr<app::Application>& application,
-        const std::shared_ptr<app::BootFlow>& boot_flow
+        const std::shared_ptr<app::flows::Boot>& boot_flow
     ) {
         SceneManager scene_manager{ std::make_shared<SceneData>(application, boot_flow) };
 

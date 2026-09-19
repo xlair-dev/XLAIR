@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Application.hpp"
+#include "app/Application.hpp"
 #include "CatalogSync.hpp"
 #include "MetadataLoad.hpp"
 #include "app/interfaces/IConfigLoader.hpp"
@@ -8,8 +8,8 @@
 #include <functional>
 #include <memory>
 
-namespace xlair::app {
-    class BootFlow {
+namespace xlair::app::flows {
+    class Boot {
     public:
         enum class State {
             LoadingConfig,
@@ -24,7 +24,7 @@ namespace xlair::app {
         using ApiClientFactory = std::function<std::unique_ptr<api::IClient>(const Config::Api&)>;
         using CardReaderFactory = std::function<std::unique_ptr<interfaces::ICardReader>(const Config::CardReader&)>;
 
-        BootFlow(
+        Boot(
             Application& application,
             std::unique_ptr<interfaces::IConfigLoader> config_loader,
             std::unique_ptr<interfaces::IMetadataLoader> metadata_loader,

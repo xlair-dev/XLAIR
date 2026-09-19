@@ -9,6 +9,10 @@
 
 #include <memory>
 
+namespace xlair::app::flows {
+    class Boot;
+}
+
 namespace xlair::app {
     class Application {
     public:
@@ -25,7 +29,7 @@ namespace xlair::app {
         const Array<sheets::Metadata>& musicCatalog() const noexcept;
 
     private:
-        friend class BootFlow;
+        friend class flows::Boot;
 
         void setConfig(Config config);
         void setApiClient(std::unique_ptr<api::IClient> client);
