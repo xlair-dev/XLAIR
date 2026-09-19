@@ -14,7 +14,6 @@ namespace xlair::ui::scenes {
     private:
         void reportState() const;
 
-        Font m_font{ 28 };
         std::unique_ptr<app::flows::Login> m_login_flow;
     };
 }

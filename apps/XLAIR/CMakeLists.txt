@@ -3,6 +3,7 @@ xlair_add_siv3d_application(XLAIR
     CONFIG_FILE "${CMAKE_CURRENT_SOURCE_DIR}/config.toml"
     CONFIG_EXAMPLE_FILE "${CMAKE_CURRENT_SOURCE_DIR}/config.example.toml"
     RESOURCE_ENTRIES
+        ALL     EMBED "ui"
         ALL     EMBED "engine/font"
         MACOS   EMBED "engine/lib/soundtouch"
         WINDOWS EMBED "engine/shader/d3d11"

@@ -1,5 +1,10 @@
 #include "Title.hpp"
 
+#include "app/Version.hpp"
+#include "ui/Design.hpp"
+#include "ui/assets/Assets.hpp"
+#include "ui/theme/Palette.hpp"
+
 namespace xlair::ui::scenes {
     namespace {
         constexpr auto PrimaryMaintenanceButton = app::controller::MaintenanceButton::Button1;
@@ -18,7 +23,6 @@ namespace xlair::ui::scenes {
             controller && controller->maintenanceButton(PrimaryMaintenanceButton).down();
         if ((previous == app::flows::Login::State::CardRead || previous == app::flows::Login::State::Failed) &&
             maintenance_button_down) {
-            ClearPrint();
             m_login_flow->start();
             reportState();
             return;
@@ -31,7 +35,19 @@ namespace xlair::ui::scenes {
     }
 
     void Title::draw() const {
-        m_font(U"XLAIR").draw(40, 40, Palette::White);
+        Scene::Rect().draw(theme::Palette::White);
+
+        const Vec2 center{ DesignSize.x / 2.0, DesignSize.y / 2.0 };
+        TextureAsset{ assets::texture::Logo }.drawAt(center.x, DesignSize.y * 0.4);
+
+        const auto prompt_region = FontAsset{ assets::font::Text }(U"カードをタッチして始める")
+                                       .drawAt(32, Vec2{ center.x, 760 }, theme::Palette::Cyan)
+                                       .stretched(30);
+        RectF{ Arg::rightCenter = prompt_region.leftCenter(), 135, 2 }.draw(theme::Palette::Cyan);
+        RectF{ Arg::leftCenter = prompt_region.rightCenter(), 135, 2 }.draw(theme::Palette::Cyan);
+
+        FontAsset{ assets::font::Text }(U"XLAIR version: {}"_fmt(app::version::String))
+            .draw(15, Arg::bottomRight(DesignSize.x - 10, DesignSize.y - 5), theme::Palette::Gray);
     }
 
     void Title::reportState() const {
@@ -40,20 +56,20 @@ namespace xlair::ui::scenes {
                 break;
 
             case app::flows::Login::State::WaitingForCard:
-                Print << U"Waiting for a card...";
+                Logger << U"[Title] Waiting for a card...";
                 if (getData().application->config()->card_reader.mode == app::Config::CardReader::Mode::Mock) {
-                    Print << U"Press Space to scan the mock card.";
+                    Logger << U"[Title] Press Space to scan the mock card.";
                 }
                 break;
 
             case app::flows::Login::State::CardRead:
-                Print << U"Card ID: " + m_login_flow->card()->card_id;
-                Print << U"Press maintenance button 1 to scan again.";
+                Logger << U"[Title] Card ID: " + m_login_flow->card()->card_id;
+                Logger << U"[Title] Press maintenance button 1 to scan again.";
                 break;
 
             case app::flows::Login::State::Failed:
-                Print << U"Card reader error: " + m_login_flow->error()->message;
-                Print << U"Press maintenance button 1 to retry.";
+                Logger << U"[Title] Card reader error: " + m_login_flow->error()->message;
+                Logger << U"[Title] Press maintenance button 1 to retry.";
                 break;
         }
     }
