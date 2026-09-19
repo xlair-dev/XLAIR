@@ -55,6 +55,27 @@ namespace xlair::app {
             ColorF letterbox_color{ 0.0 };
         } window;
 
+        struct Controller {
+            enum class Mode {
+                Keyboard,
+                GroundSlider,
+                V1,
+            };
+
+            Mode mode = Mode::Keyboard;
+
+            struct GroundSlider {
+                String port;
+                int32 baud_rate = 115200;
+                uint8 touch_threshold = 1;
+            } ground_slider;
+
+            struct V1 {
+                String port;
+                int32 baud_rate = 115200;
+            } v1;
+        } controller;
+
         struct Input {
             double latency_offset_seconds = 0.0;
         } input;

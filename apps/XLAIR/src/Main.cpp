@@ -5,6 +5,7 @@
 #include "infra/api/Factories.hpp"
 #include "infra/card/Factories.hpp"
 #include "infra/config/Loader.hpp"
+#include "infra/controller/Factories.hpp"
 #include "infra/filesystem/RuntimePaths.hpp"
 #include "infra/sheets/MetadataLoader.hpp"
 #include "ui/Scene.hpp"
@@ -23,10 +24,15 @@ void Main() {
         std::make_unique<infra::sheets::MetadataLoader>(paths.sheets_directory),
         infra::api::CreateClient,
         infra::card::CreateReader,
+        infra::controller::CreateDevice,
         infra::api::LocalCatalogSyncFactory{ paths.sheets_directory }
     );
     auto scene_manager = ui::CreateSceneManager(application, boot_flow);
 
-    while (System::Update() && scene_manager.update()) {
+    while (System::Update()) {
+        application->update();
+        if (!scene_manager.update()) {
+            break;
+        }
     }
 }

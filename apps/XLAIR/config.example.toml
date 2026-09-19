@@ -13,6 +13,18 @@ letterbox_color = "#000000"
 [input]
 latency_offset_seconds = 0.0
 
+[controller]
+mode = "keyboard" # or ground_slider, v1
+
+[controller.ground_slider]
+port = "COM1"
+baud_rate = 115200
+touch_threshold = 1
+
+[controller.v1]
+port = "COM1"
+baud_rate = 115200
+
 [card_reader]
 mode = "pasori" # or mock
 
