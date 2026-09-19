@@ -20,6 +20,9 @@ target_link_libraries(XLAIR PRIVATE Siv3D::Siv3D XLAIR::ApiClient XLAIR::SheetsA
 
 if(WIN32)
     target_link_libraries(XLAIR PRIVATE Winscard)
+elseif(APPLE)
+    find_library(PCSC_FRAMEWORK PCSC REQUIRED)
+    target_link_libraries(XLAIR PRIVATE "${PCSC_FRAMEWORK}")
 endif()
 
 target_include_directories(XLAIR PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/src")
