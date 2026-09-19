@@ -12,25 +12,25 @@ namespace xlair::ui::scenes {
     }
 
     Title::Title(const InitData& init) : SceneBase{ init } {
-        m_login_flow = std::make_unique<app::flows::Login>(*getData().application->cardReader());
-        m_login_flow->start();
+        m_title_flow = std::make_unique<app::flows::Title>(*getData().application->cardReader());
+        m_title_flow->start();
         reportState();
     }
 
     void Title::update() {
-        const auto previous = m_login_flow->state();
+        const auto previous = m_title_flow->state();
         const auto* controller = getData().application->controller();
         const bool maintenance_button_down =
             controller && controller->maintenanceButton(PrimaryMaintenanceButton).down();
-        if ((previous == app::flows::Login::State::CardRead || previous == app::flows::Login::State::Failed) &&
+        if ((previous == app::flows::Title::State::CardRead || previous == app::flows::Title::State::Failed) &&
             maintenance_button_down) {
-            m_login_flow->start();
+            m_title_flow->start();
             reportState();
             return;
         }
 
-        m_login_flow->update();
-        if (m_login_flow->state() != previous) {
+        m_title_flow->update();
+        if (m_title_flow->state() != previous) {
             reportState();
         }
     }
@@ -53,24 +53,24 @@ namespace xlair::ui::scenes {
     }
 
     void Title::reportState() const {
-        switch (m_login_flow->state()) {
-            case app::flows::Login::State::Idle:
+        switch (m_title_flow->state()) {
+            case app::flows::Title::State::Idle:
                 break;
 
-            case app::flows::Login::State::WaitingForCard:
+            case app::flows::Title::State::WaitingForCard:
                 Logger << U"[Title] Waiting for a card...";
                 if (getData().application->config()->card_reader.mode == app::Config::CardReader::Mode::Mock) {
                     Logger << U"[Title] Press Space to scan the mock card.";
                 }
                 break;
 
-            case app::flows::Login::State::CardRead:
-                Logger << U"[Title] Card ID: " + m_login_flow->card()->card_id;
+            case app::flows::Title::State::CardRead:
+                Logger << U"[Title] Card ID: " + m_title_flow->card()->card_id;
                 Logger << U"[Title] Press maintenance button 1 to scan again.";
                 break;
 
-            case app::flows::Login::State::Failed:
-                Logger << U"[Title] Card reader error: " + m_login_flow->error()->message;
+            case app::flows::Title::State::Failed:
+                Logger << U"[Title] Card reader error: " + m_title_flow->error()->message;
                 Logger << U"[Title] Press maintenance button 1 to retry.";
                 break;
         }

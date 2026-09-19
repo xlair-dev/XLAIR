@@ -3,7 +3,7 @@
 #include "app/interfaces/ICardReader.hpp"
 
 namespace xlair::app::flows {
-    class Login {
+    class Title {
     public:
         enum class State {
             Idle,
@@ -12,11 +12,11 @@ namespace xlair::app::flows {
             Failed,
         };
 
-        explicit Login(interfaces::ICardReader& card_reader);
-        ~Login();
+        explicit Title(interfaces::ICardReader& card_reader);
+        ~Title();
 
-        Login(const Login&) = delete;
-        Login& operator=(const Login&) = delete;
+        Title(const Title&) = delete;
+        Title& operator=(const Title&) = delete;
 
         void start();
         void update();
