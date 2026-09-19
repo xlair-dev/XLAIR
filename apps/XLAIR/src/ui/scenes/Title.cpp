@@ -12,6 +12,7 @@ namespace xlair::ui::scenes {
     }
 
     Title::Title(const InitData& init) : SceneBase{ init } {
+        getData().scanned_card.reset();
         m_title_flow = std::make_unique<app::flows::Title>(*getData().application->cardReader());
         m_title_flow->start();
         reportState();
@@ -32,6 +33,10 @@ namespace xlair::ui::scenes {
         m_title_flow->update();
         if (m_title_flow->state() != previous) {
             reportState();
+            if (m_title_flow->state() == app::flows::Title::State::CardRead) {
+                getData().scanned_card = *m_title_flow->card();
+                changeScene(SceneState::Login, 0);
+            }
         }
     }
 

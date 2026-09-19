@@ -1,6 +1,7 @@
 #pragma once
 
 #include "app/Application.hpp"
+#include "app/card/Types.hpp"
 #include "app/flows/Boot.hpp"
 #include "ui/assets/JacketAssets.hpp"
 
@@ -19,6 +20,7 @@ namespace xlair::ui {
 
         std::shared_ptr<app::Application> application;
         std::shared_ptr<app::flows::Boot> boot_flow;
+        Optional<app::card::Card> scanned_card;
         assets::JacketAssets jackets;
     };
 
