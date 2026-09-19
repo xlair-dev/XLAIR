@@ -1,5 +1,6 @@
 #include "Factories.hpp"
 
+#include "GroundSlider.hpp"
 #include "Keyboard.hpp"
 
 namespace xlair::infra::controller {
@@ -7,8 +8,10 @@ namespace xlair::infra::controller {
         if (config.mode == app::Config::Controller::Mode::Keyboard) {
             return std::make_unique<Keyboard>();
         }
-
-        // GroundSlider support will be added with its serial protocol implementation.
-        return nullptr;
+        return std::make_unique<GroundSlider>(
+            config.ground_slider.port,
+            config.ground_slider.baud_rate,
+            config.ground_slider.touch_threshold
+        );
     }
 }
