@@ -13,6 +13,12 @@ letterbox_color = "#000000"
 [input]
 latency_offset_seconds = 0.0
 
+[card_reader]
+mode = "pasori" # or mock
+
+[card_reader.mock]
+card_id = "00000000"
+
 [api]
 mode = "http"
 endpoint = "https://api.xlair.dev"

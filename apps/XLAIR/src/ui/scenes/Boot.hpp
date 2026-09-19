@@ -11,7 +11,7 @@ namespace xlair::ui::scenes {
         void draw() const override;
 
     private:
-        void handleStateChange(app::BootFlow::State previous);
+        void handleStateChange(app::flows::Boot::State previous);
         void updateJacketLoading();
 
         bool m_jacket_loading_started = false;

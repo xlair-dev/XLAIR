@@ -11,6 +11,10 @@ namespace xlair::app {
         return m_api_client.get();
     }
 
+    interfaces::ICardReader* Application::cardReader() noexcept {
+        return m_card_reader.get();
+    }
+
     const Array<sheets::Metadata>& Application::musicCatalog() const noexcept {
         return m_music_catalog;
     }
@@ -21,6 +25,10 @@ namespace xlair::app {
 
     void Application::setApiClient(std::unique_ptr<api::IClient> client) {
         m_api_client = std::move(client);
+    }
+
+    void Application::setCardReader(std::unique_ptr<interfaces::ICardReader> reader) {
+        m_card_reader = std::move(reader);
     }
 
     void Application::setMusicCatalog(Array<sheets::Metadata> catalog) {

@@ -78,6 +78,7 @@ namespace xlair::infra::config {
 
         ConfigReader reader{ toml };
         app::Config config;
+        String card_reader_mode = U"mock";
         String api_mode = U"http";
 
         // reflection 使いたい
@@ -94,6 +95,9 @@ namespace xlair::infra::config {
             .read(U"window.letterbox_color", config.window.letterbox_color)
             // input
             .read(U"input.latency_offset_seconds", config.input.latency_offset_seconds)
+            // card reader
+            .read(U"card_reader.mode", card_reader_mode)
+            .read(U"card_reader.mock.card_id", config.card_reader.mock.card_id)
             // api
             .read(U"api.mode", api_mode)
             .read(U"api.endpoint", config.api.endpoint)
@@ -119,6 +123,17 @@ namespace xlair::infra::config {
         }
         if (!std::isfinite(config.input.latency_offset_seconds)) {
             return MakeError(U"Config value 'input.latency_offset_seconds' must be finite.", m_path);
+        }
+
+        if (card_reader_mode == U"mock") {
+            config.card_reader.mode = app::Config::CardReader::Mode::Mock;
+            if (config.card_reader.mock.card_id.isEmpty()) {
+                return MakeError(U"Config value 'card_reader.mock.card_id' is required in mock mode.", m_path);
+            }
+        } else if (card_reader_mode == U"pasori") {
+            config.card_reader.mode = app::Config::CardReader::Mode::Pasori;
+        } else {
+            return MakeError(U"Config value 'card_reader.mode' must be 'mock' or 'pasori'.", m_path);
         }
 
         if (api_mode == U"http") {

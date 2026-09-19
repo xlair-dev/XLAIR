@@ -1,8 +1,8 @@
-#include "MetadataLoad.hpp"
+#include "app/flows/MetadataLoad.hpp"
 
 #include <utility>
 
-namespace xlair::app {
+namespace xlair::app::flows {
     namespace {
         void
         ValidateMetadata(const s3d::Array<sheets::Metadata>& metadata, s3d::Array<sheets::Diagnostic>& diagnostics) {

@@ -34,11 +34,11 @@ namespace xlair::ui::scenes {
         auto& flow = *getData().boot_flow;
         const auto previous = flow.state();
 
-        if (previous == app::BootFlow::State::WaitingForSync && KeyN.down()) {
+        if (previous == app::flows::Boot::State::WaitingForSync && KeyN.down()) {
             flow.skipSync();
-        } else if (previous == app::BootFlow::State::SyncFailed && KeyR.down()) {
+        } else if (previous == app::flows::Boot::State::SyncFailed && KeyR.down()) {
             flow.retrySync();
-        } else if (previous == app::BootFlow::State::MetadataFailed && KeyR.down()) {
+        } else if (previous == app::flows::Boot::State::MetadataFailed && KeyR.down()) {
             flow.retryMetadata();
         } else {
             flow.update(Scene::DeltaTime());
@@ -47,7 +47,7 @@ namespace xlair::ui::scenes {
         if (flow.state() != previous) {
             handleStateChange(previous);
         }
-        if (flow.state() == app::BootFlow::State::Ready) {
+        if (flow.state() == app::flows::Boot::State::Ready) {
             updateJacketLoading();
         }
     }
@@ -56,28 +56,28 @@ namespace xlair::ui::scenes {
         Scene::Rect().draw(Palette::Black);
     }
 
-    void Boot::handleStateChange(const app::BootFlow::State previous) {
+    void Boot::handleStateChange(const app::flows::Boot::State previous) {
         const auto& data = getData();
         switch (data.boot_flow->state()) {
-            case app::BootFlow::State::LoadingConfig:
+            case app::flows::Boot::State::LoadingConfig:
                 break;
 
-            case app::BootFlow::State::WaitingForSync:
+            case app::flows::Boot::State::WaitingForSync:
                 ApplyConfig(*data.application->config());
                 ReportBoot(U"[Boot] Config loaded.");
                 ReportBoot(U"[Boot] API client initialized.");
                 ReportBoot(U"[Boot] Sync starts in 10 seconds. Press N to skip.");
                 break;
 
-            case app::BootFlow::State::Syncing: {
-                const String message = previous == app::BootFlow::State::SyncFailed
+            case app::flows::Boot::State::Syncing: {
+                const String message = previous == app::flows::Boot::State::SyncFailed
                                            ? U"[Boot] Retrying catalog sync..."
                                            : U"[Boot] Authenticating device and syncing catalog...";
                 ReportBoot(message);
                 break;
             }
 
-            case app::BootFlow::State::SyncFailed: {
+            case app::flows::Boot::State::SyncFailed: {
                 String message = U"[Boot] Catalog sync failed.";
                 if (const auto& error = data.boot_flow->syncError()) {
                     message += U"\n" + error->message;
@@ -89,10 +89,10 @@ namespace xlair::ui::scenes {
                 break;
             }
 
-            case app::BootFlow::State::LoadingMetadata:
-                if (previous == app::BootFlow::State::WaitingForSync) {
+            case app::flows::Boot::State::LoadingMetadata:
+                if (previous == app::flows::Boot::State::WaitingForSync) {
                     ReportBoot(U"[Boot] Catalog sync skipped.");
-                } else if (previous == app::BootFlow::State::MetadataFailed) {
+                } else if (previous == app::flows::Boot::State::MetadataFailed) {
                     ReportBoot(U"[Boot] Retrying sheet metadata load...");
                 } else {
                     ReportBoot(U"[Boot] Catalog synced.");
@@ -100,7 +100,7 @@ namespace xlair::ui::scenes {
                 ReportBoot(U"[Boot] Loading sheet metadata...");
                 break;
 
-            case app::BootFlow::State::MetadataFailed: {
+            case app::flows::Boot::State::MetadataFailed: {
                 const auto& diagnostics = data.boot_flow->metadataDiagnostics();
                 String message = U"[Boot] Failed to load sheet metadata.";
                 if (!diagnostics.isEmpty()) {
@@ -113,7 +113,7 @@ namespace xlair::ui::scenes {
                 break;
             }
 
-            case app::BootFlow::State::Ready: {
+            case app::flows::Boot::State::Ready: {
                 const auto& catalog = data.application->musicCatalog();
                 std::size_t difficulty_count = 0;
                 for (const auto& music : catalog) {
@@ -125,7 +125,7 @@ namespace xlair::ui::scenes {
                 break;
             }
 
-            case app::BootFlow::State::Failed: {
+            case app::flows::Boot::State::Failed: {
                 const auto& error = data.boot_flow->configError();
                 ReportBoot(
                     U"[Boot] " + (error ? U"Failed to initialize.\n{}\n{}"_fmt(error->message, error->path)
