@@ -3,7 +3,7 @@
 #include <utility>
 
 namespace xlair::app::flows {
-    Login::Login(Application& application) : m_application{ application } {}
+    Login::Login(interfaces::ICardReader& card_reader) : m_card_reader{ card_reader } {}
 
     Login::~Login() {
         cancel();
@@ -14,18 +14,7 @@ namespace xlair::app::flows {
         m_card.reset();
         m_error.reset();
 
-        auto* reader = m_application.cardReader();
-        if (!reader) {
-            fail(
-                {
-                    .kind = card::ErrorKind::Unavailable,
-                    .message = U"A card reader is not available.",
-                }
-            );
-            return;
-        }
-
-        m_scan = reader->scan();
+        m_scan = m_card_reader.scan();
         if (!m_scan) {
             fail(
                 {

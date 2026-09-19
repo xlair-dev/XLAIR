@@ -1,6 +1,6 @@
 #pragma once
 
-#include "app/Application.hpp"
+#include "app/interfaces/ICardReader.hpp"
 
 namespace xlair::app::flows {
     class Login {
@@ -12,7 +12,7 @@ namespace xlair::app::flows {
             Failed,
         };
 
-        explicit Login(Application& application);
+        explicit Login(interfaces::ICardReader& card_reader);
         ~Login();
 
         Login(const Login&) = delete;
@@ -34,7 +34,7 @@ namespace xlair::app::flows {
     private:
         void fail(card::Error error);
 
-        Application& m_application;
+        interfaces::ICardReader& m_card_reader;
         card::ScanRequest m_scan;
         Optional<card::Card> m_card;
         Optional<card::Error> m_error;

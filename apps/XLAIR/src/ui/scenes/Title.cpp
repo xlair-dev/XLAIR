@@ -2,7 +2,7 @@
 
 namespace xlair::ui::scenes {
     Title::Title(const InitData& init) : SceneBase{ init } {
-        m_login_flow = std::make_unique<app::flows::Login>(*getData().application);
+        m_login_flow = std::make_unique<app::flows::Login>(*getData().application->cardReader());
         m_login_flow->start();
         reportState();
     }
