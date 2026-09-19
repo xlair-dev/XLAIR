@@ -2,6 +2,8 @@
 
 namespace xlair::ui::scenes {
     namespace {
+        constexpr auto PrimaryMaintenanceButton = app::controller::MaintenanceButton::Button1;
+
         void ApplyConfig(const app::Config& config) {
             Window::SetStyle(config.window.sizable ? WindowStyle::Sizable : WindowStyle::Fixed);
             Window::Resize(config.window.width, config.window.height);
@@ -31,14 +33,18 @@ namespace xlair::ui::scenes {
     }
 
     void Boot::update() {
-        auto& flow = *getData().boot_flow;
+        auto& data = getData();
+        auto& flow = *data.boot_flow;
         const auto previous = flow.state();
+        const auto* controller = data.application->controller();
+        const bool maintenance_button_down =
+            controller && controller->maintenanceButton(PrimaryMaintenanceButton).down();
 
-        if (previous == app::flows::Boot::State::WaitingForSync && KeyN.down()) {
+        if (previous == app::flows::Boot::State::WaitingForSync && maintenance_button_down) {
             flow.skipSync();
-        } else if (previous == app::flows::Boot::State::SyncFailed && KeyR.down()) {
+        } else if (previous == app::flows::Boot::State::SyncFailed && maintenance_button_down) {
             flow.retrySync();
-        } else if (previous == app::flows::Boot::State::MetadataFailed && KeyR.down()) {
+        } else if (previous == app::flows::Boot::State::MetadataFailed && maintenance_button_down) {
             flow.retryMetadata();
         } else {
             flow.update(Scene::DeltaTime());
@@ -67,7 +73,7 @@ namespace xlair::ui::scenes {
                 ReportBoot(U"[Boot] Config loaded.");
                 ReportBoot(U"[Boot] API client initialized.");
                 ReportBoot(U"[Boot] Controller initialized.");
-                ReportBoot(U"[Boot] Sync starts in 10 seconds. Press N to skip.");
+                ReportBoot(U"[Boot] Sync starts in 10 seconds. Press maintenance button 1 to skip.");
                 break;
 
             case app::flows::Boot::State::Syncing: {
@@ -86,7 +92,7 @@ namespace xlair::ui::scenes {
                         message += U"\nHTTP {}"_fmt(*error->status_code);
                     }
                 }
-                ReportBoot(message + U"\nPress R to retry.");
+                ReportBoot(message + U"\nPress maintenance button 1 to retry.");
                 break;
             }
 
@@ -107,7 +113,7 @@ namespace xlair::ui::scenes {
                 if (!diagnostics.isEmpty()) {
                     message += U"\n" + FormatDiagnostic(diagnostics.front());
                 }
-                ReportBoot(message + U"\nPress R to retry.");
+                ReportBoot(message + U"\nPress maintenance button 1 to retry.");
                 for (const auto& diagnostic : diagnostics) {
                     Logger << U"[SheetsAnalyzer] " + FormatDiagnostic(diagnostic);
                 }

@@ -1,6 +1,10 @@
 #include "Title.hpp"
 
 namespace xlair::ui::scenes {
+    namespace {
+        constexpr auto PrimaryMaintenanceButton = app::controller::MaintenanceButton::Button1;
+    }
+
     Title::Title(const InitData& init) : SceneBase{ init } {
         m_login_flow = std::make_unique<app::flows::Login>(*getData().application->cardReader());
         m_login_flow->start();
@@ -9,8 +13,11 @@ namespace xlair::ui::scenes {
 
     void Title::update() {
         const auto previous = m_login_flow->state();
+        const auto* controller = getData().application->controller();
+        const bool maintenance_button_down =
+            controller && controller->maintenanceButton(PrimaryMaintenanceButton).down();
         if ((previous == app::flows::Login::State::CardRead || previous == app::flows::Login::State::Failed) &&
-            KeyR.down()) {
+            maintenance_button_down) {
             ClearPrint();
             m_login_flow->start();
             reportState();
@@ -41,12 +48,12 @@ namespace xlair::ui::scenes {
 
             case app::flows::Login::State::CardRead:
                 Print << U"Card ID: " + m_login_flow->card()->card_id;
-                Print << U"Press R to scan again.";
+                Print << U"Press maintenance button 1 to scan again.";
                 break;
 
             case app::flows::Login::State::Failed:
                 Print << U"Card reader error: " + m_login_flow->error()->message;
-                Print << U"Press R to retry.";
+                Print << U"Press maintenance button 1 to retry.";
                 break;
         }
     }
