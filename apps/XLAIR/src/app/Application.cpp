@@ -3,6 +3,17 @@
 #include <utility>
 
 namespace xlair::app {
+    void Application::update() {
+        if (!m_controller || m_controller_error) {
+            return;
+        }
+
+        auto result = m_controller->update();
+        if (!result && result.error) {
+            m_controller_error = std::move(*result.error);
+        }
+    }
+
     const Optional<Config>& Application::config() const noexcept {
         return m_config;
     }
@@ -13,6 +24,14 @@ namespace xlair::app {
 
     interfaces::ICardReader* Application::cardReader() noexcept {
         return m_card_reader.get();
+    }
+
+    app::controller::Controller* Application::controller() noexcept {
+        return m_controller.get();
+    }
+
+    const Optional<app::controller::Error>& Application::controllerError() const noexcept {
+        return m_controller_error;
     }
 
     const Array<sheets::Metadata>& Application::musicCatalog() const noexcept {
@@ -29,6 +48,11 @@ namespace xlair::app {
 
     void Application::setCardReader(std::unique_ptr<interfaces::ICardReader> reader) {
         m_card_reader = std::move(reader);
+    }
+
+    void Application::setController(std::unique_ptr<app::controller::Controller> controller) {
+        m_controller = std::move(controller);
+        m_controller_error.reset();
     }
 
     void Application::setMusicCatalog(Array<sheets::Metadata> catalog) {

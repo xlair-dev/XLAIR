@@ -66,6 +66,7 @@ namespace xlair::ui::scenes {
                 ApplyConfig(*data.application->config());
                 ReportBoot(U"[Boot] Config loaded.");
                 ReportBoot(U"[Boot] API client initialized.");
+                ReportBoot(U"[Boot] Controller initialized.");
                 ReportBoot(U"[Boot] Sync starts in 10 seconds. Press N to skip.");
                 break;
 

@@ -11,12 +11,14 @@ namespace xlair::app::flows {
         std::unique_ptr<interfaces::IMetadataLoader> metadata_loader,
         ApiClientFactory api_client_factory,
         CardReaderFactory card_reader_factory,
+        ControllerDeviceFactory controller_device_factory,
         CatalogSync::LocalSyncFactory local_sync_factory
     )
         : m_application{ application }, m_config_loader{ std::move(config_loader) },
           m_api_client_factory{ std::move(api_client_factory) },
-          m_card_reader_factory{ std::move(card_reader_factory) }, m_catalog_sync{ std::move(local_sync_factory) },
-          m_metadata_load{ std::move(metadata_loader) } {}
+          m_card_reader_factory{ std::move(card_reader_factory) },
+          m_controller_device_factory{ std::move(controller_device_factory) },
+          m_catalog_sync{ std::move(local_sync_factory) }, m_metadata_load{ std::move(metadata_loader) } {}
 
     void Boot::update(double delta_seconds) {
         switch (m_state) {
@@ -106,9 +108,29 @@ namespace xlair::app::flows {
             return;
         }
 
+        auto controller_device =
+            m_controller_device_factory ? m_controller_device_factory(result.value->controller) : nullptr;
+        if (!controller_device) {
+            m_config_error = interfaces::ConfigLoadError{ U"Failed to create the configured controller device.", U"" };
+            m_state = State::Failed;
+            return;
+        }
+
+        auto controller = std::make_unique<app::controller::Controller>(std::move(controller_device));
+        const auto controller_result = controller->initialize();
+        if (!controller_result) {
+            m_config_error = interfaces::ConfigLoadError{
+                controller_result.error ? controller_result.error->message : U"Failed to initialize the controller.",
+                U"",
+            };
+            m_state = State::Failed;
+            return;
+        }
+
         m_application.setConfig(std::move(*result.value));
         m_application.setApiClient(std::move(client));
         m_application.setCardReader(std::move(card_reader));
+        m_application.setController(std::move(controller));
         m_sync_wait_remaining = SyncWaitSeconds;
         m_state = State::WaitingForSync;
     }
