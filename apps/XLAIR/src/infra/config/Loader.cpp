@@ -78,6 +78,7 @@ namespace xlair::infra::config {
 
         ConfigReader reader{ toml };
         app::Config config;
+        String controller_mode = U"keyboard";
         String card_reader_mode = U"mock";
         String api_mode = U"http";
 
@@ -93,6 +94,11 @@ namespace xlair::infra::config {
             .read(U"window.sizable", config.window.sizable)
             .read(U"window.fullscreen", config.window.fullscreen)
             .read(U"window.letterbox_color", config.window.letterbox_color)
+            // controller
+            .read(U"controller.mode", controller_mode)
+            .read(U"controller.ground_slider.port", config.controller.ground_slider.port)
+            .read(U"controller.ground_slider.baud_rate", config.controller.ground_slider.baud_rate)
+            .read(U"controller.ground_slider.touch_threshold", config.controller.ground_slider.touch_threshold)
             // input
             .read(U"input.latency_offset_seconds", config.input.latency_offset_seconds)
             // card reader
@@ -121,6 +127,27 @@ namespace xlair::infra::config {
         if (config.window.width <= 0 || config.window.height <= 0) {
             return MakeError(U"Config values 'window.width' and 'window.height' must be positive.", m_path);
         }
+
+        if (controller_mode == U"keyboard") {
+            config.controller.mode = app::Config::Controller::Mode::Keyboard;
+        } else if (controller_mode == U"ground_slider") {
+            config.controller.mode = app::Config::Controller::Mode::GroundSlider;
+            if (config.controller.ground_slider.port.isEmpty()) {
+                return MakeError(
+                    U"Config value 'controller.ground_slider.port' is required in ground_slider mode.",
+                    m_path
+                );
+            }
+            if (config.controller.ground_slider.baud_rate <= 0) {
+                return MakeError(U"Config value 'controller.ground_slider.baud_rate' must be positive.", m_path);
+            }
+            if (config.controller.ground_slider.touch_threshold == 0) {
+                return MakeError(U"Config value 'controller.ground_slider.touch_threshold' must be positive.", m_path);
+            }
+        } else {
+            return MakeError(U"Config value 'controller.mode' must be 'keyboard' or 'ground_slider'.", m_path);
+        }
+
         if (!std::isfinite(config.input.latency_offset_seconds)) {
             return MakeError(U"Config value 'input.latency_offset_seconds' must be finite.", m_path);
         }
