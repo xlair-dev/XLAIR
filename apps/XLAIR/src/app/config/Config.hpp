@@ -59,6 +59,7 @@ namespace xlair::app {
             enum class Mode {
                 Keyboard,
                 GroundSlider,
+                V1,
             };
 
             Mode mode = Mode::Keyboard;
@@ -68,6 +69,11 @@ namespace xlair::app {
                 int32 baud_rate = 115200;
                 uint8 touch_threshold = 1;
             } ground_slider;
+
+            struct V1 {
+                String port;
+                int32 baud_rate = 115200;
+            } v1;
         } controller;
 
         struct Input {

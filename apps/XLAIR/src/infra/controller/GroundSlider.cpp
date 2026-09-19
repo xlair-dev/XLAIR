@@ -5,7 +5,6 @@
 
 #include <algorithm>
 #include <span>
-#include <utility>
 
 namespace xlair::infra::controller {
     namespace {
@@ -28,13 +27,6 @@ namespace xlair::infra::controller {
             return static_cast<uint8>((~sum + 1) & 0xFF);
         }
 
-        [[nodiscard]]
-        app::controller::OperationResult MakeError(const app::controller::ErrorKind kind, String message) {
-            return app::controller::OperationResult{ app::controller::Error{
-                .kind = kind,
-                .message = std::move(message),
-            } };
-        }
     }
 
     GroundSlider::GroundSlider(const StringView port, const int32 baud_rate, const uint8 touch_threshold)
@@ -51,7 +43,7 @@ namespace xlair::infra::controller {
         m_lights_sent = false;
 
         if (!m_serial.open(m_port, m_baud_rate)) {
-            return MakeError(
+            return app::controller::OperationResult::makeError(
                 app::controller::ErrorKind::Connection,
                 U"Failed to open the GroundSlider serial port '{}'."_fmt(m_port)
             );
@@ -60,13 +52,16 @@ namespace xlair::infra::controller {
         if (!sendRawCommand({ 0xFF, ResetCommand, 0x00 }) || !consumeUntilOnePacket(InitializationTimeoutMs) ||
             m_last_packet.command != ResetCommand || !m_last_packet.payload.isEmpty()) {
             close();
-            return MakeError(app::controller::ErrorKind::Communication, U"GroundSlider did not acknowledge reset.");
+            return app::controller::OperationResult::makeError(
+                app::controller::ErrorKind::Communication,
+                U"GroundSlider did not acknowledge reset."
+            );
         }
 
         if (!sendRawCommand({ 0xFF, HardwareInfoCommand, 0x00 }) || !consumeUntilOnePacket(InitializationTimeoutMs) ||
             m_last_packet.command != HardwareInfoCommand || m_last_packet.payload.size() < 18) {
             close();
-            return MakeError(
+            return app::controller::OperationResult::makeError(
                 app::controller::ErrorKind::Communication,
                 U"GroundSlider returned invalid hardware information."
             );
@@ -74,7 +69,10 @@ namespace xlair::infra::controller {
 
         if (!startInput()) {
             close();
-            return MakeError(app::controller::ErrorKind::Communication, U"Failed to start GroundSlider input.");
+            return app::controller::OperationResult::makeError(
+                app::controller::ErrorKind::Communication,
+                U"Failed to start GroundSlider input."
+            );
         }
 
         auto keyboard_result = m_keyboard.initialize();
@@ -89,7 +87,10 @@ namespace xlair::infra::controller {
 
     app::controller::OperationResult GroundSlider::update() {
         if (!m_initialized || !m_serial.isOpen()) {
-            return MakeError(app::controller::ErrorKind::Connection, U"GroundSlider is not connected.");
+            return app::controller::OperationResult::makeError(
+                app::controller::ErrorKind::Connection,
+                U"GroundSlider is not connected."
+            );
         }
 
         auto keyboard_result = m_keyboard.update();
@@ -121,7 +122,10 @@ namespace xlair::infra::controller {
 
             // Keep the lights active. GroundSlider may turn them off when updates stop.
             if (m_lights_sent && !sendLights(m_slider_lights)) {
-                return MakeError(app::controller::ErrorKind::Communication, U"Failed to refresh GroundSlider lights.");
+                return app::controller::OperationResult::makeError(
+                    app::controller::ErrorKind::Communication,
+                    U"Failed to refresh GroundSlider lights."
+                );
             }
         }
 
@@ -130,14 +134,20 @@ namespace xlair::infra::controller {
 
     app::controller::OperationResult GroundSlider::setLights(const app::controller::LightFrame& lights) {
         if (!m_initialized || !m_serial.isOpen()) {
-            return MakeError(app::controller::ErrorKind::Connection, U"GroundSlider is not connected.");
+            return app::controller::OperationResult::makeError(
+                app::controller::ErrorKind::Connection,
+                U"GroundSlider is not connected."
+            );
         }
 
         if (m_lights_sent && m_slider_lights == lights.slider) {
             return {};
         }
         if (!sendLights(lights.slider)) {
-            return MakeError(app::controller::ErrorKind::Communication, U"Failed to send GroundSlider lights.");
+            return app::controller::OperationResult::makeError(
+                app::controller::ErrorKind::Communication,
+                U"Failed to send GroundSlider lights."
+            );
         }
 
         m_slider_lights = lights.slider;
@@ -235,8 +245,10 @@ namespace xlair::infra::controller {
             }
 
             m_last_packet.command = m_receive_buffer[1];
-            m_last_packet.payload =
-                Array<uint8>{ m_receive_buffer.begin() + 3, m_receive_buffer.begin() + 3 + payload_size };
+            m_last_packet.payload = Array<uint8>{
+                m_receive_buffer.begin() + 3,
+                m_receive_buffer.begin() + 3 + payload_size,
+            };
             m_receive_buffer.erase(m_receive_buffer.begin(), m_receive_buffer.begin() + packet_size);
             return true;
         }

@@ -90,6 +90,16 @@ namespace xlair::app::controller {
         explicit OperationResult(Error operation_error) : error{ std::move(operation_error) } {}
 
         [[nodiscard]]
+        static OperationResult makeError(const ErrorKind kind, String message) {
+            return OperationResult{
+                Error{
+                    .kind = kind,
+                    .message = std::move(message),
+                },
+            };
+        }
+
+        [[nodiscard]]
         explicit operator bool() const noexcept {
             return !error.has_value();
         }

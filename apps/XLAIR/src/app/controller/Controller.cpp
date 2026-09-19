@@ -13,10 +13,7 @@ namespace xlair::app::controller {
         m_initialized = false;
 
         if (!m_device) {
-            return OperationResult{ Error{
-                .kind = ErrorKind::Unavailable,
-                .message = U"A controller device is not available.",
-            } };
+            return OperationResult::makeError(ErrorKind::Unavailable, U"A controller device is not available.");
         }
 
         auto result = m_device->initialize();
@@ -30,12 +27,7 @@ namespace xlair::app::controller {
 
     OperationResult Controller::update() {
         if (!m_initialized) {
-            return OperationResult{
-                Error{
-                    .kind = ErrorKind::Unavailable,
-                    .message = U"The controller has not been initialized.",
-                },
-            };
+            return OperationResult::makeError(ErrorKind::Unavailable, U"The controller has not been initialized.");
         }
 
         auto result = m_device->update();
@@ -63,12 +55,7 @@ namespace xlair::app::controller {
 
     OperationResult Controller::setLights(const LightFrame& lights) {
         if (!m_initialized) {
-            return OperationResult{
-                Error{
-                    .kind = ErrorKind::Unavailable,
-                    .message = U"The controller has not been initialized.",
-                },
-            };
+            return OperationResult::makeError(ErrorKind::Unavailable, U"The controller has not been initialized.");
         }
 
         auto result = m_device->setLights(lights);

@@ -99,6 +99,8 @@ namespace xlair::infra::config {
             .read(U"controller.ground_slider.port", config.controller.ground_slider.port)
             .read(U"controller.ground_slider.baud_rate", config.controller.ground_slider.baud_rate)
             .read(U"controller.ground_slider.touch_threshold", config.controller.ground_slider.touch_threshold)
+            .read(U"controller.v1.port", config.controller.v1.port)
+            .read(U"controller.v1.baud_rate", config.controller.v1.baud_rate)
             // input
             .read(U"input.latency_offset_seconds", config.input.latency_offset_seconds)
             // card reader
@@ -144,8 +146,16 @@ namespace xlair::infra::config {
             if (config.controller.ground_slider.touch_threshold == 0) {
                 return MakeError(U"Config value 'controller.ground_slider.touch_threshold' must be positive.", m_path);
             }
+        } else if (controller_mode == U"v1") {
+            config.controller.mode = app::Config::Controller::Mode::V1;
+            if (config.controller.v1.port.isEmpty()) {
+                return MakeError(U"Config value 'controller.v1.port' is required in v1 mode.", m_path);
+            }
+            if (config.controller.v1.baud_rate <= 0) {
+                return MakeError(U"Config value 'controller.v1.baud_rate' must be positive.", m_path);
+            }
         } else {
-            return MakeError(U"Config value 'controller.mode' must be 'keyboard' or 'ground_slider'.", m_path);
+            return MakeError(U"Config value 'controller.mode' must be 'keyboard', 'ground_slider', or 'v1'.", m_path);
         }
 
         if (!std::isfinite(config.input.latency_offset_seconds)) {
