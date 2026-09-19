@@ -10,6 +10,7 @@ namespace xlair::ui {
     enum class SceneState {
         Boot,
         Title,
+        Login,
     };
 
     struct SceneData {
