@@ -3,6 +3,7 @@
 #include "app/Version.hpp"
 #include "ui/Design.hpp"
 #include "ui/assets/Assets.hpp"
+#include "ui/localization/Localization.hpp"
 #include "ui/theme/Palette.hpp"
 
 namespace xlair::ui::scenes {
@@ -40,9 +41,10 @@ namespace xlair::ui::scenes {
         const Vec2 center{ DesignSize.x / 2.0, DesignSize.y / 2.0 };
         TextureAsset{ assets::texture::Logo }.drawAt(center.x, DesignSize.y * 0.4);
 
-        const auto prompt_region = FontAsset{ assets::font::Text }(U"カードをタッチして始める")
-                                       .drawAt(32, Vec2{ center.x, 760 }, theme::Palette::Cyan)
-                                       .stretched(30);
+        const auto prompt_region =
+            FontAsset{ assets::font::Text }(localization::GetText(localization::TextId::TitleTouchToStart))
+                .drawAt(32, Vec2{ center.x, 760 }, theme::Palette::Cyan)
+                .stretched(30);
         RectF{ Arg::rightCenter = prompt_region.leftCenter(), 135, 2 }.draw(theme::Palette::Cyan);
         RectF{ Arg::leftCenter = prompt_region.rightCenter(), 135, 2 }.draw(theme::Palette::Cyan);
 
