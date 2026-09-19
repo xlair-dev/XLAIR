@@ -2,7 +2,7 @@
   "users": [
     {
       "id": "mock-user",
-      "card": "MOCK-CARD",
+      "card": "00000000",
       "displayName": "Mock Player",
       "rating": 0,
       "xp": 0,
