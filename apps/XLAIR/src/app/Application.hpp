@@ -3,6 +3,7 @@
 #include "Common.hpp"
 #include "app/controller/Controller.hpp"
 #include "app/config/Config.hpp"
+#include "app/credits/CreditPool.hpp"
 #include "app/interfaces/ICardReader.hpp"
 
 #include <ApiClient/IClient.hpp>
@@ -35,6 +36,12 @@ namespace xlair::app {
         const Optional<app::controller::Error>& controllerError() const noexcept;
 
         [[nodiscard]]
+        credits::CreditPool& creditPool() noexcept;
+
+        [[nodiscard]]
+        const credits::CreditPool& creditPool() const noexcept;
+
+        [[nodiscard]]
         const Array<sheets::Metadata>& musicCatalog() const noexcept;
 
     private:
@@ -51,6 +58,7 @@ namespace xlair::app {
         std::unique_ptr<interfaces::ICardReader> m_card_reader;
         std::unique_ptr<app::controller::Controller> m_controller;
         Optional<app::controller::Error> m_controller_error;
+        credits::CreditPool m_credit_pool;
         Array<sheets::Metadata> m_music_catalog;
     };
 }

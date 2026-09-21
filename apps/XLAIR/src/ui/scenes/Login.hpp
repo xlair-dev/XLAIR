@@ -1,5 +1,6 @@
 #pragma once
 
+#include "app/flows/Login.hpp"
 #include "ui/Scene.hpp"
 
 namespace xlair::ui::scenes {
@@ -11,5 +12,8 @@ namespace xlair::ui::scenes {
         void draw() const override;
 
     private:
+        void reportState() const;
+
+        app::flows::Login m_login_flow;
     };
 }
