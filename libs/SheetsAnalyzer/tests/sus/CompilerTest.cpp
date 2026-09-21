@@ -116,6 +116,81 @@ TEST_CASE("Compile builds timing, timelines, and simple notes", "[SheetsAnalyzer
     CHECK(result->total_combo == 3);
 }
 
+TEST_CASE("Compile handles editor carrier taps for directional notes", "[SheetsAnalyzer][SUS][Compiler]") {
+    const sus::SliderNote carrier{
+        .kind = sus::SliderNoteKind::Tap1,
+        .position = { .measure = 1, .numerator = 1, .denominator = 2 },
+        .lane = { .start = 12, .width = 4 },
+        .timeline = 1,
+    };
+    const sus::DirectionalNote directional{
+        .kind = sus::DirectionalKind::RightUp,
+        .position = { .measure = 1, .numerator = 2, .denominator = 4 },
+        .lane = { .start = 12, .width = 4 },
+        .timeline = 1,
+    };
+
+    SECTION("consume_tap is the default") {
+        sus::Document document;
+        document.hispeed_definitions[1] = {};
+        document.slider_notes = { carrier };
+        document.directional_notes = { directional };
+
+        const auto result = sus::Compile(document, {});
+
+        REQUIRE(result);
+        CHECK(result->slider_notes.isEmpty());
+        REQUIRE(result->side_notes.size() == 1);
+        CHECK(result->side_notes.front().button == xlair::sheets::SideButton::RightUpper);
+        CHECK(result->total_combo == 1);
+    }
+
+    SECTION("independent preserves both notes") {
+        sus::Document document;
+        document.directional_note_mode = sus::DirectionalNoteMode::Independent;
+        document.hispeed_definitions[1] = {};
+        document.slider_notes = { carrier };
+        document.directional_notes = { directional };
+
+        const auto result = sus::Compile(document, {});
+
+        REQUIRE(result);
+        REQUIRE(result->slider_notes.size() == 1);
+        REQUIRE(result->side_notes.size() == 1);
+        CHECK(result->total_combo == 2);
+    }
+
+    SECTION("only an exactly matching Tap 1 is consumed") {
+        sus::Document document;
+        document.hispeed_definitions[1] = {};
+        document.slider_notes = {
+            carrier,
+            {
+                .kind = sus::SliderNoteKind::Tap1,
+                .position = carrier.position,
+                .lane = { .start = carrier.lane.start, .width = 3 },
+                .timeline = carrier.timeline,
+            },
+            {
+                .kind = sus::SliderNoteKind::Tap2,
+                .position = carrier.position,
+                .lane = carrier.lane,
+                .timeline = carrier.timeline,
+            },
+        };
+        document.directional_notes = { directional };
+
+        const auto result = sus::Compile(document, {});
+
+        REQUIRE(result);
+        REQUIRE(result->slider_notes.size() == 2);
+        CHECK(result->slider_notes[0].kind == xlair::sheets::SliderNoteKind::Tap);
+        CHECK(result->slider_notes[0].lane.width == 3);
+        CHECK(result->slider_notes[1].kind == xlair::sheets::SliderNoteKind::XTap);
+        CHECK(result->total_combo == 3);
+    }
+}
+
 TEST_CASE("Compile assembles interleaved SideLong channels in musical order", "[SheetsAnalyzer][SUS][Compiler]") {
     sus::Document document;
     document.hispeed_definitions[1] = {};
