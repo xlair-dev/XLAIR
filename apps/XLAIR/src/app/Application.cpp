@@ -3,14 +3,25 @@
 #include <utility>
 
 namespace xlair::app {
+    namespace {
+        constexpr auto CoinButton = controller::MaintenanceButton::Button3;
+    }
+
     void Application::update() {
         if (!m_controller || m_controller_error) {
             return;
         }
 
         auto result = m_controller->update();
-        if (!result && result.error) {
-            m_controller_error = std::move(*result.error);
+        if (!result) {
+            if (result.error) {
+                m_controller_error = std::move(*result.error);
+            }
+            return;
+        }
+
+        if (m_controller->maintenanceButton(CoinButton).down()) {
+            m_credit_pool.insert();
         }
     }
 
@@ -32,6 +43,14 @@ namespace xlair::app {
 
     const Optional<app::controller::Error>& Application::controllerError() const noexcept {
         return m_controller_error;
+    }
+
+    credits::CreditPool& Application::creditPool() noexcept {
+        return m_credit_pool;
+    }
+
+    const credits::CreditPool& Application::creditPool() const noexcept {
+        return m_credit_pool;
     }
 
     const Array<sheets::Metadata>& Application::musicCatalog() const noexcept {
