@@ -268,7 +268,7 @@ namespace xlair::sheets::formats::sus {
             const s3d::String name = request.substr(0, separator).lowercased();
 
             if (separator == s3d::String::npos) {
-                if (name == U"ticks_per_beat" || name == U"enable_priority") {
+                if (name == U"ticks_per_beat" || name == U"enable_priority" || name == U"xlair_directional_mode") {
                     AddError(state, U"#REQUEST " + name + U" requires a value.", path, line);
                 }
                 return;
@@ -294,6 +294,23 @@ namespace xlair::sheets::formats::sus {
                     state.document.priority_enabled = false;
                 } else {
                     AddError(state, U"#REQUEST enable_priority requires true or false.", path, line);
+                }
+                return;
+            }
+
+            if (name == U"xlair_directional_mode") {
+                const s3d::String normalized = value.lowercased();
+                if (normalized == U"consume_tap") {
+                    state.document.directional_note_mode = DirectionalNoteMode::ConsumeTap;
+                } else if (normalized == U"independent") {
+                    state.document.directional_note_mode = DirectionalNoteMode::Independent;
+                } else {
+                    AddError(
+                        state,
+                        U"#REQUEST xlair_directional_mode requires consume_tap or independent.",
+                        path,
+                        line
+                    );
                 }
             }
         }

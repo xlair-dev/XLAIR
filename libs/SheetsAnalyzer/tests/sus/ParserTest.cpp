@@ -83,6 +83,33 @@ TEST_CASE("ParseText validates known REQUEST values and ignores unknown requests
         CHECK_FALSE(result->priority_enabled);
     }
 
+    SECTION("directional mode") {
+        const auto result = sus::ParseText(
+            UR"(#REQUEST "xlair_directional_mode CONSUME_TAP"
+#REQUEST "xlair_directional_mode independent"
+)",
+            U"chart.sus"
+        );
+
+        REQUIRE(result);
+        CHECK(result->directional_note_mode == sus::DirectionalNoteMode::Independent);
+    }
+
+    SECTION("invalid directional mode") {
+        const auto result = sus::ParseText(
+            UR"(#REQUEST "xlair_directional_mode merged"
+)",
+            U"broken.sus"
+        );
+
+        REQUIRE_FALSE(result);
+        REQUIRE(result.diagnostics.size() == 1);
+        CHECK(
+            result.diagnostics.front().message ==
+            U"#REQUEST xlair_directional_mode requires consume_tap or independent."
+        );
+    }
+
     SECTION("invalid priority value") {
         const auto result = sus::ParseText(
             UR"(#REQUEST "enable_priority maybe"
@@ -105,6 +132,7 @@ TEST_CASE("ParseText validates known REQUEST values and ignores unknown requests
         REQUIRE(result);
         CHECK(result->ticks_per_beat == 480);
         CHECK_FALSE(result->priority_enabled);
+        CHECK(result->directional_note_mode == sus::DirectionalNoteMode::ConsumeTap);
     }
 }
 

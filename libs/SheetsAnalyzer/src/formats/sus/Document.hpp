@@ -94,6 +94,13 @@ namespace xlair::sheets::formats::sus {
         s3d::Optional<TimelineId> timeline;
     };
 
+    // Some SUS editors require a directional note to overlap a short note.
+    // ConsumeTap treats a matching Tap 1 as an editor-generated carrier instead of a separate XLAIR note.
+    enum class DirectionalNoteMode : s3d::uint8 {
+        ConsumeTap,
+        Independent,
+    };
+
     struct BPMReference {
         Position position;
         DefinitionId definition = 0;
@@ -118,6 +125,7 @@ namespace xlair::sheets::formats::sus {
     struct Document {
         s3d::uint32 ticks_per_beat = 480;
         bool priority_enabled = false;
+        DirectionalNoteMode directional_note_mode = DirectionalNoteMode::ConsumeTap;
 
         s3d::HashTable<DefinitionId, double> bpm_definitions;
         s3d::Array<BPMReference> bpm_changes;

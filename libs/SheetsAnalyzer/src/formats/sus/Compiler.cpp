@@ -106,6 +106,41 @@ namespace xlair::sheets::formats::sus {
                    (static_cast<s3d::uint64>(right.numerator) * left_denominator);
         }
 
+        [[nodiscard]]
+        bool SamePosition(const Position& left, const Position& right) {
+            if (left.measure != right.measure || left.denominator == 0 || right.denominator == 0) {
+                return false;
+            }
+
+            return (static_cast<s3d::uint64>(left.numerator) * right.denominator) ==
+                   (static_cast<s3d::uint64>(right.numerator) * left.denominator);
+        }
+
+        [[nodiscard]]
+        bool IsDirectionalCarrier(const SliderNote& note, const DirectionalNote& directional) {
+            return note.kind == SliderNoteKind::Tap1 && SamePosition(note.position, directional.position) &&
+                   note.lane.start == directional.lane.start && note.lane.width == directional.lane.width &&
+                   note.timeline == directional.timeline;
+        }
+
+        [[nodiscard]]
+        s3d::Array<bool> FindDirectionalCarriers(const Document& document) {
+            s3d::Array<bool> consumed(document.slider_notes.size(), false);
+            if (document.directional_note_mode == DirectionalNoteMode::Independent) {
+                return consumed;
+            }
+
+            for (const auto& directional : document.directional_notes) {
+                for (std::size_t index = 0; index < document.slider_notes.size(); ++index) {
+                    if (!consumed[index] && IsDirectionalCarrier(document.slider_notes[index], directional)) {
+                        consumed[index] = true;
+                        break;
+                    }
+                }
+            }
+            return consumed;
+        }
+
         using TimelineLookup = s3d::HashTable<TimelineId, TimelineIndex>;
 
         [[nodiscard]]
@@ -333,7 +368,13 @@ namespace xlair::sheets::formats::sus {
             chart.timelines.push_back(std::move(timeline));
         }
 
-        for (const auto& source : document.slider_notes) {
+        const auto directional_carriers = FindDirectionalCarriers(document);
+        for (std::size_t index = 0; index < document.slider_notes.size(); ++index) {
+            if (directional_carriers[index]) {
+                continue;
+            }
+
+            const auto& source = document.slider_notes[index];
             const auto kind = ToChartNoteKind(source.kind);
             if (!kind) {
                 return Result<Chart>::makeError(U"SUS short-note kinds 4 through 6 are not supported by XLAIR.");
