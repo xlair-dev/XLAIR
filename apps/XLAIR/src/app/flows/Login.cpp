@@ -38,6 +38,10 @@ namespace xlair::app::flows {
                 updateCreditIncrement(credit_pool);
                 break;
 
+            case State::FetchingRecords:
+                updateRecordFetch(credit_pool);
+                break;
+
             default:
                 break;
         }
@@ -50,10 +54,15 @@ namespace xlair::app::flows {
         if (m_credit_request) {
             m_credit_request->cancel();
         }
+        if (m_records_request) {
+            m_records_request->cancel();
+        }
         m_client = nullptr;
         m_user_request.reset();
         m_credit_request.reset();
+        m_records_request.reset();
         m_user.reset();
+        m_records.clear();
         m_error.reset();
         m_account_state = AccountState::Unknown;
         m_state = State::Idle;
@@ -65,6 +74,10 @@ namespace xlair::app::flows {
 
     const Optional<api::User>& Login::user() const noexcept {
         return m_user;
+    }
+
+    const Array<api::UserRecord>& Login::records() const noexcept {
+        return m_records;
     }
 
     const Optional<api::ApiError>& Login::error() const noexcept {
@@ -85,6 +98,9 @@ namespace xlair::app::flows {
         if (const auto* user = std::get_if<api::User>(&*result)) {
             m_user = *user;
             m_account_state = AccountState::Registered;
+            m_user_request.reset();
+            startRecordFetch();
+            return;
         } else {
             const auto& error = std::get<api::ApiError>(*result);
             if (error.kind == api::ErrorKind::Http && error.status_code == 404) {
@@ -120,6 +136,53 @@ namespace xlair::app::flows {
             fail(std::get<api::ApiError>(*result));
         }
         m_credit_request.reset();
+    }
+
+    void Login::updateRecordFetch(credits::CreditPool& credit_pool) {
+        if (!m_records_request) {
+            return;
+        }
+
+        m_records_request->update();
+        const auto& result = m_records_request->result();
+        if (!result) {
+            return;
+        }
+
+        if (const auto* records = std::get_if<Array<api::UserRecord>>(&*result)) {
+            m_records = *records;
+            m_state = State::WaitingForCredit;
+            continueWithCredit(credit_pool);
+        } else {
+            fail(std::get<api::ApiError>(*result));
+        }
+        m_records_request.reset();
+    }
+
+    void Login::startRecordFetch() {
+        if (!m_client || !m_user) {
+            fail(
+                {
+                    .kind = api::ErrorKind::Configuration,
+                    .message = U"The login flow is missing the registered user or API client.",
+                    .status_code = none,
+                }
+            );
+            return;
+        }
+
+        m_records_request = m_client->fetchUserRecords(m_user->id);
+        if (!m_records_request) {
+            fail(
+                {
+                    .kind = api::ErrorKind::Configuration,
+                    .message = U"The API client did not create a record lookup request.",
+                    .status_code = none,
+                }
+            );
+            return;
+        }
+        m_state = State::FetchingRecords;
     }
 
     void Login::continueWithCredit(credits::CreditPool& credit_pool) {
