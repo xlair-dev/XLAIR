@@ -4,12 +4,17 @@
 #include "ui/theme/DifficultyTheme.hpp"
 
 namespace xlair::ui::components {
+    // Text fields are non-owning and must remain valid until MusicCard::render() returns.
     struct MusicCardData {
         StringView title;
         StringView artist;
         StringView difficulty;
         double level = 0.0;
         StringView designer;
+        uint32 high_score = 0;
+        StringView grade;
+        StringView clear_status;
+        bool available = true;
     };
 
     class MusicCard {
@@ -37,6 +42,8 @@ namespace xlair::ui::components {
             const theme::DifficultyTheme& difficulty_theme,
             double text_offset
         ) const;
+        void drawUnavailable() const;
+        void drawBadge(const Vec2& position, const Vec2& size, StringView text, const ColorF& color) const;
 
         static constexpr Size CardSize{ 416, 545 };
 

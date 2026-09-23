@@ -27,6 +27,24 @@ namespace xlair::ui::scenes {
             U"Master",
         };
 
+        constexpr std::array<uint32, 3> HighScores{
+            0,
+            975'000,
+            1'050'000,
+        };
+
+        constexpr std::array<StringView, 3> Grades{
+            U"",
+            U"S",
+            U"SSS",
+        };
+
+        constexpr std::array<StringView, 3> ClearStatuses{
+            U"",
+            U"CLEAR",
+            U"FULL COMBO",
+        };
+
         const Array<components::SliderMapping> SliderMappings{
             {
                 .region = { .start = 0, .width = 3, .right_corner = false },
@@ -88,6 +106,9 @@ namespace xlair::ui::scenes {
                 .difficulty = DifficultyLabels[index],
                 .level = 3.0 + index * 4.5,
                 .designer = U"XLAIR",
+                .high_score = HighScores[index],
+                .grade = Grades[index],
+                .clear_status = ClearStatuses[index],
             };
             const RectF region{ Arg::center = Vec2{ CardCenters[index], 390 }, CardSize };
             region.drawShadow(Vec2{ 8, 16 }, 20, 0, ColorF{ 0, 0, 0, 0.18 });

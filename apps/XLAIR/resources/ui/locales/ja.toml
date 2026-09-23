@@ -1,2 +1,5 @@
 [title]
 touch_to_start = "カードをタッチして始める"
+
+[music_card]
+chart_unavailable = "譜面が作成されていません"
