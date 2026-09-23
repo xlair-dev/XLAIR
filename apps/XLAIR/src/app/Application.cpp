@@ -57,6 +57,14 @@ namespace xlair::app {
         return m_music_catalog;
     }
 
+    session::PlaySession& Application::playSession() noexcept {
+        return m_play_session;
+    }
+
+    const session::PlaySession& Application::playSession() const noexcept {
+        return m_play_session;
+    }
+
     void Application::setConfig(Config config) {
         m_config = std::move(config);
     }
