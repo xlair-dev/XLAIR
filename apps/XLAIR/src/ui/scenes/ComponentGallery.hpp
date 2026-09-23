@@ -1,5 +1,6 @@
 #pragma once
 
+#include "ui/components/MusicCard.hpp"
 #include "ui/Scene.hpp"
 
 namespace xlair::ui::scenes {
@@ -11,5 +12,8 @@ namespace xlair::ui::scenes {
         void draw() const override;
 
     private:
+        mutable components::MusicCard m_music_card;
+        Texture m_jacket;
+        double m_elapsed = 0.0;
     };
 }
