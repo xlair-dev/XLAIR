@@ -21,8 +21,7 @@ namespace xlair::ui {
             .add<scenes::Login>(SceneState::Login)                        // login; cancel -> Title, ok -> MusicSelect
             .add<scenes::MusicSelect>(SceneState::MusicSelect)            // music
             .add<scenes::ComponentGallery>(SceneState::ComponentGallery); // test
-        // scene_manager.init(SceneState::Boot, 0);
-        scene_manager.init(SceneState::ComponentGallery, 0);
+        scene_manager.init(SceneState::Boot, 0);
 
         return scene_manager;
     }
