@@ -12,6 +12,8 @@ namespace xlair::ui {
         Boot,
         Title,
         Login,
+        MusicSelect,
+        ComponentGallery,
     };
 
     struct SceneData {

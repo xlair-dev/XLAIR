@@ -13,6 +13,7 @@ namespace xlair::ui::scenes {
 
     Title::Title(const InitData& init) : SceneBase{ init } {
         getData().scanned_card.reset();
+        getData().application->playSession().reset();
         m_title_flow = std::make_unique<app::flows::Title>(*getData().application->cardReader());
         m_title_flow->start();
         reportState();

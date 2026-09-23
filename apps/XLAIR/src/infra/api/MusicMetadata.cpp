@@ -31,9 +31,6 @@ namespace xlair::infra::api {
         result[U"difficulties"] = s3d::JSON::Parse(U"[]");
         for (const auto& entry : music[U"sheets"]) {
             const auto& sheet = entry.value;
-            if (sheet[U"chart"].isNull()) {
-                continue;
-            }
             s3d::JSON difficulty;
             difficulty[U"id"] = sheet[U"id"];
             difficulty[U"difficulty"] = DifficultyIndex(sheet[U"difficulty"].get<s3d::String>());
