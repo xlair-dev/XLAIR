@@ -1,5 +1,17 @@
 [title]
 touch_to_start = "カードをタッチして始める"
 
+[music_select]
+prompt = "楽曲を選択してください"
+empty_catalog = "選択できる楽曲がありません"
+
+[music_select.slider]
+move_left = "左"
+move_right = "右"
+confirm = "選択"
+difficulty_down = "レベル－"
+difficulty_up = "レベル＋"
+settings = "設定"
+
 [music_card]
 chart_unavailable = "譜面が作成されていません"
