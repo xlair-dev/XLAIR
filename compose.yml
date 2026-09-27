@@ -1,5 +1,10 @@
 services:
   xlair:
+    build:
+      context: .
+      dockerfile: .devcontainer/Dockerfile
+      args:
+        SIV3D_IMAGE: ${SIV3D_IMAGE:-ghcr.io/xlair-dev/siv3d-docker-base:latest}
     image: ${SIV3D_IMAGE:-ghcr.io/xlair-dev/siv3d-docker-base:latest}
     platform: linux/amd64
     init: true
@@ -11,15 +16,21 @@ services:
     environment:
       DISPLAY: ${DISPLAY:-}
       XDG_RUNTIME_DIR: ${XDG_RUNTIME_DIR:-}
-      PULSE_SERVER: ${PULSE_SERVER:-}
+      PULSE_SERVER: unix:/run/user/1000/pulse/native
       CCACHE_DIR: /cache/ccache
       CCACHE_BASEDIR: /workspace
       QT_X11_NO_MITSHM: "1"
+    devices:
+      - /dev/snd:/dev/snd
+    group_add:
+      - "996"
     volumes:
       - ./:/workspace
       - ./build:/workspace/build
       - siv3d-ccache:/cache/ccache
       - /tmp/.X11-unix:/tmp/.X11-unix:rw
+      - ${XDG_RUNTIME_DIR:-/run/user/1000}/pulse/native:/run/user/1000/pulse/native
+      - ${HOME}/.config/pulse/cookie:/run/user/1000/pulse/cookie:ro
 
 volumes:
   siv3d-ccache:
