@@ -19,10 +19,12 @@ namespace xlair::ui::components {
         void update(double delta_seconds);
 
         // Placements are returned in drawing order: selected card, right neighbors, left neighbors.
+        // Scale is applied around the carousel center, without affecting card texture rendering.
         [[nodiscard]]
-        Array<CardPlacement> layout(std::size_t selected_index, std::size_t item_count) const;
+        Array<CardPlacement> layout(std::size_t selected_index, std::size_t item_count, double scale = 1.0) const;
 
-        void drawArrows(std::size_t selected_index, std::size_t item_count, const ColorF& color) const;
+        void
+        drawArrows(std::size_t selected_index, std::size_t item_count, const ColorF& color, double scale = 1.0) const;
 
     private:
         SizeF m_card_size;
