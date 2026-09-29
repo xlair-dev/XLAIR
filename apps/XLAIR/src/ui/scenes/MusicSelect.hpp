@@ -25,7 +25,6 @@ namespace xlair::ui::scenes {
 
         void handleInput();
         void updateAnimation();
-        void drawHeader() const;
         void drawCards() const;
         void drawCard(std::size_t music_index, const RectF& region, double text_elapsed) const;
         void drawArrows() const;
