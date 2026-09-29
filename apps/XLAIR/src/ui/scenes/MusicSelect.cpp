@@ -115,12 +115,18 @@ namespace xlair::ui::scenes {
     }
 
     void MusicSelect::handleInput() {
+        const auto* controller = getData().application->controller();
+        if (KeyTab.down() || input::TouchRegionDown(controller, 14, 2)) {
+            audio::PlaySoundEffect(audio::SoundEffect::Navigate);
+            changeScene(SceneState::Settings, 0);
+            return;
+        }
+
         auto& flow = getData().music_select_context->flow();
         if (flow.empty()) {
             return;
         }
 
-        const auto* controller = getData().application->controller();
         const bool move_left = KeyLeft.down() || input::TouchRegionDown(controller, 0, 3);
         const bool move_right = KeyRight.down() || input::TouchRegionDown(controller, 3, 3);
         const bool select = KeyEnter.down() || input::TouchRegionDown(controller, 6, 4);

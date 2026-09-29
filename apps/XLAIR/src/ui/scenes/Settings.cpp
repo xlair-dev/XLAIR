@@ -1,9 +1,11 @@
 #include "Settings.hpp"
 
 #include "core/user/Level.hpp"
+#include "ui/audio/SoundEffect.hpp"
 #include "ui/components/MenuHeader.hpp"
 #include "ui/components/MenuTimerPlate.hpp"
 #include "ui/components/UserNameplate.hpp"
+#include "ui/input/SliderInput.hpp"
 #include "ui/localization/Localization.hpp"
 #include "ui/theme/Palette.hpp"
 
@@ -50,7 +52,13 @@ namespace xlair::ui::scenes {
         getData().ensureMusicSelectContext();
     }
 
-    void Settings::update() {}
+    void Settings::update() {
+        const auto* controller = getData().application->controller();
+        if (KeyTab.down() || input::TouchRegionDown(controller, 14, 2)) {
+            audio::PlaySoundEffect(audio::SoundEffect::Navigate);
+            changeScene(SceneState::MusicSelect, 0);
+        }
+    }
 
     void Settings::draw() const {
         Scene::Rect().draw(theme::Palette::White);
