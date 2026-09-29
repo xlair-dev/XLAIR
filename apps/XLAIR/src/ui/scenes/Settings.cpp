@@ -95,7 +95,7 @@ namespace xlair::ui::scenes {
         if (!TextureAsset::Register(
                 Assets::Header,
                 components::MakeMenuHeaderTexture(
-                    U"SETTING",
+                    U"SETTINGS",
                     localization::GetText(localization::TextId::SettingsPrompt)
                 )
             ) ||
