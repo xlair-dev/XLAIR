@@ -8,16 +8,11 @@
 #include "ui/components/UserNameplate.hpp"
 #include "ui/input/SliderInput.hpp"
 #include "ui/localization/Localization.hpp"
-#include "ui/primitives/Arrow.hpp"
 #include "ui/theme/Palette.hpp"
 
 namespace xlair::ui::scenes {
     namespace {
-        constexpr SizeF SelectedCardSize{ components::SettingCard::size() };
-        constexpr SizeF SideCardSize = SelectedCardSize * 0.88;
         constexpr double CardY = 553.0;
-        constexpr double SelectedCardMargin = 50.0;
-        constexpr double CardSpacing = 50.0;
 
         // Provisional bounds for the UI prototype, not the final game-option constraints.
         constexpr int32 MinimumSpeedSteps = 1;
@@ -88,7 +83,9 @@ namespace xlair::ui::scenes {
     }
 
     Settings::Settings(const InitData& init)
-        : SceneBase{ init }, m_setting_cards{ MakeSettingCards() }, m_slider_mappings{ MakeSliderMappings() } {
+        : SceneBase{ init },
+          m_card_carousel{ components::SettingCard::size(), Vec2{ DesignSize.x / 2.0, CardY }, DesignSize.x },
+          m_setting_cards{ MakeSettingCards() }, m_slider_mappings{ MakeSliderMappings() } {
         auto& context = getData().ensureMusicSelectContext();
         if (!m_setting_cards.isEmpty()) {
             m_selected_index = Min(context.selectedSettingIndex(), m_setting_cards.size() - 1);
@@ -98,7 +95,7 @@ namespace xlair::ui::scenes {
 
     void Settings::update() {
         handleInput();
-        m_scroll_offset = Math::SmoothDamp(m_scroll_offset, 0.0, m_scroll_velocity, 0.1);
+        m_card_carousel.update(Scene::DeltaTime());
     }
 
     void Settings::handleInput() {
@@ -139,7 +136,7 @@ namespace xlair::ui::scenes {
 
         m_selected_index = static_cast<std::size_t>(destination);
         getData().music_select_context->setSelectedSettingIndex(m_selected_index);
-        m_scroll_offset = direction < 0 ? 1.0 : -1.0;
+        m_card_carousel.animateMove(direction);
         return true;
     }
 
@@ -186,7 +183,7 @@ namespace xlair::ui::scenes {
         Scene::Rect().draw(theme::Palette::White);
 
         drawCards();
-        drawArrows();
+        m_card_carousel.drawArrows(m_selected_index, m_setting_cards.size(), theme::Palette::Gray);
 
         components::DrawMenuHeader(Assets::Header);
         components::DrawSliderMappingGuide(m_slider_mappings, RectF{ 210, 1010, 1500, 70 });
@@ -220,73 +217,14 @@ namespace xlair::ui::scenes {
     }
 
     void Settings::drawCards() const {
-        if (m_setting_cards.isEmpty()) {
-            return;
+        for (const auto& placement : m_card_carousel.layout(m_selected_index, m_setting_cards.size())) {
+            drawCard(placement.index, placement.region);
         }
-
-        const double scroll = m_scroll_offset;
-        const double scroll_abs = Abs(scroll);
-        constexpr Vec2 Center{ DesignSize.x / 2.0, CardY };
-        constexpr double NeighborGap =
-            SelectedCardSize.x / 2.0 + SideCardSize.x / 2.0 + CardSpacing + SelectedCardMargin;
-
-        const SizeF selected_size = SelectedCardSize.lerp(SideCardSize, scroll_abs);
-        const double selected_x = Center.x - NeighborGap * scroll;
-        drawCard(m_selected_index, RectF{ Arg::center = Vec2{ selected_x, CardY }, selected_size });
-
-        const auto draw_side = [&](const int32 direction) {
-            const double directional_scroll = direction * scroll;
-            const double margin_factor = Min(1.0, 1.0 + directional_scroll);
-            const double neighbor_scale = Clamp(directional_scroll, 0.0, 1.0);
-            double x =
-                selected_x + direction * (selected_size.x / 2.0 + CardSpacing + SelectedCardMargin * margin_factor);
-
-            for (int64 index = static_cast<int64>(m_selected_index) + direction;
-                 index >= 0 && index < static_cast<int64>(m_setting_cards.size());
-                 index += direction) {
-                if (x - direction * SideCardSize.x > DesignSize.x || x - direction * SideCardSize.x < 0) {
-                    break;
-                }
-
-                SizeF card_size = SideCardSize;
-                if (index == static_cast<int64>(m_selected_index) + direction) {
-                    card_size = SideCardSize.lerp(SelectedCardSize, neighbor_scale);
-                    x += direction * (CardSpacing + SelectedCardMargin) * neighbor_scale;
-                }
-
-                drawCard(
-                    static_cast<std::size_t>(index),
-                    RectF{ Arg::center = Vec2{ x + direction * card_size.x / 2.0, CardY }, card_size }
-                );
-                x += direction * (CardSpacing + SideCardSize.x);
-            }
-        };
-
-        draw_side(1);
-        draw_side(-1);
     }
 
     void Settings::drawCard(const std::size_t index, const RectF& region) const {
         region.drawShadow(Vec2{ 12, 26 }, 32, 0, ColorF{ 0, 0, 0, 0.22 });
         region(m_setting_card.render(m_setting_cards[index], theme::Palette::Purple)).draw();
-    }
-
-    void Settings::drawArrows() const {
-        if (m_setting_cards.isEmpty()) {
-            return;
-        }
-
-        constexpr Vec2 Center{ DesignSize.x / 2.0, CardY };
-        constexpr Vec2 Right = Center.movedBy(SelectedCardSize.x / 2.0 - 10, 0);
-        constexpr Vec2 Left = Center.movedBy(-SelectedCardSize.x / 2.0 + 10, 0);
-        if (m_selected_index + 1 < m_setting_cards.size()) {
-            primitives::DrawArrow(Right, primitives::ArrowDirection::Right, theme::Palette::Gray);
-            primitives::DrawArrow(Right.movedBy(30, 0), primitives::ArrowDirection::Right, theme::Palette::Gray);
-        }
-        if (m_selected_index > 0) {
-            primitives::DrawArrow(Left, primitives::ArrowDirection::Left, theme::Palette::Gray);
-            primitives::DrawArrow(Left.movedBy(-30, 0), primitives::ArrowDirection::Left, theme::Palette::Gray);
-        }
     }
 
     void Settings::RegisterAssets() {

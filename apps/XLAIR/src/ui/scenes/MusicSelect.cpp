@@ -13,17 +13,12 @@
 #include "ui/localization/Localization.hpp"
 #include "ui/presentation/DifficultyText.hpp"
 #include "ui/presentation/ScoringText.hpp"
-#include "ui/primitives/Arrow.hpp"
 #include "ui/theme/DifficultyTheme.hpp"
 #include "ui/theme/Palette.hpp"
 
 namespace xlair::ui::scenes {
     namespace {
-        constexpr SizeF SelectedCardSize{ 416, 545 };
-        constexpr SizeF SideCardSize = SelectedCardSize * 0.88;
         constexpr double CardY = 553.0;
-        constexpr double SelectedCardMargin = 50.0;
-        constexpr double CardSpacing = 50.0;
 
         [[nodiscard]]
         Array<components::SliderMapping> MakeSliderMappings() {
@@ -63,13 +58,16 @@ namespace xlair::ui::scenes {
 
     }
 
-    MusicSelect::MusicSelect(const InitData& init) : SceneBase{ init }, m_slider_mappings{ MakeSliderMappings() } {
+    MusicSelect::MusicSelect(const InitData& init)
+        : SceneBase{ init },
+          m_card_carousel{ components::MusicCard::size(), Vec2{ DesignSize.x / 2.0, CardY }, DesignSize.x },
+          m_slider_mappings{ MakeSliderMappings() } {
         getData().ensureMusicSelectContext();
     }
 
     void MusicSelect::update() {
         handleInput();
-        updateAnimation();
+        m_card_carousel.update(Scene::DeltaTime());
         m_text_elapsed += Scene::DeltaTime();
     }
 
@@ -80,7 +78,8 @@ namespace xlair::ui::scenes {
             drawEmptyCatalog();
         } else {
             drawCards();
-            drawArrows();
+            const auto& flow = getData().music_select_context->flow();
+            m_card_carousel.drawArrows(flow.selectedIndex(), flow.musicCount(), theme::Palette::Gray);
         }
 
         components::DrawMenuHeader(Assets::Header);
@@ -135,11 +134,11 @@ namespace xlair::ui::scenes {
 
         if (move_left && flow.moveMusic(-1)) {
             audio::PlaySoundEffect(audio::SoundEffect::Navigate);
-            m_scroll_offset = 1.0;
+            m_card_carousel.animateMove(-1);
             m_text_elapsed = 0.0;
         } else if (move_right && flow.moveMusic(1)) {
             audio::PlaySoundEffect(audio::SoundEffect::Navigate);
-            m_scroll_offset = -1.0;
+            m_card_carousel.animateMove(1);
             m_text_elapsed = 0.0;
         }
 
@@ -165,10 +164,6 @@ namespace xlair::ui::scenes {
         }
     }
 
-    void MusicSelect::updateAnimation() {
-        m_scroll_offset = Math::SmoothDamp(m_scroll_offset, 0.0, m_scroll_velocity, 0.1);
-    }
-
     void MusicSelect::RegisterAssets() {
         if (!TextureAsset::Register(
                 Assets::Header,
@@ -184,48 +179,9 @@ namespace xlair::ui::scenes {
 
     void MusicSelect::drawCards() const {
         const auto& flow = getData().music_select_context->flow();
-        const std::size_t selected_index = flow.selectedIndex();
-        const double scroll = m_scroll_offset;
-        const double scroll_abs = Abs(scroll);
-        constexpr Vec2 Center{ DesignSize.x / 2.0, CardY };
-        constexpr double NeighborGap =
-            SelectedCardSize.x / 2.0 + SideCardSize.x / 2.0 + CardSpacing + SelectedCardMargin;
-
-        const SizeF selected_size = SelectedCardSize.lerp(SideCardSize, scroll_abs);
-        const double selected_x = Center.x - NeighborGap * scroll;
-        drawCard(selected_index, RectF{ Arg::center = Vec2{ selected_x, CardY }, selected_size }, m_text_elapsed);
-
-        const auto draw_side = [&](const int32 direction) {
-            const double directional_scroll = direction * scroll;
-            const double margin_factor = Min(1.0, 1.0 + directional_scroll);
-            const double neighbor_scale = Clamp(directional_scroll, 0.0, 1.0);
-            double x =
-                selected_x + direction * (selected_size.x / 2.0 + CardSpacing + SelectedCardMargin * margin_factor);
-
-            for (int64 index = static_cast<int64>(selected_index) + direction;
-                 index >= 0 && index < static_cast<int64>(flow.musicCount());
-                 index += direction) {
-                if (x - direction * SideCardSize.x > DesignSize.x || x - direction * SideCardSize.x < 0) {
-                    break;
-                }
-
-                SizeF card_size = SideCardSize;
-                if (index == static_cast<int64>(selected_index) + direction) {
-                    card_size = SideCardSize.lerp(SelectedCardSize, neighbor_scale);
-                    x += direction * (CardSpacing + SelectedCardMargin) * neighbor_scale;
-                }
-
-                const RectF region{
-                    Arg::center = Vec2{ x + direction * card_size.x / 2.0, CardY },
-                    card_size,
-                };
-                drawCard(static_cast<std::size_t>(index), region, 0.0);
-                x += direction * (CardSpacing + SideCardSize.x);
-            }
-        };
-
-        draw_side(1);
-        draw_side(-1);
+        for (const auto& placement : m_card_carousel.layout(flow.selectedIndex(), flow.musicCount())) {
+            drawCard(placement.index, placement.region, placement.selected ? m_text_elapsed : 0.0);
+        }
     }
 
     void MusicSelect::drawCard(const std::size_t music_index, const RectF& region, const double text_elapsed) const {
@@ -264,25 +220,6 @@ namespace xlair::ui::scenes {
                    text_elapsed
                ))
             .draw();
-    }
-
-    void MusicSelect::drawArrows() const {
-        const auto& flow = getData().music_select_context->flow();
-        if (flow.empty()) {
-            return;
-        }
-
-        constexpr Vec2 Center{ DesignSize.x / 2.0, CardY };
-        constexpr Vec2 Right = Center.movedBy(SelectedCardSize.x / 2.0 - 10, 0);
-        constexpr Vec2 Left = Center.movedBy(-SelectedCardSize.x / 2.0 + 10, 0);
-        if (flow.selectedIndex() + 1 < flow.musicCount()) {
-            primitives::DrawArrow(Right, primitives::ArrowDirection::Right, theme::Palette::Gray);
-            primitives::DrawArrow(Right.movedBy(30, 0), primitives::ArrowDirection::Right, theme::Palette::Gray);
-        }
-        if (flow.selectedIndex() > 0) {
-            primitives::DrawArrow(Left, primitives::ArrowDirection::Left, theme::Palette::Gray);
-            primitives::DrawArrow(Left.movedBy(-30, 0), primitives::ArrowDirection::Left, theme::Palette::Gray);
-        }
     }
 
     void MusicSelect::drawEmptyCatalog() const {

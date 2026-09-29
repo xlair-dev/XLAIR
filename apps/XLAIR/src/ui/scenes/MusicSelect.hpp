@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ui/Scene.hpp"
+#include "ui/components/CardCarousel.hpp"
 #include "ui/components/MusicCard.hpp"
 #include "ui/components/SliderMappingGuide.hpp"
 
@@ -20,16 +21,13 @@ namespace xlair::ui::scenes {
         };
 
         void handleInput();
-        void updateAnimation();
         void drawCards() const;
         void drawCard(std::size_t music_index, const RectF& region, double text_elapsed) const;
-        void drawArrows() const;
         void drawEmptyCatalog() const;
 
+        components::CardCarousel m_card_carousel;
         mutable components::MusicCard m_music_card;
         Array<components::SliderMapping> m_slider_mappings;
-        double m_scroll_offset = 0.0;
-        double m_scroll_velocity = 0.0;
         double m_text_elapsed = 0.0;
     };
 }
