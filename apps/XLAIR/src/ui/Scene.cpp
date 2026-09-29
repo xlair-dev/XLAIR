@@ -15,6 +15,7 @@ namespace xlair::ui {
         const std::shared_ptr<app::flows::Boot>& boot_flow
     ) {
         scenes::MusicSelect::RegisterAssets();
+        scenes::Settings::RegisterAssets();
 
         SceneManager scene_manager{ std::make_shared<SceneData>(application, boot_flow) };
 

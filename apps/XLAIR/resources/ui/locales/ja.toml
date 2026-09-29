@@ -13,5 +13,16 @@ difficulty_down = "レベル－"
 difficulty_up = "レベル＋"
 settings = "設定"
 
+[settings]
+prompt = "プレイ設定を変更してください"
+
+[settings.slider]
+previous_item = "前の項目"
+next_item = "次の項目"
+confirm = "決定"
+decrease = "値－"
+increase = "値＋"
+back = "戻る"
+
 [music_card]
 chart_unavailable = "譜面が作成されていません"
