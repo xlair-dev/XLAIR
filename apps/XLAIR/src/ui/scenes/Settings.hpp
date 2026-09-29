@@ -40,7 +40,7 @@ namespace xlair::ui::scenes {
         double m_scroll_velocity = 0.0;
 
         // Temporary scene-local values; player-option persistence is not connected yet.
-        int32 m_note_speed_steps = 10;
+        int32 m_note_speed_steps = 4; // One step is 0.25x.
         int32 m_judgment_offset_ms = 0;
         bool m_mirror = false;
     };

@@ -21,7 +21,7 @@ namespace xlair::ui::scenes {
 
         // Provisional bounds for the UI prototype, not the final game-option constraints.
         constexpr int32 MinimumSpeedSteps = 1;
-        constexpr int32 MaximumSpeedSteps = 100;
+        constexpr int32 MaximumSpeedSteps = 40;
         constexpr int32 MinimumJudgmentOffsetMs = -100;
         constexpr int32 MaximumJudgmentOffsetMs = 100;
 
@@ -32,7 +32,7 @@ namespace xlair::ui::scenes {
                 {
                     .title = U"SPEED",
                     .description = U"Note scroll speed",
-                    .value = U"1.0",
+                    .value = U"1.00",
                     .unit = U"×",
                 },
                 {
@@ -157,7 +157,7 @@ namespace xlair::ui::scenes {
                     return false;
                 }
                 m_note_speed_steps = next;
-                card.value = U"{:.1f}"_fmt(m_note_speed_steps / 10.0);
+                card.value = U"{:.2f}"_fmt(m_note_speed_steps * 0.25);
                 return true;
             }
             case SettingItem::JudgmentOffset: {
