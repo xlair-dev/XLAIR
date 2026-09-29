@@ -9,6 +9,7 @@
 #include "ui/components/MenuTimerPlate.hpp"
 #include "ui/components/SliderMappingGuide.hpp"
 #include "ui/components/UserNameplate.hpp"
+#include "ui/input/SliderInput.hpp"
 #include "ui/localization/Localization.hpp"
 #include "ui/presentation/DifficultyText.hpp"
 #include "ui/presentation/ScoringText.hpp"
@@ -58,23 +59,6 @@ namespace xlair::ui::scenes {
                     .color = theme::Palette::Purple,
                 },
             };
-        }
-
-        [[nodiscard]]
-        bool TouchRegionDown(const app::controller::Controller* controller, const uint32 start, const uint32 width) {
-            if (!controller) {
-                return false;
-            }
-
-            const std::size_t first_zone = static_cast<std::size_t>(start) * 2;
-            const std::size_t last_zone =
-                Min(static_cast<std::size_t>(start + width) * 2, app::controller::TouchZoneCount);
-            for (std::size_t zone = first_zone; zone < last_zone; ++zone) {
-                if (controller->touchZone(zone).down()) {
-                    return true;
-                }
-            }
-            return false;
         }
 
     }
@@ -148,11 +132,11 @@ namespace xlair::ui::scenes {
         }
 
         const auto* controller = getData().application->controller();
-        const bool move_left = KeyLeft.down() || TouchRegionDown(controller, 0, 3);
-        const bool move_right = KeyRight.down() || TouchRegionDown(controller, 3, 3);
-        const bool select = KeyEnter.down() || TouchRegionDown(controller, 6, 4);
-        const bool difficulty_down = KeyDown.down() || TouchRegionDown(controller, 10, 2);
-        const bool difficulty_up = KeyUp.down() || TouchRegionDown(controller, 12, 2);
+        const bool move_left = KeyLeft.down() || input::TouchRegionDown(controller, 0, 3);
+        const bool move_right = KeyRight.down() || input::TouchRegionDown(controller, 3, 3);
+        const bool select = KeyEnter.down() || input::TouchRegionDown(controller, 6, 4);
+        const bool difficulty_down = KeyDown.down() || input::TouchRegionDown(controller, 10, 2);
+        const bool difficulty_up = KeyUp.down() || input::TouchRegionDown(controller, 12, 2);
 
         if (move_left && m_flow->moveMusic(-1)) {
             audio::PlaySoundEffect(audio::SoundEffect::Navigate);
