@@ -95,6 +95,18 @@ namespace xlair::ui::scenes {
 
     void Settings::update() {
         handleInput();
+        updatePresentation();
+    }
+
+    void Settings::updateFadeIn(const double) {
+        updatePresentation();
+    }
+
+    void Settings::updateFadeOut(const double) {
+        updatePresentation();
+    }
+
+    void Settings::updatePresentation() {
         m_card_carousel.update(Scene::DeltaTime());
     }
 
@@ -102,7 +114,7 @@ namespace xlair::ui::scenes {
         const auto* controller = getData().application->controller();
         if (KeyTab.down() || input::TouchRegionDown(controller, 14, 2)) {
             audio::PlaySoundEffect(audio::SoundEffect::Navigate);
-            changeScene(SceneState::MusicSelect, 0);
+            changeScene(SceneState::MusicSelect, transitions::CardTransitionMillisec, CrossFade::No);
             return;
         }
 
@@ -180,10 +192,29 @@ namespace xlair::ui::scenes {
     }
 
     void Settings::draw() const {
+        drawScene({});
+    }
+
+    void Settings::drawFadeIn(const double t) const {
+        drawScene(transitions::CardFadeIn(t));
+    }
+
+    void Settings::drawFadeOut(const double t) const {
+        drawScene(transitions::CardFadeOut(t, transitions::CardZoom::Shrink));
+    }
+
+    void Settings::drawScene(const transitions::CardTransition& transition) const {
         Scene::Rect().draw(theme::Palette::White);
 
-        drawCards();
-        m_card_carousel.drawArrows(m_selected_index, m_setting_cards.size(), theme::Palette::Gray);
+        if (transition.opacity > 0.0 && transition.scale > 0.0) {
+            drawCards(transition);
+            m_card_carousel.drawArrows(
+                m_selected_index,
+                m_setting_cards.size(),
+                theme::Palette::Gray.withA(transition.opacity),
+                transition.scale
+            );
+        }
 
         components::DrawMenuHeader(Assets::Header);
         components::DrawSliderMappingGuide(m_slider_mappings, RectF{ 210, 1010, 1500, 70 });
@@ -216,15 +247,27 @@ namespace xlair::ui::scenes {
         );
     }
 
-    void Settings::drawCards() const {
-        for (const auto& placement : m_card_carousel.layout(m_selected_index, m_setting_cards.size())) {
-            drawCard(placement.index, placement.region);
+    void Settings::drawCards(const transitions::CardTransition& transition) const {
+        for (const auto& placement :
+             m_card_carousel.layout(m_selected_index, m_setting_cards.size(), transition.scale)) {
+            drawCard(placement.index, placement.region, transition);
         }
     }
 
-    void Settings::drawCard(const std::size_t index, const RectF& region) const {
-        region.drawShadow(Vec2{ 12, 26 }, 32, 0, ColorF{ 0, 0, 0, 0.22 });
-        region(m_setting_card.render(m_setting_cards[index], theme::Palette::Purple)).draw();
+    void Settings::drawCard(
+        const std::size_t index,
+        const RectF& region,
+        const transitions::CardTransition& transition
+    ) const {
+        region.drawShadow(
+            Vec2{ 12, 26 } * transition.scale,
+            32 * transition.scale,
+            0,
+            ColorF{ 0, 0, 0, 0.22 * transition.opacity }
+        );
+        // Keep offscreen rendering untouched and fade only the finished card texture.
+        region(m_setting_card.render(m_setting_cards[index], theme::Palette::Purple))
+            .draw(ColorF{ 1.0, transition.opacity });
     }
 
     void Settings::RegisterAssets() {

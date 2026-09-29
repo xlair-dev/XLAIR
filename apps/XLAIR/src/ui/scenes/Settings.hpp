@@ -4,6 +4,7 @@
 #include "ui/components/CardCarousel.hpp"
 #include "ui/components/SettingCard.hpp"
 #include "ui/components/SliderMappingGuide.hpp"
+#include "ui/transitions/CardTransition.hpp"
 
 namespace xlair::ui::scenes {
     class Settings final : public SceneBase {
@@ -11,7 +12,11 @@ namespace xlair::ui::scenes {
         explicit Settings(const InitData& init);
 
         void update() override;
+        void updateFadeIn(double t) override;
+        void updateFadeOut(double t) override;
         void draw() const override;
+        void drawFadeIn(double t) const override;
+        void drawFadeOut(double t) const override;
 
         static void RegisterAssets();
 
@@ -23,10 +28,12 @@ namespace xlair::ui::scenes {
         };
 
         void handleInput();
+        void updatePresentation();
         bool moveItem(int32 direction);
         bool adjustValue(int32 direction);
-        void drawCards() const;
-        void drawCard(std::size_t index, const RectF& region) const;
+        void drawScene(const transitions::CardTransition& transition) const;
+        void drawCards(const transitions::CardTransition& transition) const;
+        void drawCard(std::size_t index, const RectF& region, const transitions::CardTransition& transition) const;
 
         struct Assets {
             static constexpr AssetNameView Header{ U"XLAIR.Settings.Header" };

@@ -4,6 +4,7 @@
 #include "ui/components/CardCarousel.hpp"
 #include "ui/components/MusicCard.hpp"
 #include "ui/components/SliderMappingGuide.hpp"
+#include "ui/transitions/CardTransition.hpp"
 
 namespace xlair::ui::scenes {
     class MusicSelect final : public SceneBase {
@@ -11,7 +12,11 @@ namespace xlair::ui::scenes {
         explicit MusicSelect(const InitData& init);
 
         void update() override;
+        void updateFadeIn(double t) override;
+        void updateFadeOut(double t) override;
         void draw() const override;
+        void drawFadeIn(double t) const override;
+        void drawFadeOut(double t) const override;
 
         static void RegisterAssets();
 
@@ -21,8 +26,15 @@ namespace xlair::ui::scenes {
         };
 
         void handleInput();
-        void drawCards() const;
-        void drawCard(std::size_t music_index, const RectF& region, double text_elapsed) const;
+        void updatePresentation();
+        void drawScene(const transitions::CardTransition& transition) const;
+        void drawCards(const transitions::CardTransition& transition) const;
+        void drawCard(
+            std::size_t music_index,
+            const RectF& region,
+            double text_elapsed,
+            const transitions::CardTransition& transition
+        ) const;
         void drawEmptyCatalog() const;
 
         components::CardCarousel m_card_carousel;

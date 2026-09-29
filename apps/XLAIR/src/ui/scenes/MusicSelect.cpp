@@ -67,19 +67,49 @@ namespace xlair::ui::scenes {
 
     void MusicSelect::update() {
         handleInput();
+        updatePresentation();
+    }
+
+    void MusicSelect::updateFadeIn(const double) {
+        updatePresentation();
+    }
+
+    void MusicSelect::updateFadeOut(const double) {
+        updatePresentation();
+    }
+
+    void MusicSelect::updatePresentation() {
+        // Keep presentation moving during fades, but leave input and the shared preview/timer alone.
         m_card_carousel.update(Scene::DeltaTime());
         m_text_elapsed += Scene::DeltaTime();
     }
 
     void MusicSelect::draw() const {
+        drawScene({});
+    }
+
+    void MusicSelect::drawFadeIn(const double t) const {
+        drawScene(transitions::CardFadeIn(t, transitions::CardZoom::Shrink));
+    }
+
+    void MusicSelect::drawFadeOut(const double t) const {
+        drawScene(transitions::CardFadeOut(t));
+    }
+
+    void MusicSelect::drawScene(const transitions::CardTransition& transition) const {
         Scene::Rect().draw(theme::Palette::White);
 
         if (getData().music_select_context->flow().empty()) {
             drawEmptyCatalog();
-        } else {
-            drawCards();
+        } else if (transition.opacity > 0.0 && transition.scale > 0.0) {
+            drawCards(transition);
             const auto& flow = getData().music_select_context->flow();
-            m_card_carousel.drawArrows(flow.selectedIndex(), flow.musicCount(), theme::Palette::Gray);
+            m_card_carousel.drawArrows(
+                flow.selectedIndex(),
+                flow.musicCount(),
+                theme::Palette::Gray.withA(transition.opacity),
+                transition.scale
+            );
         }
 
         components::DrawMenuHeader(Assets::Header);
@@ -117,7 +147,7 @@ namespace xlair::ui::scenes {
         const auto* controller = getData().application->controller();
         if (KeyTab.down() || input::TouchRegionDown(controller, 14, 2)) {
             audio::PlaySoundEffect(audio::SoundEffect::Navigate);
-            changeScene(SceneState::Settings, 0);
+            changeScene(SceneState::Settings, transitions::CardTransitionMillisec, CrossFade::No);
             return;
         }
 
@@ -177,14 +207,20 @@ namespace xlair::ui::scenes {
         }
     }
 
-    void MusicSelect::drawCards() const {
+    void MusicSelect::drawCards(const transitions::CardTransition& transition) const {
         const auto& flow = getData().music_select_context->flow();
-        for (const auto& placement : m_card_carousel.layout(flow.selectedIndex(), flow.musicCount())) {
-            drawCard(placement.index, placement.region, placement.selected ? m_text_elapsed : 0.0);
+        for (const auto& placement :
+             m_card_carousel.layout(flow.selectedIndex(), flow.musicCount(), transition.scale)) {
+            drawCard(placement.index, placement.region, placement.selected ? m_text_elapsed : 0.0, transition);
         }
     }
 
-    void MusicSelect::drawCard(const std::size_t music_index, const RectF& region, const double text_elapsed) const {
+    void MusicSelect::drawCard(
+        const std::size_t music_index,
+        const RectF& region,
+        const double text_elapsed,
+        const transitions::CardTransition& transition
+    ) const {
         const auto& flow = getData().music_select_context->flow();
         const auto* music = flow.musicAt(music_index);
         if (!music) {
@@ -212,14 +248,20 @@ namespace xlair::ui::scenes {
             .clear_status = clear_status,
             .available = !difficulty->src.isEmpty(),
         };
-        region.drawShadow(Vec2{ 12, 26 }, 32, 0, ColorF{ 0, 0, 0, 0.22 });
+        region.drawShadow(
+            Vec2{ 12, 26 } * transition.scale,
+            32 * transition.scale,
+            0,
+            ColorF{ 0, 0, 0, 0.22 * transition.opacity }
+        );
+        // Render at the card's native size; scale and opacity apply only to the finished texture.
         region(m_music_card.render(
                    data,
                    getData().jackets.get(music->id),
                    theme::GetDifficultyTheme(difficulty->index),
                    text_elapsed
                ))
-            .draw();
+            .draw(ColorF{ 1.0, transition.opacity });
     }
 
     void MusicSelect::drawEmptyCatalog() const {
