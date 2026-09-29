@@ -18,7 +18,7 @@ namespace xlair::ui::transitions {
 
     [[nodiscard]]
     inline CardTransition CardFadeIn(const double t, const CardZoom zoom = CardZoom::Expand) {
-        const double progress = EaseOutQuart(Clamp(t, 0.0, 1.0));
+        const double progress = EaseOutCirc(Clamp(t, 0.0, 1.0));
         return {
             .scale = zoom == CardZoom::Expand ? progress : 2.0 - progress,
             .opacity = progress,
@@ -27,7 +27,7 @@ namespace xlair::ui::transitions {
 
     [[nodiscard]]
     inline CardTransition CardFadeOut(const double t, const CardZoom zoom = CardZoom::Expand) {
-        const double progress = EaseOutQuart(Clamp(t, 0.0, 1.0));
+        const double progress = EaseOutCirc(Clamp(t, 0.0, 1.0));
         return {
             .scale = zoom == CardZoom::Expand ? 1.0 + progress : 1.0 - progress,
             .opacity = 1.0 - progress,
