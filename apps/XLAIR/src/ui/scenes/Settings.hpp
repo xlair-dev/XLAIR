@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ui/Scene.hpp"
+#include "ui/components/SettingCard.hpp"
 #include "ui/components/SliderMappingGuide.hpp"
 
 namespace xlair::ui::scenes {
@@ -14,10 +15,14 @@ namespace xlair::ui::scenes {
         static void RegisterAssets();
 
     private:
+        void drawCards() const;
+
         struct Assets {
             static constexpr AssetNameView Header{ U"XLAIR.Settings.Header" };
         };
 
+        mutable components::SettingCard m_setting_card;
+        Array<components::SettingCardData> m_setting_cards;
         Array<components::SliderMapping> m_slider_mappings;
     };
 }

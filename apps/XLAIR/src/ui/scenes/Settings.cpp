@@ -1,6 +1,7 @@
 #include "Settings.hpp"
 
 #include "core/user/Level.hpp"
+#include "ui/Design.hpp"
 #include "ui/audio/SoundEffect.hpp"
 #include "ui/components/MenuHeader.hpp"
 #include "ui/components/MenuTimerPlate.hpp"
@@ -11,6 +12,31 @@
 
 namespace xlair::ui::scenes {
     namespace {
+        [[nodiscard]]
+        Array<components::SettingCardData> MakeSettingCards() {
+            // Placeholder values for layout review; not connected to player options yet.
+            return {
+                {
+                    .title = U"SPEED",
+                    .description = U"Note scroll speed",
+                    .value = U"1.0",
+                    .unit = U"×",
+                },
+                {
+                    .title = U"JUDGMENT OFFSET",
+                    .description = U"Adjust judgment timing",
+                    .value = U"+0",
+                    .unit = U"ms",
+                },
+                {
+                    .title = U"MIRROR",
+                    .description = U"Reverse lane order",
+                    .value = U"OFF",
+                    .unit = U"",
+                },
+            };
+        }
+
         [[nodiscard]]
         Array<components::SliderMapping> MakeSliderMappings() {
             return {
@@ -48,7 +74,8 @@ namespace xlair::ui::scenes {
         }
     }
 
-    Settings::Settings(const InitData& init) : SceneBase{ init }, m_slider_mappings{ MakeSliderMappings() } {
+    Settings::Settings(const InitData& init)
+        : SceneBase{ init }, m_setting_cards{ MakeSettingCards() }, m_slider_mappings{ MakeSliderMappings() } {
         getData().ensureMusicSelectContext();
     }
 
@@ -62,6 +89,8 @@ namespace xlair::ui::scenes {
 
     void Settings::draw() const {
         Scene::Rect().draw(theme::Palette::White);
+
+        drawCards();
 
         components::DrawMenuHeader(Assets::Header);
         components::DrawSliderMappingGuide(m_slider_mappings, RectF{ 210, 1010, 1500, 70 });
@@ -92,6 +121,23 @@ namespace xlair::ui::scenes {
             },
             Point{ 1599, 72 }
         );
+    }
+
+    void Settings::drawCards() const {
+        constexpr Size CardSize = components::SettingCard::size();
+        constexpr double CardSpacing = 50.0;
+        constexpr double CardY = 553.0;
+        const double total_width = m_setting_cards.size() * (CardSize.x + CardSpacing) - CardSpacing;
+        const double first_center_x = (DesignSize.x - total_width + CardSize.x) / 2.0;
+
+        for (std::size_t index = 0; index < m_setting_cards.size(); ++index) {
+            const RectF region{
+                Arg::center = Vec2{ first_center_x + index * (CardSize.x + CardSpacing), CardY },
+                CardSize,
+            };
+            region.drawShadow(Vec2{ 12, 26 }, 32, 0, ColorF{ 0, 0, 0, 0.22 });
+            region(m_setting_card.render(m_setting_cards[index], theme::Palette::Purple)).draw();
+        }
     }
 
     void Settings::RegisterAssets() {
