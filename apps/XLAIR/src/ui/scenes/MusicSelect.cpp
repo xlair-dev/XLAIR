@@ -267,13 +267,22 @@ namespace xlair::ui::scenes {
     }
 
     void MusicSelect::drawArrows() const {
+        const auto& flow = getData().music_select_context->flow();
+        if (flow.empty()) {
+            return;
+        }
+
         constexpr Vec2 Center{ DesignSize.x / 2.0, CardY };
         constexpr Vec2 Right = Center.movedBy(SelectedCardSize.x / 2.0 - 10, 0);
         constexpr Vec2 Left = Center.movedBy(-SelectedCardSize.x / 2.0 + 10, 0);
-        primitives::DrawArrow(Right, primitives::ArrowDirection::Right, theme::Palette::Gray);
-        primitives::DrawArrow(Right.movedBy(30, 0), primitives::ArrowDirection::Right, theme::Palette::Gray);
-        primitives::DrawArrow(Left, primitives::ArrowDirection::Left, theme::Palette::Gray);
-        primitives::DrawArrow(Left.movedBy(-30, 0), primitives::ArrowDirection::Left, theme::Palette::Gray);
+        if (flow.selectedIndex() + 1 < flow.musicCount()) {
+            primitives::DrawArrow(Right, primitives::ArrowDirection::Right, theme::Palette::Gray);
+            primitives::DrawArrow(Right.movedBy(30, 0), primitives::ArrowDirection::Right, theme::Palette::Gray);
+        }
+        if (flow.selectedIndex() > 0) {
+            primitives::DrawArrow(Left, primitives::ArrowDirection::Left, theme::Palette::Gray);
+            primitives::DrawArrow(Left.movedBy(-30, 0), primitives::ArrowDirection::Left, theme::Palette::Gray);
+        }
     }
 
     void MusicSelect::drawEmptyCatalog() const {
