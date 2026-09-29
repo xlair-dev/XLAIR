@@ -16,10 +16,17 @@ settings = "設定"
 [settings]
 prompt = "プレイ設定を変更してください"
 
+[settings.card]
+speed_title = "スピード"
+speed_description = "スピードを調整します。0.25〜10.00から選択できます。"
+judgment_offset_title = "判定タイミング"
+judgment_offset_description = "ノーツの判定タイミングを変更できます。"
+mirror_title = "ミラー"
+mirror_description = "「ON」にするとノーツの表示が左右反転します。"
+
 [settings.slider]
 move_left = "左"
 move_right = "右"
-confirm = "決定"
 decrease = "値－"
 increase = "値＋"
 back = "戻る"

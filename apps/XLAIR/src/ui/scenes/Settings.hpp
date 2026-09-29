@@ -31,6 +31,7 @@ namespace xlair::ui::scenes {
         void updatePresentation();
         bool moveItem(int32 direction);
         bool adjustValue(int32 direction);
+        void updateCardValues();
         void drawScene(const transitions::CardTransition& transition) const;
         void drawCards(const transitions::CardTransition& transition) const;
         void drawCard(std::size_t index, const RectF& region, const transitions::CardTransition& transition) const;
@@ -45,8 +46,7 @@ namespace xlair::ui::scenes {
         Array<components::SliderMapping> m_slider_mappings;
         std::size_t m_selected_index = 0;
 
-        // Temporary scene-local values; player-option persistence is not connected yet.
-        int32 m_note_speed_steps = 4; // One step is 0.25x.
+        double m_note_speed = 1.0;
         int32 m_judgment_offset_ms = 0;
         bool m_mirror = false;
     };

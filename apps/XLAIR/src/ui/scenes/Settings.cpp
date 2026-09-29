@@ -2,6 +2,7 @@
 
 #include "core/user/Level.hpp"
 #include "ui/Design.hpp"
+#include "ui/assets/Assets.hpp"
 #include "ui/audio/SoundEffect.hpp"
 #include "ui/components/MenuHeader.hpp"
 #include "ui/components/MenuTimerPlate.hpp"
@@ -10,33 +11,35 @@
 #include "ui/localization/Localization.hpp"
 #include "ui/theme/Palette.hpp"
 
+#include <cmath>
+
 namespace xlair::ui::scenes {
     namespace {
         constexpr double CardY = 553.0;
 
         // Provisional bounds for the UI prototype, not the final game-option constraints.
-        constexpr int32 MinimumSpeedSteps = 1;
-        constexpr int32 MaximumSpeedSteps = 40;
+        constexpr double MinimumSpeed = 0.25;
+        constexpr double MaximumSpeed = 10.0;
+        constexpr double SpeedStep = 0.25;
         constexpr int32 MinimumJudgmentOffsetMs = -100;
         constexpr int32 MaximumJudgmentOffsetMs = 100;
 
         [[nodiscard]]
         Array<components::SettingCardData> MakeSettingCards() {
-            // Placeholder values for layout review; not connected to player options yet.
             return {
                 {
-                    .title = U"SPEED",
-                    .description = U"Note scroll speed",
+                    .title = localization::GetText(localization::TextId::SettingsCardSpeedTitle),
+                    .description = localization::GetText(localization::TextId::SettingsCardSpeedDescription),
                     .value = U"1.00",
                 },
                 {
-                    .title = U"JUDGMENT OFFSET",
-                    .description = U"Adjust judgment timing",
+                    .title = localization::GetText(localization::TextId::SettingsCardJudgmentOffsetTitle),
+                    .description = localization::GetText(localization::TextId::SettingsCardJudgmentOffsetDescription),
                     .value = U"+0",
                 },
                 {
-                    .title = U"MIRROR",
-                    .description = U"Reverse lane order",
+                    .title = localization::GetText(localization::TextId::SettingsCardMirrorTitle),
+                    .description = localization::GetText(localization::TextId::SettingsCardMirrorDescription),
                     .value = U"OFF",
                     .can_decrease = false,
                     .show_arrow_labels = false,
@@ -56,11 +59,6 @@ namespace xlair::ui::scenes {
                     .region = { .start = 3, .width = 3, .left_corner = false },
                     .label = U"{} ▶"_fmt(localization::GetText(localization::TextId::SettingsSliderMoveRight)),
                     .color = theme::Palette::Pink,
-                },
-                {
-                    .region = { .start = 6, .width = 4 },
-                    .label = localization::GetText(localization::TextId::SettingsSliderConfirm),
-                    .color = theme::Palette::Cyan,
                 },
                 {
                     .region = { .start = 10, .width = 2, .right_corner = false },
@@ -85,6 +83,13 @@ namespace xlair::ui::scenes {
         : SceneBase{ init },
           m_card_carousel{ components::SettingCard::size(), Vec2{ DesignSize.x / 2.0, CardY }, DesignSize.x },
           m_setting_cards{ MakeSettingCards() }, m_slider_mappings{ MakeSliderMappings() } {
+        const auto& session = getData().application->playSession();
+        const auto& options = session.playOptions();
+        m_note_speed = std::isfinite(options.note_speed) ? options.note_speed : 1.0;
+        m_judgment_offset_ms = options.judgment_offset_ms;
+        m_mirror = session.mirror();
+        updateCardValues();
+
         auto& context = getData().ensureMusicSelectContext();
         if (!m_setting_cards.isEmpty()) {
             m_selected_index = Min(context.selectedSettingIndex(), m_setting_cards.size() - 1);
@@ -162,30 +167,53 @@ namespace xlair::ui::scenes {
         }
 
         const int32 step = direction < 0 ? -1 : 1;
+        auto& session = getData().application->playSession();
         switch (static_cast<SettingItem>(m_selected_index)) {
             case SettingItem::Speed: {
-                m_note_speed_steps += step;
-                card.value = U"{:.2f}"_fmt(m_note_speed_steps * 0.25);
-                card.can_decrease = m_note_speed_steps > MinimumSpeedSteps;
-                card.can_increase = m_note_speed_steps < MaximumSpeedSteps;
-                return true;
+                // Move to the next quarter step even if the API value is off the UI grid.
+                const double next_step =
+                    step > 0 ? std::floor(m_note_speed / SpeedStep) + 1.0 : std::ceil(m_note_speed / SpeedStep) - 1.0;
+                m_note_speed = Clamp(next_step * SpeedStep, MinimumSpeed, MaximumSpeed);
+                session.playOptions().note_speed = m_note_speed;
+                break;
             }
             case SettingItem::JudgmentOffset: {
-                m_judgment_offset_ms += step;
-                card.value = U"{:+}"_fmt(m_judgment_offset_ms);
-                card.can_decrease = m_judgment_offset_ms > MinimumJudgmentOffsetMs;
-                card.can_increase = m_judgment_offset_ms < MaximumJudgmentOffsetMs;
-                return true;
+                const int64 next = static_cast<int64>(m_judgment_offset_ms) + step;
+                m_judgment_offset_ms = static_cast<int32>(Clamp(
+                    next,
+                    static_cast<int64>(MinimumJudgmentOffsetMs),
+                    static_cast<int64>(MaximumJudgmentOffsetMs)
+                ));
+                session.playOptions().judgment_offset_ms = m_judgment_offset_ms;
+                break;
             }
             case SettingItem::Mirror: {
                 m_mirror = direction > 0;
-                card.value = m_mirror ? U"ON" : U"OFF";
-                card.can_decrease = m_mirror;
-                card.can_increase = !m_mirror;
-                return true;
+                session.setMirror(m_mirror);
+                break;
             }
+            default:
+                return false;
         }
-        return false;
+        updateCardValues();
+        return true;
+    }
+
+    void Settings::updateCardValues() {
+        auto& speed = m_setting_cards[static_cast<std::size_t>(SettingItem::Speed)];
+        speed.value = U"{:.2f}"_fmt(m_note_speed);
+        speed.can_decrease = m_note_speed > MinimumSpeed;
+        speed.can_increase = m_note_speed < MaximumSpeed;
+
+        auto& judgment = m_setting_cards[static_cast<std::size_t>(SettingItem::JudgmentOffset)];
+        judgment.value = U"{:+}"_fmt(m_judgment_offset_ms);
+        judgment.can_decrease = m_judgment_offset_ms > MinimumJudgmentOffsetMs;
+        judgment.can_increase = m_judgment_offset_ms < MaximumJudgmentOffsetMs;
+
+        auto& mirror = m_setting_cards[static_cast<std::size_t>(SettingItem::Mirror)];
+        mirror.value = m_mirror ? U"ON" : U"OFF";
+        mirror.can_decrease = m_mirror;
+        mirror.can_increase = !m_mirror;
     }
 
     void Settings::draw() const {
@@ -267,6 +295,23 @@ namespace xlair::ui::scenes {
     }
 
     void Settings::RegisterAssets() {
+        String latin_chars = U"0123456789.+-";
+        String cjk_chars;
+        const auto append_chars = [&](const StringView text) {
+            for (const char32 ch : text) {
+                (ch < 0x80 ? latin_chars : cjk_chars).push_back(ch);
+            }
+        };
+        for (const auto& card : MakeSettingCards()) {
+            append_chars(card.title);
+            append_chars(card.description);
+            append_chars(card.value);
+        }
+        if (!FontAsset{ assets::font::Text }.preload(latin_chars.sorted_and_uniqued()) ||
+            !FontAsset{ assets::font::CjkFallback }.preload(cjk_chars.sorted_and_uniqued())) {
+            throw Error{ U"Failed to preload the Settings card glyphs." };
+        }
+
         if (!TextureAsset::Register(
                 Assets::Header,
                 components::MakeMenuHeaderTexture(
