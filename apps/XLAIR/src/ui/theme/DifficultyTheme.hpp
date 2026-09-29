@@ -18,28 +18,28 @@ namespace xlair::ui::theme {
                 return {
                     .accent = Palette::Cyan,
                     .secondary = Palette::Pink,
-                    .text = Palette::Gray,
+                    .text = Palette::BlueGray,
                     .secondary_text = Palette::LightGray,
                 };
             case 1:
                 return {
                     .accent = Palette::Pink,
                     .secondary = Palette::Cyan,
-                    .text = Palette::Gray,
+                    .text = Palette::BlueGray,
                     .secondary_text = Palette::LightGray,
                 };
             case 2:
                 return {
                     .accent = Palette::Purple,
                     .secondary = Palette::Cyan,
-                    .text = Palette::Gray,
+                    .text = Palette::BlueGray,
                     .secondary_text = Palette::LightGray,
                 };
             default:
                 return {
                     .accent = Palette::DimmedPurple,
                     .secondary = Palette::Cyan,
-                    .text = Palette::Gray,
+                    .text = Palette::BlueGray,
                     .secondary_text = Palette::LightGray,
                 };
         }
