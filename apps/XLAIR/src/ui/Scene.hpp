@@ -13,6 +13,7 @@ namespace xlair::ui {
         Title,
         Login,
         MusicSelect,
+        Settings,
         ComponentGallery,
     };
 

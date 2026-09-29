@@ -5,6 +5,7 @@
 #include "scenes/Login.hpp"
 // #include "scenes/Tutorial.hpp"
 #include "scenes/MusicSelect.hpp"
+#include "scenes/Settings.hpp"
 
 #include "scenes/ComponentGallery.hpp"
 
@@ -22,6 +23,7 @@ namespace xlair::ui {
             .add<scenes::Title>(SceneState::Title)                        // title; wait user, scan card
             .add<scenes::Login>(SceneState::Login)                        // login; cancel -> Title, ok -> MusicSelect
             .add<scenes::MusicSelect>(SceneState::MusicSelect)            // music
+            .add<scenes::Settings>(SceneState::Settings)                  // settings
             .add<scenes::ComponentGallery>(SceneState::ComponentGallery); // test
         scene_manager.init(SceneState::Boot, 0);
 
