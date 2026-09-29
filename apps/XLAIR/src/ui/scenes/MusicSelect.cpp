@@ -4,6 +4,7 @@
 #include "core/user/Level.hpp"
 #include "ui/Design.hpp"
 #include "ui/assets/Assets.hpp"
+#include "ui/audio/AudioBus.hpp"
 #include "ui/components/MenuTimerPlate.hpp"
 #include "ui/components/SliderMappingGuide.hpp"
 #include "ui/components/UserNameplate.hpp"
@@ -184,20 +185,20 @@ namespace xlair::ui::scenes {
         const bool difficulty_up = KeyUp.down() || TouchRegionDown(controller, 12, 2);
 
         if (move_left && m_flow->moveMusic(-1)) {
-            AudioAsset{ assets::sound::Navigate }.playOneShot();
+            AudioAsset{ assets::sound::Navigate }.playOneShot(audio::UISound);
             m_scroll_offset = 1.0;
             m_text_elapsed = 0.0;
         } else if (move_right && m_flow->moveMusic(1)) {
-            AudioAsset{ assets::sound::Navigate }.playOneShot();
+            AudioAsset{ assets::sound::Navigate }.playOneShot(audio::UISound);
             m_scroll_offset = -1.0;
             m_text_elapsed = 0.0;
         }
 
         if (difficulty_down && m_flow->moveDifficulty(-1)) {
-            AudioAsset{ assets::sound::ChangeDifficulty }.playOneShot();
+            AudioAsset{ assets::sound::ChangeDifficulty }.playOneShot(audio::UISound);
             m_text_elapsed = 0.0;
         } else if (difficulty_up && m_flow->moveDifficulty(1)) {
-            AudioAsset{ assets::sound::ChangeDifficulty }.playOneShot();
+            AudioAsset{ assets::sound::ChangeDifficulty }.playOneShot(audio::UISound);
             m_text_elapsed = 0.0;
         }
 
@@ -208,7 +209,7 @@ namespace xlair::ui::scenes {
                 if (difficulty->src.isEmpty()) {
                     Logger << U"[MusicSelect] Sheet '{}' is not implemented."_fmt(difficulty->id);
                 } else {
-                    AudioAsset{ assets::sound::Confirm }.playOneShot();
+                    AudioAsset{ assets::sound::Confirm }.playOneShot(audio::UISound);
                     Logger << U"[MusicSelect] Selected music '{}' / sheet '{}'."_fmt(music->id, difficulty->id);
                 }
             }

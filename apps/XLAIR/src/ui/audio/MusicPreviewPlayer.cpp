@@ -1,5 +1,7 @@
 #include "MusicPreviewPlayer.hpp"
 
+#include "AudioBus.hpp"
+
 #include <cmath>
 #include <exception>
 #include <utility>
@@ -136,7 +138,7 @@ namespace xlair::ui::audio {
             m_stopwatch.restart();
             m_audio.setVolume(0.0);
             m_audio.seekTime(start_seconds);
-            m_audio.play();
+            m_audio.play(Music);
         }
 
         const int32 elapsed_ms = m_stopwatch.ms();
