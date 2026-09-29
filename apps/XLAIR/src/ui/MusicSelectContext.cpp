@@ -25,4 +25,12 @@ namespace xlair::ui {
     double MusicSelectContext::remainingSeconds() const noexcept {
         return m_remaining_seconds;
     }
+
+    std::size_t MusicSelectContext::selectedSettingIndex() const noexcept {
+        return m_selected_setting_index;
+    }
+
+    void MusicSelectContext::setSelectedSettingIndex(const std::size_t index) noexcept {
+        m_selected_setting_index = index;
+    }
 }

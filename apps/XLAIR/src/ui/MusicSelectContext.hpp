@@ -20,9 +20,15 @@ namespace xlair::ui {
         [[nodiscard]]
         double remainingSeconds() const noexcept;
 
+        [[nodiscard]]
+        std::size_t selectedSettingIndex() const noexcept;
+
+        void setSelectedSettingIndex(std::size_t index) noexcept;
+
     private:
         app::flows::MusicSelect m_flow;
         audio::MusicPreviewPlayer m_preview_player;
         double m_remaining_seconds = 0.0;
+        std::size_t m_selected_setting_index = 0;
     };
 }

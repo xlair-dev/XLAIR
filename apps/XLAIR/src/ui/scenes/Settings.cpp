@@ -89,7 +89,11 @@ namespace xlair::ui::scenes {
 
     Settings::Settings(const InitData& init)
         : SceneBase{ init }, m_setting_cards{ MakeSettingCards() }, m_slider_mappings{ MakeSliderMappings() } {
-        getData().ensureMusicSelectContext();
+        auto& context = getData().ensureMusicSelectContext();
+        if (!m_setting_cards.isEmpty()) {
+            m_selected_index = Min(context.selectedSettingIndex(), m_setting_cards.size() - 1);
+            context.setSelectedSettingIndex(m_selected_index);
+        }
     }
 
     void Settings::update() {
@@ -134,6 +138,7 @@ namespace xlair::ui::scenes {
         }
 
         m_selected_index = static_cast<std::size_t>(destination);
+        getData().music_select_context->setSelectedSettingIndex(m_selected_index);
         m_scroll_offset = direction < 0 ? 1.0 : -1.0;
         return true;
     }
