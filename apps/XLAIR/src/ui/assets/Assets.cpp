@@ -61,10 +61,31 @@ namespace xlair::ui::assets {
             );
             Require(TextureAsset::Load(texture::Logo), U"Failed to load the XLAIR logo.");
         }
+
+        void InitializeSounds() {
+            Require(
+                AudioAsset::Register(sound::Navigate, Resource(U"ui/sounds/se/navigate.wav")),
+                U"Failed to register the navigation sound."
+            );
+            Require(AudioAsset::Load(sound::Navigate), U"Failed to load the navigation sound.");
+
+            Require(
+                AudioAsset::Register(sound::ChangeDifficulty, Resource(U"ui/sounds/se/change_difficulty.wav")),
+                U"Failed to register the difficulty change sound."
+            );
+            Require(AudioAsset::Load(sound::ChangeDifficulty), U"Failed to load the difficulty change sound.");
+
+            Require(
+                AudioAsset::Register(sound::Confirm, Resource(U"ui/sounds/se/confirm.wav")),
+                U"Failed to register the confirmation sound."
+            );
+            Require(AudioAsset::Load(sound::Confirm), U"Failed to load the confirmation sound.");
+        }
     }
 
     void Initialize() {
         InitializeFonts();
         InitializeTextures();
+        InitializeSounds();
     }
 }
