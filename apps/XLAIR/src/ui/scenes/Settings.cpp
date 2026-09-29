@@ -28,19 +28,18 @@ namespace xlair::ui::scenes {
                     .title = U"SPEED",
                     .description = U"Note scroll speed",
                     .value = U"1.00",
-                    .unit = U"×",
                 },
                 {
                     .title = U"JUDGMENT OFFSET",
                     .description = U"Adjust judgment timing",
                     .value = U"+0",
-                    .unit = U"ms",
                 },
                 {
                     .title = U"MIRROR",
                     .description = U"Reverse lane order",
                     .value = U"OFF",
-                    .unit = U"",
+                    .can_decrease = false,
+                    .show_arrow_labels = false,
                 },
             };
         }
@@ -158,33 +157,31 @@ namespace xlair::ui::scenes {
         }
 
         auto& card = m_setting_cards[m_selected_index];
+        if (direction < 0 ? !card.can_decrease : !card.can_increase) {
+            return false;
+        }
+
         const int32 step = direction < 0 ? -1 : 1;
         switch (static_cast<SettingItem>(m_selected_index)) {
             case SettingItem::Speed: {
-                const int32 next = Clamp(m_note_speed_steps + step, MinimumSpeedSteps, MaximumSpeedSteps);
-                if (next == m_note_speed_steps) {
-                    return false;
-                }
-                m_note_speed_steps = next;
+                m_note_speed_steps += step;
                 card.value = U"{:.2f}"_fmt(m_note_speed_steps * 0.25);
+                card.can_decrease = m_note_speed_steps > MinimumSpeedSteps;
+                card.can_increase = m_note_speed_steps < MaximumSpeedSteps;
                 return true;
             }
             case SettingItem::JudgmentOffset: {
-                const int32 next = Clamp(m_judgment_offset_ms + step, MinimumJudgmentOffsetMs, MaximumJudgmentOffsetMs);
-                if (next == m_judgment_offset_ms) {
-                    return false;
-                }
-                m_judgment_offset_ms = next;
+                m_judgment_offset_ms += step;
                 card.value = U"{:+}"_fmt(m_judgment_offset_ms);
+                card.can_decrease = m_judgment_offset_ms > MinimumJudgmentOffsetMs;
+                card.can_increase = m_judgment_offset_ms < MaximumJudgmentOffsetMs;
                 return true;
             }
             case SettingItem::Mirror: {
-                const bool next = direction > 0;
-                if (next == m_mirror) {
-                    return false;
-                }
-                m_mirror = next;
+                m_mirror = direction > 0;
                 card.value = m_mirror ? U"ON" : U"OFF";
+                card.can_decrease = m_mirror;
+                card.can_increase = !m_mirror;
                 return true;
             }
         }
@@ -266,8 +263,7 @@ namespace xlair::ui::scenes {
             ColorF{ 0, 0, 0, 0.22 * transition.opacity }
         );
         // Keep offscreen rendering untouched and fade only the finished card texture.
-        region(m_setting_card.render(m_setting_cards[index], theme::Palette::Purple))
-            .draw(ColorF{ 1.0, transition.opacity });
+        region(m_setting_card.render(m_setting_cards[index])).draw(ColorF{ 1.0, transition.opacity });
     }
 
     void Settings::RegisterAssets() {

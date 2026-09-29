@@ -7,7 +7,9 @@ namespace xlair::ui::components {
         String title;
         String description;
         String value;
-        String unit;
+        bool can_decrease = true;
+        bool can_increase = true;
+        bool show_arrow_labels = true;
     };
 
     class SettingCard {
@@ -15,7 +17,7 @@ namespace xlair::ui::components {
         SettingCard();
 
         [[nodiscard]]
-        const MSRenderTexture& render(const SettingCardData& data, const ColorF& background);
+        const MSRenderTexture& render(const SettingCardData& data);
 
         [[nodiscard]]
         static constexpr Size size() noexcept {

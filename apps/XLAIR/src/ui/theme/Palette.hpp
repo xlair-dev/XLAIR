@@ -10,5 +10,6 @@ namespace xlair::ui::theme::Palette {
     inline constexpr ColorF DarkBlue{ U"#0F4057" };
     inline constexpr ColorF Gray{ U"#7E7E7E" };
     inline constexpr ColorF LightGray{ U"#9798AA" };
+    inline constexpr ColorF BlueGray{ U"#6C6E8D" };
     inline constexpr ColorF White{ U"#FFFFFF" };
 }
