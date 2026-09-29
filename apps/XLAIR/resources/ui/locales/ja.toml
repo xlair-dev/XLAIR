@@ -17,8 +17,8 @@ settings = "設定"
 prompt = "プレイ設定を変更してください"
 
 [settings.slider]
-previous_item = "前の項目"
-next_item = "次の項目"
+move_left = "左"
+move_right = "右"
 confirm = "決定"
 decrease = "値－"
 increase = "値＋"

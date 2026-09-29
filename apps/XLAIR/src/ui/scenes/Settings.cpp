@@ -55,12 +55,12 @@ namespace xlair::ui::scenes {
             return {
                 {
                     .region = { .start = 0, .width = 3, .right_corner = false },
-                    .label = U"◀ {}"_fmt(localization::GetText(localization::TextId::SettingsSliderPreviousItem)),
+                    .label = U"◀ {}"_fmt(localization::GetText(localization::TextId::SettingsSliderMoveLeft)),
                     .color = theme::Palette::Pink,
                 },
                 {
                     .region = { .start = 3, .width = 3, .left_corner = false },
-                    .label = U"{} ▶"_fmt(localization::GetText(localization::TextId::SettingsSliderNextItem)),
+                    .label = U"{} ▶"_fmt(localization::GetText(localization::TextId::SettingsSliderMoveRight)),
                     .color = theme::Palette::Pink,
                 },
                 {
