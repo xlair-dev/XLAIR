@@ -47,15 +47,10 @@ namespace xlair::ui::scenes {
     }
 
     Settings::Settings(const InitData& init) : SceneBase{ init }, m_slider_mappings{ MakeSliderMappings() } {
-        const auto& config = getData().application->config();
-        if (config) {
-            m_remaining_seconds = config->system.menu_timer_seconds;
-        }
+        getData().ensureMusicSelectContext();
     }
 
-    void Settings::update() {
-        m_remaining_seconds = Max(0.0, m_remaining_seconds - Scene::DeltaTime());
-    }
+    void Settings::update() {}
 
     void Settings::draw() const {
         Scene::Rect().draw(theme::Palette::White);
@@ -83,7 +78,7 @@ namespace xlair::ui::scenes {
         const uint32 remaining_plays = session.active() ? session.remainingPlays() : max_plays;
         components::DrawMenuTimerPlate(
             {
-                .remaining_seconds = static_cast<int32>(Ceil(m_remaining_seconds)),
+                .remaining_seconds = static_cast<int32>(Ceil(getData().music_select_context->remainingSeconds())),
                 .max_plays = max_plays,
                 .remaining_plays = remaining_plays,
             },

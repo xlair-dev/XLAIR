@@ -10,6 +10,15 @@
 #include "scenes/ComponentGallery.hpp"
 
 namespace xlair::ui {
+    MusicSelectContext& SceneData::ensureMusicSelectContext() {
+        if (!music_select_context) {
+            const auto& config = application->config();
+            const double remaining_seconds = config ? config->system.menu_timer_seconds : 0.0;
+            music_select_context = std::make_unique<MusicSelectContext>(application->musicCatalog(), remaining_seconds);
+        }
+        return *music_select_context;
+    }
+
     SceneManager CreateSceneManager(
         const std::shared_ptr<app::Application>& application,
         const std::shared_ptr<app::flows::Boot>& boot_flow

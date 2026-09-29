@@ -19,6 +19,5 @@ namespace xlair::ui::scenes {
         };
 
         Array<components::SliderMapping> m_slider_mappings;
-        double m_remaining_seconds = 0.0;
     };
 }

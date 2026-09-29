@@ -64,31 +64,19 @@ namespace xlair::ui::scenes {
     }
 
     MusicSelect::MusicSelect(const InitData& init) : SceneBase{ init }, m_slider_mappings{ MakeSliderMappings() } {
-        const auto& application = *getData().application;
-        m_flow = std::make_unique<app::flows::MusicSelect>(application.musicCatalog());
-        if (application.config()) {
-            m_remaining_seconds = application.config()->system.menu_timer_seconds;
-        }
+        getData().ensureMusicSelectContext();
     }
 
     void MusicSelect::update() {
         handleInput();
         updateAnimation();
-        if (m_flow) {
-            if (const auto* music = m_flow->selectedMusic()) {
-                m_preview_player.update(music->music, music->demo_start_seconds);
-            } else {
-                m_preview_player.stop();
-            }
-        }
         m_text_elapsed += Scene::DeltaTime();
-        m_remaining_seconds = Max(0.0, m_remaining_seconds - Scene::DeltaTime());
     }
 
     void MusicSelect::draw() const {
         Scene::Rect().draw(theme::Palette::White);
 
-        if (!m_flow || m_flow->empty()) {
+        if (getData().music_select_context->flow().empty()) {
             drawEmptyCatalog();
         } else {
             drawCards();
@@ -118,7 +106,7 @@ namespace xlair::ui::scenes {
         const uint32 remaining_plays = session.active() ? session.remainingPlays() : max_plays;
         components::DrawMenuTimerPlate(
             {
-                .remaining_seconds = static_cast<int32>(Ceil(m_remaining_seconds)),
+                .remaining_seconds = static_cast<int32>(Ceil(getData().music_select_context->remainingSeconds())),
                 .max_plays = max_plays,
                 .remaining_plays = remaining_plays,
             },
@@ -127,7 +115,8 @@ namespace xlair::ui::scenes {
     }
 
     void MusicSelect::handleInput() {
-        if (!m_flow || m_flow->empty()) {
+        auto& flow = getData().music_select_context->flow();
+        if (flow.empty()) {
             return;
         }
 
@@ -138,27 +127,27 @@ namespace xlair::ui::scenes {
         const bool difficulty_down = KeyDown.down() || input::TouchRegionDown(controller, 10, 2);
         const bool difficulty_up = KeyUp.down() || input::TouchRegionDown(controller, 12, 2);
 
-        if (move_left && m_flow->moveMusic(-1)) {
+        if (move_left && flow.moveMusic(-1)) {
             audio::PlaySoundEffect(audio::SoundEffect::Navigate);
             m_scroll_offset = 1.0;
             m_text_elapsed = 0.0;
-        } else if (move_right && m_flow->moveMusic(1)) {
+        } else if (move_right && flow.moveMusic(1)) {
             audio::PlaySoundEffect(audio::SoundEffect::Navigate);
             m_scroll_offset = -1.0;
             m_text_elapsed = 0.0;
         }
 
-        if (difficulty_down && m_flow->moveDifficulty(-1)) {
+        if (difficulty_down && flow.moveDifficulty(-1)) {
             audio::PlaySoundEffect(audio::SoundEffect::ChangeDifficulty);
             m_text_elapsed = 0.0;
-        } else if (difficulty_up && m_flow->moveDifficulty(1)) {
+        } else if (difficulty_up && flow.moveDifficulty(1)) {
             audio::PlaySoundEffect(audio::SoundEffect::ChangeDifficulty);
             m_text_elapsed = 0.0;
         }
 
         if (select) {
-            const auto* music = m_flow->selectedMusic();
-            const auto* difficulty = m_flow->selectedDifficulty();
+            const auto* music = flow.selectedMusic();
+            const auto* difficulty = flow.selectedDifficulty();
             if (music && difficulty) {
                 if (difficulty->src.isEmpty()) {
                     Logger << U"[MusicSelect] Sheet '{}' is not implemented."_fmt(difficulty->id);
@@ -188,7 +177,8 @@ namespace xlair::ui::scenes {
     }
 
     void MusicSelect::drawCards() const {
-        const std::size_t selected_index = m_flow->selectedIndex();
+        const auto& flow = getData().music_select_context->flow();
+        const std::size_t selected_index = flow.selectedIndex();
         const double scroll = m_scroll_offset;
         const double scroll_abs = Abs(scroll);
         constexpr Vec2 Center{ DesignSize.x / 2.0, CardY };
@@ -207,7 +197,7 @@ namespace xlair::ui::scenes {
                 selected_x + direction * (selected_size.x / 2.0 + CardSpacing + SelectedCardMargin * margin_factor);
 
             for (int64 index = static_cast<int64>(selected_index) + direction;
-                 index >= 0 && index < static_cast<int64>(m_flow->musicCount());
+                 index >= 0 && index < static_cast<int64>(flow.musicCount());
                  index += direction) {
                 if (x - direction * SideCardSize.x > DesignSize.x || x - direction * SideCardSize.x < 0) {
                     break;
@@ -233,11 +223,12 @@ namespace xlair::ui::scenes {
     }
 
     void MusicSelect::drawCard(const std::size_t music_index, const RectF& region, const double text_elapsed) const {
-        const auto* music = m_flow->musicAt(music_index);
+        const auto& flow = getData().music_select_context->flow();
+        const auto* music = flow.musicAt(music_index);
         if (!music) {
             return;
         }
-        const auto* difficulty = m_flow->difficultyFor(*music);
+        const auto* difficulty = flow.difficultyFor(*music);
         if (!difficulty) {
             return;
         }

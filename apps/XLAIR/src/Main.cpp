@@ -33,11 +33,17 @@ void Main() {
         infra::api::LocalCatalogSyncFactory{ paths.sheets_directory }
     );
     auto scene_manager = ui::CreateSceneManager(application, boot_flow);
+    const auto scene_data = scene_manager.get();
 
     while (System::Update()) {
         application->update();
-        if (!scene_manager.update()) {
+        if (!scene_manager.updateScene()) {
             break;
         }
+
+        if (const auto& context = scene_data->music_select_context) {
+            context->update(Scene::DeltaTime());
+        }
+        scene_manager.drawScene();
     }
 }
