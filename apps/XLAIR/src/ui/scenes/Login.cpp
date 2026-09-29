@@ -38,6 +38,13 @@ namespace xlair::ui::scenes {
         m_login_flow.update(data.application->creditPool());
         if (m_login_flow.state() != previous) {
             reportState();
+            if (m_login_flow.state() == app::flows::Login::State::UserFound) {
+                const auto& config = data.application->config();
+                const uint32 max_plays = config ? static_cast<uint32>(Max(0, config->system.playable)) : 0;
+                data.application->playSession().start(*m_login_flow.user(), max_plays);
+                data.application->playSession().setRecords(m_login_flow.records());
+                changeScene(SceneState::MusicSelect, 0);
+            }
         }
     }
 
@@ -60,6 +67,10 @@ namespace xlair::ui::scenes {
 
             case app::flows::Login::State::IncrementingCredits:
                 Print << U"Updating Credits...";
+                break;
+
+            case app::flows::Login::State::FetchingRecords:
+                Print << U"Loading play records...";
                 break;
 
             case app::flows::Login::State::UserFound: {

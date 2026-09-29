@@ -185,7 +185,7 @@ namespace xlair::api {
                     if (m_task) {
                         m_task.cancel();
                     }
-                    fail(ErrorKind::Timeout, U"API request timed out.");
+                    fail(ErrorKind::Timeout, U"API request timed out: " + m_path);
                     return;
                 }
                 try {

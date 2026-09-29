@@ -15,5 +15,11 @@ namespace xlair::ui::assets {
         inline constexpr AssetNameView Logo{ U"XLAIR.UI.Texture.Logo" };
     }
 
+    namespace sound {
+        inline constexpr AssetNameView Navigate{ U"XLAIR.UI.Sound.Navigate" };
+        inline constexpr AssetNameView ChangeDifficulty{ U"XLAIR.UI.Sound.ChangeDifficulty" };
+        inline constexpr AssetNameView Confirm{ U"XLAIR.UI.Sound.Confirm" };
+    }
+
     void Initialize();
 }

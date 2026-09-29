@@ -5,6 +5,7 @@
 #include "app/config/Config.hpp"
 #include "app/credits/CreditPool.hpp"
 #include "app/interfaces/ICardReader.hpp"
+#include "app/session/PlaySession.hpp"
 
 #include <ApiClient/IClient.hpp>
 #include <SheetsAnalyzer/Metadata.hpp>
@@ -44,6 +45,12 @@ namespace xlair::app {
         [[nodiscard]]
         const Array<sheets::Metadata>& musicCatalog() const noexcept;
 
+        [[nodiscard]]
+        session::PlaySession& playSession() noexcept;
+
+        [[nodiscard]]
+        const session::PlaySession& playSession() const noexcept;
+
     private:
         friend class flows::Boot;
 
@@ -60,5 +67,6 @@ namespace xlair::app {
         Optional<app::controller::Error> m_controller_error;
         credits::CreditPool m_credit_pool;
         Array<sheets::Metadata> m_music_catalog;
+        session::PlaySession m_play_session;
     };
 }
