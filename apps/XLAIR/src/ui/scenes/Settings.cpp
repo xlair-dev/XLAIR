@@ -225,7 +225,7 @@ namespace xlair::ui::scenes {
     }
 
     void Settings::drawFadeOut(const double t) const {
-        drawScene(transitions::CardFadeOut(t, transitions::CardZoom::Shrink));
+        drawScene(transitions::CardFadeOut(t));
     }
 
     void Settings::drawScene(const transitions::CardTransition& transition) const {
