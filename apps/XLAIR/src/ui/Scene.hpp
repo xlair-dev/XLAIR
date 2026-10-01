@@ -5,6 +5,7 @@
 #include "app/flows/Boot.hpp"
 #include "ui/MusicSelectContext.hpp"
 #include "ui/assets/JacketAssets.hpp"
+#include "ui/game/GameLoader.hpp"
 
 #include <memory>
 #include <utility>
@@ -20,14 +21,6 @@ namespace xlair::ui {
         ComponentGallery,
     };
 
-    struct GameSelection {
-        String music_id;
-        String title;
-        FilePath music_path;
-        double music_offset_seconds = 0.0;
-        sheets::Difficulty difficulty;
-    };
-
     struct SceneData {
         SceneData(std::shared_ptr<app::Application> application, std::shared_ptr<app::flows::Boot> boot_flow)
             : application{ std::move(application) }, boot_flow{ std::move(boot_flow) } {}
@@ -40,6 +33,7 @@ namespace xlair::ui {
         assets::JacketAssets jackets;
         std::unique_ptr<MusicSelectContext> music_select_context;
         Optional<GameSelection> game_selection;
+        game::GameLoader game_loader;
         bool returning_from_game = false;
     };
 

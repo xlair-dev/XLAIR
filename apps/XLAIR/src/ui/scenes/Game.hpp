@@ -6,6 +6,7 @@ namespace xlair::ui::scenes {
     class Game final : public SceneBase {
     public:
         explicit Game(const InitData& init);
+        ~Game() override;
 
         void update() override;
         void draw() const override;

@@ -9,6 +9,14 @@ namespace xlair::ui::scenes {
         if (getData().music_select_context) {
             getData().music_select_context->pause();
         }
+        if (const auto& selection = getData().game_selection) {
+            getData().game_loader.start(*selection);
+        }
+    }
+
+    Game::~Game() {
+        getData().game_loader.cancel();
+        getData().game_selection.reset();
     }
 
     void Game::update() {
@@ -16,7 +24,6 @@ namespace xlair::ui::scenes {
             return;
         }
 
-        getData().game_selection.reset();
         getData().returning_from_game = true;
         changeScene(SceneState::MusicSelect, 500, CrossFade::No);
     }
@@ -32,6 +39,26 @@ namespace xlair::ui::scenes {
                 .drawAt(24, center.movedBy(0, 45), theme::Palette::Gray);
         }
 
+        const auto& loader = getData().game_loader;
+        String message;
+        switch (loader.state()) {
+            case game::GameLoader::State::Idle:
+                message = U"No chart selected.";
+                break;
+            case game::GameLoader::State::LoadingAudio:
+                message = U"Loading audio...";
+                break;
+            case game::GameLoader::State::LoadingChart:
+                message = U"Loading chart...";
+                break;
+            case game::GameLoader::State::Ready:
+                message = U"Chart ready (gameplay is not implemented yet).";
+                break;
+            case game::GameLoader::State::Failed:
+                message = loader.error();
+                break;
+        }
+        FontAsset{ assets::font::Text }(message).drawAt(24, center.movedBy(0, 115), theme::Palette::Gray);
         FontAsset{ assets::font::Text }(U"Hold Esc to return to MUSIC SELECT")
             .drawAt(20, center.movedBy(0, 180), theme::Palette::Gray);
     }
