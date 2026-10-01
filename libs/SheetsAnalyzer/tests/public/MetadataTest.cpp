@@ -138,6 +138,18 @@ TEST_CASE("ScanMetadata recursively loads conventionally named metadata", "[Shee
     CHECK((*result)[1].id == U"beta");
 }
 
+TEST_CASE("ScanMetadata excludes selected directories", "[SheetsAnalyzer][Metadata][Scan]") {
+    auto excluded = MetadataFixture(U"scan-invalid/broken");
+#if defined(_WIN32)
+    excluded = excluded.uppercased();
+#endif
+    const auto result = xlair::sheets::ScanMetadata(MetadataFixture(U"scan-invalid"), { excluded });
+
+    REQUIRE(result);
+    REQUIRE(result->size() == 1);
+    CHECK(result->front().id == U"valid");
+}
+
 TEST_CASE("ScanMetadata rejects a non-directory path", "[SheetsAnalyzer][Metadata][Scan]") {
     const auto path = MetadataFixture(U"load/music.json");
     const auto result = xlair::sheets::ScanMetadata(path);

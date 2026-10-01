@@ -9,5 +9,6 @@ namespace xlair::sheets::metadata {
     Result<Metadata> Load(const s3d::FilePath& path);
 
     [[nodiscard]]
-    Result<s3d::Array<Metadata>> Scan(const s3d::FilePath& directory);
+    Result<s3d::Array<Metadata>>
+    Scan(const s3d::FilePath& directory, const s3d::Array<s3d::FilePath>& excluded_directories);
 }

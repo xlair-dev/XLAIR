@@ -18,7 +18,8 @@ namespace xlair::sheets {
 
     // Recursively searches a directory for music.json and music.toml files.
     [[nodiscard]]
-    Result<s3d::Array<Metadata>> ScanMetadata(const s3d::FilePath& directory);
+    Result<s3d::Array<Metadata>>
+    ScanMetadata(const s3d::FilePath& directory, const s3d::Array<s3d::FilePath>& excluded_directories = {});
 
     // Loads and compiles a chart into XLAIR's input-oriented Chart model.
     // supported formats:
