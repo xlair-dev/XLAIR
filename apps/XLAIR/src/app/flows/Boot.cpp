@@ -8,17 +8,18 @@ namespace xlair::app::flows {
     Boot::Boot(
         Application& application,
         std::unique_ptr<interfaces::IConfigLoader> config_loader,
-        std::unique_ptr<interfaces::IMetadataLoader> metadata_loader,
+        MetadataLoaderFactory metadata_loader_factory,
         ApiClientFactory api_client_factory,
         CardReaderFactory card_reader_factory,
         ControllerDeviceFactory controller_device_factory,
         CatalogSync::LocalSyncFactory local_sync_factory
     )
         : m_application{ application }, m_config_loader{ std::move(config_loader) },
+          m_metadata_loader_factory{ std::move(metadata_loader_factory) },
           m_api_client_factory{ std::move(api_client_factory) },
           m_card_reader_factory{ std::move(card_reader_factory) },
           m_controller_device_factory{ std::move(controller_device_factory) },
-          m_catalog_sync{ std::move(local_sync_factory) }, m_metadata_load{ std::move(metadata_loader) } {}
+          m_catalog_sync{ std::move(local_sync_factory) }, m_metadata_load{ nullptr } {}
 
     void Boot::update(double delta_seconds) {
         switch (m_state) {
@@ -94,6 +95,14 @@ namespace xlair::app::flows {
             return;
         }
 
+        auto metadata_loader =
+            m_metadata_loader_factory ? m_metadata_loader_factory(result.value->sync.directory) : nullptr;
+        if (!metadata_loader) {
+            m_config_error = interfaces::ConfigLoadError{ U"Failed to initialize the metadata loader.", U"" };
+            m_state = State::Failed;
+            return;
+        }
+
         auto client = m_api_client_factory ? m_api_client_factory(result.value->api) : nullptr;
         if (!client) {
             m_config_error = interfaces::ConfigLoadError{ U"Failed to initialize the API client.", U"" };
@@ -128,6 +137,7 @@ namespace xlair::app::flows {
         }
 
         m_application.setConfig(std::move(*result.value));
+        m_metadata_load.setLoader(std::move(metadata_loader));
         m_application.setApiClient(std::move(client));
         m_application.setCardReader(std::move(card_reader));
         m_application.setController(std::move(controller));
@@ -136,7 +146,8 @@ namespace xlair::app::flows {
     }
 
     void Boot::startSync() {
-        m_catalog_sync.start(*m_application.apiClient(), m_application.config()->api.syncSource());
+        const auto& config = *m_application.config();
+        m_catalog_sync.start(*m_application.apiClient(), config.api.syncSource(), config.sync.directory);
         m_state = m_catalog_sync.state() == CatalogSync::State::Failed ? State::SyncFailed : State::Syncing;
     }
 

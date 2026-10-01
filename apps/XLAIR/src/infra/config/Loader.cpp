@@ -1,9 +1,13 @@
 #include "Loader.hpp"
 
-#include <Siv3D/Color.hpp>
 #include "infra/api/ClientOptions.hpp"
+#include "infra/filesystem/PathUtils.hpp"
+
+#include <Siv3D/Color.hpp>
+
 #include <cmath>
 #include <concepts>
+#include <filesystem>
 #include <utility>
 
 namespace xlair::infra::config {
@@ -68,7 +72,8 @@ namespace xlair::infra::config {
         };
     }
 
-    Loader::Loader(FilePath path) : m_path{ std::move(path) } {}
+    Loader::Loader(FilePath path, FilePath local_sheets_directory)
+        : m_path{ std::move(path) }, m_local_sheets_directory{ std::move(local_sheets_directory) } {}
 
     app::interfaces::ConfigLoadResult Loader::load() const {
         const TOMLReader toml{ m_path };
@@ -103,6 +108,8 @@ namespace xlair::infra::config {
             .read(U"controller.v1.baud_rate", config.controller.v1.baud_rate)
             // input
             .read(U"input.latency_offset_seconds", config.input.latency_offset_seconds)
+            // sync
+            .read(U"sync.directory", config.sync.directory)
             // card reader
             .read(U"card_reader.mode", card_reader_mode)
             .read(U"card_reader.mock.card_id", config.card_reader.mock.card_id)
@@ -160,6 +167,34 @@ namespace xlair::infra::config {
 
         if (!std::isfinite(config.input.latency_offset_seconds)) {
             return MakeError(U"Config value 'input.latency_offset_seconds' must be finite.", m_path);
+        }
+
+        if (config.sync.directory.isEmpty()) {
+            return MakeError(U"Config value 'sync.directory' must not be empty.", m_path);
+        }
+        const std::filesystem::path sync_path{ config.sync.directory.toUTF32() };
+        if (sync_path.has_root_path() && !sync_path.is_absolute()) {
+            return MakeError(
+                U"Config value 'sync.directory' must be a fully qualified absolute path or a relative path.",
+                m_path
+            );
+        }
+        const FilePath candidate = sync_path.is_absolute()
+                                       ? config.sync.directory
+                                       : FileSystem::PathAppend(FileSystem::ParentPath(m_path), config.sync.directory);
+        config.sync.directory = FileSystem::FullPath(candidate);
+        const std::filesystem::path resolved_sync_path{ config.sync.directory.toUTF32() };
+        if (config.sync.directory.isEmpty() || resolved_sync_path == resolved_sync_path.root_path()) {
+            return MakeError(
+                U"Config value 'sync.directory' must name a dedicated directory, not a filesystem root.",
+                m_path
+            );
+        }
+        if (filesystem::IsSameOrWithin(m_local_sheets_directory, config.sync.directory)) {
+            return MakeError(
+                U"Config value 'sync.directory' must not contain the local sheet metadata directory.",
+                m_path
+            );
         }
 
         if (card_reader_mode == U"mock") {

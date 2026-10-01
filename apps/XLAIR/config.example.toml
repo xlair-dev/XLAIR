@@ -13,6 +13,11 @@ letterbox_color = "#000000"
 [input]
 latency_offset_seconds = 0.0
 
+[sync]
+# Relative paths are resolved beside config.toml. Absolute paths are also supported.
+# Use a dedicated directory, such as /tmp/XLAIR-sync or a folder under Downloads.
+directory = "data/sheets/sync"
+
 [controller]
 mode = "keyboard" # or ground_slider, v1
 

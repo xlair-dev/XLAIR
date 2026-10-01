@@ -4,6 +4,10 @@
 
 namespace xlair::app {
     struct Config {
+        struct Sync {
+            FilePath directory = U"data/sheets/sync";
+        } sync;
+
         struct CardReader {
             enum class Mode {
                 Mock,

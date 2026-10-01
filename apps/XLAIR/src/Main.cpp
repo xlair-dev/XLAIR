@@ -3,6 +3,7 @@
 #include "app/Application.hpp"
 #include "app/flows/Boot.hpp"
 #include "infra/api/Factories.hpp"
+#include "infra/api/LocalCatalogSync.hpp"
 #include "infra/card/Factories.hpp"
 #include "infra/config/Loader.hpp"
 #include "infra/controller/Factories.hpp"
@@ -25,12 +26,14 @@ void Main() {
     auto application = std::make_shared<app::Application>();
     auto boot_flow = std::make_shared<app::flows::Boot>(
         *application,
-        std::make_unique<infra::config::Loader>(paths.config_file),
-        std::make_unique<infra::sheets::MetadataLoader>(paths.sheets_directory),
+        std::make_unique<infra::config::Loader>(paths.config_file, paths.sheets_directory),
+        [local_directory = paths.sheets_directory](const FilePathView sync_directory) {
+            return std::make_unique<infra::sheets::MetadataLoader>(local_directory, FilePath{ sync_directory });
+        },
         infra::api::CreateClient,
         infra::card::CreateReader,
         infra::controller::CreateDevice,
-        infra::api::LocalCatalogSyncFactory{ paths.sheets_directory }
+        infra::api::SyncCatalog
     );
     auto scene_manager = ui::CreateSceneManager(application, boot_flow);
     const auto scene_data = scene_manager.get();

@@ -20,6 +20,7 @@ namespace xlair::app::flows {
         MetadataLoad(const MetadataLoad&) = delete;
         MetadataLoad& operator=(const MetadataLoad&) = delete;
 
+        void setLoader(std::unique_ptr<interfaces::IMetadataLoader> loader);
         void start();
         void update();
 

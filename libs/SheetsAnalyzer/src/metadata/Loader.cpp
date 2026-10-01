@@ -4,6 +4,7 @@
 #include <Siv3D/TOMLReader.hpp>
 
 #include <cmath>
+#include <filesystem>
 #include <utility>
 
 namespace xlair::sheets::metadata {
@@ -203,9 +204,33 @@ namespace xlair::sheets::metadata {
         return Result<Metadata>::makeError(U"Unsupported metadata format: " + extension, path);
     }
 
-    Result<s3d::Array<Metadata>> Scan(const s3d::FilePath& directory) {
+    Result<s3d::Array<Metadata>>
+    Scan(const s3d::FilePath& directory, const s3d::Array<s3d::FilePath>& excluded_directories) {
         if (!s3d::FileSystem::IsDirectory(directory)) {
             return Result<s3d::Array<Metadata>>::makeError(U"Metadata scan path must be a directory.", directory);
+        }
+
+        const auto normalized_path = [](const s3d::FilePathView path) {
+            auto full_path = s3d::FileSystem::FullPath(path);
+#if defined(_WIN32)
+            full_path = full_path.lowercased();
+#endif
+            auto normalized = std::filesystem::path{ full_path.toUTF32() }.lexically_normal();
+            return normalized.has_filename() ? normalized : normalized.parent_path();
+        };
+        const auto is_within = [](const std::filesystem::path& path, const std::filesystem::path& directory) {
+            auto part = path.begin();
+            for (auto parent = directory.begin(); parent != directory.end(); ++parent, ++part) {
+                if (part == path.end() || *part != *parent) {
+                    return false;
+                }
+            }
+            return true;
+        };
+
+        s3d::Array<std::filesystem::path> excluded_paths;
+        for (const auto& excluded : excluded_directories) {
+            excluded_paths.push_back(normalized_path(excluded));
         }
 
         const auto paths = s3d::FileSystem::DirectoryContents(directory, s3d::Recursive::Yes).sorted();
@@ -213,6 +238,14 @@ namespace xlair::sheets::metadata {
         Result<s3d::Array<Metadata>> result;
         s3d::Array<Metadata> metadata_list;
         for (const auto& path : paths) {
+            if (!excluded_paths.isEmpty()) {
+                const auto full_path = normalized_path(path);
+                if (excluded_paths.any([&](const std::filesystem::path& excluded) {
+                        return is_within(full_path, excluded);
+                    })) {
+                    continue;
+                }
+            }
             if (!s3d::FileSystem::IsFile(path)) {
                 continue;
             }

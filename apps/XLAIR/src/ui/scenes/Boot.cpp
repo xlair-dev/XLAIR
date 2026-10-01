@@ -76,6 +76,7 @@ namespace xlair::ui::scenes {
             case app::flows::Boot::State::WaitingForSync:
                 ApplyConfig(*data.application->config());
                 ReportBoot(U"[Boot] Config loaded.");
+                ReportBoot(U"[Boot] Sync directory: " + data.application->config()->sync.directory);
                 ReportBoot(U"[Boot] API client initialized.");
                 ReportBoot(U"[Boot] Controller initialized.");
                 ReportBoot(U"[Boot] Sync starts in 10 seconds. Press maintenance button 1 to skip.");

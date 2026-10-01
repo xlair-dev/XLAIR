@@ -25,11 +25,12 @@ namespace xlair::app::flows {
         using CardReaderFactory = std::function<std::unique_ptr<interfaces::ICardReader>(const Config::CardReader&)>;
         using ControllerDeviceFactory =
             std::function<std::unique_ptr<interfaces::IControllerDevice>(const Config::Controller&)>;
+        using MetadataLoaderFactory = std::function<std::unique_ptr<interfaces::IMetadataLoader>(s3d::FilePathView)>;
 
         Boot(
             Application& application,
             std::unique_ptr<interfaces::IConfigLoader> config_loader,
-            std::unique_ptr<interfaces::IMetadataLoader> metadata_loader,
+            MetadataLoaderFactory metadata_loader_factory,
             ApiClientFactory api_client_factory,
             CardReaderFactory card_reader_factory,
             ControllerDeviceFactory controller_device_factory,
@@ -75,6 +76,7 @@ namespace xlair::app::flows {
 
         Application& m_application;
         std::unique_ptr<interfaces::IConfigLoader> m_config_loader;
+        MetadataLoaderFactory m_metadata_loader_factory;
         ApiClientFactory m_api_client_factory;
         CardReaderFactory m_card_reader_factory;
         ControllerDeviceFactory m_controller_device_factory;
