@@ -16,6 +16,7 @@ namespace xlair::ui {
         Login,
         MusicSelect,
         Settings,
+        Game,
         ComponentGallery,
     };
 
