@@ -89,7 +89,7 @@ namespace xlair::ui::scenes {
     }
 
     void MusicSelect::drawFadeIn(const double t) const {
-        drawScene(transitions::CardFadeIn(t));
+        drawScene(transitions::CardFadeIn(t, transitions::CardZoom::Shrink));
     }
 
     void MusicSelect::drawFadeOut(const double t) const {
