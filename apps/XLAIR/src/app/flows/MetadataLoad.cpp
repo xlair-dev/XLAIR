@@ -64,6 +64,13 @@ namespace xlair::app::flows {
         }
     }
 
+    void MetadataLoad::setLoader(std::unique_ptr<interfaces::IMetadataLoader> loader) {
+        if (m_state == State::Loading) {
+            throw s3d::Error{ U"Cannot replace the metadata loader while it is loading." };
+        }
+        m_loader = std::move(loader);
+    }
+
     void MetadataLoad::start() {
         if (m_state == State::Loading) {
             return;

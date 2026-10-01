@@ -78,13 +78,21 @@ namespace xlair::infra::api {
 
         class Sync final : public remote::IRequest<bool> {
         public:
-            Sync(remote::IClient& client, const Array<remote::Music>& catalog, FilePathView directory, URLView endpoint)
+            Sync(
+                remote::IClient& client,
+                const Array<remote::Music>& catalog,
+                FilePathView sync_directory,
+                URLView endpoint
+            )
                 : m_client{ client } {
                 String server{ endpoint };
                 while (server.ends_with(U'/')) {
                     server.pop_back();
                 }
-                m_root = FileSystem::PathAppend(directory, U"sync/");
+                m_root = sync_directory;
+                if (!m_root.ends_with(U'/') && !m_root.ends_with(U'\\')) {
+                    m_root += U'/';
+                }
                 m_manifest[U"endpoint"] = server;
                 m_manifest[U"musics"] = JSON::Parse(U"[]");
                 HashSet<String> ids;
@@ -449,9 +457,9 @@ namespace xlair::infra::api {
     remote::Request<bool> SyncCatalog(
         remote::IClient& client,
         const Array<remote::Music>& catalog,
-        FilePathView directory,
-        URLView endpoint
+        URLView endpoint,
+        FilePathView sync_directory
     ) {
-        return std::make_unique<Sync>(client, catalog, directory, endpoint);
+        return std::make_unique<Sync>(client, catalog, sync_directory, endpoint);
     }
 }

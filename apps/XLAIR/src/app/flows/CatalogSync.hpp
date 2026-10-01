@@ -16,12 +16,13 @@ namespace xlair::app::flows {
             Succeeded,
             Failed,
         };
-        using LocalSyncFactory = std::function<api::Request<bool>(api::IClient&, const Array<api::Music>&, URLView)>;
+        using LocalSyncFactory =
+            std::function<api::Request<bool>(api::IClient&, const Array<api::Music>&, URLView, FilePathView)>;
 
         explicit CatalogSync(LocalSyncFactory local_sync_factory);
         ~CatalogSync();
 
-        void start(api::IClient& client, URLView endpoint);
+        void start(api::IClient& client, URLView endpoint, FilePathView sync_directory);
         void update();
         void cancel();
 
@@ -44,6 +45,7 @@ namespace xlair::app::flows {
         LocalSyncFactory m_local_sync_factory;
         api::IClient* m_client = nullptr;
         URL m_endpoint;
+        FilePath m_sync_directory;
         api::Request<Array<api::Music>> m_catalog_request;
         api::Request<bool> m_local_sync_request;
         Array<api::Music> m_pending_catalog;
