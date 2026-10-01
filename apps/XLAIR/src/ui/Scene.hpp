@@ -20,6 +20,14 @@ namespace xlair::ui {
         ComponentGallery,
     };
 
+    struct GameSelection {
+        String music_id;
+        String title;
+        FilePath music_path;
+        double music_offset_seconds = 0.0;
+        sheets::Difficulty difficulty;
+    };
+
     struct SceneData {
         SceneData(std::shared_ptr<app::Application> application, std::shared_ptr<app::flows::Boot> boot_flow)
             : application{ std::move(application) }, boot_flow{ std::move(boot_flow) } {}
@@ -31,6 +39,8 @@ namespace xlair::ui {
         Optional<app::card::Card> scanned_card;
         assets::JacketAssets jackets;
         std::unique_ptr<MusicSelectContext> music_select_context;
+        Optional<GameSelection> game_selection;
+        bool returning_from_game = false;
     };
 
     using SceneManager = s3d::SceneManager<SceneState, SceneData>;
