@@ -14,6 +14,7 @@ namespace xlair::app::flows {
             WaitingForCredit,
             IncrementingCredits,
             FetchingRecords,
+            FetchingOptions,
             UserFound,
             RegistrationRequired,
             Failed,
@@ -39,6 +40,9 @@ namespace xlair::app::flows {
         const Array<api::UserRecord>& records() const noexcept;
 
         [[nodiscard]]
+        const Optional<api::PlayOptions>& playOptions() const noexcept;
+
+        [[nodiscard]]
         const Optional<api::ApiError>& error() const noexcept;
 
     private:
@@ -50,8 +54,10 @@ namespace xlair::app::flows {
 
         void updateUserLookup(credits::CreditPool& credit_pool);
         void updateCreditIncrement(credits::CreditPool& credit_pool);
-        void updateRecordFetch(credits::CreditPool& credit_pool);
+        void updateRecordFetch();
+        void updateOptionsFetch(credits::CreditPool& credit_pool);
         void startRecordFetch();
+        void startOptionsFetch();
         void continueWithCredit(credits::CreditPool& credit_pool);
         void fail(api::ApiError error);
 
@@ -59,8 +65,10 @@ namespace xlair::app::flows {
         api::Request<api::User> m_user_request;
         api::Request<uint32> m_credit_request;
         api::Request<Array<api::UserRecord>> m_records_request;
+        api::Request<api::PlayOptions> m_options_request;
         Optional<api::User> m_user;
         Array<api::UserRecord> m_records;
+        Optional<api::PlayOptions> m_play_options;
         Optional<api::ApiError> m_error;
         AccountState m_account_state = AccountState::Unknown;
         State m_state = State::Idle;

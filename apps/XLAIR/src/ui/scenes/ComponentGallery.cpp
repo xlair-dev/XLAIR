@@ -7,6 +7,7 @@
 #include "ui/components/SliderMappingGuide.hpp"
 #include "ui/components/UserNameplate.hpp"
 #include "ui/primitives/Arrow.hpp"
+#include "ui/primitives/SettingValueArrow.hpp"
 #include "ui/primitives/Sparkle.hpp"
 #include "ui/theme/DifficultyTheme.hpp"
 #include "ui/theme/Palette.hpp"
@@ -98,8 +99,8 @@ namespace xlair::ui::scenes {
 
         constexpr double CardScale = 0.68;
         constexpr SizeF CardSize = components::MusicCard::size() * CardScale;
-        constexpr std::array<double, 3> CardCenters{ 480.0, 960.0, 1440.0 };
-        for (std::size_t index = 0; index < CardCenters.size(); ++index) {
+        constexpr std::array<double, 4> CardCenters{ 240.0, 720.0, 1200.0, 1680.0 };
+        for (std::size_t index = 0; index < DifficultyLabels.size(); ++index) {
             const components::MusicCardData data{
                 .title = U"Very loooooooooooooong title",
                 .artist = U"Artist",
@@ -118,6 +119,19 @@ namespace xlair::ui::scenes {
                 .draw();
         }
 
+        const components::SettingCardData setting_data{
+            .title = U"判定タイミングの変更",
+            .description =
+                U"設定に関する説明がここに文章でたくさん入るよ。最低1行で最大3行を想定しているよ。このくらいが最大。",
+            .value = U"1.00",
+        };
+        const RectF setting_region{
+            Arg::center = Vec2{ CardCenters.back(), 390 },
+            components::SettingCard::size() * CardScale,
+        };
+        setting_region.drawShadow(Vec2{ 8, 16 }, 20, 0, ColorF{ 0, 0, 0, 0.18 });
+        setting_region(m_setting_card.render(setting_data)).draw();
+
         constexpr double PrimitiveY = 675;
         primitives::DrawArrow(Vec2{ 760, PrimitiveY }, primitives::ArrowDirection::Left, theme::Palette::Gray, 0.7);
         primitives::DrawArrow(Vec2{ 1160, PrimitiveY }, primitives::ArrowDirection::Right, theme::Palette::Gray, 0.7);
@@ -127,6 +141,32 @@ namespace xlair::ui::scenes {
 
         FontAsset{ assets::font::Label }(U"Arrow / Sparkle")
             .drawAt(20, Vec2{ DesignSize.x / 2.0, PrimitiveY + 70 }, theme::Palette::LightGray);
+
+        constexpr SizeF SettingArrowSize{ 76, 57 };
+        TextureAsset{ assets::texture::SettingValueArrowEnabled }
+            .resized(SettingArrowSize)
+            .drawAt(Vec2{ 1350, PrimitiveY });
+        primitives::DrawSettingValueArrow(
+            Vec2{ 1450, PrimitiveY },
+            primitives::ArrowDirection::Left,
+            theme::Palette::Pink,
+            ColorF{ U"#FFBAFF" }
+        );
+        TextureAsset{ assets::texture::SettingValueArrowDisabled }
+            .resized(SettingArrowSize)
+            .drawAt(Vec2{ 1600, PrimitiveY });
+        primitives::DrawSettingValueArrow(
+            Vec2{ 1700, PrimitiveY },
+            primitives::ArrowDirection::Left,
+            ColorF{ U"#B5B5B5" },
+            ColorF{ U"#DADADA" }
+        );
+        for (const double x : { 1350.0, 1600.0 }) {
+            FontAsset{ assets::font::Label }(U"PNG").drawAt(16, Vec2{ x, PrimitiveY + 60 }, theme::Palette::LightGray);
+        }
+        for (const double x : { 1450.0, 1700.0 }) {
+            FontAsset{ assets::font::Label }(U"CODE").drawAt(16, Vec2{ x, PrimitiveY + 60 }, theme::Palette::LightGray);
+        }
 
         components::DrawUserNameplate(
             {

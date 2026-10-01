@@ -3,8 +3,10 @@
 #include "app/Application.hpp"
 #include "app/card/Types.hpp"
 #include "app/flows/Boot.hpp"
+#include "ui/MusicSelectContext.hpp"
 #include "ui/assets/JacketAssets.hpp"
 
+#include <memory>
 #include <utility>
 
 namespace xlair::ui {
@@ -13,6 +15,7 @@ namespace xlair::ui {
         Title,
         Login,
         MusicSelect,
+        Settings,
         ComponentGallery,
     };
 
@@ -20,10 +23,13 @@ namespace xlair::ui {
         SceneData(std::shared_ptr<app::Application> application, std::shared_ptr<app::flows::Boot> boot_flow)
             : application{ std::move(application) }, boot_flow{ std::move(boot_flow) } {}
 
+        MusicSelectContext& ensureMusicSelectContext();
+
         std::shared_ptr<app::Application> application;
         std::shared_ptr<app::flows::Boot> boot_flow;
         Optional<app::card::Card> scanned_card;
         assets::JacketAssets jackets;
+        std::unique_ptr<MusicSelectContext> music_select_context;
     };
 
     using SceneManager = s3d::SceneManager<SceneState, SceneData>;

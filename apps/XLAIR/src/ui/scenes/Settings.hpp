@@ -2,14 +2,14 @@
 
 #include "ui/Scene.hpp"
 #include "ui/components/CardCarousel.hpp"
-#include "ui/components/MusicCard.hpp"
+#include "ui/components/SettingCard.hpp"
 #include "ui/components/SliderMappingGuide.hpp"
 #include "ui/transitions/CardTransition.hpp"
 
 namespace xlair::ui::scenes {
-    class MusicSelect final : public SceneBase {
+    class Settings final : public SceneBase {
     public:
-        explicit MusicSelect(const InitData& init);
+        explicit Settings(const InitData& init);
 
         void update() override;
         void updateFadeIn(double t) override;
@@ -21,25 +21,33 @@ namespace xlair::ui::scenes {
         static void RegisterAssets();
 
     private:
-        struct Assets {
-            static constexpr AssetNameView Header{ U"XLAIR.MusicSelect.Header" };
+        enum class SettingItem {
+            Speed,
+            JudgmentOffset,
+            Mirror,
         };
 
         void handleInput();
         void updatePresentation();
+        bool moveItem(int32 direction);
+        bool adjustValue(int32 direction);
+        void updateCardValues();
         void drawScene(const transitions::CardTransition& transition) const;
         void drawCards(const transitions::CardTransition& transition) const;
-        void drawCard(
-            std::size_t music_index,
-            const RectF& region,
-            double text_elapsed,
-            const transitions::CardTransition& transition
-        ) const;
-        void drawEmptyCatalog() const;
+        void drawCard(std::size_t index, const RectF& region, const transitions::CardTransition& transition) const;
+
+        struct Assets {
+            static constexpr AssetNameView Header{ U"XLAIR.Settings.Header" };
+        };
 
         components::CardCarousel m_card_carousel;
-        mutable components::MusicCard m_music_card;
+        mutable components::SettingCard m_setting_card;
+        Array<components::SettingCardData> m_setting_cards;
         Array<components::SliderMapping> m_slider_mappings;
-        double m_text_elapsed = 0.0;
+        std::size_t m_selected_index = 0;
+
+        double m_note_speed = 1.0;
+        int32 m_judgment_offset_ms = 0;
+        bool m_mirror = false;
     };
 }

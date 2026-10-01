@@ -43,6 +43,7 @@ namespace xlair::ui::scenes {
                 const uint32 max_plays = config ? static_cast<uint32>(Max(0, config->system.playable)) : 0;
                 data.application->playSession().start(*m_login_flow.user(), max_plays);
                 data.application->playSession().setRecords(m_login_flow.records());
+                data.application->playSession().setPlayOptions(*m_login_flow.playOptions());
                 changeScene(SceneState::MusicSelect, 0);
             }
         }
@@ -71,6 +72,10 @@ namespace xlair::ui::scenes {
 
             case app::flows::Login::State::FetchingRecords:
                 Print << U"Loading play records...";
+                break;
+
+            case app::flows::Login::State::FetchingOptions:
+                Print << U"Loading play options...";
                 break;
 
             case app::flows::Login::State::UserFound: {

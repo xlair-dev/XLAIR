@@ -6,6 +6,8 @@ namespace xlair::app::session {
     void PlaySession::start(api::User user, const uint32 max_plays) {
         m_user = std::move(user);
         m_records.clear();
+        m_play_options = {};
+        m_mirror = false;
         m_max_plays = max_plays;
         m_remaining_plays = max_plays;
     }
@@ -13,6 +15,8 @@ namespace xlair::app::session {
     void PlaySession::reset() {
         m_user.reset();
         m_records.clear();
+        m_play_options = {};
+        m_mirror = false;
         m_max_plays = 0;
         m_remaining_plays = 0;
     }
@@ -49,6 +53,26 @@ namespace xlair::app::session {
         for (auto& record : records) {
             m_records[record.sheet_id] = std::move(record);
         }
+    }
+
+    void PlaySession::setPlayOptions(const api::PlayOptions options) noexcept {
+        m_play_options = options;
+    }
+
+    api::PlayOptions& PlaySession::playOptions() noexcept {
+        return m_play_options;
+    }
+
+    const api::PlayOptions& PlaySession::playOptions() const noexcept {
+        return m_play_options;
+    }
+
+    bool PlaySession::mirror() const noexcept {
+        return m_mirror;
+    }
+
+    void PlaySession::setMirror(const bool mirror) noexcept {
+        m_mirror = mirror;
     }
 
     const api::UserRecord* PlaySession::record(const StringView sheet_id) const noexcept {

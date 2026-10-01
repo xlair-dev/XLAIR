@@ -39,7 +39,11 @@ namespace xlair::app::flows {
                 break;
 
             case State::FetchingRecords:
-                updateRecordFetch(credit_pool);
+                updateRecordFetch();
+                break;
+
+            case State::FetchingOptions:
+                updateOptionsFetch(credit_pool);
                 break;
 
             default:
@@ -57,12 +61,17 @@ namespace xlair::app::flows {
         if (m_records_request) {
             m_records_request->cancel();
         }
+        if (m_options_request) {
+            m_options_request->cancel();
+        }
         m_client = nullptr;
         m_user_request.reset();
         m_credit_request.reset();
         m_records_request.reset();
+        m_options_request.reset();
         m_user.reset();
         m_records.clear();
+        m_play_options.reset();
         m_error.reset();
         m_account_state = AccountState::Unknown;
         m_state = State::Idle;
@@ -78,6 +87,10 @@ namespace xlair::app::flows {
 
     const Array<api::UserRecord>& Login::records() const noexcept {
         return m_records;
+    }
+
+    const Optional<api::PlayOptions>& Login::playOptions() const noexcept {
+        return m_play_options;
     }
 
     const Optional<api::ApiError>& Login::error() const noexcept {
@@ -138,7 +151,7 @@ namespace xlair::app::flows {
         m_credit_request.reset();
     }
 
-    void Login::updateRecordFetch(credits::CreditPool& credit_pool) {
+    void Login::updateRecordFetch() {
         if (!m_records_request) {
             return;
         }
@@ -151,12 +164,33 @@ namespace xlair::app::flows {
 
         if (const auto* records = std::get_if<Array<api::UserRecord>>(&*result)) {
             m_records = *records;
+            m_records_request.reset();
+            startOptionsFetch();
+        } else {
+            fail(std::get<api::ApiError>(*result));
+            m_records_request.reset();
+        }
+    }
+
+    void Login::updateOptionsFetch(credits::CreditPool& credit_pool) {
+        if (!m_options_request) {
+            return;
+        }
+
+        m_options_request->update();
+        const auto& result = m_options_request->result();
+        if (!result) {
+            return;
+        }
+
+        if (const auto* options = std::get_if<api::PlayOptions>(&*result)) {
+            m_play_options = *options;
             m_state = State::WaitingForCredit;
             continueWithCredit(credit_pool);
         } else {
             fail(std::get<api::ApiError>(*result));
         }
-        m_records_request.reset();
+        m_options_request.reset();
     }
 
     void Login::startRecordFetch() {
@@ -183,6 +217,33 @@ namespace xlair::app::flows {
             return;
         }
         m_state = State::FetchingRecords;
+    }
+
+    void Login::startOptionsFetch() {
+        if (!m_client || !m_user) {
+            fail(
+                {
+                    .kind = api::ErrorKind::Configuration,
+                    .message = U"The login flow is missing the registered user or API client.",
+                    .status_code = none,
+                }
+            );
+            return;
+        }
+
+        // TODO: Read MIRROR here as well when the API exposes it in PlayOptions.
+        m_options_request = m_client->fetchPlayOptions(m_user->id);
+        if (!m_options_request) {
+            fail(
+                {
+                    .kind = api::ErrorKind::Configuration,
+                    .message = U"The API client did not create a play-options request.",
+                    .status_code = none,
+                }
+            );
+            return;
+        }
+        m_state = State::FetchingOptions;
     }
 
     void Login::continueWithCredit(credits::CreditPool& credit_pool) {

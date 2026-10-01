@@ -60,6 +60,32 @@ namespace xlair::ui::assets {
                 U"Failed to register the XLAIR logo."
             );
             Require(TextureAsset::Load(texture::Logo), U"Failed to load the XLAIR logo.");
+
+            Require(
+                TextureAsset::Register(
+                    texture::SettingValueArrowEnabled,
+                    Resource(U"ui/textures/setting-value-arrow-enabled.png"),
+                    TextureDesc::Mipped
+                ),
+                U"Failed to register the enabled setting value arrow."
+            );
+            Require(
+                TextureAsset::Load(texture::SettingValueArrowEnabled),
+                U"Failed to load the enabled setting value arrow."
+            );
+
+            Require(
+                TextureAsset::Register(
+                    texture::SettingValueArrowDisabled,
+                    Resource(U"ui/textures/setting-value-arrow-disabled.png"),
+                    TextureDesc::Mipped
+                ),
+                U"Failed to register the disabled setting value arrow."
+            );
+            Require(
+                TextureAsset::Load(texture::SettingValueArrowDisabled),
+                U"Failed to load the disabled setting value arrow."
+            );
         }
 
         void InitializeSounds() {

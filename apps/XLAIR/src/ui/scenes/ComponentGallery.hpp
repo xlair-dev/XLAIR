@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ui/components/MusicCard.hpp"
+#include "ui/components/SettingCard.hpp"
 #include "ui/Scene.hpp"
 
 namespace xlair::ui::scenes {
@@ -13,6 +14,7 @@ namespace xlair::ui::scenes {
 
     private:
         mutable components::MusicCard m_music_card;
+        mutable components::SettingCard m_setting_card;
         Texture m_jacket;
         double m_elapsed = 0.0;
     };
