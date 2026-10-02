@@ -21,6 +21,12 @@ namespace xlair::ui::scenes {
     }
 
     void Title::update() {
+#ifndef NDEBUG
+        if (KeyF12.down()) {
+            changeScene(SceneState::ComponentGallery, 0);
+            return;
+        }
+#endif
         const auto previous = m_title_flow->state();
         const auto* controller = getData().application->controller();
         const bool maintenance_button_down =
