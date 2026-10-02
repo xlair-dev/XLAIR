@@ -20,7 +20,7 @@ namespace xlair::ui {
 
     void MusicSelectContext::pause() {
         m_paused = true;
-        m_preview_player.stop(SecondsF{ 0.3 });
+        m_preview_player.stop(SecondsF{ 0.25 });
     }
 
     void MusicSelectContext::resume() noexcept {

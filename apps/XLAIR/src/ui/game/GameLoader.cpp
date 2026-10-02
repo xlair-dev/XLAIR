@@ -77,6 +77,7 @@ namespace xlair::ui::game {
             m_audio.stop();
             m_audio.release();
         }
+        m_projection.reset();
         m_chart.reset();
         m_diagnostics.clear();
         m_error.clear();
@@ -101,6 +102,10 @@ namespace xlair::ui::game {
 
     const Optional<sheets::Chart>& GameLoader::chart() const noexcept {
         return m_chart;
+    }
+
+    const Optional<playfield::ChartProjection>& GameLoader::projection() const noexcept {
+        return m_projection;
     }
 
     void GameLoader::updateAudio() {
@@ -158,6 +163,7 @@ namespace xlair::ui::game {
                 return;
             }
             m_chart = std::move(*result);
+            m_projection.emplace(*m_chart);
             m_state = State::Ready;
             Logger << U"[Game] Loaded chart: {} notes at {} Hz."_fmt(m_chart->total_combo, m_chart->sample_rate);
         } catch (...) {

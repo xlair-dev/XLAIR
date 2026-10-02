@@ -3,6 +3,7 @@
 #include "Common.hpp"
 #include "ui/game/GameSelection.hpp"
 
+#include <Playfield.hpp>
 #include <SheetsAnalyzer.hpp>
 
 namespace xlair::ui::game {
@@ -42,6 +43,9 @@ namespace xlair::ui::game {
         [[nodiscard]]
         const Optional<sheets::Chart>& chart() const noexcept;
 
+        [[nodiscard]]
+        const Optional<playfield::ChartProjection>& projection() const noexcept;
+
     private:
         void updateAudio();
         void updateChart();
@@ -53,6 +57,7 @@ namespace xlair::ui::game {
         Array<sheets::Diagnostic> m_diagnostics;
         Audio m_audio;
         Optional<sheets::Chart> m_chart;
+        Optional<playfield::ChartProjection> m_projection;
         AsyncTask<Audio> m_audio_task;
         AsyncTask<sheets::Result<sheets::Chart>> m_chart_task;
         Array<AsyncTask<Audio>> m_retired_audio_tasks;
