@@ -5,6 +5,7 @@
 #include "app/flows/Boot.hpp"
 #include "ui/MusicSelectContext.hpp"
 #include "ui/assets/JacketAssets.hpp"
+#include "ui/game/GameLoader.hpp"
 
 #include <memory>
 #include <utility>
@@ -16,6 +17,7 @@ namespace xlair::ui {
         Login,
         MusicSelect,
         Settings,
+        Game,
         ComponentGallery,
     };
 
@@ -30,6 +32,9 @@ namespace xlair::ui {
         Optional<app::card::Card> scanned_card;
         assets::JacketAssets jackets;
         std::unique_ptr<MusicSelectContext> music_select_context;
+        Optional<GameSelection> game_selection;
+        game::GameLoader game_loader;
+        bool returning_from_game = false;
     };
 
     using SceneManager = s3d::SceneManager<SceneState, SceneData>;
