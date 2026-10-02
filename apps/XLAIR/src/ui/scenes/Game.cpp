@@ -1,8 +1,11 @@
 #include "Game.hpp"
 
+#include "core/user/Level.hpp"
 #include "ui/Design.hpp"
 #include "ui/assets/Assets.hpp"
 #include "ui/audio/AudioBus.hpp"
+#include "ui/components/GameMusicPlate.hpp"
+#include "ui/components/UserNameplate.hpp"
 #include "ui/theme/Palette.hpp"
 
 #include <cmath>
@@ -32,6 +35,7 @@ namespace xlair::ui::scenes {
     }
 
     void Game::update() {
+        m_elapsed += Scene::DeltaTime();
         const auto* controller = getData().application->controller();
         const bool cancel = controller && controller->maintenanceButton(CancelButton).down();
         if (cancel || KeyEscape.pressedDuration() >= SecondsF{ 1.5 }) {
@@ -81,12 +85,35 @@ namespace xlair::ui::scenes {
         const auto& loader = getData().game_loader;
         m_playfield_renderer
             .draw(*loader.chart(), *loader.projection(), m_current_sample, PlayfieldViewport, m_pixels_per_second);
-        if (const auto& selection = getData().game_selection) {
-            FontAsset{ assets::font::Text }(selection->title)
-                .draw(24, Vec2{ PlayfieldViewport.x, 32 }, theme::Palette::Gray);
-            FontAsset{ assets::font::Text }(selection->difficulty.id)
-                .draw(20, Arg::topRight(PlayfieldViewport.x + PlayfieldViewport.w, 36), theme::Palette::Gray);
+        const auto& session = getData().application->playSession();
+        if (const auto* user = session.user()) {
+            const auto level = core::user::CalculateLevelProgress(user->xp);
+            components::DrawUserNameplate(
+                {
+                    .display_name = user->display_name,
+                    .rating = user->rating,
+                    .level = level.level,
+                    .level_progress = level.progress,
+                },
+                Point{ 59, 72 }
+            );
         }
+        if (const auto& selection = getData().game_selection) {
+            components::DrawGameMusicPlate(
+                {
+                    .title = selection->title,
+                    .jacket = getData().jackets.get(selection->music_id),
+                    .difficulty_index = selection->difficulty.index,
+                    .level = selection->difficulty.level,
+                    .max_plays = session.maxPlays(),
+                    .remaining_plays = session.remainingPlays(),
+                },
+                Point{ 1480, 72 },
+                m_elapsed
+            );
+        }
+        // Judgement and scoring are not connected yet; keep the legacy HUD layout ready for them.
+        m_score_bar.draw({}, Point{ DesignSize.x / 2 - 434, 56 });
         const StringView status = m_playback_finished ? U"Playback complete" : U"Playing";
         FontAsset{ assets::font::Text }(status).drawAt(24, Vec2{ DesignSize.x / 2.0, 995 }, theme::Palette::Gray);
     }
