@@ -17,7 +17,7 @@ namespace xlair::ui::scenes {
 
     private:
         void drawReady() const;
-        void drawLoading() const;
+        void drawFailure() const;
         void drawFadeOverlay(double opacity) const;
 
         game::PlayfieldRenderer m_playfield_renderer;

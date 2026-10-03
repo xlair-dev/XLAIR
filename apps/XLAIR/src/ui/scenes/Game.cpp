@@ -13,7 +13,7 @@
 namespace xlair::ui::scenes {
     namespace {
         constexpr auto CancelButton = app::controller::MaintenanceButton::Button2;
-        constexpr Rect PlayfieldViewport{ 360, 90, 1200, 880 };
+        constexpr Rect PlayfieldViewport{ 0, 0, DesignSize.x, DesignSize.y };
     }
 
     Game::Game(const InitData& init) : SceneBase{ init } {
@@ -69,22 +69,22 @@ namespace xlair::ui::scenes {
     }
 
     void Game::draw() const {
-        Scene::Rect().draw(theme::Palette::White);
         const auto& loader = getData().game_loader;
         if (loader.state() == game::GameLoader::State::Ready && loader.chart() && loader.projection()) {
+            Scene::Rect().draw(theme::Palette::White);
             drawReady();
+        } else if (loader.state() == game::GameLoader::State::Failed) {
+            Scene::Rect().draw(theme::Palette::White);
+            drawFailure();
         } else {
-            drawLoading();
+            Scene::Rect().draw(Palette::Black);
         }
-
-        FontAsset{ assets::font::Text }(U"Maintenance 2 (F3) or hold Esc: MUSIC SELECT")
-            .drawAt(20, Vec2{ DesignSize.x / 2.0, 1050 }, theme::Palette::Gray);
     }
 
     void Game::drawReady() const {
         const auto& loader = getData().game_loader;
         m_playfield_renderer
-            .draw(*loader.chart(), *loader.projection(), m_current_sample, PlayfieldViewport, m_pixels_per_second);
+            .draw(*loader.chart(), *loader.projection(), m_current_sample, PlayfieldViewport, m_pixels_per_second, 0);
         const auto& session = getData().application->playSession();
         if (const auto* user = session.user()) {
             const auto level = core::user::CalculateLevelProgress(user->xp);
@@ -114,39 +114,11 @@ namespace xlair::ui::scenes {
         }
         // Judgement and scoring are not connected yet; keep the legacy HUD layout ready for them.
         m_score_bar.draw({}, Point{ DesignSize.x / 2 - 434, 56 });
-        const StringView status = m_playback_finished ? U"Playback complete" : U"Playing";
-        FontAsset{ assets::font::Text }(status).drawAt(24, Vec2{ DesignSize.x / 2.0, 995 }, theme::Palette::Gray);
     }
 
-    void Game::drawLoading() const {
+    void Game::drawFailure() const {
         const Vec2 center{ DesignSize.x / 2.0, DesignSize.y / 2.0 };
-        FontAsset{ assets::font::Display }(U"GAME").drawAt(72, center.movedBy(0, -90), theme::Palette::Gray);
-        if (const auto& selection = getData().game_selection) {
-            FontAsset{ assets::font::Text }(selection->title).drawAt(32, center, theme::Palette::Gray);
-            FontAsset{ assets::font::Text }(selection->difficulty.id)
-                .drawAt(24, center.movedBy(0, 45), theme::Palette::Gray);
-        }
-
-        const auto& loader = getData().game_loader;
-        String message;
-        switch (loader.state()) {
-            case game::GameLoader::State::Idle:
-                message = U"No chart selected.";
-                break;
-            case game::GameLoader::State::LoadingAudio:
-                message = U"Loading audio...";
-                break;
-            case game::GameLoader::State::LoadingChart:
-                message = U"Loading chart...";
-                break;
-            case game::GameLoader::State::Ready:
-                message = U"Chart ready.";
-                break;
-            case game::GameLoader::State::Failed:
-                message = loader.error();
-                break;
-        }
-        FontAsset{ assets::font::Text }(message).drawAt(24, center.movedBy(0, 115), theme::Palette::Gray);
+        FontAsset{ assets::font::Text }(getData().game_loader.error()).drawAt(24, center, theme::Palette::Gray);
     }
 
     void Game::drawFadeIn(const double t) const {
