@@ -31,6 +31,8 @@ namespace xlair::ui::game {
         constexpr double FadeStart = FieldNear + FieldLength * 0.3;
         constexpr double FadeStrength = 0.8;
         const ColorF BackgroundColor{ U"#F7F8FC" };
+        const ColorF SideUpperColor{ U"#D5F0FB" };
+        const ColorF SideLowerColor{ U"#FFFFFF" };
         // Corresponds to Game's 360 px/s across its 880 px reference viewport.
         constexpr double WorldUnitsPerSecond = FieldLength * 360.0 / 880.0;
 
@@ -247,8 +249,8 @@ namespace xlair::ui::game {
         }
 
         void DrawSideSurfaces() {
-            const ColorF lower_color = ColorF{ U"#FFFFFF" }.removeSRGBCurve();
-            const ColorF upper_color = ColorF{ U"#D5F0FB" }.removeSRGBCurve();
+            const ColorF lower_color = SideLowerColor.removeSRGBCurve();
+            const ColorF upper_color = SideUpperColor.removeSRGBCurve();
             const ColorF edge_color = ColorF{ U"#B4E6FF" }.removeSRGBCurve();
             for (const double side : { -1.0, 1.0 }) {
                 // The lower side continues toward the camera beyond the judgement bar.
@@ -304,17 +306,31 @@ namespace xlair::ui::game {
             return z;
         }
 
-        void DrawSideNoteSurface(MSRenderTexture& surface, const ColorF light, const ColorF dark) {
-            const ScopedRenderTarget2D target{ surface.clear(ColorF{ 0.0, 0.0 }) };
-            RectF{ 0, 0, SideNoteSurfaceSize.x, SideNoteSurfaceSize.y }.draw(
-                Arg::left = light.removeSRGBCurve(),
-                Arg::right = dark.removeSRGBCurve()
-            );
+        void DrawSideNoteSurface(
+            MSRenderTexture& surface,
+            const ColorF& background,
+            const ColorF& light,
+            const ColorF& dark
+        ) {
+            // Keep the texture opaque so the existing 3D depth and blend states remain unchanged.
+            const ScopedRenderTarget2D target{ surface.clear(background.removeSRGBCurve()) };
+            const Vec2 left_center{ 0.0, SideNoteSurfaceSize.y * 0.5 };
+            const Transformer2D transform{ Mat3x2::Rotate(-90_deg, left_center) };
+            RoundRect{ left_center.movedBy(-SideNoteSurfaceSize.y * 0.5, 0),
+                       SideNoteSurfaceSize.y,
+                       SideNoteSurfaceSize.x,
+                       12.0 }
+                .draw(Arg::top = light.removeSRGBCurve(), Arg::bottom = dark.removeSRGBCurve());
             Graphics2D::Flush();
             surface.resolve();
         }
 
-        void DrawSideNotePlane(const sheets::SideButton button, const double z, const MSRenderTexture& surface) {
+        void DrawSideNotePlane(
+            const sheets::SideButton button,
+            const double z,
+            const MSRenderTexture& upper_surface,
+            const MSRenderTexture& lower_surface
+        ) {
             const bool left = button == sheets::SideButton::LeftUpper || button == sheets::SideButton::LeftLower;
             const double side = left ? -1.0 : 1.0;
             const bool upper = button == sheets::SideButton::LeftUpper || button == sheets::SideButton::RightUpper;
@@ -322,13 +338,13 @@ namespace xlair::ui::game {
                 const Quaternion facing_inward = Quaternion::RotateZ(side > 0.0 ? 90_deg : -90_deg);
                 Plane{ Vec3{ side * (SideUpperX - 0.12), SideUpperY, z }, 3.0, NoteDepthSize }.draw(
                     facing_inward,
-                    surface
+                    upper_surface
                 );
             } else {
                 const Quaternion facing_inward = Quaternion::RotateZ(side > 0.0 ? 45_deg : -45_deg);
                 Plane{ Vec3{ side * (SideLowerX - 0.085), SideLowerY + 0.085, z }, LowerWidth, NoteDepthSize }.draw(
                     facing_inward,
-                    surface
+                    lower_surface
                 );
             }
         }
@@ -382,7 +398,8 @@ namespace xlair::ui::game {
             const sheets::Chart& chart,
             const playfield::ChartProjection& projection,
             const int64 current_sample,
-            const MSRenderTexture& surface
+            const MSRenderTexture& upper_surface,
+            const MSRenderTexture& lower_surface
         ) {
             for (const auto& note : chart.side_notes) {
                 const bool lower =
@@ -392,7 +409,7 @@ namespace xlair::ui::game {
                 if (!z) {
                     continue;
                 }
-                DrawSideNotePlane(note.button, *z, surface);
+                DrawSideNotePlane(note.button, *z, upper_surface, lower_surface);
             }
             for (const auto& hold : chart.side_holds) {
                 const bool lower =
@@ -406,7 +423,7 @@ namespace xlair::ui::game {
                         lower ? LowerNear : FieldNear
                     );
                     if (z) {
-                        DrawSideNotePlane(hold.button, *z, surface);
+                        DrawSideNotePlane(hold.button, *z, upper_surface, lower_surface);
                     }
                 }
             }
@@ -416,7 +433,8 @@ namespace xlair::ui::game {
     PlayfieldRenderer3D::PlayfieldRenderer3D()
         : m_field_surface{ FieldSurfaceSize, TextureFormat::R8G8B8A8_Unorm_SRGB },
           m_render_texture{ DesignSize, TextureFormat::R8G8B8A8_Unorm_SRGB, HasDepth::Yes },
-          m_side_note_surface{ SideNoteSurfaceSize, TextureFormat::R8G8B8A8_Unorm_SRGB }, m_fog_shader{
+          m_side_upper_note_surface{ SideNoteSurfaceSize, TextureFormat::R8G8B8A8_Unorm_SRGB },
+          m_side_lower_note_surface{ SideNoteSurfaceSize, TextureFormat::R8G8B8A8_Unorm_SRGB }, m_fog_shader{
               HLSL{ Resource(U"ui/shaders/hlsl/playfield_fog.hlsl"), U"PS" } |
               GLSL{ Resource(U"ui/shaders/glsl/playfield_fog.frag"),
                     { { U"PSPerFrame", 0 }, { U"PSPerView", 1 }, { U"PSPerMaterial", 3 }, { U"PSFog", 4 } } }
@@ -433,7 +451,8 @@ namespace xlair::ui::game {
         m_fog_parameters->end_and_strength =
             Float4{ static_cast<float>(FieldFar), static_cast<float>(FadeStrength), 0.0f, 0.0f };
 
-        DrawSideNoteSurface(m_side_note_surface, ColorF{ U"#F489E9" }, ColorF{ U"#D45CD7" });
+        DrawSideNoteSurface(m_side_upper_note_surface, SideUpperColor, ColorF{ U"#F489E9" }, ColorF{ U"#D45CD7" });
+        DrawSideNoteSurface(m_side_lower_note_surface, SideLowerColor, ColorF{ U"#F489E9" }, ColorF{ U"#D45CD7" });
     }
 
     void PlayfieldRenderer3D::draw(
@@ -460,7 +479,7 @@ namespace xlair::ui::game {
             const ScopedCustomShader3D fog_shader{ m_fog_shader };
             DrawField(m_field_surface, show_depth_guides);
             DrawSideHoldBodies(chart, projection, current_sample);
-            DrawSideNotes(chart, projection, current_sample, m_side_note_surface);
+            DrawSideNotes(chart, projection, current_sample, m_side_upper_note_surface, m_side_lower_note_surface);
         }
         Graphics3D::Flush();
         m_render_texture.resolve();
