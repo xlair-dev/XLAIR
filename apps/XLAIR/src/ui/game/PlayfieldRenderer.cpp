@@ -1,6 +1,7 @@
 #include "PlayfieldRenderer.hpp"
 
 #include "ui/assets/Assets.hpp"
+#include "ui/primitives/Sparkle.hpp"
 
 #include <cmath>
 
@@ -96,6 +97,7 @@ namespace xlair::ui::game {
         }
 
         void DrawFieldBackground(const uint32 combo) {
+            const ColorF judge_color{ U"#79C8FF" };
             RectF{ 0, 0, FieldWidth, FieldHeight }.draw(ColorF{ U"#212830" });
             for (int32 lane = 4; lane < 16; lane += 4) {
                 const double x = StageLeft + lane * LaneWidth;
@@ -103,9 +105,15 @@ namespace xlair::ui::game {
             }
             FontAsset{ assets::font::ComboNumber }(combo).drawAt(FieldWidth * 0.5, FieldHeight - 750.0, Palette::White);
             FontAsset{ assets::font::Display }(U"COMBO").drawAt(FieldWidth * 0.5, FieldHeight - 600.0, Palette::White);
+            primitives::Sparkle(Vec2{ StageLeft - 2.0, JudgeY }, 200.0, 300.0, 0.0, 16.0)
+                .asPolygon()
+                .drawFrame(1.5, judge_color);
+            primitives::Sparkle(Vec2{ FieldWidth - StageLeft + 2.0, JudgeY }, 200.0, 300.0, 0.0, 16.0)
+                .asPolygon()
+                .drawFrame(1.5, judge_color);
             RectF{ 0, JudgeY - 2.5, FieldWidth, 5.0 }
-                .drawShadow(Vec2{ 0, 10 }, 30.0, 0.0, ColorF{ U"#79C8FF" }.withA(0.15))
-                .draw(ColorF{ U"#79C8FF" });
+                .drawShadow(Vec2{ 0, 10 }, 30.0, 0.0, judge_color.withA(0.15))
+                .draw(judge_color);
         }
 
         void DrawFieldDecorations() {

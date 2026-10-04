@@ -2,6 +2,7 @@
 
 #include "ui/Design.hpp"
 #include "ui/assets/Assets.hpp"
+#include "ui/primitives/Sparkle.hpp"
 
 #include <cmath>
 
@@ -37,6 +38,7 @@ namespace xlair::ui::game {
             constexpr double SourceStageLeft = 32.0;
             constexpr double SourceLaneWidth = (SourceWidth - SourceStageLeft * 2.0) / 16.0;
             constexpr double SourceJudgeY = SourceHeight - 100.0;
+            const ColorF judge_color = ColorF{ U"#79C8FF" }.removeSRGBCurve();
 
             // The 2D surface is sampled by the linear-color 3D pass. Convert sRGB artwork colors here once.
             // Same artwork and placement as the current Game renderer, excluding its far-end fade.
@@ -49,9 +51,15 @@ namespace xlair::ui::game {
                 .drawAt(SourceWidth * 0.5, SourceHeight - 750.0, Palette::White);
             FontAsset{ assets::font::Display }(U"COMBO")
                 .drawAt(SourceWidth * 0.5, SourceHeight - 600.0, Palette::White);
+            primitives::Sparkle(Vec2{ SourceStageLeft - 2.0, SourceJudgeY }, 200.0, 300.0, 0.0, 16.0)
+                .asPolygon()
+                .drawFrame(1.5, judge_color);
+            primitives::Sparkle(Vec2{ SourceWidth - SourceStageLeft + 2.0, SourceJudgeY }, 200.0, 300.0, 0.0, 16.0)
+                .asPolygon()
+                .drawFrame(1.5, judge_color);
             RectF{ 0, SourceJudgeY - 2.5, SourceWidth, 5.0 }
-                .drawShadow(Vec2{ 0, 10 }, 30.0, 0.0, ColorF{ U"#79C8FF" }.removeSRGBCurve().withA(0.15))
-                .draw(ColorF{ U"#79C8FF" }.removeSRGBCurve());
+                .drawShadow(Vec2{ 0, 10 }, 30.0, 0.0, judge_color.withA(0.15))
+                .draw(judge_color);
             RectF{ 0, 0, SourceStageLeft, SourceHeight }.draw(ColorF{ U"#B4E6FF" }.removeSRGBCurve());
             RectF{ SourceWidth - SourceStageLeft, 0, SourceStageLeft, SourceHeight }.draw(
                 ColorF{ U"#B4E6FF" }.removeSRGBCurve()
