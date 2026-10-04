@@ -15,11 +15,13 @@ namespace xlair::ui::scenes {
 
     private:
         DebugCamera3D m_camera;
+        MSRenderTexture m_field_surface;
         MSRenderTexture m_render_texture;
         sheets::Chart m_chart;
         playfield::ChartProjection m_projection;
         double m_elapsed = 0.0;
         bool m_paused = false;
+        bool m_show_depth_guides = false;
     };
 }
 #endif
