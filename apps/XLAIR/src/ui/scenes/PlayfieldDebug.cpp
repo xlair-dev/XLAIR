@@ -24,12 +24,15 @@ namespace xlair::ui::scenes {
                 },
             });
 
+            constexpr sheets::SliderNoteKind kinds[]{ sheets::SliderNoteKind::Tap,
+                                                      sheets::SliderNoteKind::XTap,
+                                                      sheets::SliderNoteKind::Flick };
             for (int32 index = 0; index < 4; ++index) {
                 const int64 sample = (index + 1) * 3 * SampleRate / 2;
                 const sheets::TimelineIndex timeline = index % 2;
                 chart.slider_notes.push_back(
                     {
-                        .kind = sheets::SliderNoteKind::Tap,
+                        .kind = kinds[index % 3],
                         .timeline = timeline,
                         .sample = sample,
                         .lane = { .start = static_cast<uint8>(index % 2 == 0 ? 2 : 10), .width = 4 },
@@ -44,6 +47,41 @@ namespace xlair::ui::scenes {
                     chart.side_notes.push_back({ .timeline = timeline, .sample = sample, .button = button });
                 }
             }
+            chart.slider_holds.push_back({
+                .points = {
+                    { .kind = sheets::SliderHoldPointKind::Start,
+                      .timeline = 0,
+                      .sample = SampleRate,
+                      .lane = { .start = 3, .width = 4 } },
+                    { .kind = sheets::SliderHoldPointKind::Invisible,
+                      .timeline = 0,
+                      .sample = 2 * SampleRate,
+                      .lane = { .start = 5, .width = 4 } },
+                    { .kind = sheets::SliderHoldPointKind::Visible,
+                      .timeline = 0,
+                      .sample = 3 * SampleRate,
+                      .lane = { .start = 7, .width = 4 } },
+                    { .kind = sheets::SliderHoldPointKind::End,
+                      .timeline = 0,
+                      .sample = 5 * SampleRate,
+                      .lane = { .start = 9, .width = 4 } },
+                },
+            });
+            chart.side_holds.push_back({
+                .button = sheets::SideButton::LeftLower,
+                .points = {
+                    { .kind = sheets::SideHoldPointKind::Start, .timeline = 0, .sample = 2 * SampleRate },
+                    { .kind = sheets::SideHoldPointKind::Relay, .timeline = 0, .sample = 3 * SampleRate },
+                    { .kind = sheets::SideHoldPointKind::End, .timeline = 0, .sample = 5 * SampleRate },
+                },
+            });
+            chart.side_holds.push_back({
+                .button = sheets::SideButton::RightUpper,
+                .points = {
+                    { .kind = sheets::SideHoldPointKind::Start, .timeline = 1, .sample = 3 * SampleRate },
+                    { .kind = sheets::SideHoldPointKind::End, .timeline = 1, .sample = 6 * SampleRate },
+                },
+            });
             return chart;
         }
     }
@@ -94,7 +132,7 @@ namespace xlair::ui::scenes {
             far_corner.x,
             far_corner.y
         );
-        Print << U"Purple: 1.0x  Orange: 0.5x -> 1.5x  (same sample on all five regions)";
+        Print << U"Tap / XTap / Flick / Holds  |  Timelines: 1.0x and 0.5x -> 1.5x";
     }
 
     void PlayfieldDebug::draw() const {
