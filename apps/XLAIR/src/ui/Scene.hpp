@@ -19,6 +19,9 @@ namespace xlair::ui {
         Settings,
         Game,
         ComponentGallery,
+#ifndef NDEBUG
+        PlayfieldDebug,
+#endif
     };
 
     struct SceneData {

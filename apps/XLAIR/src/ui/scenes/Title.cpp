@@ -22,7 +22,11 @@ namespace xlair::ui::scenes {
 
     void Title::update() {
 #ifndef NDEBUG
-        if (KeyF12.down()) {
+        if (KeyP.down() || KeyF11.down()) {
+            changeScene(SceneState::PlayfieldDebug, 0);
+            return;
+        }
+        if (KeyG.down()) {
             changeScene(SceneState::ComponentGallery, 0);
             return;
         }
@@ -63,6 +67,12 @@ namespace xlair::ui::scenes {
 
         FontAsset{ assets::font::Text }(U"XLAIR version: {}"_fmt(app::version::String))
             .draw(15, Arg::bottomRight(DesignSize.x - 10, DesignSize.y - 5), theme::Palette::Gray);
+#ifndef NDEBUG
+        FontAsset{ assets::font::Label }(U"P: 3D PLAYFIELD DEBUG")
+            .draw(16, Vec2{ 24, DesignSize.y - 54 }, theme::Palette::Gray);
+        FontAsset{ assets::font::Label }(U"G: COMPONENT GALLERY")
+            .draw(16, Vec2{ 24, DesignSize.y - 28 }, theme::Palette::Gray);
+#endif
     }
 
     void Title::reportState() const {

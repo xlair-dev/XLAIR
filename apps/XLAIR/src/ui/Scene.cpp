@@ -9,6 +9,9 @@
 #include "scenes/Game.hpp"
 
 #include "scenes/ComponentGallery.hpp"
+#ifndef NDEBUG
+#include "scenes/PlayfieldDebug.hpp"
+#endif
 
 namespace xlair::ui {
     MusicSelectContext& SceneData::ensureMusicSelectContext() {
@@ -30,13 +33,17 @@ namespace xlair::ui {
         SceneManager scene_manager{ std::make_shared<SceneData>(application, boot_flow) };
 
         scene_manager
-            .add<scenes::Boot>(SceneState::Boot)                          // initialize game
-            .add<scenes::Title>(SceneState::Title)                        // title; wait user, scan card
-            .add<scenes::Login>(SceneState::Login)                        // login; cancel -> Title, ok -> MusicSelect
-            .add<scenes::MusicSelect>(SceneState::MusicSelect)            // music
-            .add<scenes::Settings>(SceneState::Settings)                  // settings
-            .add<scenes::Game>(SceneState::Game)                          // main game screen
-            .add<scenes::ComponentGallery>(SceneState::ComponentGallery); // test
+            .add<scenes::Boot>(SceneState::Boot)               // initialize game
+            .add<scenes::Title>(SceneState::Title)             // title; wait user, scan card
+            .add<scenes::Login>(SceneState::Login)             // login; cancel -> Title, ok -> MusicSelect
+            .add<scenes::MusicSelect>(SceneState::MusicSelect) // music
+            .add<scenes::Settings>(SceneState::Settings)       // settings
+            .add<scenes::Game>(SceneState::Game);              // main game screen
+#ifndef NDEBUG
+        scene_manager
+            .add<scenes::ComponentGallery>(SceneState::ComponentGallery) // check ui
+            .add<scenes::PlayfieldDebug>(SceneState::PlayfieldDebug);
+#endif
         scene_manager.init(SceneState::Boot, 0);
 
         return scene_manager;
