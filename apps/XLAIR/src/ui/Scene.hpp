@@ -18,8 +18,8 @@ namespace xlair::ui {
         MusicSelect,
         Settings,
         Game,
-        ComponentGallery,
 #ifndef NDEBUG
+        ComponentGallery,
         PlayfieldDebug,
 #endif
     };
