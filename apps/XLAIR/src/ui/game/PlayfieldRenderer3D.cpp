@@ -24,6 +24,10 @@ namespace xlair::ui::game {
         constexpr double SideLowerY = 1.25;
         constexpr double SideUpperX = 10.5;
         constexpr double SideUpperY = 4.0;
+        // Begin the fade gradually beyond the combo area, with the same world-z range for all 3D geometry.
+        constexpr double FadeStart = FieldNear + FieldLength * 0.3;
+        constexpr double FadeStrength = 0.8;
+        const ColorF BackgroundColor{ U"#F7F8FC" };
         // Corresponds to Game's 360 px/s across its 880 px reference viewport.
         constexpr double WorldUnitsPerSecond = FieldLength * 360.0 / 880.0;
 
@@ -171,7 +175,23 @@ namespace xlair::ui::game {
 
     PlayfieldRenderer3D::PlayfieldRenderer3D()
         : m_field_surface{ FieldSurfaceSize, TextureFormat::R8G8B8A8_Unorm_SRGB },
-          m_render_texture{ DesignSize, TextureFormat::R8G8B8A8_Unorm_SRGB, HasDepth::Yes } {}
+          m_render_texture{ DesignSize, TextureFormat::R8G8B8A8_Unorm_SRGB, HasDepth::Yes }, m_fog_shader{
+              HLSL{ Resource(U"ui/shaders/hlsl/playfield_fog.hlsl"), U"PS" } |
+              GLSL{ Resource(U"ui/shaders/glsl/playfield_fog.frag"),
+                    { { U"PSPerFrame", 0 }, { U"PSPerView", 1 }, { U"PSPerMaterial", 3 }, { U"PSFog", 4 } } }
+          } {
+        if (!m_fog_shader) {
+            throw Error{ U"Failed to load the 3D playfield depth-fade shader." };
+        }
+
+        const ColorF fog_color = BackgroundColor.removeSRGBCurve();
+        m_fog_parameters->color_and_start = Float4{ static_cast<float>(fog_color.r),
+                                                    static_cast<float>(fog_color.g),
+                                                    static_cast<float>(fog_color.b),
+                                                    static_cast<float>(FadeStart) };
+        m_fog_parameters->end_and_strength =
+            Float4{ static_cast<float>(FieldFar), static_cast<float>(FadeStrength), 0.0f, 0.0f };
+    }
 
     void PlayfieldRenderer3D::draw(
         const BasicCamera3D& camera,
@@ -191,8 +211,10 @@ namespace xlair::ui::game {
         Graphics3D::SetCameraTransform(camera);
         Graphics3D::SetGlobalAmbientColor(ColorF{ 1.0 });
         Graphics3D::SetSunColor(ColorF{ 0.0 });
+        Graphics3D::SetPSConstantBuffer(4, m_fog_parameters);
         {
-            const ScopedRenderTarget3D target{ m_render_texture.clear(ColorF{ U"#F7F8FC" }.removeSRGBCurve()) };
+            const ScopedRenderTarget3D target{ m_render_texture.clear(BackgroundColor.removeSRGBCurve()) };
+            const ScopedCustomShader3D fog_shader{ m_fog_shader };
             DrawField(m_field_surface, show_depth_guides);
             DrawSliderNotes(chart, projection, current_sample);
             DrawSideNotes(chart, projection, current_sample);

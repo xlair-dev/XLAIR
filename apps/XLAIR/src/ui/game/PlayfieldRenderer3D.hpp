@@ -25,7 +25,14 @@ namespace xlair::ui::game {
         ) const;
 
     private:
+        struct FogParameters {
+            Float4 color_and_start;
+            Float4 end_and_strength;
+        };
+
         mutable MSRenderTexture m_field_surface;
         mutable MSRenderTexture m_render_texture;
+        PixelShader m_fog_shader;
+        ConstantBuffer<FogParameters> m_fog_parameters;
     };
 }
