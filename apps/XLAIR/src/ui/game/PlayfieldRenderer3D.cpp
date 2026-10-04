@@ -17,6 +17,8 @@ namespace xlair::ui::game {
         constexpr double FieldWidth = PlayfieldRenderer3D::FieldWidth;
         constexpr double FieldLength = FieldFar - FieldNear;
         constexpr double FieldCenter = (FieldNear + FieldFar) * 0.5;
+        constexpr double StageLeft = FieldWidth * 32.0 / FieldSurfaceSize.x;
+        constexpr double LaneWidth = (FieldWidth - StageLeft * 2.0) / 16.0;
         constexpr double LowerNear = FieldNear - 8.0;
         constexpr double LowerLength = FieldFar - LowerNear;
         constexpr double LowerCenter = (LowerNear + FieldFar) * 0.5;
@@ -142,7 +144,8 @@ namespace xlair::ui::game {
 
             for (const auto& hold : chart.slider_holds) {
                 for (const auto& point : hold.points) {
-                    if (point.kind == sheets::SliderHoldPointKind::Invisible) {
+                    if (point.kind != sheets::SliderHoldPointKind::Start &&
+                        point.kind != sheets::SliderHoldPointKind::End) {
                         continue;
                     }
                     const double z = WorldZ(projection, point.timeline, current_sample, point.sample);
@@ -304,6 +307,33 @@ namespace xlair::ui::game {
                 return none;
             }
             return z;
+        }
+
+        void DrawSliderHoldDiamonds(
+            const sheets::Chart& chart,
+            const playfield::ChartProjection& projection,
+            const int64 current_sample
+        ) {
+            constexpr double Edge = 0.4;
+            constexpr double HalfDiagonal = Edge * 0.7071067811865476;
+            const ColorF color = ColorF{ U"#D9D9D9" }.removeSRGBCurve();
+
+            for (const auto& hold : chart.slider_holds) {
+                for (const auto& point : hold.points) {
+                    if (point.kind != sheets::SliderHoldPointKind::Visible) {
+                        continue;
+                    }
+                    const auto z = NoteDepth(projection, point.timeline, current_sample, point.sample);
+                    if (!z) {
+                        continue;
+                    }
+
+                    const double x =
+                        -FieldWidth * 0.5 + StageLeft + (point.lane.start + point.lane.width * 0.5) * LaneWidth;
+                    OrientedBox{ Vec3{ x, 0.04 + HalfDiagonal, *z }, Edge, Edge, 0.12, Quaternion::RotateZ(45_deg) }
+                        .draw(color);
+                }
+            }
         }
 
         void DrawSideNoteSurface(
@@ -478,6 +508,7 @@ namespace xlair::ui::game {
             const ScopedRenderTarget3D target{ m_render_texture.clear(BackgroundColor.removeSRGBCurve()) };
             const ScopedCustomShader3D fog_shader{ m_fog_shader };
             DrawField(m_field_surface, show_depth_guides);
+            DrawSliderHoldDiamonds(chart, projection, current_sample);
             DrawSideHoldBodies(chart, projection, current_sample);
             DrawSideNotes(chart, projection, current_sample, m_side_upper_note_surface, m_side_lower_note_surface);
         }
