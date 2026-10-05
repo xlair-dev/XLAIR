@@ -54,6 +54,37 @@ namespace xlair::ui::game {
                    WorldUnitsPerSecond;
         }
 
+        template <class Point, class DrawSection>
+        void ForEachHoldSection(
+            const playfield::ChartProjection& projection,
+            const int64 current_sample,
+            const Point& before,
+            const Point& after,
+            DrawSection&& draw_section
+        ) {
+            if (before.sample >= after.sample) {
+                return;
+            }
+
+            auto samples =
+                projection.noteDistanceBreakpoints(before.timeline, current_sample, before.sample, after.sample);
+            samples.push_back(after.sample);
+
+            int64 previous_sample = before.sample;
+            double previous_z = WorldZ(projection, before.timeline, current_sample, previous_sample);
+            for (const int64 sample : samples) {
+                // The preceding anchor owns the interval's scroll timeline. The final
+                // endpoint keeps its own timeline, matching the anchor rendering.
+                const auto timeline = sample == after.sample ? after.timeline : before.timeline;
+                const double z = WorldZ(projection, timeline, current_sample, sample);
+                if (std::isfinite(previous_z) && std::isfinite(z)) {
+                    draw_section(previous_sample, previous_z, sample, z);
+                }
+                previous_sample = sample;
+                previous_z = z;
+            }
+        }
+
         void DrawRoundedNotePlate(
             const Vec2& left_center,
             const double width,
@@ -87,6 +118,12 @@ namespace xlair::ui::game {
             const ColorF start_color = ColorF{ U"#EC43F240" }.removeSRGBCurve();
             const ColorF end_color = ColorF{ U"#43A4F250" }.removeSRGBCurve();
             const ColorF center_color = ColorF{ U"#43A4F2" }.removeSRGBCurve();
+            struct Edge {
+                double left = 0.0;
+                double right = 0.0;
+                double y = 0.0;
+                ColorF color;
+            };
 
             for (const auto& hold : chart.slider_holds) {
                 if (hold.points.size() < 2) {
@@ -98,35 +135,62 @@ namespace xlair::ui::game {
                 for (std::size_t index = 1; index < hold.points.size(); ++index) {
                     const auto& before = hold.points[index - 1];
                     const auto& after = hold.points[index];
-                    const double before_z = WorldZ(projection, before.timeline, current_sample, before.sample);
-                    const double after_z = WorldZ(projection, after.timeline, current_sample, after.sample);
-                    if (!std::isfinite(before_z) || !std::isfinite(after_z) ||
-                        (before_z < FieldNear && after_z < FieldNear) || (before_z > FieldFar && after_z > FieldFar)) {
-                        continue;
-                    }
+                    const auto edge_at = [&](const int64 sample, const double z) {
+                        const double ratio = static_cast<double>(
+                            (static_cast<long double>(sample) - before.sample) /
+                            (static_cast<long double>(after.sample) - before.sample)
+                        );
+                        const double left = SourceStageLeft +
+                                            Math::Lerp(
+                                                static_cast<double>(before.lane.start),
+                                                static_cast<double>(after.lane.start),
+                                                ratio
+                                            ) * SourceLaneWidth +
+                                            5.0;
+                        const double width = Math::Lerp(
+                                                 static_cast<double>(before.lane.width),
+                                                 static_cast<double>(after.lane.width),
+                                                 ratio
+                                             ) * SourceLaneWidth -
+                                             10.0;
+                        const double color_t =
+                            duration > 0.0 ? Clamp((static_cast<double>(sample) - first_sample) / duration, 0.0, 1.0)
+                                           : 0.0;
+                        return Edge{
+                            .left = left,
+                            .right = left + width,
+                            .y = (FieldFar - z) * SourceHeight / FieldLength,
+                            .color = Math::Lerp(start_color, end_color, color_t),
+                        };
+                    };
+                    ForEachHoldSection(
+                        projection,
+                        current_sample,
+                        before,
+                        after,
+                        [&](const int64 section_start,
+                            const double before_z,
+                            const int64 section_end,
+                            const double after_z) {
+                            if ((before_z < FieldNear && after_z < FieldNear) ||
+                                (before_z > FieldFar && after_z > FieldFar)) {
+                                return;
+                            }
 
-                    const double before_y = (FieldFar - before_z) * SourceHeight / FieldLength;
-                    const double after_y = (FieldFar - after_z) * SourceHeight / FieldLength;
-                    const double before_left = SourceStageLeft + before.lane.start * SourceLaneWidth + 5.0;
-                    const double before_right = before_left + before.lane.width * SourceLaneWidth - 10.0;
-                    const double after_left = SourceStageLeft + after.lane.start * SourceLaneWidth + 5.0;
-                    const double after_right = after_left + after.lane.width * SourceLaneWidth - 10.0;
-                    const double before_t =
-                        duration > 0.0 ? Clamp((static_cast<double>(before.sample) - first_sample) / duration, 0.0, 1.0)
-                                       : 0.0;
-                    const double after_t =
-                        duration > 0.0 ? Clamp((static_cast<double>(after.sample) - first_sample) / duration, 0.0, 1.0)
-                                       : 1.0;
-                    const ColorF before_color = Math::Lerp(start_color, end_color, before_t);
-                    const ColorF after_color = Math::Lerp(start_color, end_color, after_t);
-                    Quad{
-                        Vec2{ before_left, before_y },
-                        Vec2{ before_right, before_y },
-                        Vec2{ after_right, after_y },
-                        Vec2{ after_left, after_y }
-                    }.draw(before_color, before_color, after_color, after_color);
-                    Line{ (before_left + before_right) * 0.5, before_y, (after_left + after_right) * 0.5, after_y }
-                        .draw(5.0, center_color);
+                            const auto start = edge_at(section_start, before_z);
+                            const auto end = edge_at(section_end, after_z);
+                            Quad{
+                                Vec2{ start.left, start.y },
+                                Vec2{ start.right, start.y },
+                                Vec2{ end.right, end.y },
+                                Vec2{ end.left, end.y }
+                            }.draw(start.color, start.color, end.color, end.color);
+                            Line{ (start.left + start.right) * 0.5, start.y, (end.left + end.right) * 0.5, end.y }.draw(
+                                5.0,
+                                center_color
+                            );
+                        }
+                    );
                 }
             }
         }
@@ -395,31 +459,32 @@ namespace xlair::ui::game {
                 for (std::size_t index = 1; index < hold.points.size(); ++index) {
                     const auto& before = hold.points[index - 1];
                     const auto& after = hold.points[index];
-                    const double before_z = WorldZ(projection, before.timeline, current_sample, before.sample);
-                    const double after_z = WorldZ(projection, after.timeline, current_sample, after.sample);
-                    if (!std::isfinite(before_z) || !std::isfinite(after_z)) {
-                        continue;
-                    }
-                    const double near_limit = upper ? FieldNear : LowerNear;
-                    const double near_z = Clamp(Min(before_z, after_z), near_limit, FieldFar);
-                    const double far_z = Clamp(Max(before_z, after_z), near_limit, FieldFar);
-                    if (far_z - near_z < 0.01) {
-                        continue;
-                    }
-                    const double center_z = (near_z + far_z) * 0.5;
-                    if (upper) {
-                        const Quaternion facing_inward = Quaternion::RotateZ(side > 0.0 ? 90_deg : -90_deg);
-                        Plane{ Vec3{ side * (SideUpperX - 0.09), SideUpperY, center_z }, 3.0, far_z - near_z }.draw(
-                            facing_inward,
-                            color
-                        );
-                    } else {
-                        const Quaternion facing_inward = Quaternion::RotateZ(side > 0.0 ? 45_deg : -45_deg);
-                        Plane{ Vec3{ side * (SideLowerX - 0.065), SideLowerY + 0.065, center_z },
-                               LowerWidth,
-                               far_z - near_z }
-                            .draw(facing_inward, color);
-                    }
+                    ForEachHoldSection(
+                        projection,
+                        current_sample,
+                        before,
+                        after,
+                        [&](const int64, const double before_z, const int64, const double after_z) {
+                            const double near_limit = upper ? FieldNear : LowerNear;
+                            const double near_z = Clamp(Min(before_z, after_z), near_limit, FieldFar);
+                            const double far_z = Clamp(Max(before_z, after_z), near_limit, FieldFar);
+                            if (far_z - near_z < 0.01) {
+                                return;
+                            }
+                            const double center_z = (near_z + far_z) * 0.5;
+                            if (upper) {
+                                const Quaternion facing_inward = Quaternion::RotateZ(side > 0.0 ? 90_deg : -90_deg);
+                                Plane{ Vec3{ side * (SideUpperX - 0.09), SideUpperY, center_z }, 3.0, far_z - near_z }
+                                    .draw(facing_inward, color);
+                            } else {
+                                const Quaternion facing_inward = Quaternion::RotateZ(side > 0.0 ? 45_deg : -45_deg);
+                                Plane{ Vec3{ side * (SideLowerX - 0.065), SideLowerY + 0.065, center_z },
+                                       LowerWidth,
+                                       far_z - near_z }
+                                    .draw(facing_inward, color);
+                            }
+                        }
+                    );
                 }
             }
         }

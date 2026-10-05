@@ -61,6 +61,41 @@ TEST_CASE("ScrollTimeline moves judged notes at normal speed", "[Playfield][Scro
     CHECK(static_cast<double>(timeline.noteDistance(150, 150)) == Approx(0.0));
 }
 
+TEST_CASE("ScrollTimeline exposes hold-body bends caused by reverse scrolling", "[Playfield][ScrollTimeline]") {
+    const xlair::sheets::Timeline source{
+        .speed_changes = {
+            { .sample = 0, .multiplier = 1.0 },
+            { .sample = 100, .multiplier = -1.0 },
+            { .sample = 200, .multiplier = 1.0 },
+        },
+    };
+    const xlair::playfield::ScrollTimeline timeline{ source, SampleRate };
+
+    CHECK(timeline.noteDistanceBreakpoints(0, 0, 200) == s3d::Array<s3d::int64>{ 100 });
+    CHECK(static_cast<double>(timeline.noteDistance(0, 0)) == Approx(0.0));
+    CHECK(static_cast<double>(timeline.noteDistance(0, 100)) == Approx(1.0));
+    CHECK(static_cast<double>(timeline.noteDistance(0, 200)) == Approx(0.0));
+    CHECK(timeline.noteDistanceBreakpoints(0, 100, 200).isEmpty());
+}
+
+TEST_CASE(
+    "ScrollTimeline includes the judgement crossing but excludes past speed changes",
+    "[Playfield][ScrollTimeline]"
+) {
+    const xlair::sheets::Timeline source{
+        .speed_changes = {
+            { .sample = 0, .multiplier = 2.0 },
+            { .sample = 100, .multiplier = -1.0 },
+            { .sample = 200, .multiplier = 0.5 },
+        },
+    };
+    const xlair::playfield::ScrollTimeline timeline{ source, SampleRate };
+
+    CHECK(timeline.noteDistanceBreakpoints(150, 50, 250) == (s3d::Array<s3d::int64>{ 150, 200 }));
+    CHECK(timeline.noteDistanceBreakpoints(250, 50, 200) == (s3d::Array<s3d::int64>{}));
+    CHECK(timeline.noteDistanceBreakpoints(150, 200, 50).isEmpty());
+}
+
 TEST_CASE("ScrollTimeline sorts changes and uses the last change at the same sample", "[Playfield][ScrollTimeline]") {
     const xlair::sheets::Timeline source{
         .speed_changes = {
