@@ -35,7 +35,7 @@ namespace xlair::ui::game {
         const ColorF BackgroundColor{ U"#F7F8FC" };
         const ColorF SideUpperColor{ U"#D5F0FB" };
         const ColorF SideLowerColor{ U"#FFFFFF" };
-        // Corresponds to Game's 360 px/s across its 880 px reference viewport.
+        // At 1.0x, map 100 px/s in the 880 px reference viewport to the 3D field length.
         constexpr double WorldUnitsPerSecond = FieldLength * 100.0 / 880.0;
 
         [[nodiscard]]
