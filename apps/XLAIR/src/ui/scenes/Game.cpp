@@ -13,7 +13,6 @@
 namespace xlair::ui::scenes {
     namespace {
         constexpr auto CancelButton = app::controller::MaintenanceButton::Button2;
-        constexpr Rect PlayfieldViewport{ 0, 0, DesignSize.x, DesignSize.y };
     }
 
     Game::Game(const InitData& init) : SceneBase{ init } {
@@ -25,7 +24,7 @@ namespace xlair::ui::scenes {
         }
         const double speed = getData().application->playSession().playOptions().note_speed;
         if (std::isfinite(speed) && speed > 0.0) {
-            m_pixels_per_second *= Clamp(speed, 0.25, 10.0);
+            m_note_speed = Clamp(speed, 0.25, 10.0);
         }
     }
 
@@ -83,8 +82,7 @@ namespace xlair::ui::scenes {
 
     void Game::drawReady() const {
         const auto& loader = getData().game_loader;
-        m_playfield_renderer
-            .draw(*loader.chart(), *loader.projection(), m_current_sample, PlayfieldViewport, m_pixels_per_second, 0);
+        m_playfield_renderer.draw(m_camera, *loader.chart(), *loader.projection(), m_current_sample, m_note_speed, 0);
         const auto& session = getData().application->playSession();
         if (const auto* user = session.user()) {
             const auto level = core::user::CalculateLevelProgress(user->xp);

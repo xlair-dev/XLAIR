@@ -139,6 +139,7 @@ namespace xlair::ui::scenes {
             m_chart,
             m_projection,
             static_cast<int64>(m_elapsed * SampleRate),
+            1.0,
             279,
             m_show_depth_guides
         );

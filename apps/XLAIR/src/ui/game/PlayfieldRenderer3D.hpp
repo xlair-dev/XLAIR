@@ -20,6 +20,7 @@ namespace xlair::ui::game {
             const sheets::Chart& chart,
             const playfield::ChartProjection& projection,
             int64 current_sample,
+            double note_speed,
             uint32 combo,
             bool show_depth_guides = false
         ) const;
