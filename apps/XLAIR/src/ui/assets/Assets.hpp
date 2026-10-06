@@ -13,6 +13,7 @@ namespace xlair::ui::assets {
 
     namespace texture {
         inline constexpr AssetNameView Logo{ U"XLAIR.UI.Texture.Logo" };
+        inline constexpr AssetNameView GameScoreBarFrame{ U"XLAIR.UI.Texture.GameScoreBarFrame" };
         inline constexpr AssetNameView SettingValueArrowEnabled{ U"XLAIR.UI.Texture.SettingValueArrowEnabled" };
         inline constexpr AssetNameView SettingValueArrowDisabled{ U"XLAIR.UI.Texture.SettingValueArrowDisabled" };
     }

@@ -91,4 +91,32 @@ namespace xlair::playfield {
 
         return distanceBetween(current_sample, note_sample);
     }
+
+    s3d::Array<s3d::int64> ScrollTimeline::noteDistanceBreakpoints(
+        const s3d::int64 current_sample,
+        const s3d::int64 from_sample,
+        const s3d::int64 to_sample
+    ) const {
+        s3d::Array<s3d::int64> samples;
+        if (from_sample >= to_sample) {
+            return samples;
+        }
+
+        if (from_sample < current_sample && current_sample < to_sample) {
+            samples.push_back(current_sample);
+        }
+        const auto first = std::upper_bound(
+            m_segments.begin(),
+            m_segments.end(),
+            std::max(from_sample, current_sample),
+            [](const s3d::int64 value, const Segment& segment) {
+                return value < segment.sample;
+            }
+        );
+        for (auto segment = first; segment != m_segments.end() && segment->sample < to_sample; ++segment) {
+            samples.push_back(segment->sample);
+        }
+        samples.sort();
+        return samples;
+    }
 }

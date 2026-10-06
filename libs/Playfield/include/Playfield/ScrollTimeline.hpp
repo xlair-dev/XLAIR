@@ -18,6 +18,11 @@ namespace xlair::playfield {
         [[nodiscard]]
         long double noteDistance(s3d::int64 current_sample, s3d::int64 note_sample) const;
 
+        // Interior samples where noteDistance changes slope over [from_sample, to_sample].
+        [[nodiscard]]
+        s3d::Array<s3d::int64>
+        noteDistanceBreakpoints(s3d::int64 current_sample, s3d::int64 from_sample, s3d::int64 to_sample) const;
+
     private:
         struct Segment {
             s3d::int64 sample = 0;

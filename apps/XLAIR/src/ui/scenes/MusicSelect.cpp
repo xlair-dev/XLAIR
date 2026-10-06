@@ -62,7 +62,10 @@ namespace xlair::ui::scenes {
         : SceneBase{ init },
           m_card_carousel{ components::MusicCard::size(), Vec2{ DesignSize.x / 2.0, CardY }, DesignSize.x },
           m_slider_mappings{ MakeSliderMappings() } {
-        getData().ensureMusicSelectContext();
+        auto& data = getData();
+        data.ensureMusicSelectContext().resume();
+        m_fade_from_game = data.returning_from_game;
+        data.returning_from_game = false;
     }
 
     void MusicSelect::update() {
@@ -89,10 +92,20 @@ namespace xlair::ui::scenes {
     }
 
     void MusicSelect::drawFadeIn(const double t) const {
+        if (m_fade_from_game) {
+            drawScene({});
+            Scene::Rect().draw(ColorF{ 0.0, 0.0, 0.0, 1.0 - Clamp(t, 0.0, 1.0) });
+            return;
+        }
         drawScene(transitions::CardFadeIn(t, transitions::CardZoom::Shrink));
     }
 
     void MusicSelect::drawFadeOut(const double t) const {
+        if (m_fade_to_game) {
+            drawScene({});
+            Scene::Rect().draw(ColorF{ 0.0, 0.0, 0.0, Clamp(t, 0.0, 1.0) });
+            return;
+        }
         drawScene(transitions::CardFadeOut(t));
     }
 
@@ -189,6 +202,17 @@ namespace xlair::ui::scenes {
                 } else {
                     audio::PlaySoundEffect(audio::SoundEffect::Confirm);
                     Logger << U"[MusicSelect] Selected music '{}' / sheet '{}'."_fmt(music->id, difficulty->id);
+                    auto& data = getData();
+                    data.game_selection = GameSelection{
+                        .music_id = music->id,
+                        .title = music->title,
+                        .music_path = music->music,
+                        .music_offset_seconds = music->music_offset_seconds,
+                        .difficulty = *difficulty,
+                    };
+                    data.music_select_context->pause();
+                    m_fade_to_game = true;
+                    changeScene(SceneState::Game, 500, CrossFade::No);
                 }
             }
         }

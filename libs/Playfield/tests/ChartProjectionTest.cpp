@@ -20,6 +20,7 @@ TEST_CASE("ChartProjection keeps independent scroll timelines", "[Playfield][Cha
     CHECK(static_cast<double>(projection.noteDistance(1, 0, 100)) == Approx(2.0));
     CHECK(static_cast<double>(projection.noteDistance(0, 200, 100)) == Approx(-1.0));
     CHECK(static_cast<double>(projection.noteDistance(1, 200, 100)) == Approx(-1.0));
+    CHECK(projection.noteDistanceBreakpoints(1, 50, 0, 100) == (s3d::Array<s3d::int64>{ 50 }));
 }
 
 TEST_CASE("ChartProjection supplies a normal timeline for an empty chart", "[Playfield][ChartProjection]") {
@@ -34,4 +35,5 @@ TEST_CASE("ChartProjection rejects an invalid timeline index", "[Playfield][Char
     const xlair::playfield::ChartProjection projection{ xlair::sheets::Chart{} };
 
     CHECK_THROWS_AS(projection.positionAt(1, 0), std::out_of_range);
+    CHECK_THROWS_AS(projection.noteDistanceBreakpoints(1, 0, 0, 100), std::out_of_range);
 }
