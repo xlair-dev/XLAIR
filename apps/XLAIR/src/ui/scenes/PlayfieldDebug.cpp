@@ -1,4 +1,5 @@
 #include "PlayfieldDebug.hpp"
+#include "ui/game/PlayfieldCamera.hpp"
 
 #ifndef NDEBUG
 #include <cmath>
@@ -7,10 +8,6 @@ namespace xlair::ui::scenes {
     namespace {
         constexpr double LoopDuration = 8.0;
         constexpr int64 SampleRate = 48'000;
-        // Fit the main field to Game's top (±110) and bottom (±735) screen-space corners.
-        constexpr Vec3 InitialEye{ 0.0, 12.9974, -21.9358 };
-        constexpr Vec3 InitialFocus{ 0.0, 0.0, 13.9422 };
-
         [[nodiscard]]
         sheets::Chart MakeDebugChart() {
             sheets::Chart chart;
@@ -87,8 +84,9 @@ namespace xlair::ui::scenes {
     }
 
     PlayfieldDebug::PlayfieldDebug(const InitData& init)
-        : SceneBase{ init }, m_camera{ DesignSize, 30_deg, InitialEye, InitialFocus }, m_chart{ MakeDebugChart() },
-          m_projection{ m_chart } {}
+        : SceneBase{ init },
+          m_camera{ DesignSize, game::PlayfieldCameraFOV, game::PlayfieldCameraEye, game::PlayfieldCameraFocus },
+          m_chart{ MakeDebugChart() }, m_projection{ m_chart } {}
 
     void PlayfieldDebug::update() {
         if (KeyEscape.down()) {
@@ -97,7 +95,7 @@ namespace xlair::ui::scenes {
             return;
         }
         if (KeyR.down()) {
-            m_camera.setView(InitialEye, InitialFocus);
+            m_camera.setView(game::PlayfieldCameraEye, game::PlayfieldCameraFocus);
         }
         if (KeySpace.down()) {
             m_paused = !m_paused;
