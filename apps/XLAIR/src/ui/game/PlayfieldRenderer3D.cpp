@@ -36,7 +36,7 @@ namespace xlair::ui::game {
         const ColorF SideUpperColor{ U"#D5F0FB" };
         const ColorF SideLowerColor{ U"#FFFFFF" };
         // Corresponds to Game's 360 px/s across its 880 px reference viewport.
-        constexpr double WorldUnitsPerSecond = FieldLength * 360.0 / 880.0;
+        constexpr double WorldUnitsPerSecond = FieldLength * 100.0 / 880.0;
 
         [[nodiscard]]
         Quaternion SideSlope(const double side) {
