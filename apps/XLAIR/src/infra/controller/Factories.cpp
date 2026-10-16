@@ -18,7 +18,7 @@ namespace xlair::infra::controller {
                 );
 
             case app::Config::Controller::Mode::V1:
-                return std::make_unique<V1>(config.v1.port, config.v1.baud_rate);
+                return std::make_unique<V1>(config.v1.port, config.v1.baud_rate, config.v1.touch_threshold);
         }
 
         return nullptr;
