@@ -5,7 +5,7 @@
 #include "SheetsAnalyzer/Chart.hpp"
 #include "SheetsAnalyzer/Result.hpp"
 
-namespace xlair::sheets::formats::sus::detail {
+namespace xlair::sheets::compilation::detail {
     [[nodiscard]]
     Result<s3d::Array<s3d::int64>> GenerateHoldJudgeSamples(
         s3d::int64 start_sample,
