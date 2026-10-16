@@ -77,6 +77,7 @@ namespace xlair::app {
             struct V1 {
                 String port;
                 int32 baud_rate = 115200;
+                uint8 touch_threshold = 1;
             } v1;
         } controller;
 

@@ -106,6 +106,7 @@ namespace xlair::infra::config {
             .read(U"controller.ground_slider.touch_threshold", config.controller.ground_slider.touch_threshold)
             .read(U"controller.v1.port", config.controller.v1.port)
             .read(U"controller.v1.baud_rate", config.controller.v1.baud_rate)
+            .read(U"controller.v1.touch_threshold", config.controller.v1.touch_threshold)
             // input
             .read(U"input.latency_offset_seconds", config.input.latency_offset_seconds)
             // sync
@@ -160,6 +161,9 @@ namespace xlair::infra::config {
             }
             if (config.controller.v1.baud_rate <= 0) {
                 return MakeError(U"Config value 'controller.v1.baud_rate' must be positive.", m_path);
+            }
+            if (config.controller.v1.touch_threshold == 0 || config.controller.v1.touch_threshold > 254) {
+                return MakeError(U"Config value 'controller.v1.touch_threshold' must be between 1 and 254.", m_path);
             }
         } else {
             return MakeError(U"Config value 'controller.mode' must be 'keyboard', 'ground_slider', or 'v1'.", m_path);
