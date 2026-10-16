@@ -59,6 +59,38 @@ namespace xlair::core::judgement {
         }
 
         [[nodiscard]]
+        bool PressedOnPath(const uint32 pressed, const Array<sheets::SliderHoldPoint>& points, const int64 sample) {
+            if (points.isEmpty()) {
+                return false;
+            }
+            const auto next =
+                std::upper_bound(points.begin(), points.end(), sample, [](const int64 time, const auto& point) {
+                    return time < point.sample;
+                });
+            if (next == points.begin()) {
+                return PressedInSpan(pressed, next->lane);
+            }
+            if (next == points.end()) {
+                return PressedInSpan(pressed, points.back().lane);
+            }
+            const auto& before = *std::prev(next);
+            const double t = static_cast<double>(
+                (static_cast<long double>(sample) - before.sample) /
+                (static_cast<long double>(next->sample) - before.sample)
+            );
+            const double left =
+                Math::Lerp(static_cast<double>(before.lane.start), static_cast<double>(next->lane.start), t);
+            const double right = Math::Lerp(
+                static_cast<double>(before.lane.start + before.lane.width),
+                static_cast<double>(next->lane.start + next->lane.width),
+                t
+            );
+            const auto start = static_cast<uint8>(std::floor(left));
+            const auto width = static_cast<uint8>(std::ceil(right) - start);
+            return PressedInSpan(pressed, { .start = start, .width = width });
+        }
+
+        [[nodiscard]]
         bool FlickMotionInReach(const sheets::LaneSpan span, const uint8 contact_zone, const uint8 motion_zone) {
             const int32 contact_lane = contact_zone / 2;
             const int32 motion_lane = motion_zone / 2;
@@ -69,9 +101,15 @@ namespace xlair::core::judgement {
         }
     }
 
+    bool JudgeEngine::Note::isXTap() const noexcept {
+        return (note_kind == NoteKind::Slider && slider_kind == sheets::SliderNoteKind::XTap) ||
+               (note_kind == NoteKind::Side && side_kind == sheets::SideNoteKind::XTap);
+    }
+
     JudgeEngine::JudgeEngine(const sheets::Chart& chart)
-        : m_slider_note_count{ chart.slider_notes.size() }, m_side_note_count{ chart.side_notes.size() },
-          m_total_combo{ chart.total_combo } {
+        : m_chart{ chart }, m_active_slider_holds(chart.slider_holds.size(), false),
+          m_active_side_holds(chart.side_holds.size(), false), m_slider_note_count{ chart.slider_notes.size() },
+          m_side_note_count{ chart.side_notes.size() }, m_total_combo{ chart.total_combo } {
         if (chart.sample_rate <= 0) {
             throw std::invalid_argument{ "Judgement requires a positive chart sample rate." };
         }
@@ -112,6 +150,7 @@ namespace xlair::core::judgement {
                     .chart_index = index,
                     .sample = source.sample,
                     .side_button = source.button,
+                    .side_kind = source.kind,
                 }
             );
         }
@@ -366,6 +405,7 @@ namespace xlair::core::judgement {
             ++m_flick_miss_cursor;
         }
         m_previous_slider_pressed = slider_pressed;
+        updateHoldActivity(current_sample, slider_pressed, side_pressed);
         return events;
     }
 
@@ -499,6 +539,35 @@ namespace xlair::core::judgement {
         return m_side_holds.at(hold_index).at(point_index).state;
     }
 
+    bool JudgeEngine::sliderHoldActive(const std::size_t hold_index) const {
+        return m_active_slider_holds.at(hold_index);
+    }
+
+    bool JudgeEngine::sideHoldActive(const std::size_t hold_index) const {
+        return m_active_side_holds.at(hold_index);
+    }
+
+    void JudgeEngine::updateHoldActivity(const int64 sample, const uint32 slider_pressed, const uint8 side_pressed) {
+        const auto acquired = [sample](const auto& points) {
+            return points.back().state == NoteState::Pending && sample < points.back().sample &&
+                   std::any_of(
+                       points.begin(),
+                       points.end(),
+                       [](const auto& point) {
+                           return point.state == NoteState::Hit;
+                       }
+                   );
+        };
+        for (std::size_t index = 0; index < m_slider_holds.size(); ++index) {
+            m_active_slider_holds[index] = acquired(m_slider_holds[index]) &&
+                                           PressedOnPath(slider_pressed, m_chart.slider_holds[index].points, sample);
+        }
+        for (std::size_t index = 0; index < m_side_holds.size(); ++index) {
+            m_active_side_holds[index] =
+                acquired(m_side_holds[index]) && SidePressed(side_pressed, m_chart.side_holds[index].button);
+        }
+    }
+
     const ScoreState& JudgeEngine::score() const noexcept {
         return m_score;
     }
@@ -570,9 +639,7 @@ namespace xlair::core::judgement {
 
     Grade JudgeEngine::gradeFor(const Note& note, const int64 sample) const {
         const long double distance = std::abs(static_cast<long double>(sample) - note.sample);
-        if (distance <= m_perfect_window ||
-            (note.note_kind == NoteKind::Slider && note.slider_kind == sheets::SliderNoteKind::XTap &&
-             distance <= m_good_window)) {
+        if (distance <= m_perfect_window || (note.isXTap() && distance <= m_good_window)) {
             return Grade::Perfect;
         }
         if (distance <= m_great_window) {
@@ -614,7 +681,13 @@ namespace xlair::core::judgement {
         }
     }
 
-    void JudgeEngine::record(Note& note, const Grade grade, const int64 sample, Array<JudgementEvent>& events) {
+    void JudgeEngine::record(
+        Note& note,
+        const Grade grade,
+        const int64 sample,
+        Array<JudgementEvent>& events,
+        const bool linked_start
+    ) {
         note.state = grade == Grade::Miss ? NoteState::Missed : NoteState::Hit;
         if (note.note_kind == NoteKind::SliderHold) {
             m_slider_holds[note.chart_index][0].state = note.state;
@@ -629,8 +702,21 @@ namespace xlair::core::judgement {
                 .point_index = note.point_index,
                 .grade = grade,
                 .offset_samples = sample - note.sample,
+                .linked_start = linked_start,
             }
         );
+        if (grade != Grade::Miss && note.isXTap()) {
+            for (auto& start : m_notes) {
+                const bool linked =
+                    note.note_kind == NoteKind::Slider
+                        ? start.note_kind == NoteKind::SliderHold && start.lane.start == note.lane.start &&
+                              start.lane.width == note.lane.width
+                        : start.note_kind == NoteKind::SideHold && start.side_button == note.side_button;
+                if (linked && start.sample == note.sample && start.state == NoteState::Pending) {
+                    record(start, grade, sample, events, true);
+                }
+            }
+        }
     }
 
     void JudgeEngine::record(HoldPoint& point, const Grade grade, const int64 sample, Array<JudgementEvent>& events) {

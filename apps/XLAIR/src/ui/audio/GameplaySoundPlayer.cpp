@@ -3,6 +3,7 @@
 #include "AudioBus.hpp"
 
 #include <algorithm>
+#include <utility>
 
 namespace xlair::ui::audio {
     namespace {
@@ -31,110 +32,113 @@ namespace xlair::ui::audio {
 
     void GameplaySoundPlayer::start(const sheets::Chart& chart) {
         stop();
-        m_events.clear();
-        m_cursor = 0;
+        m_slider_notes.clear();
+        m_side_notes.clear();
+        m_slider_holds.clear();
+        m_side_holds.clear();
         for (const auto& note : chart.slider_notes) {
-            Sound sound = Sound::Tap;
             switch (note.kind) {
                 case sheets::SliderNoteKind::Tap:
+                    m_slider_notes.push_back(Sound::Tap);
                     break;
                 case sheets::SliderNoteKind::XTap:
-                    sound = Sound::XTap;
+                    m_slider_notes.push_back(Sound::XTap);
                     break;
                 case sheets::SliderNoteKind::Flick:
-                    sound = Sound::Flick;
+                    m_slider_notes.push_back(Sound::Flick);
                     break;
             }
-            m_events.push_back({ note.sample, sound });
         }
         for (const auto& note : chart.side_notes) {
-            m_events.push_back({ note.sample, note.kind == sheets::SideNoteKind::XTap ? Sound::XTap : Sound::SideTap });
+            m_side_notes.push_back(note.kind == sheets::SideNoteKind::XTap ? Sound::XTap : Sound::SideTap);
         }
         for (const auto& hold : chart.slider_holds) {
-            if (hold.points.isEmpty()) {
-                continue;
-            }
-            const auto& start = hold.points.front();
-            const bool starts_with_xtap =
-                std::any_of(chart.slider_notes.begin(), chart.slider_notes.end(), [&](const auto& note) {
-                    return note.kind == sheets::SliderNoteKind::XTap && note.sample == start.sample &&
-                           note.lane.start == start.lane.start && note.lane.width == start.lane.width;
-                });
-            if (!starts_with_xtap) {
-                m_events.push_back({ start.sample, Sound::SlideTap });
-            }
-            // Generated judgement ticks and curve subdivisions must not produce checkpoint sounds.
-            for (const auto& point : hold.points) {
-                if (point.kind == sheets::SliderHoldPointKind::Visible ||
-                    point.kind == sheets::SliderHoldPointKind::End) {
-                    m_events.push_back({ point.sample, Sound::Checkpoint });
+            Array<Optional<Sound>> sounds(hold.judge_points.size());
+            if (!hold.judge_points.isEmpty()) {
+                sounds.front() = Sound::SlideTap;
+                for (std::size_t index = 1; index < sounds.size(); ++index) {
+                    if (std::any_of(hold.points.begin(), hold.points.end(), [&](const auto& point) {
+                            return point.sample == hold.judge_points[index].sample &&
+                                   (point.kind == sheets::SliderHoldPointKind::Visible ||
+                                    point.kind == sheets::SliderHoldPointKind::End);
+                        })) {
+                        sounds[index] = Sound::Checkpoint;
+                    }
                 }
             }
-            m_events.push_back({ start.sample, Sound::SlideHold, 1 });
-            m_events.push_back({ hold.points.back().sample, Sound::SlideHold, -1 });
+            m_slider_holds.push_back(std::move(sounds));
         }
         for (const auto& hold : chart.side_holds) {
-            if (hold.points.isEmpty()) {
+            Array<Optional<Sound>> sounds(hold.judge_samples.size());
+            if (!hold.judge_samples.isEmpty()) {
+                sounds.front() = Sound::SideTap;
+                for (std::size_t index = 1; index < sounds.size(); ++index) {
+                    if (std::any_of(hold.points.begin(), hold.points.end(), [&](const auto& point) {
+                            return point.sample == hold.judge_samples[index] &&
+                                   (point.kind == sheets::SideHoldPointKind::Relay ||
+                                    point.kind == sheets::SideHoldPointKind::End);
+                        })) {
+                        sounds[index] = Sound::Checkpoint;
+                    }
+                }
+            }
+            m_side_holds.push_back(std::move(sounds));
+        }
+    }
+
+    void GameplaySoundPlayer::update(
+        const core::judgement::JudgeEngine& judge,
+        const std::span<const core::judgement::JudgementEvent> events
+    ) {
+        for (const auto& event : events) {
+            if (event.grade == core::judgement::Grade::Miss || event.linked_start) {
                 continue;
             }
-            const int64 start = hold.points.front().sample;
-            const bool starts_with_xtap =
-                std::any_of(chart.side_notes.begin(), chart.side_notes.end(), [&](const auto& note) {
-                    return note.kind == sheets::SideNoteKind::XTap && note.sample == start &&
-                           note.button == hold.button;
-                });
-            if (!starts_with_xtap) {
-                m_events.push_back({ start, Sound::SideTap });
+            Optional<Sound> sound;
+            switch (event.note_kind) {
+                case core::judgement::NoteKind::Slider:
+                    sound = m_slider_notes.at(event.note_index);
+                    break;
+                case core::judgement::NoteKind::Side:
+                    sound = m_side_notes.at(event.note_index);
+                    break;
+                case core::judgement::NoteKind::SliderHold:
+                    sound = m_slider_holds.at(event.note_index).at(event.point_index);
+                    break;
+                case core::judgement::NoteKind::SideHold:
+                    sound = m_side_holds.at(event.note_index).at(event.point_index);
+                    break;
             }
-            for (const auto& point : hold.points) {
-                if (point.kind == sheets::SideHoldPointKind::Relay || point.kind == sheets::SideHoldPointKind::End) {
-                    m_events.push_back({ point.sample, Sound::Checkpoint });
-                }
+            if (sound) {
+                m_sounds[static_cast<std::size_t>(*sound)].playOneShot(GameplaySound, JudgmentVolume);
             }
-            m_events.push_back({ start, Sound::SideHold, 1 });
-            m_events.push_back({ hold.points.back().sample, Sound::SideHold, -1 });
         }
-        m_events.stable_sort_by([](const auto& left, const auto& right) {
-            return left.sample < right.sample;
-        });
-        // Music playback begins at sample zero; recover holds spanning zero without replaying past hits.
-        while (m_cursor < m_events.size() && m_events[m_cursor].sample < 0) {
-            const auto& event = m_events[m_cursor++];
-            if (event.change != 0) {
-                m_active_holds[static_cast<std::size_t>(event.sound)] += event.change;
+        bool slide_active = false;
+        for (std::size_t index = 0; index < m_slider_holds.size(); ++index) {
+            slide_active = slide_active || judge.sliderHoldActive(index);
+        }
+        bool side_active = false;
+        for (std::size_t index = 0; index < m_side_holds.size(); ++index) {
+            side_active = side_active || judge.sideHoldActive(index);
+        }
+        syncLoop(Sound::SlideHold, slide_active);
+        syncLoop(Sound::SideHold, side_active);
+    }
+
+    void GameplaySoundPlayer::syncLoop(const Sound kind, const bool active) {
+        const auto& sound = m_sounds[static_cast<std::size_t>(kind)];
+        if (active) {
+            if (!sound.isPlaying()) {
+                sound.play(GameplaySound);
             }
+        } else {
+            sound.stop();
         }
     }
 
-    void GameplaySoundPlayer::update(const int64 sample) {
-        while (m_cursor < m_events.size() && m_events[m_cursor].sample <= sample) {
-            const auto& event = m_events[m_cursor++];
-            if (event.change == 0) {
-                m_sounds[static_cast<std::size_t>(event.sound)].playOneShot(GameplaySound, JudgmentVolume);
-            } else {
-                m_active_holds[static_cast<std::size_t>(event.sound)] += event.change;
-            }
-        }
-        for (const auto kind : { Sound::SideHold, Sound::SlideHold }) {
-            const auto index = static_cast<std::size_t>(kind);
-            const auto& sound = m_sounds[index];
-            if (m_active_holds[index] > 0) {
-                if (!sound.isPlaying()) {
-                    sound.play(GameplaySound);
-                }
-            } else {
-                sound.stop();
-            }
-        }
-    }
-
-    void GameplaySoundPlayer::finish(const int64 sample) {
-        update(sample);
-        for (const auto kind : { Sound::SideHold, Sound::SlideHold }) {
-            m_sounds[static_cast<std::size_t>(kind)].stop();
-        }
-        m_active_holds.fill(0);
-        m_cursor = m_events.size();
+    void GameplaySoundPlayer::finish() {
+        syncLoop(Sound::SideHold, false);
+        syncLoop(Sound::SlideHold, false);
     }
 
     void GameplaySoundPlayer::stop() {
@@ -142,7 +146,5 @@ namespace xlair::ui::audio {
             sound.stop();
             sound.stopAllShots();
         }
-        m_active_holds.fill(0);
-        m_cursor = m_events.size();
     }
 }

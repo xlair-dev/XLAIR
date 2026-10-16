@@ -2,12 +2,11 @@
 
 #include "Common.hpp"
 
-#include <SheetsAnalyzer/Chart.hpp>
+#include "core/judgement/JudgeEngine.hpp"
 #include <array>
 
 namespace xlair::ui::audio {
-    /// Plays chart-timed sounds independently of input judgement.
-    /// Samples use the compiled chart's music offset and audio sample rate, not scroll timelines.
+    /// Plays successful judgement feedback and the judge engine's active hold loops.
     class GameplaySoundPlayer {
     public:
         GameplaySoundPlayer();
@@ -16,13 +15,12 @@ namespace xlair::ui::audio {
         GameplaySoundPlayer(const GameplaySoundPlayer&) = delete;
         GameplaySoundPlayer& operator=(const GameplaySoundPlayer&) = delete;
 
-        /// Uses explicit hold points for sounds, independently of generated judgement ticks.
-        /// The chart must be compiled at the sample rate of the playing music.
+        /// The chart and engine passed to update() must use the same note and judgement-point indices.
         void start(const sheets::Chart& chart);
-        /// Advances with the music's monotonically increasing sample position, starting at zero.
-        void update(int64 sample);
-        /// Processes the music endpoint and stops loops, allowing one-shot tails to finish.
-        void finish(int64 sample);
+        /// Consume each advance() result once, including empty results, to synchronize released holds.
+        void update(const core::judgement::JudgeEngine& judge, std::span<const core::judgement::JudgementEvent> events);
+        /// Stops loops while allowing successful one-shot tails to finish.
+        void finish();
         void stop();
 
     private:
@@ -38,15 +36,12 @@ namespace xlair::ui::audio {
             Count,
         };
 
-        struct Event {
-            int64 sample;
-            Sound sound;
-            int32 change = 0;
-        };
+        void syncLoop(Sound sound, bool active);
 
         std::array<Audio, static_cast<std::size_t>(Sound::Count)> m_sounds;
-        std::array<int32, static_cast<std::size_t>(Sound::Count)> m_active_holds{};
-        Array<Event> m_events;
-        std::size_t m_cursor = 0;
+        Array<Sound> m_slider_notes;
+        Array<Sound> m_side_notes;
+        Array<Array<Optional<Sound>>> m_slider_holds;
+        Array<Array<Optional<Sound>>> m_side_holds;
     };
 }
