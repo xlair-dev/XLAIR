@@ -1,3 +1,5 @@
+include(ChartConverter.cmake)
+
 add_library(PicoSHA2 INTERFACE)
 add_library(PicoSHA2::PicoSHA2 ALIAS PicoSHA2)
 

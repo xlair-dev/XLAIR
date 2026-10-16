@@ -6,23 +6,14 @@
 #include <algorithm>
 #include <cmath>
 
-namespace xlair::sheets::formats::sus {
+namespace xlair::sheets::compilation {
     namespace {
         constexpr long double CurveSegmentsPerSecond = 20.0L;
         constexpr std::size_t MaximumGeneratedCurvePointCount = 1'000'000;
         constexpr long double LaneEdgeEpsilon = 1e-9L;
         constexpr s3d::int32 SliderLaneCount = 16;
 
-        struct SourcePoint {
-            SliderHoldPointKind kind = SliderHoldPointKind::Visible;
-            TimelineIndex timeline = 0;
-            s3d::int64 sample = 0;
-            ::xlair::sheets::LaneSpan lane;
-        };
-
-        struct HoldBuilder {
-            s3d::Array<SourcePoint> points;
-        };
+        using SourcePoint = SliderPathPoint;
 
         struct CurveCoordinate {
             long double sample = 0.0L;
@@ -36,55 +27,18 @@ namespace xlair::sheets::formats::sus {
             TimelineIndex timeline = 0;
         };
 
-        using TimelineLookup = s3d::HashTable<TimelineId, TimelineIndex>;
-        using ActiveHolds = s3d::HashTable<ChannelId, HoldBuilder>;
-
         [[nodiscard]]
-        bool PositionComesBefore(const Position& left, const Position& right) {
-            if (left.measure != right.measure) {
-                return left.measure < right.measure;
-            }
-
-            const s3d::uint64 left_denominator = left.denominator == 0 ? 1 : left.denominator;
-            const s3d::uint64 right_denominator = right.denominator == 0 ? 1 : right.denominator;
-            return (static_cast<s3d::uint64>(left.numerator) * right_denominator) <
-                   (static_cast<s3d::uint64>(right.numerator) * left_denominator);
-        }
-
-        [[nodiscard]]
-        s3d::Optional<TimelineIndex>
-        ResolveTimeline(const s3d::Optional<TimelineId>& source, const TimelineLookup& lookup) {
-            if (!source) {
-                return 0;
-            }
-
-            const auto timeline = lookup.find(*source);
-            if (timeline == lookup.end()) {
-                return s3d::none;
-            }
-            return timeline->second;
-        }
-
-        [[nodiscard]]
-        ::xlair::sheets::LaneSpan ToChartLane(const LaneSpan lane) {
-            return {
-                .start = lane.start,
-                .width = lane.width,
-            };
-        }
-
-        [[nodiscard]]
-        s3d::Optional<::xlair::sheets::SliderHoldPointKind> ToChartAnchorKind(const SliderHoldPointKind kind) {
+        s3d::Optional<::xlair::sheets::SliderHoldPointKind> ToChartAnchorKind(const SliderPathPoint::Kind kind) {
             switch (kind) {
-                case SliderHoldPointKind::Start:
+                case SliderPathPoint::Kind::Start:
                     return ::xlair::sheets::SliderHoldPointKind::Start;
-                case SliderHoldPointKind::End:
+                case SliderPathPoint::Kind::End:
                     return ::xlair::sheets::SliderHoldPointKind::End;
-                case SliderHoldPointKind::Visible:
+                case SliderPathPoint::Kind::Visible:
                     return ::xlair::sheets::SliderHoldPointKind::Visible;
-                case SliderHoldPointKind::Invisible:
+                case SliderPathPoint::Kind::Invisible:
                     return ::xlair::sheets::SliderHoldPointKind::Invisible;
-                case SliderHoldPointKind::Control:
+                case SliderPathPoint::Kind::Control:
                     return s3d::none;
             }
 
@@ -190,7 +144,7 @@ namespace xlair::sheets::formats::sus {
 
         [[nodiscard]]
         Result<SliderHold> BuildHold(
-            const HoldBuilder& builder,
+            const s3d::Array<SliderPathPoint>& points,
             const s3d::int64 sample_rate,
             const s3d::Array<TempoChange>& tempo_changes
         ) {
@@ -198,7 +152,7 @@ namespace xlair::sheets::formats::sus {
             s3d::Array<CurveSegment> curve_segments;
             s3d::Array<CurveCoordinate> pending_control_points;
 
-            const auto& start = builder.points.front();
+            const auto& start = points.front();
             hold.points.push_back(
                 {
                     .kind = ::xlair::sheets::SliderHoldPointKind::Start,
@@ -210,9 +164,9 @@ namespace xlair::sheets::formats::sus {
             pending_control_points.push_back(ToCurveCoordinate(start));
 
             auto previous_anchor = start;
-            for (std::size_t index = 1; index < builder.points.size(); ++index) {
-                const auto& source = builder.points[index];
-                if (source.kind == SliderHoldPointKind::Control) {
+            for (std::size_t index = 1; index < points.size(); ++index) {
+                const auto& source = points[index];
+                if (source.kind == SliderPathPoint::Kind::Control) {
                     pending_control_points.push_back(ToCurveCoordinate(source));
                     continue;
                 }
@@ -284,19 +238,15 @@ namespace xlair::sheets::formats::sus {
 
             // Rendering subdivision and judgement density are intentionally independent.
             // Changing the curve's visual precision therefore cannot change its combo count.
-            auto judge_samples = detail::GenerateHoldJudgeSamples(
-                start.sample,
-                builder.points.back().sample,
-                sample_rate,
-                tempo_changes
-            );
+            auto judge_samples =
+                detail::GenerateHoldJudgeSamples(start.sample, points.back().sample, sample_rate, tempo_changes);
             if (!judge_samples) {
                 Result<SliderHold> result;
                 result.diagnostics = std::move(judge_samples.diagnostics);
                 return result;
             }
-            for (const auto& source : builder.points) {
-                if (source.kind == SliderHoldPointKind::Visible) {
+            for (const auto& source : points) {
+                if (source.kind == SliderPathPoint::Kind::Visible) {
                     judge_samples->push_back(source.sample);
                 }
             }
@@ -323,87 +273,15 @@ namespace xlair::sheets::formats::sus {
         }
     }
 
-    Result<s3d::Array<SliderHold>> detail::CompileSliderHolds(
-        const s3d::Array<::xlair::sheets::formats::sus::SliderHoldPoint>& source_points,
-        const TimingMap& timing,
-        const TimelineLookup& timeline_lookup,
+    Result<SliderHold> detail::CompileSliderHold(
+        const s3d::Array<SliderPathPoint>& points,
         const s3d::int64 sample_rate,
         const s3d::Array<TempoChange>& tempo_changes
     ) {
-        const auto ordered_points = source_points.stable_sorted_by([](const auto& left, const auto& right) {
-            return PositionComesBefore(left.position, right.position);
-        });
-
-        ActiveHolds active_holds;
-        s3d::Array<SliderHold> slider_holds;
-
-        for (const auto& source : ordered_points) {
-            if (source.lane.width == 0 || source.lane.start >= SliderLaneCount ||
-                (static_cast<s3d::int32>(source.lane.start) + source.lane.width) > SliderLaneCount) {
-                return Result<s3d::Array<SliderHold>>::makeError(
-                    U"Slider Hold points must have a positive width and fit within XLAIR's 16 slider lanes."
-                );
-            }
-
-            const auto timeline = ResolveTimeline(source.timeline, timeline_lookup);
-            if (!timeline) {
-                return Result<s3d::Array<SliderHold>>::makeError(
-                    U"A Slider Hold point references an undefined hispeed definition."
-                );
-            }
-
-            const SourcePoint point{
-                .kind = source.kind,
-                .timeline = *timeline,
-                .sample = timing.toSample(source.position),
-                .lane = ToChartLane(source.lane),
-            };
-
-            if (source.kind == SliderHoldPointKind::Start) {
-                if (active_holds.contains(source.channel)) {
-                    return Result<s3d::Array<SliderHold>>::makeError(
-                        U"A Slider Hold channel starts before its previous hold ends."
-                    );
-                }
-
-                active_holds[source.channel] = {
-                    .points = { point },
-                };
-                continue;
-            }
-
-            const auto active = active_holds.find(source.channel);
-            if (active == active_holds.end()) {
-                if (source.kind == SliderHoldPointKind::End) {
-                    return Result<s3d::Array<SliderHold>>::makeError(
-                        U"A Slider Hold End point has no active Start point on its channel."
-                    );
-                }
-                return Result<s3d::Array<SliderHold>>::makeError(
-                    U"A Slider Hold point has no active Start point on its channel."
-                );
-            }
-
-            active->second.points.push_back(point);
-            if (source.kind == SliderHoldPointKind::End) {
-                auto hold = BuildHold(active->second, sample_rate, tempo_changes);
-                if (!hold) {
-                    Result<s3d::Array<SliderHold>> result;
-                    result.diagnostics = std::move(hold.diagnostics);
-                    return result;
-                }
-                slider_holds.push_back(std::move(*hold));
-                active_holds.erase(active);
-            }
+        if (points.size() < 2 || points.front().kind != SliderPathPoint::Kind::Start ||
+            points.back().kind != SliderPathPoint::Kind::End) {
+            return Result<SliderHold>::makeError(U"A slider hold requires a start and an end.");
         }
-
-        if (!active_holds.empty()) {
-            return Result<s3d::Array<SliderHold>>::makeError(U"A Slider Hold channel is missing an End point.");
-        }
-
-        slider_holds.stable_sort_by([](const auto& left, const auto& right) {
-            return left.points.front().sample < right.points.front().sample;
-        });
-        return Result<s3d::Array<SliderHold>>{ std::move(slider_holds) };
+        return BuildHold(points, sample_rate, tempo_changes);
     }
 }

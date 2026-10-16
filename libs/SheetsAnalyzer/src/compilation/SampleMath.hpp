@@ -4,7 +4,7 @@
 #include <cstdint>
 #include <limits>
 
-namespace xlair::sheets::formats::sus::detail {
+namespace xlair::sheets::compilation::detail {
     [[nodiscard]]
     inline std::int64_t RoundSample(const long double sample) {
         constexpr auto MinimumValue = std::numeric_limits<std::int64_t>::min();

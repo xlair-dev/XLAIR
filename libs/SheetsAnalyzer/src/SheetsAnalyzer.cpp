@@ -1,20 +1,12 @@
 #include "SheetsAnalyzer.hpp"
 
-#include "formats/sus/Compiler.hpp"
-#include "formats/sus/Parser.hpp"
+#include "compilation/Compiler.hpp"
 #include "metadata/Loader.hpp"
 
+#include <memory>
 #include <utility>
 
 namespace xlair::sheets {
-    namespace {
-        void AppendDiagnostics(s3d::Array<Diagnostic>& destination, const s3d::Array<Diagnostic>& source) {
-            for (const auto& diagnostic : source) {
-                destination.push_back(diagnostic);
-            }
-        }
-    }
-
     Result<Metadata> LoadMetadata(const s3d::FilePath& path) {
         return metadata::Load(path);
     }
@@ -25,32 +17,30 @@ namespace xlair::sheets {
     }
 
     Result<Chart> LoadChart(const s3d::FilePath& path, const ChartLoadOptions& options) {
-        Result<Chart> result;
-
         const auto extension = s3d::FileSystem::Extension(path).lowercased();
         if (extension != U"sus") {
             return Result<Chart>::makeError(U"Unsupported chart format: " + extension, path);
         }
 
-        auto parsed = formats::sus::Parse(path);
-        AppendDiagnostics(result.diagnostics, parsed.diagnostics);
-        if (!parsed) {
-            return result;
+        s3d::BinaryReader reader{ path };
+        if (!reader) {
+            return Result<Chart>::makeError(U"Failed to read the chart file.", path);
         }
-
-        auto compiled = formats::sus::Compile(
-            *parsed,
-            {
-                .sample_rate = options.sample_rate,
-                .offset_seconds = options.offset_seconds,
-            }
-        );
-
-        AppendDiagnostics(result.diagnostics, compiled.diagnostics);
-        if (compiled) {
-            result.value = std::move(compiled.value);
+        const s3d::Blob source{ reader };
+        if (source.size() != static_cast<std::size_t>(reader.size())) {
+            return Result<Chart>::makeError(U"Failed to read the complete chart file.", path);
         }
-
+        const std::unique_ptr<CcResult, decltype(&cc_result_free)> parsed{
+            cc_parse(CcFormat_Sus, CcMode_Xlair, reinterpret_cast<const uint8_t*>(source.data()), source.size()),
+            cc_result_free,
+        };
+        if (const auto error = cc_result_error(parsed.get())) {
+            return Result<Chart>::makeError(s3d::Unicode::FromUTF8(error), path);
+        }
+        auto result = compilation::Compile(cc_result_chart(parsed.get()), options);
+        for (auto& diagnostic : result.diagnostics) {
+            diagnostic.path = path;
+        }
         return result;
     }
 }

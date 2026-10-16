@@ -58,6 +58,7 @@
       "inherits": "debug",
       "cacheVariables": {
         "CMAKE_OSX_ARCHITECTURES": "x86_64",
+        "Rust_CARGO_TARGET": "x86_64-apple-darwin",
         "CMAKE_OSX_DEPLOYMENT_TARGET": "13.0"
       },
       "condition": {
@@ -72,6 +73,7 @@
       "inherits": "release",
       "cacheVariables": {
         "CMAKE_OSX_ARCHITECTURES": "x86_64",
+        "Rust_CARGO_TARGET": "x86_64-apple-darwin",
         "CMAKE_OSX_DEPLOYMENT_TARGET": "13.0"
       },
       "condition": {

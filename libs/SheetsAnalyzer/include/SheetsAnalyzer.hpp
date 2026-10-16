@@ -9,6 +9,7 @@
 namespace xlair::sheets {
     struct ChartLoadOptions {
         s3d::int64 sample_rate = 44'100;
+        /// Game offset from song metadata; source WAVEOFFSET is not added to it.
         double offset_seconds = 0.0;
     };
 
@@ -21,7 +22,7 @@ namespace xlair::sheets {
     Result<s3d::Array<Metadata>>
     ScanMetadata(const s3d::FilePath& directory, const s3d::Array<s3d::FilePath>& excluded_directories = {});
 
-    // Loads and compiles a chart into XLAIR's input-oriented Chart model.
+    // Parses with ChartConverter's XLAIR mode and compiles into the game's input-oriented model.
     // supported formats:
     // - SUS
     [[nodiscard]]

@@ -13,7 +13,10 @@ XLAIR is a rhythm game built with [Siv3D](https://siv3d.github.io/) v0.6.16.
 | Windows x64  | Official SDK and v0.6.16 runtime resources | Visual Studio Build Tools, MSVC, Ninja |
 | macOS x86_64 | Official SDK                               | Xcode Command Line Tools, Ninja        |
 
-CMake 3.22 or newer is required.
+CMake 3.22 or newer and Rust nightly (via rustup) are required. The devcontainer installs Rust.
+Chart parsing uses [ChartConverter](https://github.com/xlair-dev/ChartConverter) in XLAIR mode.
+CMake fetches pinned ChartConverter and Corrosion revisions and builds the C API as a static library.
+The first configure/build needs network access for these sources and Cargo dependencies.
 
 The Siv3D v0.6.16 macOS SDK targets x86_64. Builds run through Rosetta on Apple Silicon Macs.
 
@@ -32,7 +35,7 @@ cmake --build --preset build-linux-debug
 The same environment can be started without a devcontainer:
 
 ```bash
-docker compose up -d
+docker compose up -d --build
 docker compose exec xlair bash
 ```
 
@@ -53,6 +56,12 @@ cmake --build --preset build-windows-debug
 ```
 
 ### macOS
+
+When using an Apple Silicon Rust host toolchain, install the SDK's target first:
+
+```bash
+rustup target add --toolchain nightly x86_64-apple-darwin
+```
 
 ```bash
 cmake --preset macos-debug
