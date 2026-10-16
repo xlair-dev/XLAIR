@@ -71,6 +71,7 @@ namespace xlair::infra::controller {
         const app::controller::InputSnapshot& snapshot() const noexcept override;
 
     private:
+        app::controller::OperationResult openPort();
         void close();
 
         Serial m_serial;

@@ -24,6 +24,40 @@ namespace xlair::infra::controller {
         };
         constexpr std::size_t HardwareMaintenanceButtonCount = 3;
         static_assert(V1Input::SensorCount == app::controller::TouchZoneCount);
+
+        [[nodiscard]]
+        Array<String> FindV1Ports() {
+            Array<String> candidates;
+            Array<String> identified;
+            for (const auto& info : System::EnumerateSerialPorts()) {
+                const auto hardware_id = info.hardwareID.lowercased();
+                const auto hardware_fields = hardware_id.split(U' ');
+                // Siv3D returns different hardware ID formats on Windows and Unix.
+                const bool matches_usb_id =
+                    hardware_fields.contains(U"vid:pid=2e8a:000a") || hardware_id.contains(U"vid_2e8a&pid_000a");
+                if (!matches_usb_id) {
+                    continue;
+                }
+
+                const auto description_fields = info.description.lowercased().split(U' ');
+                // The setup firmware shares the VID/PID but is not an input device.
+                if (description_fields.contains(U"xlair-controller_v1_setup") ||
+                    hardware_fields.any([](const String& field) {
+                        return field.starts_with(U"snr=") && field != U"snr=none" && field != U"snr=controller-v1";
+                    })) {
+                    continue;
+                }
+
+                candidates.push_back(info.port);
+                if (description_fields.contains(U"xlair-controller_v1") ||
+                    hardware_fields.contains(U"snr=controller-v1")) {
+                    identified.push_back(info.port);
+                }
+            }
+
+            // Windows may expose only VID/PID and a generic USB serial description.
+            return identified.isEmpty() ? candidates : identified;
+        }
     }
 
     V1::V1(const StringView port, const int32 baud_rate, const uint8 touch_threshold)
@@ -42,11 +76,8 @@ namespace xlair::infra::controller {
             m_snapshot.maintenance_button_status[index] = InputStatus::Unavailable;
         }
 
-        if (!m_serial.open(m_port, m_baud_rate)) {
-            return app::controller::OperationResult::makeError(
-                app::controller::ErrorKind::Connection,
-                U"Failed to open the V1 controller serial port '{}'."_fmt(m_port)
-            );
+        if (auto result = openPort(); !result) {
+            return result;
         }
 
         auto keyboard_result = m_keyboard.initialize();
@@ -81,10 +112,10 @@ namespace xlair::infra::controller {
 
         if (m_input.streamTimedOut(now)) {
             // A USB CDC handle may still look open after unplugging.
-            // Retry the configured port once per second until frames resume.
+            // Retry once per second, resolving the port again in auto mode.
             m_serial.close();
             m_input.reset(now);
-            m_serial.open(m_port, m_baud_rate);
+            openPort();
         }
 
         const auto& sensors = m_input.sensors();
@@ -126,6 +157,37 @@ namespace xlair::infra::controller {
 
     const app::controller::InputSnapshot& V1::snapshot() const noexcept {
         return m_snapshot;
+    }
+
+    app::controller::OperationResult V1::openPort() {
+        String port = m_port;
+        if (port.lowercased() == U"auto") {
+            const auto candidates = FindV1Ports();
+            if (candidates.isEmpty()) {
+                return app::controller::OperationResult::makeError(
+                    app::controller::ErrorKind::Connection,
+                    U"No V1 controller was found (USB VID 2E8A, PID 000A). "
+                    U"If USB identifiers are unavailable, set 'controller.v1.port' to an explicit port name."
+                );
+            }
+            if (candidates.size() > 1) {
+                return app::controller::OperationResult::makeError(
+                    app::controller::ErrorKind::Connection,
+                    U"Multiple V1 controller candidates were found: {}. Set 'controller.v1.port' explicitly."_fmt(
+                        candidates.join(U", ", U"", U"")
+                    )
+                );
+            }
+            port = candidates.front();
+        }
+
+        if (!m_serial.open(port, m_baud_rate)) {
+            return app::controller::OperationResult::makeError(
+                app::controller::ErrorKind::Connection,
+                U"Failed to open the V1 controller serial port '{}'."_fmt(port)
+            );
+        }
+        return {};
     }
 
     void V1::close() {
