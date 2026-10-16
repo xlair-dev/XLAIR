@@ -107,8 +107,7 @@ namespace xlair::core::judgement {
     }
 
     JudgeEngine::JudgeEngine(const sheets::Chart& chart)
-        : m_chart{ chart }, m_active_slider_holds(chart.slider_holds.size(), false),
-          m_active_side_holds(chart.side_holds.size(), false), m_slider_note_count{ chart.slider_notes.size() },
+        : m_chart{ chart }, m_slider_note_count{ chart.slider_notes.size() },
           m_side_note_count{ chart.side_notes.size() }, m_total_combo{ chart.total_combo } {
         if (chart.sample_rate <= 0) {
             throw std::invalid_argument{ "Judgement requires a positive chart sample rate." };
@@ -190,7 +189,7 @@ namespace xlair::core::judgement {
                     .lane = start.lane,
                 }
             );
-            m_slider_holds.push_back(std::move(points));
+            m_slider_holds.push_back({ .points = std::move(points) });
         }
 
         m_side_holds.reserve(chart.side_holds.size());
@@ -230,7 +229,7 @@ namespace xlair::core::judgement {
                     .side_button = source.button,
                 }
             );
-            m_side_holds.push_back(std::move(points));
+            m_side_holds.push_back({ .points = std::move(points) });
         }
 
         m_hold_order.stable_sort_by([this](const HoldPointIndex left, const HoldPointIndex right) {
@@ -532,39 +531,33 @@ namespace xlair::core::judgement {
     }
 
     NoteState JudgeEngine::sliderHoldPointState(const std::size_t hold_index, const std::size_t point_index) const {
-        return m_slider_holds.at(hold_index).at(point_index).state;
+        return m_slider_holds.at(hold_index).points.at(point_index).state;
     }
 
     NoteState JudgeEngine::sideHoldPointState(const std::size_t hold_index, const std::size_t point_index) const {
-        return m_side_holds.at(hold_index).at(point_index).state;
+        return m_side_holds.at(hold_index).points.at(point_index).state;
     }
 
     bool JudgeEngine::sliderHoldActive(const std::size_t hold_index) const {
-        return m_active_slider_holds.at(hold_index);
+        return m_slider_holds.at(hold_index).active;
     }
 
     bool JudgeEngine::sideHoldActive(const std::size_t hold_index) const {
-        return m_active_side_holds.at(hold_index);
+        return m_side_holds.at(hold_index).active;
     }
 
     void JudgeEngine::updateHoldActivity(const int64 sample, const uint32 slider_pressed, const uint8 side_pressed) {
-        const auto acquired = [sample](const auto& points) {
-            return points.back().state == NoteState::Pending && sample < points.back().sample &&
-                   std::any_of(
-                       points.begin(),
-                       points.end(),
-                       [](const auto& point) {
-                           return point.state == NoteState::Hit;
-                       }
-                   );
+        const auto can_sustain = [sample](const Hold& hold) {
+            return hold.acquired && hold.points.back().state == NoteState::Pending &&
+                   sample < hold.points.back().sample;
         };
         for (std::size_t index = 0; index < m_slider_holds.size(); ++index) {
-            m_active_slider_holds[index] = acquired(m_slider_holds[index]) &&
+            m_slider_holds[index].active = can_sustain(m_slider_holds[index]) &&
                                            PressedOnPath(slider_pressed, m_chart.slider_holds[index].points, sample);
         }
         for (std::size_t index = 0; index < m_side_holds.size(); ++index) {
-            m_active_side_holds[index] =
-                acquired(m_side_holds[index]) && SidePressed(side_pressed, m_chart.side_holds[index].button);
+            m_side_holds[index].active =
+                can_sustain(m_side_holds[index]) && SidePressed(side_pressed, m_chart.side_holds[index].button);
         }
     }
 
@@ -649,7 +642,7 @@ namespace xlair::core::judgement {
     }
 
     JudgeEngine::HoldPoint& JudgeEngine::holdPoint(const HoldPointIndex index) {
-        return (index.note_kind == NoteKind::SideHold ? m_side_holds : m_slider_holds)[index.hold][index.point];
+        return (index.note_kind == NoteKind::SideHold ? m_side_holds : m_slider_holds)[index.hold].points[index.point];
     }
 
     void JudgeEngine::applyGrade(const Grade grade) {
@@ -689,10 +682,10 @@ namespace xlair::core::judgement {
         const bool linked_start
     ) {
         note.state = grade == Grade::Miss ? NoteState::Missed : NoteState::Hit;
-        if (note.note_kind == NoteKind::SliderHold) {
-            m_slider_holds[note.chart_index][0].state = note.state;
-        } else if (note.note_kind == NoteKind::SideHold) {
-            m_side_holds[note.chart_index][0].state = note.state;
+        if (note.note_kind == NoteKind::SliderHold || note.note_kind == NoteKind::SideHold) {
+            auto& hold = (note.note_kind == NoteKind::SideHold ? m_side_holds : m_slider_holds)[note.chart_index];
+            hold.points[0].state = note.state;
+            hold.acquired = hold.acquired || grade != Grade::Miss;
         }
         applyGrade(grade);
         events.push_back(
@@ -721,6 +714,8 @@ namespace xlair::core::judgement {
 
     void JudgeEngine::record(HoldPoint& point, const Grade grade, const int64 sample, Array<JudgementEvent>& events) {
         point.state = grade == Grade::Miss ? NoteState::Missed : NoteState::Hit;
+        auto& hold = (point.note_kind == NoteKind::SideHold ? m_side_holds : m_slider_holds)[point.hold_index];
+        hold.acquired = hold.acquired || grade != Grade::Miss;
         applyGrade(grade);
         events.push_back(
             {

@@ -15,7 +15,7 @@ namespace xlair::ui::audio {
         GameplaySoundPlayer(const GameplaySoundPlayer&) = delete;
         GameplaySoundPlayer& operator=(const GameplaySoundPlayer&) = delete;
 
-        /// The chart and engine passed to update() must use the same note and judgement-point indices.
+        /// Use the engine's compiled chart, whose judgement points are sorted by sample.
         void start(const sheets::Chart& chart);
         /// Consume each advance() result once, including empty results, to synchronize released holds.
         void update(const core::judgement::JudgeEngine& judge, std::span<const core::judgement::JudgementEvent> events);

@@ -119,11 +119,11 @@ TEST_CASE("Side holds recover at checkpoints and stop on release or end", "[Game
         .button = sheets::SideButton::LeftUpper,
         .points = {
             { .kind = sheets::SideHoldPointKind::Start, .sample = 1000 },
-            { .kind = sheets::SideHoldPointKind::End, .sample = 3000 },
+            { .kind = sheets::SideHoldPointKind::End, .sample = 4000 },
         },
-        .judge_samples = { 1000, 2000, 3000 },
+        .judge_samples = { 1000, 2000, 3000, 4000 },
     } };
-    chart.total_combo = 3;
+    chart.total_combo = 4;
     judge::JudgeEngine engine{ chart };
     REQUIRE(engine.advance(1200).front().grade == judge::Grade::Miss);
     CHECK_FALSE(engine.sideHoldActive(0));
@@ -139,7 +139,13 @@ TEST_CASE("Side holds recover at checkpoints and stop on release or end", "[Game
     CHECK_FALSE(engine.sideHoldActive(0));
     (void)engine.advance(2003, {}, {}, 0, 1);
     CHECK(engine.sideHoldActive(0));
-    (void)engine.advance(3000, {}, {}, 0, 1);
+    const auto missed = engine.advance(3200);
+    REQUIRE(missed.size() == 1);
+    CHECK(missed.front().grade == judge::Grade::Miss);
+    CHECK_FALSE(engine.sideHoldActive(0));
+    (void)engine.advance(3300, {}, {}, 0, 1);
+    CHECK(engine.sideHoldActive(0));
+    (void)engine.advance(4000, {}, {}, 0, 1);
     CHECK_FALSE(engine.sideHoldActive(0));
 }
 

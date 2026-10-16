@@ -56,13 +56,22 @@ namespace xlair::ui::audio {
             Array<Optional<Sound>> sounds(hold.judge_points.size());
             if (!hold.judge_points.isEmpty()) {
                 sounds.front() = Sound::SlideTap;
-                for (std::size_t index = 1; index < sounds.size(); ++index) {
-                    if (std::any_of(hold.points.begin(), hold.points.end(), [&](const auto& point) {
-                            return point.sample == hold.judge_points[index].sample &&
-                                   (point.kind == sheets::SliderHoldPointKind::Visible ||
-                                    point.kind == sheets::SliderHoldPointKind::End);
-                        })) {
-                        sounds[index] = Sound::Checkpoint;
+                for (const auto& point : hold.points) {
+                    if (point.kind != sheets::SliderHoldPointKind::Visible &&
+                        point.kind != sheets::SliderHoldPointKind::End) {
+                        continue;
+                    }
+                    const auto judge = std::lower_bound(
+                        hold.judge_points.begin(),
+                        hold.judge_points.end(),
+                        point.sample,
+                        [](const auto& candidate, const int64 sample) {
+                            return candidate.sample < sample;
+                        }
+                    );
+                    if (judge != hold.judge_points.end() && judge->sample == point.sample &&
+                        judge != hold.judge_points.begin()) {
+                        sounds[static_cast<std::size_t>(judge - hold.judge_points.begin())] = Sound::Checkpoint;
                     }
                 }
             }
@@ -72,13 +81,16 @@ namespace xlair::ui::audio {
             Array<Optional<Sound>> sounds(hold.judge_samples.size());
             if (!hold.judge_samples.isEmpty()) {
                 sounds.front() = Sound::SideTap;
-                for (std::size_t index = 1; index < sounds.size(); ++index) {
-                    if (std::any_of(hold.points.begin(), hold.points.end(), [&](const auto& point) {
-                            return point.sample == hold.judge_samples[index] &&
-                                   (point.kind == sheets::SideHoldPointKind::Relay ||
-                                    point.kind == sheets::SideHoldPointKind::End);
-                        })) {
-                        sounds[index] = Sound::Checkpoint;
+                for (const auto& point : hold.points) {
+                    if (point.kind != sheets::SideHoldPointKind::Relay &&
+                        point.kind != sheets::SideHoldPointKind::End) {
+                        continue;
+                    }
+                    const auto judge =
+                        std::lower_bound(hold.judge_samples.begin(), hold.judge_samples.end(), point.sample);
+                    if (judge != hold.judge_samples.end() && *judge == point.sample &&
+                        judge != hold.judge_samples.begin()) {
+                        sounds[static_cast<std::size_t>(judge - hold.judge_samples.begin())] = Sound::Checkpoint;
                     }
                 }
             }

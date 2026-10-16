@@ -141,6 +141,12 @@ namespace xlair::core::judgement {
             std::size_t point = 0;
         };
 
+        struct Hold {
+            Array<HoldPoint> points;
+            bool acquired = false;
+            bool active = false;
+        };
+
         [[nodiscard]]
         bool acceptsBoundary(const Note& candidate, uint8 lane, int64 sample, Grade grade) const;
         [[nodiscard]]
@@ -158,13 +164,11 @@ namespace xlair::core::judgement {
         void updateHoldActivity(int64 sample, uint32 slider_pressed, uint8 side_pressed);
 
         const sheets::Chart& m_chart;
-        Array<bool> m_active_slider_holds;
-        Array<bool> m_active_side_holds;
         Array<Note> m_notes;
         Array<std::size_t> m_order;
         Array<std::size_t> m_flick_order;
-        Array<Array<HoldPoint>> m_slider_holds;
-        Array<Array<HoldPoint>> m_side_holds;
+        Array<Hold> m_slider_holds;
+        Array<Hold> m_side_holds;
         Array<HoldPointIndex> m_hold_order;
         std::size_t m_slider_note_count = 0;
         std::size_t m_side_note_count = 0;
