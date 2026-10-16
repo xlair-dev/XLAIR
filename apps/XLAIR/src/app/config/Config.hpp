@@ -75,8 +75,9 @@ namespace xlair::app {
             } ground_slider;
 
             struct V1 {
-                String port;
+                String port = U"auto";
                 int32 baud_rate = 115200;
+                uint8 touch_threshold = 1;
             } v1;
         } controller;
 

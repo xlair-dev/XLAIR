@@ -25,10 +25,23 @@ namespace xlair::app::controller {
         Button4,
     };
 
+    enum class InputStatus {
+        Available,
+        Unavailable,
+        Resynchronized,
+    };
+
     struct InputSnapshot {
         std::array<bool, TouchZoneCount> touch_zones{};
         std::array<bool, SideButtonCount> side_buttons{};
         std::array<bool, MaintenanceButtonCount> maintenance_buttons{};
+
+        // Missing measurements are distinct from released buttons. Resynchronized
+        // input establishes a new baseline without generating down/up edges.
+        // Continuously available devices can leave these at their defaults.
+        std::array<InputStatus, TouchZoneCount> touch_zone_status{};
+        std::array<InputStatus, SideButtonCount> side_button_status{};
+        std::array<InputStatus, MaintenanceButtonCount> maintenance_button_status{};
 
         [[nodiscard]]
         bool touchZone(const std::size_t index) const noexcept {

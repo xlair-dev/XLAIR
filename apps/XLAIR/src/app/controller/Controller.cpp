@@ -41,13 +41,16 @@ namespace xlair::app::controller {
 
         const auto& snapshot = m_device->snapshot();
         for (std::size_t index = 0; index < m_touch_zones.size(); ++index) {
-            m_touch_zones[index].update(snapshot.touch_zones[index]);
+            m_touch_zones[index].update(snapshot.touch_zones[index], snapshot.touch_zone_status[index]);
         }
         for (std::size_t index = 0; index < m_side_buttons.size(); ++index) {
-            m_side_buttons[index].update(snapshot.side_buttons[index]);
+            m_side_buttons[index].update(snapshot.side_buttons[index], snapshot.side_button_status[index]);
         }
         for (std::size_t index = 0; index < m_maintenance_buttons.size(); ++index) {
-            m_maintenance_buttons[index].update(snapshot.maintenance_buttons[index]);
+            m_maintenance_buttons[index].update(
+                snapshot.maintenance_buttons[index],
+                snapshot.maintenance_button_status[index]
+            );
         }
 
         return {};

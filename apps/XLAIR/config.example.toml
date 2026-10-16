@@ -27,8 +27,9 @@ baud_rate = 115200
 touch_threshold = 1
 
 [controller.v1]
-port = "COM1"
+port = "auto"       # auto: detect automatically / COM1 or /dev/...
 baud_rate = 115200
+touch_threshold = 1
 
 [card_reader]
 mode = "pasori" # or mock
