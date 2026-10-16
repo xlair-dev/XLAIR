@@ -104,9 +104,14 @@ namespace xlair::infra::controller {
             return keyboard_result;
         }
         const auto now = Time::GetMillisec();
-        if (m_serial.isOpen() && m_serial.available() > 0) {
-            for (const auto byte : m_serial.readBytes()) {
-                m_input.consumeByte(byte, now);
+        if (m_serial.isOpen()) {
+            if (const auto available = m_serial.available(); available > 0) {
+                Array<uint8> bytes(available);
+                const auto read_size = m_serial.read(bytes.data(), bytes.size_bytes());
+                bytes.resize(read_size);
+                for (const auto byte : bytes) {
+                    m_input.consumeByte(byte, now);
+                }
             }
         }
 
