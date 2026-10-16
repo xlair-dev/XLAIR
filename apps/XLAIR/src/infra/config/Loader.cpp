@@ -106,6 +106,7 @@ namespace xlair::infra::config {
             .read(U"controller.ground_slider.touch_threshold", config.controller.ground_slider.touch_threshold)
             .read(U"controller.v1.port", config.controller.v1.port)
             .read(U"controller.v1.baud_rate", config.controller.v1.baud_rate)
+            .read(U"controller.v1.touch_threshold", config.controller.v1.touch_threshold)
             // input
             .read(U"input.latency_offset_seconds", config.input.latency_offset_seconds)
             // sync
@@ -156,10 +157,13 @@ namespace xlair::infra::config {
         } else if (controller_mode == U"v1") {
             config.controller.mode = app::Config::Controller::Mode::V1;
             if (config.controller.v1.port.isEmpty()) {
-                return MakeError(U"Config value 'controller.v1.port' is required in v1 mode.", m_path);
+                return MakeError(U"Config value 'controller.v1.port' must be 'auto' or a serial port name.", m_path);
             }
             if (config.controller.v1.baud_rate <= 0) {
                 return MakeError(U"Config value 'controller.v1.baud_rate' must be positive.", m_path);
+            }
+            if (config.controller.v1.touch_threshold == 0 || config.controller.v1.touch_threshold > 254) {
+                return MakeError(U"Config value 'controller.v1.touch_threshold' must be between 1 and 254.", m_path);
             }
         } else {
             return MakeError(U"Config value 'controller.mode' must be 'keyboard', 'ground_slider', or 'v1'.", m_path);
