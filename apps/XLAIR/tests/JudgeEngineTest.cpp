@@ -152,7 +152,7 @@ TEST_CASE("X-taps acquire their co-located hold starts with the same input", "[G
         const std::array sides{ judge::SideEvent{ .button = sheets::SideButton::LeftUpper, .sample = 1080 } };
         const auto events = engine.advance(1080, {}, sides, 0, 1);
         REQUIRE(events.size() == 2);
-        CHECK(events[0].grade == judge::Grade::Good);
+        CHECK(events[0].grade == judge::Grade::Perfect);
         CHECK(events[1].note_kind == judge::NoteKind::SideHold);
         CHECK(events[1].linked_start);
         CHECK(engine.sideHoldPointState(0, 0) == judge::NoteState::Hit);
