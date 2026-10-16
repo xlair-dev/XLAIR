@@ -300,13 +300,30 @@ namespace xlair::ui::game {
             }
         }
 
+        void DrawSliderTouchEffects(const uint32 slider_pressed) {
+            constexpr double SourceStageLeft = 32.0;
+            constexpr double SourceLaneWidth = (FieldSurfaceSize.x - SourceStageLeft * 2.0) / 16.0;
+            constexpr double TouchHeight = 250.0;
+            for (uint32 lane = 0; lane < 16; ++lane) {
+                if ((slider_pressed & (uint32{ 3 } << (lane * 2))) == 0) {
+                    continue;
+                }
+                const double x = SourceStageLeft + SourceLaneWidth * lane;
+                RectF{ Arg::bottomLeft(x, FieldSurfaceSize.y), SourceLaneWidth, TouchHeight }.draw(
+                    Arg::top = ColorF{ 1.0, 0.0 },
+                    Arg::bottom = ColorF{ 1.0, 0.7 }
+                );
+            }
+        }
+
         void DrawFieldSurface(
             const uint32 combo,
             const sheets::Chart& chart,
             const playfield::ChartProjection& projection,
             const int64 current_sample,
             const double note_speed,
-            const core::judgement::JudgeEngine* judge_engine
+            const core::judgement::JudgeEngine* judge_engine,
+            const uint32 slider_pressed
         ) {
             constexpr double SourceWidth = FieldSurfaceSize.x;
             constexpr double SourceHeight = FieldSurfaceSize.y;
@@ -322,6 +339,7 @@ namespace xlair::ui::game {
                 const double x = SourceStageLeft + lane * SourceLaneWidth;
                 Line{ x, 0, x, SourceHeight }.draw(2.5, ColorF{ U"#FDFDFD" }.removeSRGBCurve());
             }
+            DrawSliderTouchEffects(slider_pressed);
             DrawSliderHoldBodies(chart, projection, current_sample, note_speed, judge_engine);
             DrawSliderHoldHeads(chart, projection, current_sample, note_speed, judge_engine);
             DrawSliderNotes(chart, projection, current_sample, note_speed, judge_engine);
@@ -359,6 +377,46 @@ namespace xlair::ui::game {
             }
         }
 
+        void DrawSideTouchEffects(const uint8 side_pressed) {
+            if (side_pressed == 0) {
+                return;
+            }
+
+            constexpr int32 SegmentCount = 24;
+            constexpr double TouchFar = FieldNear + FieldLength * 250.0 / FieldSurfaceSize.y;
+            const ColorF touch_color = ColorF{ U"#D45CD7" }.removeSRGBCurve();
+            const ScopedRenderStates3D translucent{ BlendState::NonPremultiplied, DepthStencilState::DepthTest };
+            for (const auto button : { sheets::SideButton::LeftUpper,
+                                       sheets::SideButton::RightUpper,
+                                       sheets::SideButton::LeftLower,
+                                       sheets::SideButton::RightLower }) {
+                if ((side_pressed & (uint8{ 1 } << static_cast<uint8>(button))) == 0) {
+                    continue;
+                }
+
+                const bool left = button == sheets::SideButton::LeftUpper || button == sheets::SideButton::LeftLower;
+                const double side = left ? -1.0 : 1.0;
+                const bool upper = button == sheets::SideButton::LeftUpper || button == sheets::SideButton::RightUpper;
+                const double near = upper ? FieldNear : LowerNear;
+                const double segment_depth = (TouchFar - near) / SegmentCount;
+                for (int32 index = 0; index < SegmentCount; ++index) {
+                    const double z = near + segment_depth * (index + 0.5);
+                    const ColorF color = touch_color.withA(0.65 * (1.0 - (index + 0.5) / SegmentCount));
+                    if (upper) {
+                        const Quaternion facing_inward = Quaternion::RotateZ(side > 0.0 ? 90_deg : -90_deg);
+                        Plane{ Vec3{ side * (SideUpperX - 0.09), SideUpperY, z }, 3.0, segment_depth }.draw(
+                            facing_inward,
+                            color
+                        );
+                    } else {
+                        const Quaternion facing_inward = Quaternion::RotateZ(side > 0.0 ? 45_deg : -45_deg);
+                        Plane{ Vec3{ side * (SideLowerX - 0.055), SideLowerY + 0.055, z }, LowerWidth, segment_depth }
+                            .draw(facing_inward, color);
+                    }
+                }
+            }
+        }
+
         void DrawSideCrossSection(const double z, const double depth, const ColorF& color) {
             for (const double side : { -1.0, 1.0 }) {
                 OrientedBox{ Vec3{ side * SideLowerX, 1.32, z }, LowerWidth, 0.08, depth, SideSlope(side) }.draw(color);
@@ -366,13 +424,14 @@ namespace xlair::ui::game {
             }
         }
 
-        void DrawField(const MSRenderTexture& surface, const bool show_depth_guides) {
+        void DrawField(const MSRenderTexture& surface, const bool show_depth_guides, const uint8 side_pressed) {
             const ColorF floor_color = ColorF{ U"#212830" }.removeSRGBCurve();
             const ColorF judge_color = ColorF{ U"#79C8FF" }.removeSRGBCurve();
 
             Box{ Vec3{ 0.0, -0.06, FieldCenter }, FieldWidth, 0.12, FieldLength }.draw(floor_color);
             Plane{ Vec3{ 0.0, 0.02, FieldCenter }, FieldWidth, FieldLength }.draw(surface);
             DrawSideSurfaces();
+            DrawSideTouchEffects(side_pressed);
 
             // Side judgement strips meet the main field's textured judgement line at world depth zero.
             DrawSideCrossSection(0.0, 0.10, judge_color);
@@ -628,11 +687,13 @@ namespace xlair::ui::game {
         const double note_speed,
         const uint32 combo,
         const bool show_depth_guides,
-        const core::judgement::JudgeEngine* judge_engine
+        const core::judgement::JudgeEngine* judge_engine,
+        const uint32 slider_pressed,
+        const uint8 side_pressed
     ) const {
         {
             const ScopedRenderTarget2D target{ m_field_surface.clear(ColorF{ 0.0, 0.0 }) };
-            DrawFieldSurface(combo, chart, projection, current_sample, note_speed, judge_engine);
+            DrawFieldSurface(combo, chart, projection, current_sample, note_speed, judge_engine, slider_pressed);
             Graphics2D::Flush();
             m_field_surface.resolve();
         }
@@ -644,7 +705,7 @@ namespace xlair::ui::game {
         {
             const ScopedRenderTarget3D target{ m_render_texture.clear(BackgroundColor.removeSRGBCurve()) };
             const ScopedCustomShader3D fog_shader{ m_fog_shader };
-            DrawField(m_field_surface, show_depth_guides);
+            DrawField(m_field_surface, show_depth_guides, side_pressed);
             DrawSliderHoldDiamonds(chart, projection, current_sample, note_speed);
             DrawSideHoldBodies(chart, projection, current_sample, note_speed, judge_engine);
             DrawSideNotes(

@@ -178,6 +178,20 @@ namespace xlair::ui::scenes {
     void Game::drawReady() const {
         const auto& loader = getData().game_loader;
         const auto score = m_judge_engine ? m_judge_engine->score() : core::judgement::ScoreState{};
+        uint32 slider_pressed = 0;
+        uint8 side_pressed = 0;
+        if (const auto* controller = getData().application->controller()) {
+            for (std::size_t zone = 0; zone < app::controller::TouchZoneCount; ++zone) {
+                if (controller->touchZone(zone).pressed()) {
+                    slider_pressed |= uint32{ 1 } << zone;
+                }
+            }
+            for (std::size_t button = 0; button < app::controller::SideButtonCount; ++button) {
+                if (controller->sideButton(static_cast<app::controller::SideButton>(button)).pressed()) {
+                    side_pressed |= uint8{ 1 } << static_cast<uint8>(SideButtonMapping[button]);
+                }
+            }
+        }
         m_playfield_renderer.draw(
             m_camera,
             *loader.chart(),
@@ -186,7 +200,9 @@ namespace xlair::ui::scenes {
             m_note_speed,
             score.combo,
             false,
-            m_judge_engine.get()
+            m_judge_engine.get(),
+            slider_pressed,
+            side_pressed
         );
         const auto& session = getData().application->playSession();
         if (const auto* user = session.user()) {
