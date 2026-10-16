@@ -191,6 +191,73 @@ TEST_CASE("Compile handles editor carrier taps for directional notes", "[SheetsA
     }
 }
 
+TEST_CASE("Compile resolves side X-taps from editor carriers", "[SheetsAnalyzer][SUS][Compiler]") {
+    sus::Document document;
+    const sus::SliderNote carrier{
+        .kind = sus::SliderNoteKind::Tap2,
+        .position = { .measure = 1 },
+        .lane = { .start = 12, .width = 4 },
+    };
+    const sus::DirectionalNote directional{
+        .kind = sus::DirectionalKind::RightUp,
+        .position = { .measure = 1 },
+        .lane = carrier.lane,
+    };
+    document.slider_notes = { carrier };
+    document.directional_notes = { directional };
+
+    SECTION("several side buttons can share the same X-tap carrier") {
+        document.directional_notes.push_back(directional);
+        document.directional_notes.back().kind = sus::DirectionalKind::RightDown;
+        const auto result = sus::Compile(document, {});
+        REQUIRE(result);
+        CHECK(result->slider_notes.isEmpty());
+        REQUIRE(result->side_notes.size() == 2);
+        CHECK(result->side_notes[0].kind == xlair::sheets::SideNoteKind::XTap);
+        CHECK(result->side_notes[1].kind == xlair::sheets::SideNoteKind::XTap);
+        CHECK(result->total_combo == 2);
+    }
+
+    SECTION("independent mode preserves the slider X-tap and the ordinary side tap") {
+        document.directional_note_mode = sus::DirectionalNoteMode::Independent;
+        const auto result = sus::Compile(document, {});
+        REQUIRE(result);
+        REQUIRE(result->slider_notes.size() == 1);
+        CHECK(result->slider_notes.front().kind == xlair::sheets::SliderNoteKind::XTap);
+        REQUIRE(result->side_notes.size() == 1);
+        CHECK(result->side_notes.front().kind == xlair::sheets::SideNoteKind::Tap);
+        CHECK(result->total_combo == 2);
+    }
+
+    SECTION("different lane spans or timelines remain independent") {
+        SECTION("lane span") {
+            document.directional_notes.front().lane.width = 3;
+        }
+        SECTION("timeline") {
+            document.hispeed_definitions[1] = {};
+            document.directional_notes.front().timeline = 1;
+        }
+        const auto result = sus::Compile(document, {});
+        REQUIRE(result);
+        REQUIRE(result->slider_notes.size() == 1);
+        REQUIRE(result->side_notes.size() == 1);
+        CHECK(result->side_notes.front().kind == xlair::sheets::SideNoteKind::Tap);
+        CHECK(result->total_combo == 2);
+    }
+
+    SECTION("sample rounding cannot turn nearby notes into a carrier pair") {
+        document.directional_notes.front().position.numerator = 1;
+        document.directional_notes.front().position.denominator = 1000;
+        const auto result = sus::Compile(document, { .sample_rate = 1 });
+        REQUIRE(result);
+        REQUIRE(result->slider_notes.size() == 1);
+        REQUIRE(result->side_notes.size() == 1);
+        CHECK(result->slider_notes.front().sample == result->side_notes.front().sample);
+        CHECK(result->side_notes.front().kind == xlair::sheets::SideNoteKind::Tap);
+        CHECK(result->total_combo == 2);
+    }
+}
+
 TEST_CASE("Compile assembles interleaved SideLong channels in musical order", "[SheetsAnalyzer][SUS][Compiler]") {
     sus::Document document;
     document.hispeed_definitions[1] = {};

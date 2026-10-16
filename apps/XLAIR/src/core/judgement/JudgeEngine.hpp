@@ -49,6 +49,8 @@ namespace xlair::core::judgement {
         std::size_t point_index = 0;
         Grade grade = Grade::Miss;
         int64 offset_samples = 0;
+        /// A hold acquired through its co-located XTap, rather than an independent input judgement.
+        bool linked_start = false;
     };
 
     struct ScoreState {
@@ -64,6 +66,7 @@ namespace xlair::core::judgement {
 
     class JudgeEngine {
     public:
+        /// The compiled chart, including hold paths, must remain unchanged and outlive this engine.
         explicit JudgeEngine(const sheets::Chart& chart);
 
         [[nodiscard]]
@@ -87,6 +90,13 @@ namespace xlair::core::judgement {
         [[nodiscard]]
         NoteState sideHoldPointState(std::size_t hold_index, std::size_t point_index) const;
 
+        /// Activity reflects the last advance: an acquired hold, current contact, and an unjudged end.
+        [[nodiscard]]
+        bool sliderHoldActive(std::size_t hold_index) const;
+
+        [[nodiscard]]
+        bool sideHoldActive(std::size_t hold_index) const;
+
         [[nodiscard]]
         const ScoreState& score() const noexcept;
 
@@ -107,6 +117,7 @@ namespace xlair::core::judgement {
             sheets::LaneSpan lane;
             sheets::SliderNoteKind slider_kind = sheets::SliderNoteKind::Tap;
             sheets::SideButton side_button = sheets::SideButton::LeftUpper;
+            sheets::SideNoteKind side_kind = sheets::SideNoteKind::Tap;
             NoteState state = NoteState::Pending;
             Optional<FlickGesture> flick_gesture;
         };
@@ -127,6 +138,12 @@ namespace xlair::core::judgement {
             std::size_t point = 0;
         };
 
+        struct Hold {
+            Array<HoldPoint> points;
+            bool acquired = false;
+            bool active = false;
+        };
+
         [[nodiscard]]
         bool acceptsBoundary(const Note& candidate, uint8 lane, int64 sample, Grade grade) const;
         [[nodiscard]]
@@ -139,14 +156,16 @@ namespace xlair::core::judgement {
         [[nodiscard]]
         Grade flickGrade(const Note& note) const;
         void applyGrade(Grade grade);
-        void record(Note& note, Grade grade, int64 sample, Array<JudgementEvent>& events);
+        void record(Note& note, Grade grade, int64 sample, Array<JudgementEvent>& events, bool linked_start = false);
         void record(HoldPoint& point, Grade grade, int64 sample, Array<JudgementEvent>& events);
+        void updateHoldActivity(int64 sample, uint32 slider_pressed, uint8 side_pressed);
 
+        const sheets::Chart& m_chart;
         Array<Note> m_notes;
         Array<std::size_t> m_order;
         Array<std::size_t> m_flick_order;
-        Array<Array<HoldPoint>> m_slider_holds;
-        Array<Array<HoldPoint>> m_side_holds;
+        Array<Hold> m_slider_holds;
+        Array<Hold> m_side_holds;
         Array<HoldPointIndex> m_hold_order;
         std::size_t m_slider_note_count = 0;
         std::size_t m_side_note_count = 0;

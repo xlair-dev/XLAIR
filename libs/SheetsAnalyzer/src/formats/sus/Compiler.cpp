@@ -117,28 +117,50 @@ namespace xlair::sheets::formats::sus {
         }
 
         [[nodiscard]]
-        bool IsDirectionalCarrier(const SliderNote& note, const DirectionalNote& directional) {
-            return note.kind == SliderNoteKind::Tap1 && SamePosition(note.position, directional.position) &&
-                   note.lane.start == directional.lane.start && note.lane.width == directional.lane.width &&
-                   note.timeline == directional.timeline;
+        bool MatchesDirectionalNote(const SliderNote& note, const DirectionalNote& directional) {
+            return SamePosition(note.position, directional.position) && note.lane.start == directional.lane.start &&
+                   note.lane.width == directional.lane.width && note.timeline == directional.timeline;
         }
 
+        struct DirectionalCarriers {
+            s3d::Array<bool> consumed;
+            s3d::Array<SideNoteKind> side_kinds;
+        };
+
+        /// Carrier relations are resolved before sample rounding, using the editor's exact lane and timeline.
+        /// Tap 1 carriers take precedence; a Tap 2 can carry several directional X-taps.
         [[nodiscard]]
-        s3d::Array<bool> FindDirectionalCarriers(const Document& document) {
-            s3d::Array<bool> consumed(document.slider_notes.size(), false);
+        DirectionalCarriers FindDirectionalCarriers(const Document& document) {
+            DirectionalCarriers result{
+                s3d::Array<bool>(document.slider_notes.size(), false),
+                s3d::Array<SideNoteKind>(document.directional_notes.size(), SideNoteKind::Tap),
+            };
             if (document.directional_note_mode == DirectionalNoteMode::Independent) {
-                return consumed;
+                return result;
             }
 
-            for (const auto& directional : document.directional_notes) {
-                for (std::size_t index = 0; index < document.slider_notes.size(); ++index) {
-                    if (!consumed[index] && IsDirectionalCarrier(document.slider_notes[index], directional)) {
-                        consumed[index] = true;
+            for (std::size_t direction = 0; direction < document.directional_notes.size(); ++direction) {
+                const auto& directional = document.directional_notes[direction];
+                for (const auto kind : { SliderNoteKind::Tap1, SliderNoteKind::Tap2 }) {
+                    bool found = false;
+                    for (std::size_t index = 0; index < document.slider_notes.size(); ++index) {
+                        const auto& note = document.slider_notes[index];
+                        if (note.kind != kind || (kind == SliderNoteKind::Tap1 && result.consumed[index]) ||
+                            !MatchesDirectionalNote(note, directional)) {
+                            continue;
+                        }
+                        result.consumed[index] = true;
+                        result.side_kinds[direction] =
+                            kind == SliderNoteKind::Tap2 ? SideNoteKind::XTap : SideNoteKind::Tap;
+                        found = true;
+                        break;
+                    }
+                    if (found) {
                         break;
                     }
                 }
             }
-            return consumed;
+            return result;
         }
 
         using TimelineLookup = s3d::HashTable<TimelineId, TimelineIndex>;
@@ -370,7 +392,7 @@ namespace xlair::sheets::formats::sus {
 
         const auto directional_carriers = FindDirectionalCarriers(document);
         for (std::size_t index = 0; index < document.slider_notes.size(); ++index) {
-            if (directional_carriers[index]) {
+            if (directional_carriers.consumed[index]) {
                 continue;
             }
 
@@ -412,7 +434,8 @@ namespace xlair::sheets::formats::sus {
         }
         chart.slider_holds = std::move(*slider_holds);
 
-        for (const auto& source : document.directional_notes) {
+        for (std::size_t index = 0; index < document.directional_notes.size(); ++index) {
+            const auto& source = document.directional_notes[index];
             const auto button = ToSideButton(source.kind);
             if (!button) {
                 return Result<Chart>::makeError(U"Up and down directional notes are not supported by XLAIR.");
@@ -428,6 +451,7 @@ namespace xlair::sheets::formats::sus {
                     .timeline = *timeline,
                     .sample = timing.toSample(source.position),
                     .button = *button,
+                    .kind = directional_carriers.side_kinds[index],
                 }
             );
         }

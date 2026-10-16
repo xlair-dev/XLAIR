@@ -3,6 +3,7 @@
 #include "core/judgement/JudgeEngine.hpp"
 #include "ui/Design.hpp"
 #include "ui/Scene.hpp"
+#include "ui/audio/GameplaySoundPlayer.hpp"
 #include "ui/components/GameScoreBar.hpp"
 #include "ui/game/PlayfieldCamera.hpp"
 #include "ui/game/PlayfieldRenderer3D.hpp"
@@ -30,6 +31,7 @@ namespace xlair::ui::scenes {
                                 game::PlayfieldCameraEye,
                                 game::PlayfieldCameraFocus };
         game::PlayfieldRenderer3D m_playfield_renderer;
+        audio::GameplaySoundPlayer m_sound_player;
         std::unique_ptr<core::judgement::JudgeEngine> m_judge_engine;
         mutable components::GameScoreBar m_score_bar;
         int64 m_current_sample = 0;

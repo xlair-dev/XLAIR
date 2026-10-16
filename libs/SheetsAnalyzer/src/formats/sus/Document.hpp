@@ -95,7 +95,7 @@ namespace xlair::sheets::formats::sus {
     };
 
     // Some SUS editors require a directional note to overlap a short note.
-    // ConsumeTap treats a matching Tap 1 as an editor-generated carrier instead of a separate XLAIR note.
+    // ConsumeTap treats a matching Tap 1 or Tap 2 as a carrier for a side Tap or XTap, respectively.
     enum class DirectionalNoteMode : s3d::uint8 {
         ConsumeTap,
         Independent,
