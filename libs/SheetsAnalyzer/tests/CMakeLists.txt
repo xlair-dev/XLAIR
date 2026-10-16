@@ -11,7 +11,7 @@ target_compile_definitions(SheetsAnalyzerTests
         XLAIR_SHEETS_ANALYZER_TEST_FIXTURE_DIR=U"${CMAKE_CURRENT_SOURCE_DIR}/fixtures/"
 )
 target_include_directories(SheetsAnalyzerTests PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/../src")
-target_link_libraries(SheetsAnalyzerTests PRIVATE XLAIR::SheetsAnalyzer)
+target_link_libraries(SheetsAnalyzerTests PRIVATE XLAIR::SheetsAnalyzer chart_converter_ffi-static)
 set_target_properties(SheetsAnalyzerTests PROPERTIES FOLDER "Tests" WIN32_EXECUTABLE OFF)
 
 if(APPLE)

@@ -9,7 +9,7 @@ FetchContent_MakeAvailable(Corrosion)
 
 FetchContent_Declare(ChartConverter
     GIT_REPOSITORY https://github.com/xlair-dev/ChartConverter.git
-    GIT_TAG f5ddc904fa4c24084dbf80153783718644a05f75
+    GIT_TAG 2666abff16112263159a8b59f1b026b997cecc85
 )
 FetchContent_MakeAvailable(ChartConverter)
 

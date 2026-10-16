@@ -23,6 +23,31 @@ TEST_CASE("LoadChart rejects unsupported formats", "[SheetsAnalyzer][Chart]") {
     CHECK(result.diagnostics.front().path == U"chart.txt");
 }
 
+TEST_CASE("LoadChart distinguishes empty charts from file and parse failures", "[SheetsAnalyzer][Chart]") {
+    SECTION("empty file") {
+        const auto result = xlair::sheets::LoadChart(SusFixture(U"empty.sus"));
+        INFO(FirstDiagnostic(result));
+        REQUIRE(result);
+        CHECK(result->total_combo == 0);
+        CHECK(result->slider_notes.isEmpty());
+    }
+    SECTION("missing file") {
+        const auto path = SusFixture(U"missing.sus");
+        const auto result = xlair::sheets::LoadChart(path);
+        REQUIRE_FALSE(result);
+        REQUIRE(result.diagnostics.size() == 1);
+        CHECK(result.diagnostics.front().path == path);
+    }
+    SECTION("invalid source") {
+        const auto path = SusFixture(U"invalid.sus");
+        const auto result = xlair::sheets::LoadChart(path);
+        REQUIRE_FALSE(result);
+        REQUIRE(result.diagnostics.size() == 1);
+        CHECK(result.diagnostics.front().path == path);
+        CHECK(result.diagnostics.front().message.includes(U"line 1"));
+    }
+}
+
 TEST_CASE("LoadChart compiles SUS fixtures end to end", "[SheetsAnalyzer][Chart][SUS][E2E]") {
     constexpr xlair::sheets::ChartLoadOptions options{
         .sample_rate = 480,
@@ -35,7 +60,11 @@ TEST_CASE("LoadChart compiles SUS fixtures end to end", "[SheetsAnalyzer][Chart]
         REQUIRE(result);
         CHECK(result->slider_notes.size() == 72);
         CHECK(result->slider_holds.isEmpty());
-        CHECK(result->timelines.size() == 2);
+        REQUIRE(result->timelines.size() == 1);
+        CHECK(result->timelines.front().speed_changes.front().multiplier == 1.0);
+        for (const auto& note : result->slider_notes) {
+            CHECK(note.timeline == 0);
+        }
         CHECK(result->total_combo == 72);
     }
 
