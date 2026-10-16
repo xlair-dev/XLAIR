@@ -71,7 +71,13 @@ namespace xlair::sheets {
         RightLower,
     };
 
+    enum class SideNoteKind : s3d::uint8 {
+        Tap,
+        XTap,
+    };
+
     struct SideNote {
+        SideNoteKind kind = SideNoteKind::Tap;
         TimelineIndex timeline = 0;
         s3d::int64 sample = 0;
         SideButton button = SideButton::LeftUpper;

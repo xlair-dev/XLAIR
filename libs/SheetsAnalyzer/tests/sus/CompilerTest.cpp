@@ -1,6 +1,7 @@
 #include <ThirdParty/Catch2/catch.hpp>
 
 #include "formats/sus/Compiler.hpp"
+#include "formats/sus/Parser.hpp"
 
 namespace sus = xlair::sheets::formats::sus;
 
@@ -112,6 +113,7 @@ TEST_CASE("Compile builds timing, timelines, and simple notes", "[SheetsAnalyzer
     REQUIRE(result->side_notes.size() == 1);
     CHECK(result->side_notes[0].timeline == 2);
     CHECK(result->side_notes[0].sample == 600);
+    CHECK(result->side_notes[0].kind == xlair::sheets::SideNoteKind::Tap);
     CHECK(result->side_notes[0].button == xlair::sheets::SideButton::LeftUpper);
     CHECK(result->total_combo == 3);
 }
@@ -141,6 +143,7 @@ TEST_CASE("Compile handles editor carrier taps for directional notes", "[SheetsA
         REQUIRE(result);
         CHECK(result->slider_notes.isEmpty());
         REQUIRE(result->side_notes.size() == 1);
+        CHECK(result->side_notes.front().kind == xlair::sheets::SideNoteKind::Tap);
         CHECK(result->side_notes.front().button == xlair::sheets::SideButton::RightUpper);
         CHECK(result->total_combo == 1);
     }
@@ -157,10 +160,11 @@ TEST_CASE("Compile handles editor carrier taps for directional notes", "[SheetsA
         REQUIRE(result);
         REQUIRE(result->slider_notes.size() == 1);
         REQUIRE(result->side_notes.size() == 1);
+        CHECK(result->side_notes.front().kind == xlair::sheets::SideNoteKind::Tap);
         CHECK(result->total_combo == 2);
     }
 
-    SECTION("only an exactly matching Tap 1 is consumed") {
+    SECTION("Tap 2 takes precedence when both carrier kinds match") {
         sus::Document document;
         document.hispeed_definitions[1] = {};
         document.slider_notes = {
@@ -185,10 +189,83 @@ TEST_CASE("Compile handles editor carrier taps for directional notes", "[SheetsA
         REQUIRE(result);
         REQUIRE(result->slider_notes.size() == 2);
         CHECK(result->slider_notes[0].kind == xlair::sheets::SliderNoteKind::Tap);
-        CHECK(result->slider_notes[0].lane.width == 3);
-        CHECK(result->slider_notes[1].kind == xlair::sheets::SliderNoteKind::XTap);
+        CHECK(result->slider_notes[0].lane.width == 4);
+        CHECK(result->slider_notes[1].kind == xlair::sheets::SliderNoteKind::Tap);
+        CHECK(result->slider_notes[1].lane.width == 3);
+        REQUIRE(result->side_notes.size() == 1);
+        CHECK(result->side_notes.front().kind == xlair::sheets::SideNoteKind::XTap);
         CHECK(result->total_combo == 3);
     }
+
+    SECTION("Tap 2 becomes a side X-Tap") {
+        sus::Document document;
+        document.hispeed_definitions[1] = {};
+        auto x_carrier = carrier;
+        x_carrier.kind = sus::SliderNoteKind::Tap2;
+        document.slider_notes = { x_carrier };
+        document.directional_notes = { directional };
+
+        const auto result = sus::Compile(document, {});
+
+        REQUIRE(result);
+        CHECK(result->slider_notes.isEmpty());
+        REQUIRE(result->side_notes.size() == 1);
+        CHECK(result->side_notes.front().kind == xlair::sheets::SideNoteKind::XTap);
+        CHECK(result->side_notes.front().button == xlair::sheets::SideButton::RightUpper);
+        CHECK(result->total_combo == 1);
+    }
+
+    SECTION("a nonmatching Tap 2 remains a slider note") {
+        sus::Document document;
+        document.hispeed_definitions[1] = {};
+        auto x_tap = carrier;
+        x_tap.kind = sus::SliderNoteKind::Tap2;
+        x_tap.lane.width = 3;
+        document.slider_notes = { carrier, x_tap };
+        document.directional_notes = { directional };
+
+        const auto result = sus::Compile(document, {});
+
+        REQUIRE(result);
+        REQUIRE(result->slider_notes.size() == 1);
+        CHECK(result->slider_notes.front().kind == xlair::sheets::SliderNoteKind::XTap);
+        REQUIRE(result->side_notes.size() == 1);
+        CHECK(result->side_notes.front().kind == xlair::sheets::SideNoteKind::Tap);
+        CHECK(result->total_combo == 2);
+    }
+
+    SECTION("independent mode keeps Tap 2 and a regular side note") {
+        sus::Document document;
+        document.directional_note_mode = sus::DirectionalNoteMode::Independent;
+        document.hispeed_definitions[1] = {};
+        auto x_carrier = carrier;
+        x_carrier.kind = sus::SliderNoteKind::Tap2;
+        document.slider_notes = { x_carrier };
+        document.directional_notes = { directional };
+
+        const auto result = sus::Compile(document, {});
+
+        REQUIRE(result);
+        REQUIRE(result->slider_notes.size() == 1);
+        CHECK(result->slider_notes.front().kind == xlair::sheets::SliderNoteKind::XTap);
+        REQUIRE(result->side_notes.size() == 1);
+        CHECK(result->side_notes.front().kind == xlair::sheets::SideNoteKind::Tap);
+        CHECK(result->total_combo == 2);
+    }
+}
+
+TEST_CASE("Compile recognizes a SUS X-Tap with direction as a side X-Tap", "[SheetsAnalyzer][SUS][Compiler]") {
+    const auto parsed = sus::ParseText(UR"(#00010:24
+#00050:34)");
+    REQUIRE(parsed);
+
+    const auto result = sus::Compile(*parsed, {});
+    REQUIRE(result);
+    CHECK(result->slider_notes.isEmpty());
+    REQUIRE(result->side_notes.size() == 1);
+    CHECK(result->side_notes.front().kind == xlair::sheets::SideNoteKind::XTap);
+    CHECK(result->side_notes.front().button == xlair::sheets::SideButton::LeftUpper);
+    CHECK(result->total_combo == 1);
 }
 
 TEST_CASE("Compile assembles interleaved SideLong channels in musical order", "[SheetsAnalyzer][SUS][Compiler]") {

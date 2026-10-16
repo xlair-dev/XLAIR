@@ -219,7 +219,9 @@ namespace xlair::sheets_viewer {
             if (IsVisible(y, height)) {
                 LaneRect(SideButtonRange(note.button), stage_left, lane_width, y - NoteHeight * 0.5, NoteHeight)
                     .rounded(2)
-                    .draw(ColorF{ 0.92, 0.38, 0.92 });
+                    .draw(
+                        note.kind == sheets::SideNoteKind::XTap ? ColorF{ 1.0, 0.84, 0.22 } : ColorF{ 0.92, 0.38, 0.92 }
+                    );
             }
         }
 

@@ -41,7 +41,14 @@ namespace xlair::ui::scenes {
                          sheets::SideButton::RightUpper,
                          sheets::SideButton::RightLower,
                      }) {
-                    chart.side_notes.push_back({ .timeline = timeline, .sample = sample, .button = button });
+                    chart.side_notes.push_back(
+                        {
+                            .kind = index % 2 == 0 ? sheets::SideNoteKind::Tap : sheets::SideNoteKind::XTap,
+                            .timeline = timeline,
+                            .sample = sample,
+                            .button = button,
+                        }
+                    );
                 }
             }
             chart.slider_holds.push_back({

@@ -106,6 +106,7 @@ namespace xlair::core::judgement {
             int64 sample = 0;
             sheets::LaneSpan lane;
             sheets::SliderNoteKind slider_kind = sheets::SliderNoteKind::Tap;
+            sheets::SideNoteKind side_kind = sheets::SideNoteKind::Tap;
             sheets::SideButton side_button = sheets::SideButton::LeftUpper;
             NoteState state = NoteState::Pending;
             Optional<FlickGesture> flick_gesture;

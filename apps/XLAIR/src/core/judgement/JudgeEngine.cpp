@@ -111,6 +111,7 @@ namespace xlair::core::judgement {
                     .note_kind = NoteKind::Side,
                     .chart_index = index,
                     .sample = source.sample,
+                    .side_kind = source.kind,
                     .side_button = source.button,
                 }
             );
@@ -570,9 +571,9 @@ namespace xlair::core::judgement {
 
     Grade JudgeEngine::gradeFor(const Note& note, const int64 sample) const {
         const long double distance = std::abs(static_cast<long double>(sample) - note.sample);
-        if (distance <= m_perfect_window ||
-            (note.note_kind == NoteKind::Slider && note.slider_kind == sheets::SliderNoteKind::XTap &&
-             distance <= m_good_window)) {
+        const bool x_tap = (note.note_kind == NoteKind::Slider && note.slider_kind == sheets::SliderNoteKind::XTap) ||
+                           (note.note_kind == NoteKind::Side && note.side_kind == sheets::SideNoteKind::XTap);
+        if (distance <= m_perfect_window || (x_tap && distance <= m_good_window)) {
             return Grade::Perfect;
         }
         if (distance <= m_great_window) {
