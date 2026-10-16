@@ -27,7 +27,9 @@ namespace xlair::ui::game {
             double note_speed,
             uint32 combo,
             bool show_depth_guides = false,
-            const core::judgement::JudgeEngine* judge_engine = nullptr
+            const core::judgement::JudgeEngine* judge_engine = nullptr,
+            uint32 slider_pressed = 0,
+            uint8 side_pressed = 0
         ) const;
 
     private:
@@ -40,6 +42,8 @@ namespace xlair::ui::game {
         mutable MSRenderTexture m_render_texture;
         MSRenderTexture m_side_upper_note_surface;
         MSRenderTexture m_side_lower_note_surface;
+        MSRenderTexture m_side_upper_xtap_surface;
+        MSRenderTexture m_side_lower_xtap_surface;
         PixelShader m_fog_shader;
         ConstantBuffer<FogParameters> m_fog_parameters;
     };

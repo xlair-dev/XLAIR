@@ -120,6 +120,12 @@ namespace xlair::core::judgement {
             sheets::SideNoteKind side_kind = sheets::SideNoteKind::Tap;
             NoteState state = NoteState::Pending;
             Optional<FlickGesture> flick_gesture;
+
+            [[nodiscard]]
+            bool isXTap() const noexcept {
+                return (note_kind == NoteKind::Slider && slider_kind == sheets::SliderNoteKind::XTap) ||
+                       (note_kind == NoteKind::Side && side_kind == sheets::SideNoteKind::XTap);
+            }
         };
 
         struct HoldPoint {

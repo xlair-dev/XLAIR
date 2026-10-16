@@ -627,9 +627,7 @@ namespace xlair::core::judgement {
 
     Grade JudgeEngine::gradeFor(const Note& note, const int64 sample) const {
         const long double distance = std::abs(static_cast<long double>(sample) - note.sample);
-        if (distance <= m_perfect_window ||
-            (note.note_kind == NoteKind::Slider && note.slider_kind == sheets::SliderNoteKind::XTap &&
-             distance <= m_good_window)) {
+        if (distance <= m_perfect_window || (note.isXTap() && distance <= m_good_window)) {
             return Grade::Perfect;
         }
         if (distance <= m_great_window) {
@@ -695,9 +693,7 @@ namespace xlair::core::judgement {
                 .linked_start = linked_start,
             }
         );
-        const bool xtap = (note.note_kind == NoteKind::Slider && note.slider_kind == sheets::SliderNoteKind::XTap) ||
-                          (note.note_kind == NoteKind::Side && note.side_kind == sheets::SideNoteKind::XTap);
-        if (grade != Grade::Miss && xtap) {
+        if (grade != Grade::Miss && note.isXTap()) {
             for (auto& start : m_notes) {
                 const bool linked =
                     note.note_kind == NoteKind::Slider
