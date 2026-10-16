@@ -70,6 +70,7 @@ namespace xlair::ui::scenes {
         const auto* controller = getData().application->controller();
         const bool cancel = controller && controller->maintenanceButton(CancelButton).down();
         if (cancel || KeyEscape.pressedDuration() >= SecondsF{ 1.5 }) {
+            m_sound_player.stop();
             if (const auto& music = getData().game_loader.audio()) {
                 music.stop(SecondsF{ 0.25 });
             }
@@ -90,7 +91,9 @@ namespace xlair::ui::scenes {
             const double judgment = application.playSession().playOptions().judgment_offset_ms / 1'000.0;
             m_judgment_offset_samples = JudgmentOffsetSamples(latency + judgment, loader.chart()->sample_rate);
             m_judge_engine = std::make_unique<core::judgement::JudgeEngine>(*loader.chart());
+            m_sound_player.start(*loader.chart());
             music.play(audio::Music);
+            m_sound_player.update(0);
             m_playback_started = true;
             return;
         }
@@ -98,6 +101,7 @@ namespace xlair::ui::scenes {
         if (!m_playback_finished) {
             if (music.isPlaying()) {
                 m_current_sample = music.posSample();
+                m_sound_player.update(m_current_sample);
                 // A positive offset compensates late input; it moves touch time earlier, not the visual chart.
                 const int64 judged_sample = m_current_sample - m_judgment_offset_samples;
                 std::array<core::judgement::TouchEvent, app::controller::TouchZoneCount * 2> touches;
@@ -149,6 +153,8 @@ namespace xlair::ui::scenes {
                     m_judgement_display_seconds = 0.0;
                 }
             } else {
+                m_current_sample = static_cast<int64>(music.samples());
+                m_sound_player.finish(m_current_sample);
                 // Resolve pending notes at the end even if the audio ends within a judgement window.
                 const auto events = m_judge_engine->advance(
                     static_cast<int64>(music.samples()) + loader.chart()->sample_rate - m_judgment_offset_samples
