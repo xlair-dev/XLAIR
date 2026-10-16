@@ -44,6 +44,7 @@ void Main() {
             break;
         }
 
+        scene_data->game_loader.update();
         if (const auto& context = scene_data->music_select_context) {
             context->update(Scene::DeltaTime());
         }

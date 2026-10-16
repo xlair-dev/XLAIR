@@ -11,6 +11,9 @@ namespace xlair::ui {
         // Main updates this once per frame, including while Settings is active.
         void update(double delta_seconds);
 
+        void pause();
+        void resume() noexcept;
+
         [[nodiscard]]
         app::flows::MusicSelect& flow() noexcept;
 
@@ -30,5 +33,6 @@ namespace xlair::ui {
         audio::MusicPreviewPlayer m_preview_player;
         double m_remaining_seconds = 0.0;
         std::size_t m_selected_setting_index = 0;
+        bool m_paused = false;
     };
 }

@@ -5,6 +5,10 @@ namespace xlair::ui {
         : m_flow{ catalog }, m_remaining_seconds{ Max(0.0, remaining_seconds) } {}
 
     void MusicSelectContext::update(const double delta_seconds) {
+        if (m_paused) {
+            return;
+        }
+
         m_remaining_seconds = Max(0.0, m_remaining_seconds - delta_seconds);
 
         if (const auto* music = m_flow.selectedMusic()) {
@@ -12,6 +16,15 @@ namespace xlair::ui {
         } else {
             m_preview_player.stop();
         }
+    }
+
+    void MusicSelectContext::pause() {
+        m_paused = true;
+        m_preview_player.stop(SecondsF{ 0.25 });
+    }
+
+    void MusicSelectContext::resume() noexcept {
+        m_paused = false;
     }
 
     app::flows::MusicSelect& MusicSelectContext::flow() noexcept {

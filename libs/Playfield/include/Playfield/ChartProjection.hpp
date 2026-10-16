@@ -20,6 +20,14 @@ namespace xlair::playfield {
         noteDistance(sheets::TimelineIndex timeline, s3d::int64 current_sample, s3d::int64 note_sample) const;
 
         [[nodiscard]]
+        s3d::Array<s3d::int64> noteDistanceBreakpoints(
+            sheets::TimelineIndex timeline,
+            s3d::int64 current_sample,
+            s3d::int64 from_sample,
+            s3d::int64 to_sample
+        ) const;
+
+        [[nodiscard]]
         std::size_t timelineCount() const noexcept;
 
     private:
