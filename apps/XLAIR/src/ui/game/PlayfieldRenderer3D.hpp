@@ -5,6 +5,10 @@
 #include <Playfield/ChartProjection.hpp>
 #include <SheetsAnalyzer/Chart.hpp>
 
+namespace xlair::core::judgement {
+    class JudgeEngine;
+}
+
 namespace xlair::ui::game {
     class PlayfieldRenderer3D {
     public:
@@ -22,7 +26,8 @@ namespace xlair::ui::game {
             int64 current_sample,
             double note_speed,
             uint32 combo,
-            bool show_depth_guides = false
+            bool show_depth_guides = false,
+            const core::judgement::JudgeEngine* judge_engine = nullptr
         ) const;
 
     private:

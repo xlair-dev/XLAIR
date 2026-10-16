@@ -1,5 +1,6 @@
 #include "PlayfieldRenderer3D.hpp"
 
+#include "core/judgement/JudgeEngine.hpp"
 #include "ui/Design.hpp"
 #include "ui/assets/Assets.hpp"
 #include "ui/primitives/Sparkle.hpp"
@@ -113,7 +114,8 @@ namespace xlair::ui::game {
             const sheets::Chart& chart,
             const playfield::ChartProjection& projection,
             const int64 current_sample,
-            const double note_speed
+            const double note_speed,
+            const core::judgement::JudgeEngine* judge_engine
         ) {
             constexpr double SourceWidth = FieldSurfaceSize.x;
             constexpr double SourceHeight = FieldSurfaceSize.y;
@@ -129,8 +131,15 @@ namespace xlair::ui::game {
                 ColorF color;
             };
 
-            for (const auto& hold : chart.slider_holds) {
+            for (std::size_t hold_index = 0; hold_index < chart.slider_holds.size(); ++hold_index) {
+                const auto& hold = chart.slider_holds[hold_index];
                 if (hold.points.size() < 2) {
+                    continue;
+                }
+                if (judge_engine && !hold.judge_points.isEmpty() &&
+                    judge_engine->sliderHoldPointState(hold_index, hold.judge_points.size() - 1) !=
+                        core::judgement::NoteState::Pending &&
+                    current_sample >= hold.judge_points.back().sample) {
                     continue;
                 }
                 const int64 first_sample = hold.points.front().sample;
@@ -204,7 +213,8 @@ namespace xlair::ui::game {
             const sheets::Chart& chart,
             const playfield::ChartProjection& projection,
             const int64 current_sample,
-            const double note_speed
+            const double note_speed,
+            const core::judgement::JudgeEngine* judge_engine
         ) {
             constexpr double SourceHeight = FieldSurfaceSize.y;
             constexpr double SourceStageLeft = 32.0;
@@ -212,10 +222,15 @@ namespace xlair::ui::game {
             const ColorF light = ColorF{ U"#55C8FF" }.removeSRGBCurve();
             const ColorF dark = ColorF{ U"#43A4F2" }.removeSRGBCurve();
 
-            for (const auto& hold : chart.slider_holds) {
+            for (std::size_t hold_index = 0; hold_index < chart.slider_holds.size(); ++hold_index) {
+                const auto& hold = chart.slider_holds[hold_index];
                 for (const auto& point : hold.points) {
                     if (point.kind != sheets::SliderHoldPointKind::Start &&
                         point.kind != sheets::SliderHoldPointKind::End) {
+                        continue;
+                    }
+                    if (judge_engine && point.kind == sheets::SliderHoldPointKind::Start &&
+                        judge_engine->sliderHoldPointState(hold_index, 0) != core::judgement::NoteState::Pending) {
                         continue;
                     }
                     const double z = WorldZ(projection, point.timeline, current_sample, point.sample, note_speed);
@@ -238,12 +253,17 @@ namespace xlair::ui::game {
             const sheets::Chart& chart,
             const playfield::ChartProjection& projection,
             const int64 current_sample,
-            const double note_speed
+            const double note_speed,
+            const core::judgement::JudgeEngine* judge_engine
         ) {
             constexpr double SourceStageLeft = 32.0;
             constexpr double SourceLaneWidth = (FieldSurfaceSize.x - SourceStageLeft * 2.0) / 16.0;
 
-            for (const auto& note : chart.slider_notes) {
+            for (std::size_t index = 0; index < chart.slider_notes.size(); ++index) {
+                if (judge_engine && judge_engine->noteState(index) != core::judgement::NoteState::Pending) {
+                    continue;
+                }
+                const auto& note = chart.slider_notes[index];
                 const double z = WorldZ(projection, note.timeline, current_sample, note.sample, note_speed);
                 if (!std::isfinite(z)) {
                     continue;
@@ -285,7 +305,8 @@ namespace xlair::ui::game {
             const sheets::Chart& chart,
             const playfield::ChartProjection& projection,
             const int64 current_sample,
-            const double note_speed
+            const double note_speed,
+            const core::judgement::JudgeEngine* judge_engine
         ) {
             constexpr double SourceWidth = FieldSurfaceSize.x;
             constexpr double SourceHeight = FieldSurfaceSize.y;
@@ -301,9 +322,9 @@ namespace xlair::ui::game {
                 const double x = SourceStageLeft + lane * SourceLaneWidth;
                 Line{ x, 0, x, SourceHeight }.draw(2.5, ColorF{ U"#FDFDFD" }.removeSRGBCurve());
             }
-            DrawSliderHoldBodies(chart, projection, current_sample, note_speed);
-            DrawSliderHoldHeads(chart, projection, current_sample, note_speed);
-            DrawSliderNotes(chart, projection, current_sample, note_speed);
+            DrawSliderHoldBodies(chart, projection, current_sample, note_speed, judge_engine);
+            DrawSliderHoldHeads(chart, projection, current_sample, note_speed, judge_engine);
+            DrawSliderNotes(chart, projection, current_sample, note_speed, judge_engine);
             FontAsset{ assets::font::ComboNumber }(combo)
                 .drawAt(SourceWidth * 0.5, SourceHeight - 750.0, Palette::White);
             FontAsset{ assets::font::Display }(U"COMBO")
@@ -457,11 +478,19 @@ namespace xlair::ui::game {
             const sheets::Chart& chart,
             const playfield::ChartProjection& projection,
             const int64 current_sample,
-            const double note_speed
+            const double note_speed,
+            const core::judgement::JudgeEngine* judge_engine
         ) {
             const ColorF color = ColorF{ U"#D45CD7" }.removeSRGBCurve().withA(0.42);
             const ScopedRenderStates3D translucent{ BlendState::NonPremultiplied, DepthStencilState::DepthTest };
-            for (const auto& hold : chart.side_holds) {
+            for (std::size_t hold_index = 0; hold_index < chart.side_holds.size(); ++hold_index) {
+                const auto& hold = chart.side_holds[hold_index];
+                if (judge_engine && !hold.judge_samples.isEmpty() &&
+                    judge_engine->sideHoldPointState(hold_index, hold.judge_samples.size() - 1) !=
+                        core::judgement::NoteState::Pending &&
+                    current_sample >= hold.judge_samples.back()) {
+                    continue;
+                }
                 const bool left =
                     hold.button == sheets::SideButton::LeftUpper || hold.button == sheets::SideButton::LeftLower;
                 const double side = left ? -1.0 : 1.0;
@@ -507,9 +536,14 @@ namespace xlair::ui::game {
             const int64 current_sample,
             const double note_speed,
             const MSRenderTexture& upper_surface,
-            const MSRenderTexture& lower_surface
+            const MSRenderTexture& lower_surface,
+            const core::judgement::JudgeEngine* judge_engine
         ) {
-            for (const auto& note : chart.side_notes) {
+            for (std::size_t index = 0; index < chart.side_notes.size(); ++index) {
+                if (judge_engine && judge_engine->sideNoteState(index) != core::judgement::NoteState::Pending) {
+                    continue;
+                }
+                const auto& note = chart.side_notes[index];
                 const bool lower =
                     note.button == sheets::SideButton::LeftLower || note.button == sheets::SideButton::RightLower;
                 const auto z = NoteDepth(
@@ -525,10 +559,15 @@ namespace xlair::ui::game {
                 }
                 DrawSideNotePlane(note.button, *z, upper_surface, lower_surface);
             }
-            for (const auto& hold : chart.side_holds) {
+            for (std::size_t hold_index = 0; hold_index < chart.side_holds.size(); ++hold_index) {
+                const auto& hold = chart.side_holds[hold_index];
                 const bool lower =
                     hold.button == sheets::SideButton::LeftLower || hold.button == sheets::SideButton::RightLower;
                 for (const auto& point : hold.points) {
+                    if (judge_engine && point.kind == sheets::SideHoldPointKind::Start &&
+                        judge_engine->sideHoldPointState(hold_index, 0) != core::judgement::NoteState::Pending) {
+                        continue;
+                    }
                     const auto z = NoteDepth(
                         projection,
                         point.timeline,
@@ -577,11 +616,12 @@ namespace xlair::ui::game {
         const int64 current_sample,
         const double note_speed,
         const uint32 combo,
-        const bool show_depth_guides
+        const bool show_depth_guides,
+        const core::judgement::JudgeEngine* judge_engine
     ) const {
         {
             const ScopedRenderTarget2D target{ m_field_surface.clear(ColorF{ 0.0, 0.0 }) };
-            DrawFieldSurface(combo, chart, projection, current_sample, note_speed);
+            DrawFieldSurface(combo, chart, projection, current_sample, note_speed, judge_engine);
             Graphics2D::Flush();
             m_field_surface.resolve();
         }
@@ -595,14 +635,15 @@ namespace xlair::ui::game {
             const ScopedCustomShader3D fog_shader{ m_fog_shader };
             DrawField(m_field_surface, show_depth_guides);
             DrawSliderHoldDiamonds(chart, projection, current_sample, note_speed);
-            DrawSideHoldBodies(chart, projection, current_sample, note_speed);
+            DrawSideHoldBodies(chart, projection, current_sample, note_speed, judge_engine);
             DrawSideNotes(
                 chart,
                 projection,
                 current_sample,
                 note_speed,
                 m_side_upper_note_surface,
-                m_side_lower_note_surface
+                m_side_lower_note_surface,
+                judge_engine
             );
         }
         Graphics3D::Flush();
