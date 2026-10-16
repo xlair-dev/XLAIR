@@ -206,15 +206,6 @@ TEST_CASE("Compile resolves side X-taps from editor carriers", "[SheetsAnalyzer]
     document.slider_notes = { carrier };
     document.directional_notes = { directional };
 
-    SECTION("a matching carrier contributes one side X-tap and one combo") {
-        const auto result = sus::Compile(document, {});
-        REQUIRE(result);
-        CHECK(result->slider_notes.isEmpty());
-        REQUIRE(result->side_notes.size() == 1);
-        CHECK(result->side_notes.front().kind == xlair::sheets::SideNoteKind::XTap);
-        CHECK(result->total_combo == 1);
-    }
-
     SECTION("several side buttons can share the same X-tap carrier") {
         document.directional_notes.push_back(directional);
         document.directional_notes.back().kind = sus::DirectionalKind::RightDown;

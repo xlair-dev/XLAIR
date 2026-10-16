@@ -101,11 +101,6 @@ namespace xlair::core::judgement {
         }
     }
 
-    bool JudgeEngine::Note::isXTap() const noexcept {
-        return (note_kind == NoteKind::Slider && slider_kind == sheets::SliderNoteKind::XTap) ||
-               (note_kind == NoteKind::Side && side_kind == sheets::SideNoteKind::XTap);
-    }
-
     JudgeEngine::JudgeEngine(const sheets::Chart& chart)
         : m_chart{ chart }, m_slider_note_count{ chart.slider_notes.size() },
           m_side_note_count{ chart.side_notes.size() }, m_total_combo{ chart.total_combo } {
@@ -632,7 +627,9 @@ namespace xlair::core::judgement {
 
     Grade JudgeEngine::gradeFor(const Note& note, const int64 sample) const {
         const long double distance = std::abs(static_cast<long double>(sample) - note.sample);
-        if (distance <= m_perfect_window || (note.isXTap() && distance <= m_good_window)) {
+        if (distance <= m_perfect_window ||
+            (note.note_kind == NoteKind::Slider && note.slider_kind == sheets::SliderNoteKind::XTap &&
+             distance <= m_good_window)) {
             return Grade::Perfect;
         }
         if (distance <= m_great_window) {
@@ -698,7 +695,9 @@ namespace xlair::core::judgement {
                 .linked_start = linked_start,
             }
         );
-        if (grade != Grade::Miss && note.isXTap()) {
+        const bool xtap = (note.note_kind == NoteKind::Slider && note.slider_kind == sheets::SliderNoteKind::XTap) ||
+                          (note.note_kind == NoteKind::Side && note.side_kind == sheets::SideNoteKind::XTap);
+        if (grade != Grade::Miss && xtap) {
             for (auto& start : m_notes) {
                 const bool linked =
                     note.note_kind == NoteKind::Slider

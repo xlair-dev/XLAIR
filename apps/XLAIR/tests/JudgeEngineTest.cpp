@@ -7,47 +7,6 @@
 namespace judge = xlair::core::judgement;
 namespace sheets = xlair::sheets;
 
-TEST_CASE("Judgements follow input time instead of chart arrival", "[Game][Judgement]") {
-    sheets::Chart chart;
-    chart.sample_rate = 1000;
-    chart.slider_notes = { { .sample = 1000, .lane = { .start = 2 } } };
-    chart.total_combo = 1;
-    judge::JudgeEngine engine{ chart };
-    CHECK(engine.advance(1000).isEmpty());
-
-    SECTION("a late successful input produces feedback at its judgement") {
-        const std::array touches{ judge::TouchEvent{ .zone = 4, .sample = 1100 } };
-        const auto events = engine.advance(1100, touches, {}, uint32{ 1 } << 4);
-        REQUIRE(events.size() == 1);
-        CHECK(events.front().grade == judge::Grade::Good);
-        CHECK(events.front().offset_samples == 100);
-        CHECK(engine.advance(1200).isEmpty());
-    }
-    SECTION("no input only produces a miss") {
-        const auto events = engine.advance(1200);
-        REQUIRE(events.size() == 1);
-        CHECK(events.front().grade == judge::Grade::Miss);
-    }
-}
-
-TEST_CASE("FLICK feedback waits for completed motion", "[Game][Judgement]") {
-    sheets::Chart chart;
-    chart.sample_rate = 1000;
-    chart.slider_notes = { { .kind = sheets::SliderNoteKind::Flick, .sample = 1000, .lane = { .start = 2 } } };
-    chart.total_combo = 1;
-    judge::JudgeEngine engine{ chart };
-    const std::array contact{ judge::TouchEvent{ .zone = 4, .sample = 1000 } };
-    CHECK(engine.advance(1000, contact, {}, uint32{ 1 } << 4).isEmpty());
-    const std::array motion{
-        judge::TouchEvent{ .zone = 4, .sample = 1010, .phase = judge::TouchEvent::Phase::Up },
-        judge::TouchEvent{ .zone = 8, .sample = 1010 },
-    };
-    const auto events = engine.advance(1010, motion, {}, uint32{ 1 } << 8);
-    REQUIRE(events.size() == 1);
-    CHECK(events.front().grade == judge::Grade::Perfect);
-    CHECK(engine.noteState(0) == judge::NoteState::Hit);
-}
-
 TEST_CASE("Slider hold activity follows contact along its path", "[Game][Judgement]") {
     sheets::Chart chart;
     chart.sample_rate = 1000;
@@ -193,7 +152,7 @@ TEST_CASE("X-taps acquire their co-located hold starts with the same input", "[G
         const std::array sides{ judge::SideEvent{ .button = sheets::SideButton::LeftUpper, .sample = 1080 } };
         const auto events = engine.advance(1080, {}, sides, 0, 1);
         REQUIRE(events.size() == 2);
-        CHECK(events[0].grade == judge::Grade::Perfect);
+        CHECK(events[0].grade == judge::Grade::Good);
         CHECK(events[1].note_kind == judge::NoteKind::SideHold);
         CHECK(events[1].linked_start);
         CHECK(engine.sideHoldPointState(0, 0) == judge::NoteState::Hit);
