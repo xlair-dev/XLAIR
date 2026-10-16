@@ -80,6 +80,7 @@ namespace xlair::infra::controller {
         uint8 m_touch_threshold = 1;
         bool m_initialized = false;
         V1Input m_input;
+        Optional<String> m_last_reconnect_error;
         app::controller::InputSnapshot m_snapshot;
         Keyboard m_keyboard;
     };

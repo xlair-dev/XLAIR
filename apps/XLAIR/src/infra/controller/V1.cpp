@@ -115,12 +115,23 @@ namespace xlair::infra::controller {
             }
         }
 
+        if (m_last_reconnect_error && m_input.buttonsAvailable(now)) {
+            Logger << U"[Controller/V1] Frame reception resumed on '{}'."_fmt(m_serial.port());
+            m_last_reconnect_error.reset();
+        }
+
         if (m_input.streamTimedOut(now)) {
             // A USB CDC handle may still look open after unplugging.
             // Retry once per second, resolving the port again in auto mode.
             m_serial.close();
             m_input.reset(now);
-            openPort();
+            if (auto result = openPort(); !result) {
+                const auto& message = result.error->message;
+                if (!m_last_reconnect_error || *m_last_reconnect_error != message) {
+                    Logger << U"[Controller/V1] Reconnect failed: " + message;
+                    m_last_reconnect_error = message;
+                }
+            }
         }
 
         const auto& sensors = m_input.sensors();
@@ -202,6 +213,7 @@ namespace xlair::infra::controller {
 
         m_initialized = false;
         m_input.reset(0);
+        m_last_reconnect_error.reset();
     }
 
     void V1Input::reset(const std::uint64_t now_ms) {
