@@ -157,7 +157,7 @@ namespace xlair::infra::config {
         } else if (controller_mode == U"v1") {
             config.controller.mode = app::Config::Controller::Mode::V1;
             if (config.controller.v1.port.isEmpty()) {
-                return MakeError(U"Config value 'controller.v1.port' is required in v1 mode.", m_path);
+                return MakeError(U"Config value 'controller.v1.port' must be 'auto' or a serial port name.", m_path);
             }
             if (config.controller.v1.baud_rate <= 0) {
                 return MakeError(U"Config value 'controller.v1.baud_rate' must be positive.", m_path);
