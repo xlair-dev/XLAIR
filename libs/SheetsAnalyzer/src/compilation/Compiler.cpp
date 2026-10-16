@@ -89,9 +89,6 @@ namespace xlair::sheets::compilation {
                           .multiplier = m_scrolls[change].speed }
                     );
                 }
-                timeline.speed_changes.stable_sort_by([](const auto& left, const auto& right) {
-                    return left.sample < right.sample;
-                });
                 m_chart.timelines.push_back(std::move(timeline));
                 m_indices.emplace(std::move(key), index);
                 return index;
