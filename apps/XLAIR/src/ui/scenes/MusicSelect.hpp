@@ -41,5 +41,7 @@ namespace xlair::ui::scenes {
         mutable components::MusicCard m_music_card;
         Array<components::SliderMapping> m_slider_mappings;
         double m_text_elapsed = 0.0;
+        bool m_fade_to_game = false;
+        bool m_fade_from_game = false;
     };
 }

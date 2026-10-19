@@ -43,6 +43,18 @@ namespace xlair::playfield {
         return m_timelines[timeline].noteDistance(current_sample, note_sample);
     }
 
+    s3d::Array<s3d::int64> ChartProjection::noteDistanceBreakpoints(
+        const sheets::TimelineIndex timeline,
+        const s3d::int64 current_sample,
+        const s3d::int64 from_sample,
+        const s3d::int64 to_sample
+    ) const {
+        if (timeline >= m_timelines.size()) {
+            throw std::out_of_range{ "The timeline index is outside the chart projection." };
+        }
+        return m_timelines[timeline].noteDistanceBreakpoints(current_sample, from_sample, to_sample);
+    }
+
     std::size_t ChartProjection::timelineCount() const noexcept {
         return m_timelines.size();
     }

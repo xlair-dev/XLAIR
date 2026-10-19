@@ -1,0 +1,649 @@
+#include "JudgeEngine.hpp"
+
+#include <algorithm>
+#include <cmath>
+#include <limits>
+#include <numeric>
+#include <stdexcept>
+
+namespace xlair::core::judgement {
+    namespace {
+        constexpr uint8 SliderLaneCount = 16;
+        constexpr uint8 TouchZoneCount = SliderLaneCount * 2;
+        constexpr uint8 SideButtonCount = 4;
+        // Community tests suggest adjacent-lane presses do not count as a FLICK.
+        // Allow two lanes beyond the note so narrow FLICKs can still be swiped.
+        constexpr uint8 FlickMinimumLaneTravel = 2;
+        constexpr uint8 FlickOuterLaneAllowance = 2;
+
+        [[nodiscard]]
+        bool PressedZone(const uint32 pressed, const uint8 zone) {
+            return (pressed & (uint32{ 1 } << zone)) != 0;
+        }
+
+        [[nodiscard]]
+        bool Contains(const sheets::LaneSpan span, const uint8 lane) {
+            return span.start <= lane && lane < (static_cast<uint32>(span.start) + span.width);
+        }
+
+        [[nodiscard]]
+        bool Overlaps(const sheets::LaneSpan left, const sheets::LaneSpan right) {
+            return left.start < (static_cast<uint32>(right.start) + right.width) &&
+                   right.start < (static_cast<uint32>(left.start) + left.width);
+        }
+
+        [[nodiscard]]
+        bool PressedInSpan(const uint32 pressed, const sheets::LaneSpan span) {
+            for (uint32 lane = span.start; lane < static_cast<uint32>(span.start) + span.width; ++lane) {
+                if ((pressed & (uint32{ 3 } << (lane * 2))) != 0) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        [[nodiscard]]
+        bool ValidLane(const sheets::LaneSpan lane) {
+            return lane.width != 0 && lane.start < SliderLaneCount &&
+                   static_cast<uint32>(lane.start) + lane.width <= SliderLaneCount;
+        }
+
+        [[nodiscard]]
+        bool ValidSideButton(const sheets::SideButton button) {
+            return static_cast<uint8>(button) < SideButtonCount;
+        }
+
+        [[nodiscard]]
+        bool SidePressed(const uint8 pressed, const sheets::SideButton button) {
+            return (pressed & (uint8{ 1 } << static_cast<uint8>(button))) != 0;
+        }
+
+        [[nodiscard]]
+        bool FlickMotionInReach(const sheets::LaneSpan span, const uint8 contact_zone, const uint8 motion_zone) {
+            const int32 contact_lane = contact_zone / 2;
+            const int32 motion_lane = motion_zone / 2;
+            const int32 last_lane = static_cast<int32>(span.start) + span.width - 1;
+            return std::abs(contact_lane - motion_lane) >= FlickMinimumLaneTravel &&
+                   motion_lane >= static_cast<int32>(span.start) - FlickOuterLaneAllowance &&
+                   motion_lane <= last_lane + FlickOuterLaneAllowance;
+        }
+    }
+
+    JudgeEngine::JudgeEngine(const sheets::Chart& chart)
+        : m_slider_note_count{ chart.slider_notes.size() }, m_side_note_count{ chart.side_notes.size() },
+          m_total_combo{ chart.total_combo } {
+        if (chart.sample_rate <= 0) {
+            throw std::invalid_argument{ "Judgement requires a positive chart sample rate." };
+        }
+
+        m_perfect_window = static_cast<int64>(std::llround(chart.sample_rate / 30.0));
+        m_great_window = static_cast<int64>(std::llround(chart.sample_rate / 15.0));
+        m_good_window = static_cast<int64>(std::llround(chart.sample_rate / 10.0));
+        // Provisional values from player measurements: contact +/-83 ms, slide +/-167 ms.
+        m_flick_tap_window = static_cast<int64>(std::llround(chart.sample_rate / 12.0));
+        m_flick_slide_window = static_cast<int64>(std::llround(chart.sample_rate / 6.0));
+
+        m_notes.reserve(
+            chart.slider_notes.size() + chart.side_notes.size() + chart.slider_holds.size() + chart.side_holds.size()
+        );
+        for (std::size_t index = 0; index < chart.slider_notes.size(); ++index) {
+            const auto& source = chart.slider_notes[index];
+            if (!ValidLane(source.lane)) {
+                throw std::invalid_argument{ "A slider note has an invalid lane span." };
+            }
+            m_notes.push_back(
+                {
+                    .chart_index = index,
+                    .sample = source.sample,
+                    .lane = source.lane,
+                    .slider_kind = source.kind,
+                }
+            );
+        }
+
+        for (std::size_t index = 0; index < chart.side_notes.size(); ++index) {
+            const auto& source = chart.side_notes[index];
+            if (!ValidSideButton(source.button)) {
+                throw std::invalid_argument{ "A side note has an invalid button." };
+            }
+            m_notes.push_back(
+                {
+                    .note_kind = NoteKind::Side,
+                    .chart_index = index,
+                    .sample = source.sample,
+                    .side_button = source.button,
+                }
+            );
+        }
+
+        m_slider_holds.reserve(chart.slider_holds.size());
+        for (std::size_t hold_index = 0; hold_index < chart.slider_holds.size(); ++hold_index) {
+            const auto& source = chart.slider_holds[hold_index];
+            if (source.judge_points.isEmpty()) {
+                throw std::invalid_argument{ "A slider hold has no judgement points." };
+            }
+            Array<HoldPoint> points;
+            points.reserve(source.judge_points.size());
+            for (std::size_t point_index = 0; point_index < source.judge_points.size(); ++point_index) {
+                const auto& point = source.judge_points[point_index];
+                if (!ValidLane(point.lane) ||
+                    (point_index > 0 && point.sample <= source.judge_points[point_index - 1].sample)) {
+                    throw std::invalid_argument{ "A slider hold has invalid judgement points." };
+                }
+                points.push_back(
+                    {
+                        .hold_index = hold_index,
+                        .point_index = point_index,
+                        .sample = point.sample,
+                        .lane = point.lane,
+                    }
+                );
+                if (point_index > 0) {
+                    m_hold_order.push_back({ .hold = hold_index, .point = point_index });
+                }
+            }
+            const auto& start = points.front();
+            m_notes.push_back(
+                {
+                    .note_kind = NoteKind::SliderHold,
+                    .chart_index = hold_index,
+                    .sample = start.sample,
+                    .lane = start.lane,
+                }
+            );
+            m_slider_holds.push_back(std::move(points));
+        }
+
+        m_side_holds.reserve(chart.side_holds.size());
+        for (std::size_t hold_index = 0; hold_index < chart.side_holds.size(); ++hold_index) {
+            const auto& source = chart.side_holds[hold_index];
+            if (!ValidSideButton(source.button) || source.judge_samples.isEmpty()) {
+                throw std::invalid_argument{ "A side hold has an invalid button or no judgement samples." };
+            }
+
+            Array<HoldPoint> points;
+            points.reserve(source.judge_samples.size());
+            for (std::size_t point_index = 0; point_index < source.judge_samples.size(); ++point_index) {
+                const int64 sample = source.judge_samples[point_index];
+                if (point_index > 0 && sample <= source.judge_samples[point_index - 1]) {
+                    throw std::invalid_argument{ "A side hold has unordered judgement samples." };
+                }
+                points.push_back(
+                    {
+                        .note_kind = NoteKind::SideHold,
+                        .hold_index = hold_index,
+                        .point_index = point_index,
+                        .sample = sample,
+                        .side_button = source.button,
+                    }
+                );
+                if (point_index > 0) {
+                    m_hold_order.push_back(
+                        { .note_kind = NoteKind::SideHold, .hold = hold_index, .point = point_index }
+                    );
+                }
+            }
+            m_notes.push_back(
+                {
+                    .note_kind = NoteKind::SideHold,
+                    .chart_index = hold_index,
+                    .sample = source.judge_samples.front(),
+                    .side_button = source.button,
+                }
+            );
+            m_side_holds.push_back(std::move(points));
+        }
+
+        m_hold_order.stable_sort_by([this](const HoldPointIndex left, const HoldPointIndex right) {
+            return holdPoint(left).sample < holdPoint(right).sample;
+        });
+
+        m_order.resize(m_notes.size());
+        std::iota(m_order.begin(), m_order.end(), 0);
+        m_order.stable_sort_by([this](const std::size_t left, const std::size_t right) {
+            return m_notes[left].sample < m_notes[right].sample;
+        });
+        for (const std::size_t index : m_order) {
+            const auto& note = m_notes[index];
+            if (note.note_kind == NoteKind::Slider && note.slider_kind == sheets::SliderNoteKind::Flick) {
+                m_flick_order.push_back(index);
+            }
+        }
+    }
+
+    Array<JudgementEvent> JudgeEngine::advance(
+        const int64 current_sample,
+        const std::span<const TouchEvent> touches,
+        const std::span<const SideEvent> side_down,
+        const uint32 slider_pressed,
+        const uint8 side_pressed
+    ) {
+        Array<JudgementEvent> events;
+
+        for (const auto& touch : touches) {
+            if (touch.zone >= TouchZoneCount || touch.sample > current_sample) {
+                continue;
+            }
+
+            processFlickTouch(touch, slider_pressed, events);
+            if (touch.phase == TouchEvent::Phase::Up) {
+                continue;
+            }
+
+            const uint8 lane = touch.zone / 2;
+            Note* selected = nullptr;
+            Grade selected_grade = Grade::Miss;
+            long double closest_distance = std::numeric_limits<long double>::infinity();
+
+            const long double first_sample = static_cast<long double>(touch.sample) - m_good_window;
+            const auto first = std::lower_bound(
+                m_order.begin(),
+                m_order.end(),
+                first_sample,
+                [this](const std::size_t index, const long double value) {
+                    return m_notes[index].sample < value;
+                }
+            );
+            for (auto it = first; it != m_order.end(); ++it) {
+                auto& note = m_notes[*it];
+                const long double distance =
+                    std::abs(static_cast<long double>(touch.sample) - static_cast<long double>(note.sample));
+                if (note.sample > static_cast<long double>(touch.sample) + m_good_window) {
+                    break;
+                }
+                if ((note.note_kind != NoteKind::Slider && note.note_kind != NoteKind::SliderHold) ||
+                    (note.note_kind == NoteKind::Slider && note.slider_kind == sheets::SliderNoteKind::Flick) ||
+                    note.state != NoteState::Pending || !Contains(note.lane, lane)) {
+                    continue;
+                }
+
+                const Grade grade = gradeFor(note, touch.sample);
+                if (grade == Grade::Miss || !acceptsBoundary(note, lane, touch.sample, grade)) {
+                    continue;
+                }
+                if (distance < closest_distance) {
+                    selected = &note;
+                    selected_grade = grade;
+                    closest_distance = distance;
+                }
+            }
+
+            if (selected) {
+                record(*selected, selected_grade, touch.sample, events);
+            }
+        }
+
+        for (const auto& input : side_down) {
+            if (input.sample > current_sample) {
+                continue;
+            }
+
+            Note* selected = nullptr;
+            long double closest_distance = std::numeric_limits<long double>::infinity();
+            const long double first_sample = static_cast<long double>(input.sample) - m_good_window;
+            const auto first = std::lower_bound(
+                m_order.begin(),
+                m_order.end(),
+                first_sample,
+                [this](const std::size_t index, const long double value) {
+                    return m_notes[index].sample < value;
+                }
+            );
+            for (auto it = first; it != m_order.end(); ++it) {
+                auto& note = m_notes[*it];
+                if (static_cast<long double>(note.sample) > static_cast<long double>(input.sample) + m_good_window) {
+                    break;
+                }
+                if ((note.note_kind != NoteKind::Side && note.note_kind != NoteKind::SideHold) ||
+                    note.side_button != input.button || note.state != NoteState::Pending) {
+                    continue;
+                }
+                const long double distance = std::abs(static_cast<long double>(input.sample) - note.sample);
+                if (distance < closest_distance && acceptsSideBoundary(note, input.sample)) {
+                    selected = &note;
+                    closest_distance = distance;
+                }
+            }
+            if (selected) {
+                record(*selected, gradeFor(*selected, input.sample), input.sample, events);
+            }
+        }
+
+        // Starts use down-edge windows above. Later checkpoints use the held
+        // slider lane or side button; each can recover after a previous miss.
+        for (std::size_t cursor = m_hold_cursor; cursor < m_hold_order.size(); ++cursor) {
+            const auto index = m_hold_order[cursor];
+            auto& point = holdPoint(index);
+            if (static_cast<long double>(point.sample) > static_cast<long double>(current_sample) + m_great_window) {
+                break;
+            }
+            if (point.state != NoteState::Pending) {
+                continue;
+            }
+            const long double distance = std::abs(static_cast<long double>(current_sample) - point.sample);
+            const bool pressed = point.note_kind == NoteKind::SliderHold ? PressedInSpan(slider_pressed, point.lane)
+                                                                         : SidePressed(side_pressed, point.side_button);
+            if (distance <= m_great_window && pressed) {
+                record(point, Grade::Perfect, current_sample, events);
+            } else if ((static_cast<long double>(current_sample) - point.sample) > m_good_window) {
+                record(point, Grade::Miss, current_sample, events);
+            }
+        }
+        while (m_hold_cursor < m_hold_order.size()) {
+            const auto index = m_hold_order[m_hold_cursor];
+            if (holdPoint(index).state == NoteState::Pending) {
+                break;
+            }
+            ++m_hold_cursor;
+        }
+
+        while (m_miss_cursor < m_order.size()) {
+            auto& note = m_notes[m_order[m_miss_cursor]];
+            if ((static_cast<long double>(current_sample) - note.sample) <= m_good_window) {
+                break;
+            }
+            if (note.note_kind != NoteKind::Slider || note.slider_kind != sheets::SliderNoteKind::Flick) {
+                if (note.state == NoteState::Pending) {
+                    record(note, Grade::Miss, current_sample, events);
+                }
+            }
+            ++m_miss_cursor;
+        }
+        while (m_flick_miss_cursor < m_flick_order.size()) {
+            auto& note = m_notes[m_flick_order[m_flick_miss_cursor]];
+            if ((static_cast<long double>(current_sample) - note.sample) <= m_flick_slide_window) {
+                break;
+            }
+            if (note.state == NoteState::Pending) {
+                // A touched FLICK without a completed horizontal gesture is a late ATTACK.
+                record(
+                    note,
+                    note.flick_gesture ? Grade::Good : Grade::Miss,
+                    note.sample + m_flick_slide_window,
+                    events
+                );
+            }
+            ++m_flick_miss_cursor;
+        }
+        m_previous_slider_pressed = slider_pressed;
+        return events;
+    }
+
+    void JudgeEngine::processFlickTouch(
+        const TouchEvent& touch,
+        const uint32 slider_pressed,
+        Array<JudgementEvent>& events
+    ) {
+        const long double first_sample = static_cast<long double>(touch.sample) - m_flick_slide_window;
+        const auto first = std::lower_bound(
+            m_flick_order.begin(),
+            m_flick_order.end(),
+            first_sample,
+            [this](const std::size_t index, const long double value) {
+                return m_notes[index].sample < value;
+            }
+        );
+
+        Note* active = nullptr;
+        long double closest_distance = std::numeric_limits<long double>::infinity();
+        for (auto it = first; it != m_flick_order.end(); ++it) {
+            auto& note = m_notes[*it];
+            if (static_cast<long double>(note.sample) > static_cast<long double>(touch.sample) + m_flick_tap_window) {
+                break;
+            }
+            if (note.state != NoteState::Pending || !note.flick_gesture) {
+                continue;
+            }
+            auto& gesture = *note.flick_gesture;
+            if (touch.sample < gesture.contact_sample ||
+                (static_cast<long double>(touch.sample) - note.sample) > m_flick_slide_window) {
+                continue;
+            }
+            if (gesture.motion_zone &&
+                (static_cast<long double>(touch.sample) - gesture.motion_sample) > m_flick_tap_window) {
+                gesture.motion_zone.reset();
+                gesture.preheld_motion = false;
+            }
+
+            bool eligible = false;
+            if (touch.phase == TouchEvent::Phase::Down && !gesture.motion_zone) {
+                eligible = FlickMotionInReach(note.lane, gesture.contact_zone, touch.zone) &&
+                           (static_cast<long double>(touch.sample) - gesture.contact_sample) <= m_flick_slide_window;
+            } else if (touch.phase == TouchEvent::Phase::Up && gesture.motion_zone) {
+                eligible = touch.zone == gesture.contact_zone ||
+                           (!gesture.preheld_motion && touch.zone == *gesture.motion_zone);
+                eligible = eligible && touch.sample >= gesture.motion_sample &&
+                           (static_cast<long double>(touch.sample) - gesture.motion_sample) <= m_flick_tap_window;
+            }
+            const long double distance = std::abs(static_cast<long double>(touch.sample) - note.sample);
+            if (eligible && distance < closest_distance) {
+                active = &note;
+                closest_distance = distance;
+            }
+        }
+
+        if (active) {
+            auto& gesture = *active->flick_gesture;
+            if (touch.phase == TouchEvent::Phase::Down) {
+                gesture.motion_zone = touch.zone;
+                gesture.motion_sample = touch.sample;
+                if (!PressedZone(slider_pressed, gesture.contact_zone)) {
+                    record(*active, flickGrade(*active), gesture.contact_sample, events);
+                }
+            } else {
+                record(*active, flickGrade(*active), gesture.contact_sample, events);
+            }
+        }
+
+        if (touch.phase != TouchEvent::Phase::Down) {
+            return;
+        }
+
+        Note* contact = nullptr;
+        closest_distance = std::numeric_limits<long double>::infinity();
+        for (auto it = first; it != m_flick_order.end(); ++it) {
+            auto& note = m_notes[*it];
+            if (static_cast<long double>(note.sample) > static_cast<long double>(touch.sample) + m_flick_tap_window) {
+                break;
+            }
+            const long double distance = std::abs(static_cast<long double>(touch.sample) - note.sample);
+            if (distance > m_flick_tap_window || note.state != NoteState::Pending || note.flick_gesture ||
+                !Contains(note.lane, touch.zone / 2)) {
+                continue;
+            }
+            const Grade grade = distance <= m_perfect_window ? Grade::Perfect : Grade::Great;
+            if (distance < closest_distance && acceptsBoundary(note, touch.zone / 2, touch.sample, grade)) {
+                contact = &note;
+                closest_distance = distance;
+            }
+        }
+        if (!contact) {
+            return;
+        }
+
+        contact->flick_gesture = FlickGesture{ .contact_zone = touch.zone, .contact_sample = touch.sample };
+        // An already-held lane can be the other half of a two-point FLICK.
+        // The newly touched lane must still be released to complete it.
+        for (uint8 zone = 0; zone < TouchZoneCount; ++zone) {
+            if (PressedZone(m_previous_slider_pressed, zone) && FlickMotionInReach(contact->lane, touch.zone, zone)) {
+                auto& gesture = *contact->flick_gesture;
+                gesture.motion_zone = zone;
+                gesture.motion_sample = touch.sample;
+                gesture.preheld_motion = true;
+                break;
+            }
+        }
+    }
+
+    Grade JudgeEngine::flickGrade(const Note& note) const {
+        const auto& gesture = *note.flick_gesture;
+        const long double contact_distance = std::abs(static_cast<long double>(gesture.contact_sample) - note.sample);
+        const long double motion_distance = std::abs(static_cast<long double>(gesture.motion_sample) - note.sample);
+        return contact_distance <= m_perfect_window && motion_distance <= m_flick_tap_window ? Grade::Perfect
+                                                                                             : Grade::Great;
+    }
+
+    NoteState JudgeEngine::noteState(const std::size_t slider_note_index) const {
+        return m_notes.at(slider_note_index).state;
+    }
+
+    NoteState JudgeEngine::sideNoteState(const std::size_t side_note_index) const {
+        return m_notes.at(m_slider_note_count + side_note_index).state;
+    }
+
+    NoteState JudgeEngine::sliderHoldPointState(const std::size_t hold_index, const std::size_t point_index) const {
+        return m_slider_holds.at(hold_index).at(point_index).state;
+    }
+
+    NoteState JudgeEngine::sideHoldPointState(const std::size_t hold_index, const std::size_t point_index) const {
+        return m_side_holds.at(hold_index).at(point_index).state;
+    }
+
+    const ScoreState& JudgeEngine::score() const noexcept {
+        return m_score;
+    }
+
+    bool
+    JudgeEngine::acceptsBoundary(const Note& candidate, const uint8 lane, const int64 sample, const Grade grade) const {
+        // Nearby overlapping notes keep their midpoint boundary even after one
+        // of them has been judged. For Perfect, only the shared lanes are cut;
+        // Great and Good are cut across the full width of each note.
+        const long double radius = static_cast<long double>(m_good_window) * 2.0L;
+        const auto first = std::lower_bound(
+            m_order.begin(),
+            m_order.end(),
+            static_cast<long double>(candidate.sample) - radius,
+            [this](const std::size_t index, const long double value) {
+                return m_notes[index].sample < value;
+            }
+        );
+        for (auto it = first; it != m_order.end(); ++it) {
+            const auto& other = m_notes[*it];
+            if (static_cast<long double>(other.sample) > static_cast<long double>(candidate.sample) + radius) {
+                break;
+            }
+            if ((other.note_kind != NoteKind::Slider && other.note_kind != NoteKind::SliderHold) ||
+                (other.note_kind == candidate.note_kind && other.chart_index == candidate.chart_index) ||
+                other.sample == candidate.sample || !Overlaps(candidate.lane, other.lane) ||
+                std::abs(static_cast<long double>(other.sample) - candidate.sample) > radius) {
+                continue;
+            }
+
+            const long double midpoint =
+                (static_cast<long double>(candidate.sample) + static_cast<long double>(other.sample)) / 2.0L;
+            const bool crossed = candidate.sample < other.sample ? sample >= midpoint : sample < midpoint;
+            if (crossed && (grade != Grade::Perfect || Contains(other.lane, lane))) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    bool JudgeEngine::acceptsSideBoundary(const Note& candidate, const int64 sample) const {
+        const long double radius = static_cast<long double>(m_good_window) * 2.0L;
+        const auto first = std::lower_bound(
+            m_order.begin(),
+            m_order.end(),
+            static_cast<long double>(candidate.sample) - radius,
+            [this](const std::size_t index, const long double value) {
+                return m_notes[index].sample < value;
+            }
+        );
+        for (auto it = first; it != m_order.end(); ++it) {
+            const auto& other = m_notes[*it];
+            if (static_cast<long double>(other.sample) > static_cast<long double>(candidate.sample) + radius) {
+                break;
+            }
+            if ((other.note_kind != NoteKind::Side && other.note_kind != NoteKind::SideHold) ||
+                (other.note_kind == candidate.note_kind && other.chart_index == candidate.chart_index) ||
+                other.side_button != candidate.side_button || other.sample == candidate.sample) {
+                continue;
+            }
+            const long double midpoint =
+                (static_cast<long double>(candidate.sample) + static_cast<long double>(other.sample)) / 2.0L;
+            if (candidate.sample < other.sample ? sample >= midpoint : sample < midpoint) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    Grade JudgeEngine::gradeFor(const Note& note, const int64 sample) const {
+        const long double distance = std::abs(static_cast<long double>(sample) - note.sample);
+        if (distance <= m_perfect_window ||
+            (note.note_kind == NoteKind::Slider && note.slider_kind == sheets::SliderNoteKind::XTap &&
+             distance <= m_good_window)) {
+            return Grade::Perfect;
+        }
+        if (distance <= m_great_window) {
+            return Grade::Great;
+        }
+        return distance <= m_good_window ? Grade::Good : Grade::Miss;
+    }
+
+    JudgeEngine::HoldPoint& JudgeEngine::holdPoint(const HoldPointIndex index) {
+        return (index.note_kind == NoteKind::SideHold ? m_side_holds : m_slider_holds)[index.hold][index.point];
+    }
+
+    void JudgeEngine::applyGrade(const Grade grade) {
+        switch (grade) {
+            case Grade::Perfect:
+                ++m_score.perfect_count;
+                ++m_score.combo;
+                break;
+            case Grade::Great:
+                ++m_score.great_count;
+                ++m_score.combo;
+                break;
+            case Grade::Good:
+                ++m_score.good_count;
+                ++m_score.combo;
+                break;
+            case Grade::Miss:
+                ++m_score.miss_count;
+                m_score.combo = 0;
+                break;
+        }
+        m_score.max_combo = Max(m_score.max_combo, m_score.combo);
+        if (m_total_combo > 0) {
+            const double weighted = m_score.perfect_count * 1.1 + m_score.great_count + m_score.good_count * 0.4;
+            m_score.score = static_cast<uint32>(1'000'000.0 * weighted / m_total_combo);
+            const double gauge_delta = 5.0 / m_total_combo;
+            m_score.clear_gauge =
+                Clamp(m_score.clear_gauge + (grade == Grade::Miss ? -gauge_delta : gauge_delta), 0.0, 1.0);
+        }
+    }
+
+    void JudgeEngine::record(Note& note, const Grade grade, const int64 sample, Array<JudgementEvent>& events) {
+        note.state = grade == Grade::Miss ? NoteState::Missed : NoteState::Hit;
+        if (note.note_kind == NoteKind::SliderHold) {
+            m_slider_holds[note.chart_index][0].state = note.state;
+        } else if (note.note_kind == NoteKind::SideHold) {
+            m_side_holds[note.chart_index][0].state = note.state;
+        }
+        applyGrade(grade);
+        events.push_back(
+            {
+                .note_kind = note.note_kind,
+                .note_index = note.chart_index,
+                .point_index = note.point_index,
+                .grade = grade,
+                .offset_samples = sample - note.sample,
+            }
+        );
+    }
+
+    void JudgeEngine::record(HoldPoint& point, const Grade grade, const int64 sample, Array<JudgementEvent>& events) {
+        point.state = grade == Grade::Miss ? NoteState::Missed : NoteState::Hit;
+        applyGrade(grade);
+        events.push_back(
+            {
+                .note_kind = point.note_kind,
+                .note_index = point.hold_index,
+                .point_index = point.point_index,
+                .grade = grade,
+                .offset_samples = sample - point.sample,
+            }
+        );
+    }
+}

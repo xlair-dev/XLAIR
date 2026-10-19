@@ -56,6 +56,14 @@ namespace xlair::ui::assets {
 
         void InitializeTextures() {
             Require(
+                TextureAsset::Register(
+                    texture::GameScoreBarFrame, Resource(U"ui/textures/game-score-bar-frame.png"), TextureDesc::Mipped
+                ),
+                U"Failed to register the game score bar frame."
+            );
+            Require(TextureAsset::Load(texture::GameScoreBarFrame), U"Failed to load the game score bar frame.");
+
+            Require(
                 TextureAsset::Register(texture::Logo, Resource(U"ui/textures/logo.png"), TextureDesc::Mipped),
                 U"Failed to register the XLAIR logo."
             );
