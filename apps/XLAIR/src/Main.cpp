@@ -40,6 +40,9 @@ void Main() {
 
     while (System::Update()) {
         application->update();
+        if (!ui::HandleMaintenanceShortcut(scene_manager)) {
+            break;
+        }
         if (!scene_manager.updateScene()) {
             break;
         }

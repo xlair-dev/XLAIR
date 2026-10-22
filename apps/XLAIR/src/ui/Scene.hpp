@@ -18,6 +18,7 @@ namespace xlair::ui {
         MusicSelect,
         Settings,
         Game,
+        Maintenance,
 #ifndef NDEBUG
         ComponentGallery,
         PlayfieldDebug,
@@ -38,10 +39,16 @@ namespace xlair::ui {
         Optional<GameSelection> game_selection;
         game::GameLoader game_loader;
         bool returning_from_game = false;
+        SceneState current_scene = SceneState::Boot;
     };
 
     using SceneManager = s3d::SceneManager<SceneState, SceneData>;
-    using SceneBase = SceneManager::Scene;
+    class SceneBase : public SceneManager::Scene {
+    public:
+        explicit SceneBase(const InitData& init);
+    };
+
+    bool HandleMaintenanceShortcut(SceneManager& scene_manager);
 
     SceneManager CreateSceneManager(
         const std::shared_ptr<app::Application>& application,

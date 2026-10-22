@@ -7,6 +7,7 @@
 #include "scenes/MusicSelect.hpp"
 #include "scenes/Settings.hpp"
 #include "scenes/Game.hpp"
+#include "scenes/Maintenance.hpp"
 
 #include "scenes/ComponentGallery.hpp"
 #ifndef NDEBUG
@@ -14,6 +15,23 @@
 #endif
 
 namespace xlair::ui {
+    SceneBase::SceneBase(const InitData& init) : SceneManager::Scene{ init } {
+        getData().current_scene = init.state;
+    }
+
+    bool HandleMaintenanceShortcut(SceneManager& scene_manager) {
+        const auto data = scene_manager.get();
+        if (data->current_scene == SceneState::Boot || data->current_scene == SceneState::Maintenance) {
+            return true;
+        }
+
+        const auto* controller = data->application->controller();
+        if (controller && controller->maintenanceButton(app::controller::MaintenanceButton::Button1).down()) {
+            return scene_manager.changeScene(SceneState::Maintenance, 0);
+        }
+        return true;
+    }
+
     MusicSelectContext& SceneData::ensureMusicSelectContext() {
         if (!music_select_context) {
             const auto& config = application->config();
@@ -38,7 +56,8 @@ namespace xlair::ui {
             .add<scenes::Login>(SceneState::Login)             // login; cancel -> Title, ok -> MusicSelect
             .add<scenes::MusicSelect>(SceneState::MusicSelect) // music
             .add<scenes::Settings>(SceneState::Settings)       // settings
-            .add<scenes::Game>(SceneState::Game);              // main game screen
+            .add<scenes::Game>(SceneState::Game)               // main game screen
+            .add<scenes::Maintenance>(SceneState::Maintenance);
 #ifndef NDEBUG
         scene_manager
             .add<scenes::ComponentGallery>(SceneState::ComponentGallery) // check ui
