@@ -18,5 +18,12 @@ namespace xlair::app::interfaces {
 
         [[nodiscard]]
         virtual const controller::InputSnapshot& snapshot() const noexcept = 0;
+
+        [[nodiscard]]
+        virtual Optional<uint8> touchThreshold() const noexcept {
+            return none;
+        }
+
+        virtual void setTouchThreshold(uint8) noexcept {}
     };
 }

@@ -41,6 +41,14 @@ namespace xlair::app::controller {
         [[nodiscard]]
         const ButtonState& maintenanceButton(MaintenanceButton button) const noexcept;
 
+        [[nodiscard]]
+        Optional<uint8> touchValue(std::size_t index) const;
+
+        [[nodiscard]]
+        Optional<uint8> touchThreshold() const noexcept;
+
+        void setTouchThreshold(uint8 threshold) noexcept;
+
     private:
         std::unique_ptr<interfaces::IControllerDevice> m_device;
         std::array<ButtonState, TouchZoneCount> m_touch_zones;

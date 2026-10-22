@@ -32,6 +32,8 @@ namespace xlair::app::controller {
     };
 
     struct InputSnapshot {
+        // No measurement is different from a measured zero (e.g. keyboard-only input).
+        std::array<Optional<uint8>, TouchZoneCount> touch_values{};
         std::array<bool, TouchZoneCount> touch_zones{};
         std::array<bool, SideButtonCount> side_buttons{};
         std::array<bool, MaintenanceButtonCount> maintenance_buttons{};

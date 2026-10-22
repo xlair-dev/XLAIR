@@ -117,7 +117,7 @@ namespace xlair::infra::controller {
         if (latest_touch_frame) {
             for (std::size_t index = 0; index < latest_touch_frame->size(); ++index) {
                 const auto destination = app::controller::TouchZoneCount - 1 - index;
-                m_snapshot.touch_zones[destination] = ((*latest_touch_frame)[index] >= m_touch_threshold);
+                m_snapshot.touch_values[destination] = (*latest_touch_frame)[index];
             }
 
             // Keep the lights active. GroundSlider may turn them off when updates stop.
@@ -129,6 +129,7 @@ namespace xlair::infra::controller {
             }
         }
 
+        setTouchThreshold(m_touch_threshold);
         return {};
     }
 
@@ -157,6 +158,18 @@ namespace xlair::infra::controller {
 
     const app::controller::InputSnapshot& GroundSlider::snapshot() const noexcept {
         return m_snapshot;
+    }
+
+    Optional<uint8> GroundSlider::touchThreshold() const noexcept {
+        return m_touch_threshold;
+    }
+
+    void GroundSlider::setTouchThreshold(const uint8 threshold) noexcept {
+        m_touch_threshold = Max(uint8{ 1 }, threshold);
+        for (std::size_t index = 0; index < m_snapshot.touch_zones.size(); ++index) {
+            const auto value = m_snapshot.touch_values[index];
+            m_snapshot.touch_zones[index] = value && *value >= m_touch_threshold;
+        }
     }
 
     void GroundSlider::close() {

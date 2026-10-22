@@ -137,6 +137,7 @@ namespace xlair::infra::controller {
         const auto& sensors = m_input.sensors();
         for (std::size_t index = 0; index < sensors.size(); ++index) {
             const bool available = m_input.boardAvailable(index / V1Input::SensorsPerBoard, now);
+            m_snapshot.touch_values[index] = available ? Optional<uint8>{ sensors[index] } : none;
             m_snapshot.touch_zones[index] = available && sensors[index] >= m_touch_threshold;
             m_snapshot.touch_zone_status[index] = NextStatus(available, m_snapshot.touch_zone_status[index]);
         }
@@ -173,6 +174,14 @@ namespace xlair::infra::controller {
 
     const app::controller::InputSnapshot& V1::snapshot() const noexcept {
         return m_snapshot;
+    }
+
+    Optional<uint8> V1::touchThreshold() const noexcept {
+        return m_touch_threshold;
+    }
+
+    void V1::setTouchThreshold(const uint8 threshold) noexcept {
+        m_touch_threshold = Clamp(threshold, uint8{ 1 }, uint8{ 254 });
     }
 
     app::controller::OperationResult V1::openPort() {

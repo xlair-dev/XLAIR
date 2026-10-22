@@ -30,6 +30,11 @@ namespace xlair::infra::controller {
         [[nodiscard]]
         const app::controller::InputSnapshot& snapshot() const noexcept override;
 
+        [[nodiscard]]
+        Optional<uint8> touchThreshold() const noexcept override;
+
+        void setTouchThreshold(uint8 threshold) noexcept override;
+
     private:
         struct Packet {
             uint8 command = 0;
