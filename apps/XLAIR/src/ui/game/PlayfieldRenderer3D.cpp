@@ -5,6 +5,8 @@
 #include "ui/assets/Assets.hpp"
 #include "ui/primitives/Sparkle.hpp"
 
+#include <SheetsAnalyzer/SliderHoldPath.hpp>
+
 #include <algorithm>
 #include <cmath>
 
@@ -133,31 +135,14 @@ namespace xlair::ui::game {
             const int64 sample,
             const uint32 slider_pressed
         ) {
-            if (points.isEmpty() || slider_pressed == 0) {
+            if (slider_pressed == 0) {
                 return false;
             }
-            const auto next =
-                std::upper_bound(points.begin(), points.end(), sample, [](const int64 value, const auto& point) {
-                    return value < point.sample;
-                });
-            const auto& before = next == points.begin() ? points.front() : *std::prev(next);
-            const auto& after = next == points.end() ? points.back() : *next;
-            const double t = before.sample == after.sample
-                                 ? 0.0
-                                 : static_cast<double>(
-                                       (static_cast<long double>(sample) - before.sample) /
-                                       (static_cast<long double>(after.sample) - before.sample)
-                                   );
-            const double left =
-                Math::Lerp(static_cast<double>(before.lane.start), static_cast<double>(after.lane.start), t);
-            const double right = Math::Lerp(
-                static_cast<double>(before.lane.start + before.lane.width),
-                static_cast<double>(after.lane.start + after.lane.width),
-                t
-            );
-            const int32 first_lane = Clamp(static_cast<int32>(std::floor(left)), 0, 16);
-            const int32 last_lane = Clamp(static_cast<int32>(std::ceil(right)), 0, 16);
-            for (int32 lane = first_lane; lane < last_lane; ++lane) {
+            const auto range = sheets::EvaluateSliderHoldLane(points, sample);
+            if (!range) {
+                return false;
+            }
+            for (int32 lane = range->start; lane < range->start + range->width; ++lane) {
                 if ((slider_pressed & (uint32{ 3 } << (lane * 2))) != 0) {
                     return true;
                 }

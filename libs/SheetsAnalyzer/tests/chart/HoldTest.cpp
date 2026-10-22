@@ -3,6 +3,8 @@
 #include "chart/HoldJudgement.hpp"
 #include "chart/SliderHoldCompiler.hpp"
 
+#include <SheetsAnalyzer/SliderHoldPath.hpp>
+
 #include <algorithm>
 
 namespace sheets = xlair::sheets;
@@ -29,6 +31,12 @@ TEST_CASE("Normalized hold paths retain their points without resampling or extra
     CHECK(hold->judge_points[1].lane.width == 3);
     CHECK(hold->judge_points[4].lane.start == 13);
     CHECK(hold->judge_points[4].lane.width == 2);
+    for (const auto& point : hold->judge_points) {
+        const auto lane = sheets::EvaluateSliderHoldLane(hold->points, point.sample);
+        REQUIRE(lane.has_value());
+        CHECK(lane->start == point.lane.start);
+        CHECK(lane->width == point.lane.width);
+    }
 }
 
 TEST_CASE("Off-grid visible anchors get a judgement independently of rendering density", "[SheetsAnalyzer][IR][Hold]") {
