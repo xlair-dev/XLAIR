@@ -43,12 +43,13 @@ namespace xlair::ui {
 
     SceneManager CreateSceneManager(
         const std::shared_ptr<app::Application>& application,
-        const std::shared_ptr<app::flows::Boot>& boot_flow
+        const std::shared_ptr<app::flows::Boot>& boot_flow,
+        const std::shared_ptr<app::flows::Maintenance>& maintenance_flow
     ) {
         scenes::MusicSelect::RegisterAssets();
         scenes::Settings::RegisterAssets();
 
-        SceneManager scene_manager{ std::make_shared<SceneData>(application, boot_flow) };
+        SceneManager scene_manager{ std::make_shared<SceneData>(application, boot_flow, maintenance_flow) };
 
         scene_manager
             .add<scenes::Boot>(SceneState::Boot)               // initialize game

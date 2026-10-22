@@ -14,12 +14,13 @@
 
 namespace xlair::app::flows {
     class Boot;
+    class Maintenance;
 }
 
 namespace xlair::app {
     class Application {
     public:
-        void update();
+        void update(bool accept_credit_input = true);
 
         [[nodiscard]]
         const Optional<Config>& config() const noexcept;
@@ -53,6 +54,7 @@ namespace xlair::app {
 
     private:
         friend class flows::Boot;
+        friend class flows::Maintenance;
 
         void setConfig(Config config);
         void setApiClient(std::unique_ptr<api::IClient> client);

@@ -24,22 +24,25 @@ void Main() {
 
     const auto paths = infra::filesystem::ResolveRuntimePaths();
     auto application = std::make_shared<app::Application>();
+    const auto metadata_loader_factory = [local_directory = paths.sheets_directory](const FilePathView sync_directory) {
+        return std::make_unique<infra::sheets::MetadataLoader>(local_directory, FilePath{ sync_directory });
+    };
     auto boot_flow = std::make_shared<app::flows::Boot>(
         *application,
         std::make_unique<infra::config::Loader>(paths.config_file, paths.sheets_directory),
-        [local_directory = paths.sheets_directory](const FilePathView sync_directory) {
-            return std::make_unique<infra::sheets::MetadataLoader>(local_directory, FilePath{ sync_directory });
-        },
+        metadata_loader_factory,
         infra::api::CreateClient,
         infra::card::CreateReader,
         infra::controller::CreateDevice,
         infra::api::SyncCatalog
     );
-    auto scene_manager = ui::CreateSceneManager(application, boot_flow);
+    auto maintenance_flow =
+        std::make_shared<app::flows::Maintenance>(*application, metadata_loader_factory, infra::api::SyncCatalog);
+    auto scene_manager = ui::CreateSceneManager(application, boot_flow, maintenance_flow);
     const auto scene_data = scene_manager.get();
 
     while (System::Update()) {
-        application->update();
+        application->update(scene_data->current_scene != ui::SceneState::Maintenance);
         if (!ui::HandleMaintenanceShortcut(scene_manager)) {
             break;
         }

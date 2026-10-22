@@ -7,7 +7,7 @@ namespace xlair::app {
         constexpr auto CoinButton = controller::MaintenanceButton::Button3;
     }
 
-    void Application::update() {
+    void Application::update(const bool accept_credit_input) {
         if (!m_controller || m_controller_error) {
             return;
         }
@@ -20,7 +20,7 @@ namespace xlair::app {
             return;
         }
 
-        if (m_controller->maintenanceButton(CoinButton).down()) {
+        if (accept_credit_input && m_controller->maintenanceButton(CoinButton).down()) {
             m_credit_pool.insert();
         }
     }
