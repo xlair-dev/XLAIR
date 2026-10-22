@@ -1,17 +1,16 @@
 #include "Maintenance.hpp"
 
 #include "ui/assets/Assets.hpp"
+#include "ui/audio/AudioBus.hpp"
 
 #include <array>
+#include <cmath>
 #include <span>
 
 namespace xlair::ui::scenes {
     namespace {
-        constexpr std::array<StringView, 4> MenuItems{
-            U"コントローラテスト",
-            U"カードリーダーテスト",
-            U"サーバ通信",
-            U"Title に戻る",
+        constexpr std::array<StringView, 5> MenuItems{
+            U"コントローラテスト", U"カードリーダーテスト", U"サーバ通信", U"サウンド", U"Title に戻る",
         };
         constexpr std::array<StringView, 3> ControllerItems{ U"入力テスト", U"LED テスト", U"戻る" };
         constexpr std::array<StringView, 7> LightItems{
@@ -27,6 +26,12 @@ namespace xlair::ui::scenes {
                                                          U"同期する",
                                                          U"全件再検証・修復",
                                                          U"戻る" };
+        constexpr std::array<StringView, 4> SoundItems{ U"楽曲", U"UI SE", U"判定・ホールド SE", U"戻る" };
+        constexpr std::array SoundBuses{ audio::Music, audio::UISound, audio::GameplaySound };
+        constexpr double SoundRepeatDelay = 0.4;
+        constexpr double SoundRepeatInterval = 0.1;
+        constexpr double SoundFastRepeatAfter = 1.5;
+        constexpr double SoundFastRepeatInterval = 0.03;
 
         void DrawMenu(
             const std::span<const StringView> items,
@@ -84,6 +89,7 @@ namespace xlair::ui::scenes {
         m_light_test.reset();
         m_page = page;
         m_selected_index = 0;
+        resetSoundRepeat();
         if (page == Page::Lights) {
             if (auto* controller = getData().application->controller()) {
                 m_light_test = std::make_unique<app::flows::LightTest>(*controller);
@@ -103,6 +109,8 @@ namespace xlair::ui::scenes {
                 return LightItems;
             case Page::Server:
                 return ServerItems;
+            case Page::Sound:
+                return SoundItems;
             default:
                 return {};
         }
@@ -134,7 +142,7 @@ namespace xlair::ui::scenes {
             changeScene(SceneState::Title, 0);
             return;
         }
-        if (KeyLeft.down() && m_page != Page::Menu) {
+        if (KeyLeft.down() && m_page != Page::Menu && m_page != Page::Sound) {
             back();
             return;
         }
@@ -161,6 +169,11 @@ namespace xlair::ui::scenes {
             do {
                 m_selected_index = (m_selected_index + items.size() + direction) % items.size();
             } while (!itemEnabled(m_selected_index));
+            resetSoundRepeat();
+        }
+        if (m_page == Page::Sound) {
+            updateSound();
+            return;
         }
         if (!KeyEnter.down() || !itemEnabled(m_selected_index)) {
             return;
@@ -175,6 +188,9 @@ namespace xlair::ui::scenes {
                     break;
                 case 2:
                     setPage(Page::Server);
+                    break;
+                case 3:
+                    setPage(Page::Sound);
                     break;
                 default:
                     changeScene(SceneState::Title, 0);
@@ -210,8 +226,56 @@ namespace xlair::ui::scenes {
             m_selected_index = previous == Page::Lights ? 1 : 0;
         } else {
             setPage(Page::Menu);
-            m_selected_index = previous == Page::Server ? 2 : previous == Page::CardReader ? 1 : 0;
+            m_selected_index = previous == Page::Sound        ? 3
+                               : previous == Page::Server     ? 2
+                               : previous == Page::CardReader ? 1
+                                                              : 0;
         }
+    }
+
+    void Maintenance::resetSoundRepeat() {
+        m_sound_repeat_direction = 0;
+        m_sound_hold_seconds = 0.0;
+        m_sound_next_repeat_seconds = SoundRepeatDelay;
+    }
+
+    void Maintenance::updateSound() {
+        if (m_selected_index == SoundBuses.size()) {
+            resetSoundRepeat();
+            if (KeyEnter.down()) {
+                back();
+            }
+            return;
+        }
+        const int32 direction = (KeyRight.pressed() ? 1 : 0) - (KeyLeft.pressed() ? 1 : 0);
+        if (direction == 0) {
+            resetSoundRepeat();
+            return;
+        }
+
+        int32 steps = 0;
+        if (direction != m_sound_repeat_direction) {
+            resetSoundRepeat();
+            m_sound_repeat_direction = direction;
+            steps = 1;
+        } else {
+            m_sound_hold_seconds += Scene::DeltaTime();
+            // Catch up across slow frames, but never apply more than the full volume range.
+            while (m_sound_hold_seconds >= m_sound_next_repeat_seconds && steps < 100) {
+                ++steps;
+                m_sound_next_repeat_seconds +=
+                    m_sound_next_repeat_seconds >= SoundFastRepeatAfter ? SoundFastRepeatInterval : SoundRepeatInterval;
+            }
+            if (steps == 100) {
+                m_sound_next_repeat_seconds = m_sound_hold_seconds + SoundFastRepeatInterval;
+            }
+        }
+        if (steps == 0) {
+            return;
+        }
+        const auto bus = SoundBuses[m_selected_index];
+        const int32 volume = static_cast<int32>(std::lround(GlobalAudio::BusGetVolume(bus) * 100.0));
+        GlobalAudio::BusSetVolume(bus, Clamp(volume + direction * steps, 0, 100) / 100.0);
     }
 
     void Maintenance::updateSlider() {
@@ -261,6 +325,7 @@ namespace xlair::ui::scenes {
                                  : m_page == Page::Lights     ? U"LED テスト"
                                  : m_page == Page::CardReader ? U"カードリーダーテスト"
                                  : m_page == Page::Server     ? U"サーバ通信"
+                                 : m_page == Page::Sound      ? U"サウンド"
                                                               : U"MAINTENANCE";
         font(title).draw(36, Vec2{ 48, 40 }, Palette::White);
         if (m_page == Page::Slider) {
@@ -271,18 +336,30 @@ namespace xlair::ui::scenes {
             drawCardReader();
         } else if (m_page == Page::Server) {
             drawServer();
+        } else if (m_page == Page::Sound) {
+            drawSound();
         } else {
             const Optional<std::size_t> disabled =
                 m_page == Page::Controller && !itemEnabled(1) ? Optional<std::size_t>{ 1 } : none;
             DrawMenu(menuItems(), m_selected_index, disabled);
         }
-        const StringView guide = busy()                   ? U"処理中..."
-                                 : m_page == Page::Slider ? U"↑ / ↓: 閾値を変更（起動中のみ）    ←: 戻る    F2: Title"
-                                 : m_page == Page::Lights
-                                     ? U"↑ / ↓: 選択    Enter: 点灯    →: 出力先切替    ←: 戻る    F2: Title"
-                                 : m_page == Page::CardReader ? U"Enter: 再読取    ←: 戻る    F2: Title"
-                                                              : U"↑ / ↓: 選択    Enter: 決定    ←: 戻る    F2: Title";
+        const StringView guide =
+            busy()                       ? U"処理中..."
+            : m_page == Page::Slider     ? U"↑ / ↓: 閾値を変更（起動中のみ）    ←: 戻る    F2: Title"
+            : m_page == Page::Lights     ? U"↑ / ↓: 選択    Enter: 点灯    →: 出力先切替    ←: 戻る    F2: Title"
+            : m_page == Page::CardReader ? U"Enter: 再読取    ←: 戻る    F2: Title"
+            : m_page == Page::Sound ? U"↑ / ↓: 選択    ← / →: 音量（長押し可・起動中のみ）    Enter: 決定    F2: Title"
+                                    : U"↑ / ↓: 選択    Enter: 決定    ←: 戻る    F2: Title";
         font(guide).draw(20, Vec2{ 48, Scene::Height() - 56.0 }, Palette::White);
+    }
+
+    void Maintenance::drawSound() const {
+        DrawMenu(SoundItems, m_selected_index);
+        const FontAsset font{ assets::font::Text };
+        for (std::size_t index = 0; index < SoundBuses.size(); ++index) {
+            const auto volume = static_cast<int32>(std::lround(GlobalAudio::BusGetVolume(SoundBuses[index]) * 100.0));
+            font(U"{}%"_fmt(volume)).draw(28, Vec2{ 480, 128.0 + index * 52.0 }, Palette::White);
+        }
     }
 
     void Maintenance::drawSlider() const {
