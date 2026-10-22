@@ -704,6 +704,8 @@ namespace xlair::ui::game {
             const double note_speed,
             const MSRenderTexture& upper_surface,
             const MSRenderTexture& lower_surface,
+            const MSRenderTexture& upper_xtap_surface,
+            const MSRenderTexture& lower_xtap_surface,
             const core::judgement::JudgeEngine* judge_engine
         ) {
             for (std::size_t index = 0; index < chart.side_notes.size(); ++index) {
@@ -724,7 +726,13 @@ namespace xlair::ui::game {
                 if (!z) {
                     continue;
                 }
-                DrawSideNotePlane(note.button, *z, upper_surface, lower_surface);
+                const bool xtap = note.kind == sheets::SideNoteKind::XTap;
+                DrawSideNotePlane(
+                    note.button,
+                    *z,
+                    xtap ? upper_xtap_surface : upper_surface,
+                    xtap ? lower_xtap_surface : lower_surface
+                );
             }
             for (std::size_t hold_index = 0; hold_index < chart.side_holds.size(); ++hold_index) {
                 const auto& hold = chart.side_holds[hold_index];
@@ -755,7 +763,9 @@ namespace xlair::ui::game {
         : m_field_surface{ FieldSurfaceSize, TextureFormat::R8G8B8A8_Unorm_SRGB },
           m_render_texture{ DesignSize, TextureFormat::R8G8B8A8_Unorm_SRGB, HasDepth::Yes },
           m_side_upper_note_surface{ SideNoteSurfaceSize, TextureFormat::R8G8B8A8_Unorm_SRGB },
-          m_side_lower_note_surface{ SideNoteSurfaceSize, TextureFormat::R8G8B8A8_Unorm_SRGB }, m_fog_shader{
+          m_side_lower_note_surface{ SideNoteSurfaceSize, TextureFormat::R8G8B8A8_Unorm_SRGB },
+          m_side_upper_xtap_surface{ SideNoteSurfaceSize, TextureFormat::R8G8B8A8_Unorm_SRGB },
+          m_side_lower_xtap_surface{ SideNoteSurfaceSize, TextureFormat::R8G8B8A8_Unorm_SRGB }, m_fog_shader{
               HLSL{ Resource(U"ui/shaders/hlsl/playfield_fog.hlsl"), U"PS" } |
               GLSL{ Resource(U"ui/shaders/glsl/playfield_fog.frag"),
                     { { U"PSPerFrame", 0 }, { U"PSPerView", 1 }, { U"PSPerMaterial", 3 }, { U"PSFog", 4 } } }
@@ -774,6 +784,8 @@ namespace xlair::ui::game {
 
         DrawSideNoteSurface(m_side_upper_note_surface, SideUpperColor, ColorF{ U"#F489E9" }, ColorF{ U"#D45CD7" });
         DrawSideNoteSurface(m_side_lower_note_surface, SideLowerColor, ColorF{ U"#F489E9" }, ColorF{ U"#D45CD7" });
+        DrawSideNoteSurface(m_side_upper_xtap_surface, SideUpperColor, ColorF{ U"#FEEFB4" }, ColorF{ U"#FEDF64" });
+        DrawSideNoteSurface(m_side_lower_xtap_surface, SideLowerColor, ColorF{ U"#FEEFB4" }, ColorF{ U"#FEDF64" });
     }
 
     void PlayfieldRenderer3D::draw(
@@ -812,6 +824,8 @@ namespace xlair::ui::game {
                 note_speed,
                 m_side_upper_note_surface,
                 m_side_lower_note_surface,
+                m_side_upper_xtap_surface,
+                m_side_lower_xtap_surface,
                 judge_engine
             );
         }
