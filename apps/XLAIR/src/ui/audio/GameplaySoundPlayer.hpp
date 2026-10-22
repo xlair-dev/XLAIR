@@ -2,7 +2,7 @@
 
 #include "Common.hpp"
 
-#include "core/judgement/JudgeEngine.hpp"
+#include "GameplaySoundScheduler.hpp"
 #include <array>
 
 namespace xlair::ui::audio {
@@ -17,31 +17,20 @@ namespace xlair::ui::audio {
 
         /// Use the engine's compiled chart, whose judgement points are sorted by sample.
         void start(const sheets::Chart& chart);
-        /// Consume each advance() result once, including empty results, to synchronize released holds.
-        void update(const core::judgement::JudgeEngine& judge, std::span<const core::judgement::JudgementEvent> events);
+        /// Pass the uncorrected music position and each advance() result, including empty results.
+        void update(
+            int64 music_sample,
+            const core::judgement::JudgeEngine& judge,
+            std::span<const core::judgement::JudgementEvent> events
+        );
         /// Stops loops while allowing successful one-shot tails to finish.
         void finish();
         void stop();
 
     private:
-        enum class Sound : std::size_t {
-            Tap,
-            SlideTap,
-            XTap,
-            Flick,
-            SideTap,
-            Checkpoint,
-            SideHold,
-            SlideHold,
-            Count,
-        };
+        void syncLoop(GameplaySoundKind sound, bool active);
 
-        void syncLoop(Sound sound, bool active);
-
-        std::array<Audio, static_cast<std::size_t>(Sound::Count)> m_sounds;
-        Array<Sound> m_slider_notes;
-        Array<Sound> m_side_notes;
-        Array<Array<Optional<Sound>>> m_slider_holds;
-        Array<Array<Optional<Sound>>> m_side_holds;
+        std::array<Audio, static_cast<std::size_t>(GameplaySoundKind::Count)> m_sounds;
+        GameplaySoundScheduler m_scheduler;
     };
 }

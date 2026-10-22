@@ -147,7 +147,7 @@ namespace xlair::ui::scenes {
                     slider_pressed,
                     side_pressed
                 );
-                m_sound_player.update(*m_judge_engine, events);
+                m_sound_player.update(m_current_sample, *m_judge_engine, events);
                 if (!events.isEmpty()) {
                     m_last_judgement = events.back();
                     m_judgement_display_seconds = 0.0;
@@ -158,7 +158,7 @@ namespace xlair::ui::scenes {
                 const auto events = m_judge_engine->advance(
                     static_cast<int64>(music.samples()) + loader.chart()->sample_rate - m_judgment_offset_samples
                 );
-                m_sound_player.update(*m_judge_engine, events);
+                m_sound_player.update(m_current_sample, *m_judge_engine, events);
                 if (!events.isEmpty()) {
                     m_last_judgement = events.back();
                     m_judgement_display_seconds = 0.0;
