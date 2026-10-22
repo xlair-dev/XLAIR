@@ -5,6 +5,7 @@
 #include "ui/assets/Assets.hpp"
 #include "ui/primitives/Sparkle.hpp"
 
+#include <algorithm>
 #include <cmath>
 
 namespace xlair::ui::game {
@@ -13,6 +14,7 @@ namespace xlair::ui::game {
         constexpr Size SideNoteSurfaceSize{ 512, 64 };
         constexpr double NotePlateHeight = 32.0;
         constexpr double NoteVisibilityMargin = 64.0;
+        constexpr double SourceJudgeY = FieldSurfaceSize.y - 100.0;
         constexpr double FieldNear = PlayfieldRenderer3D::FieldNear;
         constexpr double FieldFar = PlayfieldRenderer3D::FieldFar;
         constexpr double FieldWidth = PlayfieldRenderer3D::FieldWidth;
@@ -110,12 +112,105 @@ namespace xlair::ui::game {
             }
         }
 
+        template <class StateAt>
+        [[nodiscard]]
+        bool LastHoldJudgementHit(const std::size_t count, StateAt&& state_at) {
+            if (count < 2 || state_at(count - 1) != core::judgement::NoteState::Pending) {
+                return false;
+            }
+            for (std::size_t index = count - 1; index > 0; --index) {
+                const auto state = state_at(index - 1);
+                if (state != core::judgement::NoteState::Pending) {
+                    return state == core::judgement::NoteState::Hit;
+                }
+            }
+            return false;
+        }
+
+        [[nodiscard]]
+        bool PressedOnSliderHoldPath(
+            const s3d::Array<sheets::SliderHoldPoint>& points,
+            const int64 sample,
+            const uint32 slider_pressed
+        ) {
+            if (points.isEmpty() || slider_pressed == 0) {
+                return false;
+            }
+            const auto next =
+                std::upper_bound(points.begin(), points.end(), sample, [](const int64 value, const auto& point) {
+                    return value < point.sample;
+                });
+            const auto& before = next == points.begin() ? points.front() : *std::prev(next);
+            const auto& after = next == points.end() ? points.back() : *next;
+            const double t = before.sample == after.sample
+                                 ? 0.0
+                                 : static_cast<double>(
+                                       (static_cast<long double>(sample) - before.sample) /
+                                       (static_cast<long double>(after.sample) - before.sample)
+                                   );
+            const double left =
+                Math::Lerp(static_cast<double>(before.lane.start), static_cast<double>(after.lane.start), t);
+            const double right = Math::Lerp(
+                static_cast<double>(before.lane.start + before.lane.width),
+                static_cast<double>(after.lane.start + after.lane.width),
+                t
+            );
+            const int32 first_lane = Clamp(static_cast<int32>(std::floor(left)), 0, 16);
+            const int32 last_lane = Clamp(static_cast<int32>(std::ceil(right)), 0, 16);
+            for (int32 lane = first_lane; lane < last_lane; ++lane) {
+                if ((slider_pressed & (uint32{ 3 } << (lane * 2))) != 0) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        [[nodiscard]]
+        bool SliderHoldActive(
+            const sheets::SliderHold& hold,
+            const std::size_t hold_index,
+            const int64 current_sample,
+            const uint32 slider_pressed,
+            const core::judgement::JudgeEngine* judge_engine
+        ) {
+            if (!judge_engine || hold.points.size() < 2 || hold.judge_points.size() < 2 ||
+                current_sample < hold.points.front().sample || current_sample >= hold.points.back().sample) {
+                return false;
+            }
+            return LastHoldJudgementHit(
+                       hold.judge_points.size(),
+                       [judge_engine, hold_index](const std::size_t index) {
+                           return judge_engine->sliderHoldPointState(hold_index, index);
+                       }
+                   ) &&
+                   PressedOnSliderHoldPath(hold.points, current_sample, slider_pressed);
+        }
+
+        [[nodiscard]]
+        bool SideHoldActive(
+            const sheets::SideHold& hold,
+            const std::size_t hold_index,
+            const int64 current_sample,
+            const uint8 side_pressed,
+            const core::judgement::JudgeEngine* judge_engine
+        ) {
+            if (!judge_engine || hold.points.size() < 2 || hold.judge_samples.size() < 2 ||
+                current_sample < hold.points.front().sample || current_sample >= hold.points.back().sample ||
+                (side_pressed & (uint8{ 1 } << static_cast<uint8>(hold.button))) == 0) {
+                return false;
+            }
+            return LastHoldJudgementHit(hold.judge_samples.size(), [judge_engine, hold_index](const std::size_t index) {
+                return judge_engine->sideHoldPointState(hold_index, index);
+            });
+        }
+
         void DrawSliderHoldBodies(
             const sheets::Chart& chart,
             const playfield::ChartProjection& projection,
             const int64 current_sample,
             const double note_speed,
-            const core::judgement::JudgeEngine* judge_engine
+            const core::judgement::JudgeEngine* judge_engine,
+            const uint32 slider_pressed
         ) {
             constexpr double SourceWidth = FieldSurfaceSize.x;
             constexpr double SourceHeight = FieldSurfaceSize.y;
@@ -131,6 +226,10 @@ namespace xlair::ui::game {
                 ColorF color;
             };
 
+            Graphics2D::SetScissorRect(Rect{ 0, 0, FieldSurfaceSize.x, static_cast<int32>(SourceJudgeY) });
+            RasterizerState clipped = RasterizerState::Default2D;
+            clipped.scissorEnable = true;
+
             for (std::size_t hold_index = 0; hold_index < chart.slider_holds.size(); ++hold_index) {
                 const auto& hold = chart.slider_holds[hold_index];
                 if (hold.points.size() < 2) {
@@ -142,6 +241,12 @@ namespace xlair::ui::game {
                     current_sample >= hold.judge_points.back().sample) {
                     continue;
                 }
+                // A held body terminates at the judgement bar instead of scrolling below it.
+                const ScopedRenderStates2D rasterizer{
+                    SliderHoldActive(hold, hold_index, current_sample, slider_pressed, judge_engine)
+                        ? clipped
+                        : RasterizerState::Default2D
+                };
                 const int64 first_sample = hold.points.front().sample;
                 const int64 last_sample = hold.points.back().sample;
                 const double duration = static_cast<double>(last_sample) - static_cast<double>(first_sample);
@@ -329,7 +434,6 @@ namespace xlair::ui::game {
             constexpr double SourceHeight = FieldSurfaceSize.y;
             constexpr double SourceStageLeft = 32.0;
             constexpr double SourceLaneWidth = (SourceWidth - SourceStageLeft * 2.0) / 16.0;
-            constexpr double SourceJudgeY = SourceHeight - 100.0;
             const ColorF judge_color = ColorF{ U"#79C8FF" }.removeSRGBCurve();
 
             // The 2D surface is sampled by the linear-color 3D pass. Convert sRGB artwork colors here once.
@@ -340,7 +444,7 @@ namespace xlair::ui::game {
                 Line{ x, 0, x, SourceHeight }.draw(2.5, ColorF{ U"#FDFDFD" }.removeSRGBCurve());
             }
             DrawSliderTouchEffects(slider_pressed);
-            DrawSliderHoldBodies(chart, projection, current_sample, note_speed, judge_engine);
+            DrawSliderHoldBodies(chart, projection, current_sample, note_speed, judge_engine, slider_pressed);
             DrawSliderHoldHeads(chart, projection, current_sample, note_speed, judge_engine);
             DrawSliderNotes(chart, projection, current_sample, note_speed, judge_engine);
             FontAsset{ assets::font::ComboNumber }(combo)
@@ -538,7 +642,8 @@ namespace xlair::ui::game {
             const playfield::ChartProjection& projection,
             const int64 current_sample,
             const double note_speed,
-            const core::judgement::JudgeEngine* judge_engine
+            const core::judgement::JudgeEngine* judge_engine,
+            const uint8 side_pressed
         ) {
             const ColorF color = ColorF{ U"#D45CD7" }.removeSRGBCurve().withA(0.42);
             const ScopedRenderStates3D translucent{ BlendState::NonPremultiplied, DepthStencilState::DepthTest };
@@ -555,6 +660,7 @@ namespace xlair::ui::game {
                 const double side = left ? -1.0 : 1.0;
                 const bool upper =
                     hold.button == sheets::SideButton::LeftUpper || hold.button == sheets::SideButton::RightUpper;
+                const bool active = SideHoldActive(hold, hold_index, current_sample, side_pressed, judge_engine);
                 for (std::size_t index = 1; index < hold.points.size(); ++index) {
                     const auto& before = hold.points[index - 1];
                     const auto& after = hold.points[index];
@@ -565,7 +671,7 @@ namespace xlair::ui::game {
                         before,
                         after,
                         [&](const int64, const double before_z, const int64, const double after_z) {
-                            const double near_limit = upper ? FieldNear : LowerNear;
+                            const double near_limit = active ? 0.0 : (upper ? FieldNear : LowerNear);
                             const double near_z = Clamp(Min(before_z, after_z), near_limit, FieldFar);
                             const double far_z = Clamp(Max(before_z, after_z), near_limit, FieldFar);
                             if (far_z - near_z < 0.01) {
@@ -696,7 +802,7 @@ namespace xlair::ui::game {
             const ScopedCustomShader3D fog_shader{ m_fog_shader };
             DrawField(m_field_surface, show_depth_guides, side_pressed);
             DrawSliderHoldDiamonds(chart, projection, current_sample, note_speed);
-            DrawSideHoldBodies(chart, projection, current_sample, note_speed, judge_engine);
+            DrawSideHoldBodies(chart, projection, current_sample, note_speed, judge_engine, side_pressed);
             DrawSideNotes(
                 chart,
                 projection,
