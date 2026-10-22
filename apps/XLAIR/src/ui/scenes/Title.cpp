@@ -7,10 +7,6 @@
 #include "ui/theme/Palette.hpp"
 
 namespace xlair::ui::scenes {
-    namespace {
-        constexpr auto PrimaryMaintenanceButton = app::controller::MaintenanceButton::Button1;
-    }
-
     Title::Title(const InitData& init) : SceneBase{ init } {
         getData().music_select_context.reset();
         getData().scanned_card.reset();
@@ -32,16 +28,6 @@ namespace xlair::ui::scenes {
         }
 #endif
         const auto previous = m_title_flow->state();
-        const auto* controller = getData().application->controller();
-        const bool maintenance_button_down =
-            controller && controller->maintenanceButton(PrimaryMaintenanceButton).down();
-        if ((previous == app::flows::Title::State::CardRead || previous == app::flows::Title::State::Failed) &&
-            maintenance_button_down) {
-            m_title_flow->start();
-            reportState();
-            return;
-        }
-
         m_title_flow->update();
         if (m_title_flow->state() != previous) {
             reportState();
@@ -89,12 +75,10 @@ namespace xlair::ui::scenes {
 
             case app::flows::Title::State::CardRead:
                 Logger << U"[Title] Card ID: " + m_title_flow->card()->card_id;
-                Logger << U"[Title] Press maintenance button 1 to scan again.";
                 break;
 
             case app::flows::Title::State::Failed:
                 Logger << U"[Title] Card reader error: " + m_title_flow->error()->message;
-                Logger << U"[Title] Press maintenance button 1 to retry.";
                 break;
         }
     }

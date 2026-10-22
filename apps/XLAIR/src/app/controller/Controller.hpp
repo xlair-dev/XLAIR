@@ -23,6 +23,9 @@ namespace xlair::app::controller {
         [[nodiscard]]
         const LightFrame& lights() const noexcept;
 
+        [[nodiscard]]
+        LightCapabilities lightCapabilities() const noexcept;
+
         // +----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+
         // |    |    |    |    |    |    |    |    |    |    |    |    |    |    |    |    |
         // |  0 |  2 |  4 |  6 |  8 | 10 | 12 | 14 | 16 | 18 | 20 | 22 | 24 | 26 | 28 | 30 |
@@ -40,6 +43,14 @@ namespace xlair::app::controller {
 
         [[nodiscard]]
         const ButtonState& maintenanceButton(MaintenanceButton button) const noexcept;
+
+        [[nodiscard]]
+        Optional<uint8> touchValue(std::size_t index) const;
+
+        [[nodiscard]]
+        Optional<uint8> touchThreshold() const noexcept;
+
+        void setTouchThreshold(uint8 threshold) noexcept;
 
     private:
         std::unique_ptr<interfaces::IControllerDevice> m_device;

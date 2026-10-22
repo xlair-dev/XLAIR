@@ -6,6 +6,13 @@
 
 namespace api = xlair::api;
 
+TEST_CASE("Health checks validate the public API response", "[API][Health]") {
+    CHECK(api::ParseHealth(s3d::JSON::Parse(UR"({"status":"ok","timestamp":"2026-10-22T00:00:00Z"})")));
+    CHECK_FALSE(api::ParseHealth(s3d::JSON::Parse(UR"({"status":"error","timestamp":"2026-10-22T00:00:00Z"})")));
+    CHECK_THROWS_AS(api::ParseHealth(s3d::JSON::Parse(UR"({"status":"ok"})")), s3d::Error);
+    CHECK_THROWS_AS(api::ParseHealth(s3d::JSON::Parse(UR"({"status":true,"timestamp":"now"})")), s3d::Error);
+}
+
 TEST_CASE("Client options validate API base URLs independently of config files", "[API][Options]") {
     api::ClientOptions options;
     for (const auto* endpoint :

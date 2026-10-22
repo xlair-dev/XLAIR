@@ -10,6 +10,11 @@
 namespace xlair::app::flows {
     class CatalogSync {
     public:
+        enum class Mode {
+            Incremental,
+            VerifyAll,
+        };
+
         enum class State {
             Idle,
             Loading,
@@ -17,12 +22,12 @@ namespace xlair::app::flows {
             Failed,
         };
         using LocalSyncFactory =
-            std::function<api::Request<bool>(api::IClient&, const Array<api::Music>&, URLView, FilePathView)>;
+            std::function<api::Request<bool>(api::IClient&, const Array<api::Music>&, URLView, FilePathView, Mode)>;
 
         explicit CatalogSync(LocalSyncFactory local_sync_factory);
         ~CatalogSync();
 
-        void start(api::IClient& client, URLView endpoint, FilePathView sync_directory);
+        void start(api::IClient& client, URLView endpoint, FilePathView sync_directory, Mode mode = Mode::Incremental);
         void update();
         void cancel();
 
@@ -46,6 +51,7 @@ namespace xlair::app::flows {
         api::IClient* m_client = nullptr;
         URL m_endpoint;
         FilePath m_sync_directory;
+        Mode m_mode = Mode::Incremental;
         api::Request<Array<api::Music>> m_catalog_request;
         api::Request<bool> m_local_sync_request;
         Array<api::Music> m_pending_catalog;

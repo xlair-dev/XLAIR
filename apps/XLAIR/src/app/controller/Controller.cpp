@@ -72,6 +72,10 @@ namespace xlair::app::controller {
         return m_lights;
     }
 
+    LightCapabilities Controller::lightCapabilities() const noexcept {
+        return m_device ? m_device->lightCapabilities() : LightCapabilities{};
+    }
+
     const ButtonState& Controller::touchZone(const std::size_t index) const {
         return m_touch_zones.at(index);
     }
@@ -82,5 +86,19 @@ namespace xlair::app::controller {
 
     const ButtonState& Controller::maintenanceButton(const MaintenanceButton button) const noexcept {
         return m_maintenance_buttons[static_cast<std::size_t>(button)];
+    }
+
+    Optional<uint8> Controller::touchValue(const std::size_t index) const {
+        return m_initialized ? m_device->snapshot().touch_values.at(index) : none;
+    }
+
+    Optional<uint8> Controller::touchThreshold() const noexcept {
+        return m_device ? m_device->touchThreshold() : none;
+    }
+
+    void Controller::setTouchThreshold(const uint8 threshold) noexcept {
+        if (m_device) {
+            m_device->setTouchThreshold(threshold);
+        }
     }
 }

@@ -4,6 +4,7 @@
 
 namespace xlair::api {
     // Throws s3d::Error for an invalid response. The HTTP boundary converts it to ApiError.
+    bool ParseHealth(const s3d::JSON& json);
     User ParseUser(const s3d::JSON& json);
     s3d::Array<UserRecord> ParseRecords(const s3d::JSON& json);
     PlayOptions ParsePlayOptions(const s3d::JSON& json);

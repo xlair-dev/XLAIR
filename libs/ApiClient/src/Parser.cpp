@@ -83,6 +83,12 @@ namespace xlair::api {
         }
     }
 
+    bool ParseHealth(const s3d::JSON& json) {
+        const auto status = Read<s3d::String>(json, U"status");
+        (void)Read<s3d::String>(json, U"timestamp");
+        return status == U"ok";
+    }
+
     User ParseUser(const s3d::JSON& json) {
         return {
             .id = Read<s3d::String>(json, U"id"),

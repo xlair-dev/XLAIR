@@ -32,6 +32,8 @@ namespace xlair::app::controller {
     };
 
     struct InputSnapshot {
+        // No measurement is different from a measured zero (e.g. keyboard-only input).
+        std::array<Optional<uint8>, TouchZoneCount> touch_values{};
         std::array<bool, TouchZoneCount> touch_zones{};
         std::array<bool, SideButtonCount> side_buttons{};
         std::array<bool, MaintenanceButtonCount> maintenance_buttons{};
@@ -59,6 +61,11 @@ namespace xlair::app::controller {
         }
     };
 
+    struct LightCapabilities {
+        bool slider = false;
+        bool side = false;
+    };
+
     struct LightFrame {
         // +----++----++----++----++----++----++----++----++----++----++----++----++----++----++----++----+
         // |    ||    ||    ||    ||    ||    ||    ||    ||    ||    ||    ||    ||    ||    ||    ||    |
@@ -73,6 +80,8 @@ namespace xlair::app::controller {
         //       |  1  |          |  2  |
         //       +-----+          +-----+
         std::array<Color, SideButtonCount> side{};
+
+        bool operator==(const LightFrame&) const = default;
 
         [[nodiscard]]
         Color sliderLight(const std::size_t index) const noexcept {

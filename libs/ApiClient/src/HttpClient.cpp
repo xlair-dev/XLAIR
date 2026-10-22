@@ -146,13 +146,16 @@ namespace xlair::api {
                 s3d::Optional<std::string> body,
                 s3d::int32 expected_status,
                 Parser parser,
-                s3d::Optional<s3d::FilePath> destination = s3d::none
+                s3d::Optional<s3d::FilePath> destination = s3d::none,
+                bool requires_authentication = true
             )
                 : m_session{ std::move(session) }, m_path{ std::move(path) }, m_body{ std::move(body) },
                   m_expected_status{ expected_status }, m_parser{ std::move(parser) },
-                  m_destination{ std::move(destination) } {
+                  m_destination{ std::move(destination) }, m_requires_authentication{ requires_authentication } {
                 // A new explicit operation may retry authentication after an earlier failure.
-                m_session->auth_error.reset();
+                if (m_requires_authentication) {
+                    m_session->auth_error.reset();
+                }
             }
 
             ~HttpRequest() override {
@@ -190,25 +193,24 @@ namespace xlair::api {
                 }
                 try {
                     if (!m_task) {
-                        m_session->updateAuthentication();
-                        if (m_session->auth_error) {
-                            m_result = *m_session->auth_error;
-                            return;
-                        }
-                        if (!m_session->hasToken()) {
-                            return;
-                        }
-                        m_token = m_session->token;
                         s3d::HashTable<s3d::String, s3d::String> headers{
-                            {
-                                U"Authorization",
-                                U"Bearer " + m_token,
-                            },
                             {
                                 U"Accept",
                                 U"application/json",
                             },
                         };
+                        if (m_requires_authentication) {
+                            m_session->updateAuthentication();
+                            if (m_session->auth_error) {
+                                m_result = *m_session->auth_error;
+                                return;
+                            }
+                            if (!m_session->hasToken()) {
+                                return;
+                            }
+                            m_token = m_session->token;
+                            headers[U"Authorization"] = U"Bearer " + m_token;
+                        }
                         // Asset URLs are origin-relative, not relative to an API path prefix.
                         const auto origin_end =
                             m_session->endpoint.indexOf(U'/', m_session->endpoint.indexOf(U"://") + 3);
@@ -234,10 +236,10 @@ namespace xlair::api {
                     }
                     const s3d::int32 status = response.getStatusCodeInt();
                     if (status != m_expected_status) {
-                        if (status == 401 && m_token == m_session->token) {
+                        if (m_requires_authentication && status == 401 && m_token == m_session->token) {
                             m_session->token.clear();
                         }
-                        if (status == 401 && !m_body && !m_retried) {
+                        if (m_requires_authentication && status == 401 && !m_body && !m_retried) {
                             m_retried = true;
                             m_task = {};
                             return;
@@ -293,6 +295,7 @@ namespace xlair::api {
             s3d::int32 m_expected_status;
             Parser m_parser;
             s3d::Optional<s3d::FilePath> m_destination;
+            bool m_requires_authentication = true;
             bool m_retried = false;
             s3d::Optional<Clock::time_point> m_started;
             s3d::String m_token;
@@ -313,6 +316,12 @@ namespace xlair::api {
     }
 
     HttpClient::HttpClient(const ClientOptions& config) : m_session{ std::make_shared<HttpSession>(config) } {}
+
+    Request<bool> HttpClient::checkHealth() {
+        // /health is public; authentication failures should not hide server reachability.
+        return std::make_unique<
+            HttpRequest<bool>>(m_session, U"/health", s3d::none, 200, ParseHealth, s3d::none, false);
+    }
 
     Request<User> HttpClient::findUserByCard(s3d::StringView card_id) {
         return MakeRequest(m_session, U"/users?card=" + s3d::PercentEncode(card_id), ParseUser);

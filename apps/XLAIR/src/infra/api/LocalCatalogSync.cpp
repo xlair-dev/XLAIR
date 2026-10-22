@@ -6,6 +6,7 @@
 namespace xlair::infra::api {
     using namespace s3d;
     namespace remote = xlair::api;
+    using SyncMode = app::flows::CatalogSync::Mode;
 
     namespace {
         struct Asset {
@@ -82,9 +83,10 @@ namespace xlair::infra::api {
                 remote::IClient& client,
                 const Array<remote::Music>& catalog,
                 FilePathView sync_directory,
-                URLView endpoint
+                URLView endpoint,
+                const SyncMode mode
             )
-                : m_client{ client } {
+                : m_client{ client }, m_mode{ mode } {
                 String server{ endpoint };
                 while (server.ends_with(U'/')) {
                     server.pop_back();
@@ -203,6 +205,51 @@ namespace xlair::infra::api {
                     fail(U"Could not open local asset for verification.");
                 }
             }
+
+            bool loadPreviousManifest() {
+                const auto path = m_root + U"manifest.json";
+                if (!FileSystem::Exists(path)) {
+                    return true;
+                }
+                auto previous = JSON::Load(path);
+                const auto endpoint = previous.isObject() ? previous[U"endpoint"].getOpt<String>() : none;
+                if (!endpoint || !previous[U"musics"].isArray()) {
+                    fail(U"Cannot read the previous sync manifest safely.");
+                    return false;
+                }
+                if (*endpoint != m_manifest[U"endpoint"].get<String>()) {
+                    m_result = remote::ApiError{
+                        remote::ErrorKind::Configuration,
+                        U"The sync directory belongs to a different API endpoint. Explicitly "
+                        U"reset or move the sync directory before switching servers.",
+                        none,
+                    };
+                    return false;
+                }
+
+                // A published manifest contains only assets verified by a completed sync.
+                // Legacy storage paths cannot be reused at their new destination; verify those files normally.
+                const auto remember = [&](const JSON& asset) {
+                    if (asset.isNull()) {
+                        return;
+                    }
+                    const auto url = asset[U"url"].getOpt<String>();
+                    const auto relative = asset[U"path"].getOpt<String>();
+                    const auto parsed = url ? ParseAsset(*url) : none;
+                    if (parsed && relative && *relative == parsed->relative) {
+                        m_verified_assets[*relative] = parsed->hash;
+                    }
+                };
+                for (const auto& music : previous[U"musics"]) {
+                    remember(music.value[U"jacket"]);
+                    remember(music.value[U"audio"]);
+                    for (const auto& sheet : music.value[U"sheets"]) {
+                        remember(sheet.value[U"chart"]);
+                    }
+                }
+                m_previous_manifest = std::move(previous);
+                return true;
+            }
             void download() {
                 const auto path = FileSystem::PathAppend(m_root, m_assets[m_index].relative);
                 if (!FileSystem::CreateDirectories(FileSystem::ParentPath(path))) {
@@ -218,14 +265,8 @@ namespace xlair::infra::api {
             // Persist the deletion journal in the new manifest before deleting anything.
             bool prepareDeletions() {
                 HashSet<String> candidates;
-                const auto path = m_root + U"manifest.json";
-                if (FileSystem::Exists(path)) {
-                    const auto old = JSON::Load(path);
-                    if (!old || !old.isObject() || !old[U"musics"].isArray() ||
-                        old[U"endpoint"].getOpt<String>() != m_manifest[U"endpoint"].getOpt<String>()) {
-                        fail(U"Cannot read the previous sync manifest safely.");
-                        return false;
-                    }
+                if (m_previous_manifest) {
+                    const auto& old = *m_previous_manifest;
                     const auto collect = [&](const JSON& asset) {
                         if (asset.isNull()) {
                             return;
@@ -347,26 +388,25 @@ namespace xlair::infra::api {
             }
 
             void step() {
-                if (!m_endpoint_checked) {
-                    const auto path = m_root + U"manifest.json";
-                    if (FileSystem::Exists(path)) {
-                        const auto previous = JSON::Load(path);
-                        const auto endpoint = previous.isObject() ? previous[U"endpoint"].getOpt<String>() : none;
-                        if (!endpoint) {
-                            fail(U"Cannot read the previous sync endpoint safely.");
-                            return;
-                        }
-                        if (*endpoint != m_manifest[U"endpoint"].get<String>()) {
-                            m_result = remote::ApiError{
-                                remote::ErrorKind::Configuration,
-                                U"The sync directory belongs to a different API endpoint. Explicitly "
-                                U"reset or move the sync directory before switching servers.",
-                                none,
-                            };
-                            return;
-                        }
+                if (!m_previous_manifest_loaded) {
+                    if (!loadPreviousManifest()) {
+                        return;
                     }
-                    m_endpoint_checked = true;
+                    m_previous_manifest_loaded = true;
+                }
+
+                // Unchanged content-addressed assets require no disk reads. Process all cache hits
+                // in this update instead of imposing an extra frame of latency on every file.
+                if (m_mode == SyncMode::Incremental && !m_request && !m_reader && m_partial.isEmpty()) {
+                    while (m_index < m_assets.size()) {
+                        const auto& asset = m_assets[m_index];
+                        const auto verified = m_verified_assets.find(asset.relative);
+                        if (verified == m_verified_assets.end() || verified->second != asset.hash ||
+                            !FileSystem::IsFile(FileSystem::PathAppend(m_root, asset.relative))) {
+                            break;
+                        }
+                        ++m_index;
+                    }
                 }
                 if (m_index == m_assets.size()) {
                     if (!FileSystem::CreateDirectories(m_root)) {
@@ -443,8 +483,11 @@ namespace xlair::infra::api {
                 ++m_index;
             }
             remote::IClient& m_client;
+            SyncMode m_mode;
             FilePath m_root, m_partial;
-            bool m_endpoint_checked = false;
+            bool m_previous_manifest_loaded = false;
+            Optional<JSON> m_previous_manifest;
+            HashTable<FilePath, String> m_verified_assets;
             JSON m_manifest;
             Array<Asset> m_assets;
             std::size_t m_index = 0;
@@ -458,8 +501,9 @@ namespace xlair::infra::api {
         remote::IClient& client,
         const Array<remote::Music>& catalog,
         URLView endpoint,
-        FilePathView sync_directory
+        FilePathView sync_directory,
+        const SyncMode mode
     ) {
-        return std::make_unique<Sync>(client, catalog, sync_directory, endpoint);
+        return std::make_unique<Sync>(client, catalog, sync_directory, endpoint, mode);
     }
 }

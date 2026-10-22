@@ -46,6 +46,10 @@ TEST_CASE("MockClient loads JSON and applies mutations in memory", "[API][Mock]"
     directory.create();
     api::MockClient client{ { directory.path } };
 
+    auto health = client.checkHealth();
+    REQUIRE(std::holds_alternative<bool>(ResultOf(health)));
+    CHECK(std::get<bool>(ResultOf(health)));
+
     auto catalog = client.fetchCatalog();
     REQUIRE(std::holds_alternative<Array<api::Music>>(ResultOf(catalog)));
     CHECK(std::get<Array<api::Music>>(ResultOf(catalog))[0].id == U"music");

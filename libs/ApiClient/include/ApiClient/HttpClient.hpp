@@ -10,6 +10,8 @@ namespace xlair::api {
     public:
         explicit HttpClient(const ClientOptions& config);
 
+        Request<bool> checkHealth() override;
+
         Request<User> findUserByCard(s3d::StringView card_id) override;
 
         Request<s3d::Array<UserRecord>> fetchUserRecords(s3d::StringView user_id) override;
