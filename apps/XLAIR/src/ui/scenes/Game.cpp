@@ -60,6 +60,7 @@ namespace xlair::ui::scenes {
     }
 
     Game::~Game() {
+        m_sound_player.stop();
         getData().game_loader.cancel();
         getData().game_selection.reset();
     }
@@ -70,6 +71,7 @@ namespace xlair::ui::scenes {
         const auto* controller = getData().application->controller();
         const bool cancel = controller && controller->maintenanceButton(CancelButton).down();
         if (cancel || KeyEscape.pressedDuration() >= SecondsF{ 1.5 }) {
+            m_sound_player.stop();
             if (const auto& music = getData().game_loader.audio()) {
                 music.stop(SecondsF{ 0.25 });
             }
@@ -90,6 +92,7 @@ namespace xlair::ui::scenes {
             const double judgment = application.playSession().playOptions().judgment_offset_ms / 1'000.0;
             m_judgment_offset_samples = JudgmentOffsetSamples(latency + judgment, loader.chart()->sample_rate);
             m_judge_engine = std::make_unique<core::judgement::JudgeEngine>(*loader.chart());
+            m_sound_player.start(*loader.chart());
             music.play(audio::Music);
             m_playback_started = true;
             return;
@@ -144,19 +147,23 @@ namespace xlair::ui::scenes {
                     slider_pressed,
                     side_pressed
                 );
+                m_sound_player.update(m_current_sample, *m_judge_engine, events);
                 if (!events.isEmpty()) {
                     m_last_judgement = events.back();
                     m_judgement_display_seconds = 0.0;
                 }
             } else {
+                m_current_sample = static_cast<int64>(music.samples());
                 // Resolve pending notes at the end even if the audio ends within a judgement window.
                 const auto events = m_judge_engine->advance(
                     static_cast<int64>(music.samples()) + loader.chart()->sample_rate - m_judgment_offset_samples
                 );
+                m_sound_player.update(m_current_sample, *m_judge_engine, events);
                 if (!events.isEmpty()) {
                     m_last_judgement = events.back();
                     m_judgement_display_seconds = 0.0;
                 }
+                m_sound_player.finish();
                 m_playback_finished = true;
             }
         }

@@ -11,6 +11,7 @@
 #include "infra/sheets/MetadataLoader.hpp"
 #include "ui/Scene.hpp"
 #include "ui/assets/Assets.hpp"
+#include "ui/audio/AudioBus.hpp"
 #include "ui/localization/Localization.hpp"
 
 void Main() {
@@ -19,6 +20,7 @@ void Main() {
     namespace infra = xlair::infra;
     namespace ui = xlair::ui;
 
+    ui::audio::InitializeBuses();
     ui::assets::Initialize();
     ui::localization::Initialize();
 

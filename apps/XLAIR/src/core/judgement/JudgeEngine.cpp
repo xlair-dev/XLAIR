@@ -1,5 +1,7 @@
 #include "JudgeEngine.hpp"
 
+#include <SheetsAnalyzer/SliderHoldPath.hpp>
+
 #include <algorithm>
 #include <cmath>
 #include <limits>
@@ -152,7 +154,7 @@ namespace xlair::core::judgement {
                     .lane = start.lane,
                 }
             );
-            m_slider_holds.push_back(std::move(points));
+            m_slider_holds.push_back({ .points = std::move(points), .path = source.points });
         }
 
         m_side_holds.reserve(chart.side_holds.size());
@@ -192,7 +194,7 @@ namespace xlair::core::judgement {
                     .side_button = source.button,
                 }
             );
-            m_side_holds.push_back(std::move(points));
+            m_side_holds.push_back({ .points = std::move(points) });
         }
 
         m_hold_order.stable_sort_by([this](const HoldPointIndex left, const HoldPointIndex right) {
@@ -367,6 +369,7 @@ namespace xlair::core::judgement {
             ++m_flick_miss_cursor;
         }
         m_previous_slider_pressed = slider_pressed;
+        updateHoldActivity(current_sample, slider_pressed, side_pressed);
         return events;
     }
 
@@ -493,11 +496,36 @@ namespace xlair::core::judgement {
     }
 
     NoteState JudgeEngine::sliderHoldPointState(const std::size_t hold_index, const std::size_t point_index) const {
-        return m_slider_holds.at(hold_index).at(point_index).state;
+        return m_slider_holds.at(hold_index).points.at(point_index).state;
     }
 
     NoteState JudgeEngine::sideHoldPointState(const std::size_t hold_index, const std::size_t point_index) const {
-        return m_side_holds.at(hold_index).at(point_index).state;
+        return m_side_holds.at(hold_index).points.at(point_index).state;
+    }
+
+    bool JudgeEngine::sliderHoldActive(const std::size_t hold_index) const {
+        return m_slider_holds.at(hold_index).active;
+    }
+
+    bool JudgeEngine::sideHoldActive(const std::size_t hold_index) const {
+        return m_side_holds.at(hold_index).active;
+    }
+
+    void JudgeEngine::updateHoldActivity(const int64 sample, const uint32 slider_pressed, const uint8 side_pressed) {
+        const auto can_sustain = [sample](const Hold& hold) {
+            return hold.acquired && hold.points.back().state == NoteState::Pending &&
+                   sample < hold.points.back().sample;
+        };
+        for (auto& hold : m_slider_holds) {
+            hold.active = false;
+            if (can_sustain(hold)) {
+                const auto lane = sheets::EvaluateSliderHoldLane(hold.path, sample);
+                hold.active = lane && PressedInSpan(slider_pressed, *lane);
+            }
+        }
+        for (auto& hold : m_side_holds) {
+            hold.active = can_sustain(hold) && SidePressed(side_pressed, hold.points.front().side_button);
+        }
     }
 
     const ScoreState& JudgeEngine::score() const noexcept {
@@ -571,9 +599,7 @@ namespace xlair::core::judgement {
 
     Grade JudgeEngine::gradeFor(const Note& note, const int64 sample) const {
         const long double distance = std::abs(static_cast<long double>(sample) - note.sample);
-        const bool xtap = (note.note_kind == NoteKind::Slider && note.slider_kind == sheets::SliderNoteKind::XTap) ||
-                          (note.note_kind == NoteKind::Side && note.side_kind == sheets::SideNoteKind::XTap);
-        if (distance <= m_perfect_window || (xtap && distance <= m_good_window)) {
+        if (distance <= m_perfect_window || (note.isXTap() && distance <= m_good_window)) {
             return Grade::Perfect;
         }
         if (distance <= m_great_window) {
@@ -583,7 +609,7 @@ namespace xlair::core::judgement {
     }
 
     JudgeEngine::HoldPoint& JudgeEngine::holdPoint(const HoldPointIndex index) {
-        return (index.note_kind == NoteKind::SideHold ? m_side_holds : m_slider_holds)[index.hold][index.point];
+        return (index.note_kind == NoteKind::SideHold ? m_side_holds : m_slider_holds)[index.hold].points[index.point];
     }
 
     void JudgeEngine::applyGrade(const Grade grade) {
@@ -615,12 +641,18 @@ namespace xlair::core::judgement {
         }
     }
 
-    void JudgeEngine::record(Note& note, const Grade grade, const int64 sample, Array<JudgementEvent>& events) {
+    void JudgeEngine::record(
+        Note& note,
+        const Grade grade,
+        const int64 sample,
+        Array<JudgementEvent>& events,
+        const bool linked_start
+    ) {
         note.state = grade == Grade::Miss ? NoteState::Missed : NoteState::Hit;
-        if (note.note_kind == NoteKind::SliderHold) {
-            m_slider_holds[note.chart_index][0].state = note.state;
-        } else if (note.note_kind == NoteKind::SideHold) {
-            m_side_holds[note.chart_index][0].state = note.state;
+        if (note.note_kind == NoteKind::SliderHold || note.note_kind == NoteKind::SideHold) {
+            auto& hold = (note.note_kind == NoteKind::SideHold ? m_side_holds : m_slider_holds)[note.chart_index];
+            hold.points.front().state = note.state;
+            hold.acquired = hold.acquired || grade != Grade::Miss;
         }
         applyGrade(grade);
         events.push_back(
@@ -630,12 +662,39 @@ namespace xlair::core::judgement {
                 .point_index = note.point_index,
                 .grade = grade,
                 .offset_samples = sample - note.sample,
+                .linked_start = linked_start,
             }
         );
+        if (grade == Grade::Miss || !note.isXTap()) {
+            return;
+        }
+
+        // A co-located XTap also starts the hold. Both still count towards combo,
+        // but the linked event lets audio avoid playing two start sounds.
+        const auto first = std::lower_bound(
+            m_order.begin(),
+            m_order.end(),
+            note.sample,
+            [this](const std::size_t index, const int64 value) {
+                return m_notes[index].sample < value;
+            }
+        );
+        for (auto it = first; it != m_order.end() && m_notes[*it].sample == note.sample; ++it) {
+            auto& start = m_notes[*it];
+            const bool linked = note.note_kind == NoteKind::Slider
+                                    ? start.note_kind == NoteKind::SliderHold && start.lane.start == note.lane.start &&
+                                          start.lane.width == note.lane.width
+                                    : start.note_kind == NoteKind::SideHold && start.side_button == note.side_button;
+            if (linked && start.state == NoteState::Pending) {
+                record(start, grade, sample, events, true);
+            }
+        }
     }
 
     void JudgeEngine::record(HoldPoint& point, const Grade grade, const int64 sample, Array<JudgementEvent>& events) {
         point.state = grade == Grade::Miss ? NoteState::Missed : NoteState::Hit;
+        auto& hold = (point.note_kind == NoteKind::SideHold ? m_side_holds : m_slider_holds)[point.hold_index];
+        hold.acquired = hold.acquired || grade != Grade::Miss;
         applyGrade(grade);
         events.push_back(
             {
