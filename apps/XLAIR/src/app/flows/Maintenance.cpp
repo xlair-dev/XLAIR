@@ -33,7 +33,7 @@ namespace xlair::app::flows {
         m_message = U"Checking API health...";
     }
 
-    void Maintenance::sync() {
+    void Maintenance::sync(const CatalogSync::Mode mode) {
         if (busy()) {
             return;
         }
@@ -50,9 +50,12 @@ namespace xlair::app::flows {
             return;
         }
         m_metadata_load.setLoader(std::move(loader));
-        m_sync.start(*client, config->api.syncSource(), config->sync.directory);
+        m_sync_mode = mode;
+        m_sync.start(*client, config->api.syncSource(), config->sync.directory, mode);
         m_state = State::Syncing;
-        m_message = U"Syncing catalog and assets...";
+        m_message = mode == CatalogSync::Mode::VerifyAll
+                        ? U"Verifying all assets and repairing missing or damaged files..."
+                        : U"Syncing catalog and assets...";
     }
 
     void Maintenance::update() {
@@ -94,7 +97,8 @@ namespace xlair::app::flows {
             } else if (m_metadata_load.state() == MetadataLoad::State::Succeeded) {
                 m_application.setMusicCatalog(m_metadata_load.takeMetadata());
                 m_state = State::Succeeded;
-                m_message = U"Sync completed.";
+                m_message = m_sync_mode == CatalogSync::Mode::VerifyAll ? U"Sync and full verification completed."
+                                                                        : U"Sync completed.";
             }
         }
     }

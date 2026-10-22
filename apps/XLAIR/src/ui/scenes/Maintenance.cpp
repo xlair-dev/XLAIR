@@ -8,7 +8,10 @@
 namespace xlair::ui::scenes {
     namespace {
         constexpr std::array<StringView, 3> MenuItems{ U"スライダーテスト", U"サーバ通信", U"Title に戻る" };
-        constexpr std::array<StringView, 3> ServerItems{ U"API ヘルスチェック", U"同期する", U"戻る" };
+        constexpr std::array<StringView, 4> ServerItems{ U"API ヘルスチェック",
+                                                         U"同期する",
+                                                         U"全件再検証・修復",
+                                                         U"戻る" };
 
         void DrawMenu(const std::span<const StringView> items, const std::size_t selected) {
             const FontAsset font{ assets::font::Text };
@@ -92,10 +95,13 @@ namespace xlair::ui::scenes {
             m_selected_index = 0;
         } else if (m_selected_index == 0) {
             getData().maintenance_flow->checkHealth();
-        } else if (m_selected_index == 1) {
+        } else if (m_selected_index == 1 || m_selected_index == 2) {
             // Discard the selection before replacing the catalog it references.
             getData().music_select_context.reset();
-            getData().maintenance_flow->sync();
+            getData().maintenance_flow->sync(
+                m_selected_index == 2 ? app::flows::CatalogSync::Mode::VerifyAll
+                                      : app::flows::CatalogSync::Mode::Incremental
+            );
             m_sync_requested = true;
         } else {
             back();

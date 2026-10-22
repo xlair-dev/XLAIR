@@ -28,7 +28,7 @@ namespace xlair::app::flows {
         ~Maintenance();
 
         void checkHealth();
-        void sync();
+        void sync(CatalogSync::Mode mode = CatalogSync::Mode::Incremental);
         void update();
         void reset();
 
@@ -53,6 +53,7 @@ namespace xlair::app::flows {
         CatalogSync m_sync;
         MetadataLoad m_metadata_load;
         api::Request<bool> m_health_request;
+        CatalogSync::Mode m_sync_mode = CatalogSync::Mode::Incremental;
         State m_state = State::Idle;
         String m_message;
     };
