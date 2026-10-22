@@ -7,20 +7,43 @@
 
 namespace xlair::ui::scenes {
     namespace {
-        constexpr std::array<StringView, 3> MenuItems{ U"スライダーテスト", U"サーバ通信", U"Title に戻る" };
+        constexpr std::array<StringView, 4> MenuItems{
+            U"コントローラテスト",
+            U"カードリーダーテスト",
+            U"サーバ通信",
+            U"Title に戻る",
+        };
+        constexpr std::array<StringView, 3> ControllerItems{ U"入力テスト", U"LED テスト", U"戻る" };
+        constexpr std::array<StringView, 7> LightItems{
+            U"消灯", U"赤", U"緑", U"青", U"白", U"順番に点灯", U"入力に連動して点灯",
+        };
+        constexpr std::array LightPatterns{
+            app::flows::LightTest::Pattern::Off,   app::flows::LightTest::Pattern::Red,
+            app::flows::LightTest::Pattern::Green, app::flows::LightTest::Pattern::Blue,
+            app::flows::LightTest::Pattern::White, app::flows::LightTest::Pattern::Sequence,
+            app::flows::LightTest::Pattern::Input,
+        };
         constexpr std::array<StringView, 4> ServerItems{ U"API ヘルスチェック",
                                                          U"同期する",
                                                          U"全件再検証・修復",
                                                          U"戻る" };
 
-        void DrawMenu(const std::span<const StringView> items, const std::size_t selected) {
+        void DrawMenu(
+            const std::span<const StringView> items,
+            const std::size_t selected,
+            const Optional<std::size_t> disabled = none
+        ) {
             const FontAsset font{ assets::font::Text };
             for (std::size_t index = 0; index < items.size(); ++index) {
                 const double y = 128.0 + index * 52.0;
                 if (index == selected) {
                     font(U"▶").draw(28, Vec2{ 48, y }, Palette::White);
                 }
-                font(items[index]).draw(28, Vec2{ 92, y }, Palette::White);
+                const bool enabled = !disabled || *disabled != index;
+                font(items[index]).draw(28, Vec2{ 92, y }, enabled ? Palette::White : Palette::Gray);
+                if (!enabled) {
+                    font(U"（未対応）").draw(24, Vec2{ 290, y + 3 }, Palette::Gray);
+                }
             }
         }
 
@@ -47,11 +70,54 @@ namespace xlair::ui::scenes {
     }
 
     Maintenance::~Maintenance() {
+        m_card_reader_test.stop();
+        m_light_test.reset();
         getData().maintenance_flow->reset();
     }
 
     bool Maintenance::busy() const {
         return getData().maintenance_flow->busy() || m_loading_jackets;
+    }
+
+    void Maintenance::setPage(const Page page) {
+        m_card_reader_test.stop();
+        m_light_test.reset();
+        m_page = page;
+        m_selected_index = 0;
+        if (page == Page::Lights) {
+            if (auto* controller = getData().application->controller()) {
+                m_light_test = std::make_unique<app::flows::LightTest>(*controller);
+            }
+        } else if (page == Page::CardReader) {
+            m_card_reader_test.start(getData().application->cardReader());
+        }
+    }
+
+    std::span<const StringView> Maintenance::menuItems() const {
+        switch (m_page) {
+            case Page::Menu:
+                return MenuItems;
+            case Page::Controller:
+                return ControllerItems;
+            case Page::Lights:
+                return LightItems;
+            case Page::Server:
+                return ServerItems;
+            default:
+                return {};
+        }
+    }
+
+    bool Maintenance::itemEnabled(const std::size_t index) const {
+        if (m_page == Page::Controller && index == 1) {
+            const auto* controller = getData().application->controller();
+            if (!controller) {
+                return false;
+            }
+            const auto capabilities = controller->lightCapabilities();
+            return capabilities.slider || capabilities.side;
+        }
+        return true;
     }
 
     void Maintenance::update() {
@@ -76,23 +142,52 @@ namespace xlair::ui::scenes {
             updateSlider();
             return;
         }
-        const std::size_t count = m_page == Page::Menu ? MenuItems.size() : ServerItems.size();
-        if (KeyUp.down()) {
-            m_selected_index = (m_selected_index + count - 1) % count;
+        if (m_page == Page::CardReader) {
+            updateCardReader();
+            return;
         }
-        if (KeyDown.down()) {
-            m_selected_index = (m_selected_index + 1) % count;
+        if (m_page == Page::Lights) {
+            if (!m_light_test || !m_light_test->supported()) {
+                return;
+            }
+            if (KeyRight.down()) {
+                m_light_test->changeTarget();
+            }
+            m_light_test->update(Scene::DeltaTime());
         }
-        if (!KeyEnter.down()) {
+        const auto items = menuItems();
+        const int32 direction = (KeyDown.down() ? 1 : 0) - (KeyUp.down() ? 1 : 0);
+        if (direction != 0 && !items.empty()) {
+            do {
+                m_selected_index = (m_selected_index + items.size() + direction) % items.size();
+            } while (!itemEnabled(m_selected_index));
+        }
+        if (!KeyEnter.down() || !itemEnabled(m_selected_index)) {
             return;
         }
         if (m_page == Page::Menu) {
-            if (m_selected_index == 2) {
-                changeScene(SceneState::Title, 0);
-                return;
+            switch (m_selected_index) {
+                case 0:
+                    setPage(Page::Controller);
+                    break;
+                case 1:
+                    setPage(Page::CardReader);
+                    break;
+                case 2:
+                    setPage(Page::Server);
+                    break;
+                default:
+                    changeScene(SceneState::Title, 0);
+                    break;
             }
-            m_page = m_selected_index == 0 ? Page::Slider : Page::Server;
-            m_selected_index = 0;
+        } else if (m_page == Page::Controller) {
+            if (m_selected_index == 2) {
+                back();
+            } else {
+                setPage(m_selected_index == 0 ? Page::Slider : Page::Lights);
+            }
+        } else if (m_page == Page::Lights) {
+            m_light_test->start(LightPatterns[m_selected_index]);
         } else if (m_selected_index == 0) {
             getData().maintenance_flow->checkHealth();
         } else if (m_selected_index == 1 || m_selected_index == 2) {
@@ -109,8 +204,14 @@ namespace xlair::ui::scenes {
     }
 
     void Maintenance::back() {
-        m_selected_index = m_page == Page::Server ? 1 : 0;
-        m_page = Page::Menu;
+        const auto previous = m_page;
+        if (previous == Page::Slider || previous == Page::Lights) {
+            setPage(Page::Controller);
+            m_selected_index = previous == Page::Lights ? 1 : 0;
+        } else {
+            setPage(Page::Menu);
+            m_selected_index = previous == Page::Server ? 2 : previous == Page::CardReader ? 1 : 0;
+        }
     }
 
     void Maintenance::updateSlider() {
@@ -126,6 +227,13 @@ namespace xlair::ui::scenes {
                 );
             }
         }
+    }
+
+    void Maintenance::updateCardReader() {
+        if (KeyEnter.down()) {
+            m_card_reader_test.start(getData().application->cardReader());
+        }
+        m_card_reader_test.update();
     }
 
     void Maintenance::updateServer() {
@@ -148,20 +256,32 @@ namespace xlair::ui::scenes {
     void Maintenance::draw() const {
         Scene::Rect().draw(Palette::Black);
         const FontAsset font{ assets::font::Text };
-        const StringView title = m_page == Page::Slider   ? U"スライダーテスト"
-                                 : m_page == Page::Server ? U"サーバ通信"
-                                                          : U"MAINTENANCE";
+        const StringView title = m_page == Page::Controller   ? U"コントローラテスト"
+                                 : m_page == Page::Slider     ? U"入力テスト"
+                                 : m_page == Page::Lights     ? U"LED テスト"
+                                 : m_page == Page::CardReader ? U"カードリーダーテスト"
+                                 : m_page == Page::Server     ? U"サーバ通信"
+                                                              : U"MAINTENANCE";
         font(title).draw(36, Vec2{ 48, 40 }, Palette::White);
         if (m_page == Page::Slider) {
             drawSlider();
+        } else if (m_page == Page::Lights) {
+            drawLights();
+        } else if (m_page == Page::CardReader) {
+            drawCardReader();
         } else if (m_page == Page::Server) {
             drawServer();
         } else {
-            DrawMenu(MenuItems, m_selected_index);
+            const Optional<std::size_t> disabled =
+                m_page == Page::Controller && !itemEnabled(1) ? Optional<std::size_t>{ 1 } : none;
+            DrawMenu(menuItems(), m_selected_index, disabled);
         }
         const StringView guide = busy()                   ? U"処理中..."
                                  : m_page == Page::Slider ? U"↑ / ↓: 閾値を変更（起動中のみ）    ←: 戻る    F2: Title"
-                                                          : U"↑ / ↓: 選択    Enter: 決定    ←: 戻る    F2: Title";
+                                 : m_page == Page::Lights
+                                     ? U"↑ / ↓: 選択    Enter: 点灯    →: 出力先切替    ←: 戻る    F2: Title"
+                                 : m_page == Page::CardReader ? U"Enter: 再読取    ←: 戻る    F2: Title"
+                                                              : U"↑ / ↓: 選択    Enter: 決定    ←: 戻る    F2: Title";
         font(guide).draw(20, Vec2{ 48, Scene::Height() - 56.0 }, Palette::White);
     }
 
@@ -206,6 +326,46 @@ namespace xlair::ui::scenes {
         }
         if (const auto& error = application.controllerError()) {
             font(error->message).draw(24, RectF{ 48, 760, Scene::Width() - 96.0, 200 }, Palette::White);
+        }
+    }
+
+    void Maintenance::drawLights() const {
+        DrawMenu(LightItems, m_selected_index);
+        const FontAsset font{ assets::font::Text };
+        if (!m_light_test || !m_light_test->supported()) {
+            font(U"このコントローラは LED 出力に対応していません。").draw(26, Vec2{ 530, 128 }, Palette::White);
+            return;
+        }
+        const auto target = m_light_test->target();
+        font(target == app::flows::LightTest::Target::Slider ? U"出力: スライダー" : U"出力: サイド")
+            .draw(28, Vec2{ 530, 128 }, Palette::White);
+        if (const auto active = m_light_test->activePattern()) {
+            font(U"実行中: {}"_fmt(LightItems[static_cast<std::size_t>(*active)]))
+                .draw(26, Vec2{ 530, 190 }, Palette::White);
+        }
+        if (const auto& error = m_light_test->error()) {
+            font(error->message).draw(26, RectF{ 530, 270, Scene::Width() - 578.0, 300 }, Palette::White);
+        }
+    }
+
+    void Maintenance::drawCardReader() const {
+        const FontAsset font{ assets::font::Text };
+        if (m_card_reader_test.waiting()) {
+            font(U"カードをかざしてください。").draw(28, Vec2{ 48, 128 }, Palette::White);
+        }
+        if (const auto& result = m_card_reader_test.result()) {
+            if (const auto* card = std::get_if<app::card::Card>(&*result)) {
+                font(U"読み取り成功").draw(28, Vec2{ 48, 128 }, Palette::White);
+                font(U"card_id: " + card->card_id)
+                    .draw(32, RectF{ 48, 200, Scene::Width() - 96.0, 200 }, Palette::White);
+            } else if (const auto* error = std::get_if<app::card::Error>(&*result)) {
+                font(U"読み取りエラー").draw(28, Vec2{ 48, 128 }, Palette::White);
+                font(error->message).draw(26, RectF{ 48, 200, Scene::Width() - 96.0, 200 }, Palette::White);
+            }
+        }
+        if (const auto& config = getData().application->config();
+            config && config->card_reader.mode == app::Config::CardReader::Mode::Mock) {
+            font(U"Mock: Space でカードを読み取り").draw(24, Vec2{ 48, 430 }, Palette::White);
         }
     }
 
