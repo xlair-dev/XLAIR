@@ -1,0 +1,61 @@
+include_guard(GLOBAL)
+
+# Keep the generated header and static library at the same tested source revision.
+set(XLAIR_CHART_CONVERTER_REVISION "b4535f04712ef3a5c5c7534673c36593b45b5d8c")
+set(XLAIR_CHART_CONVERTER_ROOT "" CACHE PATH "Use an extracted ChartConverter C API package")
+
+if(NOT XLAIR_CHART_CONVERTER_ROOT)
+    if(APPLE AND CMAKE_OSX_ARCHITECTURES STREQUAL "x86_64")
+        set(target_triple x86_64-apple-darwin)
+        set(archive_hash 0801d94ed97bafb6b1ebd231c0c20369ad181a191168bd052b3f50b8cb7e168c)
+    elseif(WIN32 AND MSVC AND CMAKE_SIZEOF_VOID_P EQUAL 8 AND NOT CMAKE_SYSTEM_PROCESSOR MATCHES "ARM|arm|aarch")
+        set(target_triple x86_64-pc-windows-msvc)
+        set(archive_hash a887b4b5c5079da32f0368145e888e2e4b35985ec7af028af19fc011ea7ddd5f)
+    elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux" AND CMAKE_SYSTEM_PROCESSOR MATCHES "^(x86_64|AMD64|amd64)$")
+        set(target_triple x86_64-unknown-linux-gnu)
+        set(archive_hash ba28f85a5666c9a6ee96ffbe370f2a37b66c66e363c95002710b5fb1dc8d2a3c)
+    else()
+        message(FATAL_ERROR "No prebuilt ChartConverter package for this target. Set XLAIR_CHART_CONVERTER_ROOT to a matching package.")
+    endif()
+
+    set(package_cache "${PROJECT_SOURCE_DIR}/.cache/chart-converter/${XLAIR_CHART_CONVERTER_REVISION}/${target_triple}")
+    set(archive "${package_cache}/package.zip")
+    set(package_root "${package_cache}/package")
+    if(NOT EXISTS "${package_root}/lib/cmake/ChartConverterFFI/ChartConverterFFIConfig.cmake")
+        file(MAKE_DIRECTORY "${package_cache}")
+        set(valid_archive FALSE)
+        if(EXISTS "${archive}")
+            file(SHA256 "${archive}" actual_hash)
+            if(actual_hash STREQUAL archive_hash)
+                set(valid_archive TRUE)
+            endif()
+        endif()
+        if(NOT valid_archive)
+            set(url "https://github.com/xlair-dev/ChartConverter/releases/download/sha-${XLAIR_CHART_CONVERTER_REVISION}/chart-converter-ffi-${target_triple}.zip")
+            message(STATUS "Downloading ChartConverter: ${target_triple}")
+            file(DOWNLOAD "${url}" "${archive}.tmp"
+                EXPECTED_HASH "SHA256=${archive_hash}" TLS_VERIFY ON STATUS download_status)
+            list(GET download_status 0 status_code)
+            if(NOT status_code EQUAL 0)
+                file(REMOVE "${archive}.tmp")
+                message(FATAL_ERROR "ChartConverter download failed: ${download_status}")
+            endif()
+            file(RENAME "${archive}.tmp" "${archive}")
+        endif()
+        file(MAKE_DIRECTORY "${package_root}")
+        file(ARCHIVE_EXTRACT INPUT "${archive}" DESTINATION "${package_root}")
+    endif()
+else()
+    set(package_root "${XLAIR_CHART_CONVERTER_ROOT}")
+endif()
+
+# Do not let a cached package directory keep a previous revision/override selected.
+set(ChartConverterFFI_DIR "${package_root}/lib/cmake/ChartConverterFFI")
+find_package(ChartConverterFFI CONFIG REQUIRED PATHS "${package_root}" NO_DEFAULT_PATH)
+
+if(WIN32 AND MSVC)
+    # The Rust release package requests LIBCMT. Debug presets use /MTd, so let
+    # the executable select LIBCMTD instead of mixing the two CRTs. All IR
+    # allocation/free operations remain inside the Rust C API.
+    target_link_options(ChartConverter::FFI INTERFACE "$<$<CONFIG:Debug>:/NODEFAULTLIB:libcmt>")
+endif()

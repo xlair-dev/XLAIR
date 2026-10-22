@@ -5,7 +5,7 @@
 #include <algorithm>
 #include <cmath>
 
-namespace xlair::sheets::formats::sus {
+namespace xlair::sheets::chart {
     namespace {
         constexpr std::size_t MaximumJudgePointCount = 1'000'000;
 

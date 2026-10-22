@@ -5,6 +5,8 @@
 #include "ui/assets/Assets.hpp"
 #include "ui/primitives/Sparkle.hpp"
 
+#include <SheetsAnalyzer/SliderHoldPath.hpp>
+
 #include <algorithm>
 #include <cmath>
 
@@ -133,31 +135,14 @@ namespace xlair::ui::game {
             const int64 sample,
             const uint32 slider_pressed
         ) {
-            if (points.isEmpty() || slider_pressed == 0) {
+            if (slider_pressed == 0) {
                 return false;
             }
-            const auto next =
-                std::upper_bound(points.begin(), points.end(), sample, [](const int64 value, const auto& point) {
-                    return value < point.sample;
-                });
-            const auto& before = next == points.begin() ? points.front() : *std::prev(next);
-            const auto& after = next == points.end() ? points.back() : *next;
-            const double t = before.sample == after.sample
-                                 ? 0.0
-                                 : static_cast<double>(
-                                       (static_cast<long double>(sample) - before.sample) /
-                                       (static_cast<long double>(after.sample) - before.sample)
-                                   );
-            const double left =
-                Math::Lerp(static_cast<double>(before.lane.start), static_cast<double>(after.lane.start), t);
-            const double right = Math::Lerp(
-                static_cast<double>(before.lane.start + before.lane.width),
-                static_cast<double>(after.lane.start + after.lane.width),
-                t
-            );
-            const int32 first_lane = Clamp(static_cast<int32>(std::floor(left)), 0, 16);
-            const int32 last_lane = Clamp(static_cast<int32>(std::ceil(right)), 0, 16);
-            for (int32 lane = first_lane; lane < last_lane; ++lane) {
+            const auto range = sheets::EvaluateSliderHoldLane(points, sample);
+            if (!range) {
+                return false;
+            }
+            for (int32 lane = range->start; lane < range->start + range->width; ++lane) {
                 if ((slider_pressed & (uint32{ 3 } << (lane * 2))) != 0) {
                     return true;
                 }
@@ -704,28 +689,11 @@ namespace xlair::ui::game {
             const double note_speed,
             const MSRenderTexture& upper_surface,
             const MSRenderTexture& lower_surface,
+            const MSRenderTexture& upper_xtap_surface,
+            const MSRenderTexture& lower_xtap_surface,
             const core::judgement::JudgeEngine* judge_engine
         ) {
-            for (std::size_t index = 0; index < chart.side_notes.size(); ++index) {
-                if (judge_engine && judge_engine->sideNoteState(index) != core::judgement::NoteState::Pending) {
-                    continue;
-                }
-                const auto& note = chart.side_notes[index];
-                const bool lower =
-                    note.button == sheets::SideButton::LeftLower || note.button == sheets::SideButton::RightLower;
-                const auto z = NoteDepth(
-                    projection,
-                    note.timeline,
-                    current_sample,
-                    note.sample,
-                    note_speed,
-                    lower ? LowerNear : FieldNear
-                );
-                if (!z) {
-                    continue;
-                }
-                DrawSideNotePlane(note.button, *z, upper_surface, lower_surface);
-            }
+            // Draw hold markers first so co-located XTap notes remain visible.
             for (std::size_t hold_index = 0; hold_index < chart.side_holds.size(); ++hold_index) {
                 const auto& hold = chart.side_holds[hold_index];
                 const bool lower =
@@ -748,6 +716,32 @@ namespace xlair::ui::game {
                     }
                 }
             }
+            for (std::size_t index = 0; index < chart.side_notes.size(); ++index) {
+                if (judge_engine && judge_engine->sideNoteState(index) != core::judgement::NoteState::Pending) {
+                    continue;
+                }
+                const auto& note = chart.side_notes[index];
+                const bool lower =
+                    note.button == sheets::SideButton::LeftLower || note.button == sheets::SideButton::RightLower;
+                const auto z = NoteDepth(
+                    projection,
+                    note.timeline,
+                    current_sample,
+                    note.sample,
+                    note_speed,
+                    lower ? LowerNear : FieldNear
+                );
+                if (!z) {
+                    continue;
+                }
+                const bool xtap = note.kind == sheets::SideNoteKind::XTap;
+                DrawSideNotePlane(
+                    note.button,
+                    *z,
+                    xtap ? upper_xtap_surface : upper_surface,
+                    xtap ? lower_xtap_surface : lower_surface
+                );
+            }
         }
     }
 
@@ -755,7 +749,9 @@ namespace xlair::ui::game {
         : m_field_surface{ FieldSurfaceSize, TextureFormat::R8G8B8A8_Unorm_SRGB },
           m_render_texture{ DesignSize, TextureFormat::R8G8B8A8_Unorm_SRGB, HasDepth::Yes },
           m_side_upper_note_surface{ SideNoteSurfaceSize, TextureFormat::R8G8B8A8_Unorm_SRGB },
-          m_side_lower_note_surface{ SideNoteSurfaceSize, TextureFormat::R8G8B8A8_Unorm_SRGB }, m_fog_shader{
+          m_side_lower_note_surface{ SideNoteSurfaceSize, TextureFormat::R8G8B8A8_Unorm_SRGB },
+          m_side_upper_xtap_surface{ SideNoteSurfaceSize, TextureFormat::R8G8B8A8_Unorm_SRGB },
+          m_side_lower_xtap_surface{ SideNoteSurfaceSize, TextureFormat::R8G8B8A8_Unorm_SRGB }, m_fog_shader{
               HLSL{ Resource(U"ui/shaders/hlsl/playfield_fog.hlsl"), U"PS" } |
               GLSL{ Resource(U"ui/shaders/glsl/playfield_fog.frag"),
                     { { U"PSPerFrame", 0 }, { U"PSPerView", 1 }, { U"PSPerMaterial", 3 }, { U"PSFog", 4 } } }
@@ -774,6 +770,8 @@ namespace xlair::ui::game {
 
         DrawSideNoteSurface(m_side_upper_note_surface, SideUpperColor, ColorF{ U"#F489E9" }, ColorF{ U"#D45CD7" });
         DrawSideNoteSurface(m_side_lower_note_surface, SideLowerColor, ColorF{ U"#F489E9" }, ColorF{ U"#D45CD7" });
+        DrawSideNoteSurface(m_side_upper_xtap_surface, SideUpperColor, ColorF{ U"#FEEFB4" }, ColorF{ U"#FEDF64" });
+        DrawSideNoteSurface(m_side_lower_xtap_surface, SideLowerColor, ColorF{ U"#FEEFB4" }, ColorF{ U"#FEDF64" });
     }
 
     void PlayfieldRenderer3D::draw(
@@ -812,6 +810,8 @@ namespace xlair::ui::game {
                 note_speed,
                 m_side_upper_note_surface,
                 m_side_lower_note_surface,
+                m_side_upper_xtap_surface,
+                m_side_lower_xtap_surface,
                 judge_engine
             );
         }

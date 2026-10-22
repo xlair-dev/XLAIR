@@ -23,7 +23,7 @@ namespace xlair::sheets {
 
     // Loads and compiles a chart into XLAIR's input-oriented Chart model.
     // supported formats:
-    // - SUS
+    // - SUS / UGC (ChartConverter's XLAIR interpretation)
     [[nodiscard]]
     Result<Chart> LoadChart(const s3d::FilePath& path, const ChartLoadOptions& options = {});
 }

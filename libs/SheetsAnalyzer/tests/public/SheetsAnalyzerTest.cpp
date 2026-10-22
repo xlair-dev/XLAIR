@@ -45,17 +45,18 @@ TEST_CASE("LoadChart compiles SUS fixtures end to end", "[SheetsAnalyzer][Chart]
         INFO(FirstDiagnostic(result));
         REQUIRE(result);
         REQUIRE(result->timelines.size() == 3);
-        REQUIRE(result->timelines[1].speed_changes.size() == 3);
-        CHECK(result->timelines[1].speed_changes[1].multiplier == 0.5);
-        CHECK(result->timelines[1].speed_changes[2].sample == 2'880);
-        CHECK(result->timelines[1].speed_changes[2].multiplier == 2.0);
-        REQUIRE(result->timelines[2].speed_changes.size() == 3);
-        CHECK(result->timelines[2].speed_changes[1].multiplier == 2.0);
-        CHECK(result->timelines[2].speed_changes[2].sample == 2'880);
-        CHECK(result->timelines[2].speed_changes[2].multiplier == 0.5);
         REQUIRE(result->slider_notes.size() == 15);
-        CHECK(result->slider_notes[0].timeline == 1);
-        CHECK(result->slider_notes[1].timeline == 2);
+        // IR group IDs are not source TIL IDs. Check the timeline attached to each note.
+        const auto& first = result->timelines[result->slider_notes[0].timeline].speed_changes;
+        const auto& second = result->timelines[result->slider_notes[1].timeline].speed_changes;
+        REQUIRE(first.size() == 3);
+        CHECK(first[1].multiplier == 0.5);
+        CHECK(first[2].sample == 2'880);
+        CHECK(first[2].multiplier == 2.0);
+        REQUIRE(second.size() == 3);
+        CHECK(second[1].multiplier == 2.0);
+        CHECK(second[2].sample == 2'880);
+        CHECK(second[2].multiplier == 0.5);
         CHECK(result->slider_notes[2].timeline == 0);
         CHECK(result->total_combo == 15);
     }
@@ -105,4 +106,21 @@ TEST_CASE("LoadChart compiles SUS fixtures end to end", "[SheetsAnalyzer][Chart]
         CHECK(result->side_notes[3].button == xlair::sheets::SideButton::RightUpper);
         CHECK(result->total_combo == 4);
     }
+}
+
+TEST_CASE("LoadChart accepts UGC files through the public API", "[SheetsAnalyzer][Chart][UGC][E2E]") {
+    const auto result =
+        xlair::sheets::LoadChart(XLAIR_SHEETS_ANALYZER_TEST_FIXTURE_DIR U"ugc/basic.ugc", { .sample_rate = 480 });
+    INFO(FirstDiagnostic(result));
+    REQUIRE(result);
+    REQUIRE(result->slider_notes.size() == 1);
+    REQUIRE(result->side_notes.size() == 1);
+    REQUIRE(result->slider_holds.size() == 1);
+    REQUIRE(result->side_holds.size() == 1);
+    CHECK(result->slider_notes[0].sample == 240);
+    CHECK(result->side_notes[0].kind == xlair::sheets::SideNoteKind::XTap);
+    CHECK(result->side_notes[0].button == xlair::sheets::SideButton::RightLower);
+    CHECK(result->slider_holds[0].points.back().sample == 960);
+    CHECK(result->side_holds[0].button == xlair::sheets::SideButton::LeftLower);
+    CHECK(result->total_combo == 20);
 }
