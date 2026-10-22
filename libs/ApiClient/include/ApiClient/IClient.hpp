@@ -9,6 +9,9 @@ namespace xlair::api {
         virtual ~IClient() = default;
 
         [[nodiscard]]
+        virtual Request<bool> checkHealth() = 0;
+
+        [[nodiscard]]
         virtual Request<User> findUserByCard(s3d::StringView card_id) = 0;
 
         [[nodiscard]]

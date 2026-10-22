@@ -87,6 +87,10 @@ namespace xlair::api {
         }
     }
 
+    Request<bool> MockClient::checkHealth() {
+        return m_load_error ? Complete<bool>(*m_load_error) : Complete<bool>(true);
+    }
+
     Request<User> MockClient::findUserByCard(s3d::StringView card_id) {
         if (m_load_error) {
             return Complete<User>(*m_load_error);
