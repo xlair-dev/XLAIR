@@ -10,11 +10,12 @@ namespace xlair::app::flows {
         cancel();
     }
 
-    void CatalogSync::start(api::IClient& client, URLView endpoint, FilePathView sync_directory) {
+    void CatalogSync::start(api::IClient& client, URLView endpoint, FilePathView sync_directory, const Mode mode) {
         cancel();
         m_client = &client;
         m_endpoint = endpoint;
         m_sync_directory = sync_directory;
+        m_mode = mode;
         m_catalog_request = client.fetchCatalog();
         if (!m_catalog_request) {
             fail({ api::ErrorKind::Configuration, U"The API client did not create a catalog request.", none });
@@ -56,8 +57,9 @@ namespace xlair::app::flows {
         } else {
             m_pending_catalog = std::get<Array<api::Music>>(*result);
             m_local_sync_request =
-                m_local_sync_factory ? m_local_sync_factory(*m_client, m_pending_catalog, m_endpoint, m_sync_directory)
-                                     : nullptr;
+                m_local_sync_factory
+                    ? m_local_sync_factory(*m_client, m_pending_catalog, m_endpoint, m_sync_directory, m_mode)
+                    : nullptr;
             if (!m_local_sync_request) {
                 fail({ api::ErrorKind::Configuration, U"Could not create local catalog sync.", none });
             }
