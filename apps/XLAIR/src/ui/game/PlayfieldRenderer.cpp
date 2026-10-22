@@ -103,8 +103,12 @@ namespace xlair::ui::game {
                 const double x = StageLeft + lane * LaneWidth;
                 Line{ x, 0, x, FieldHeight }.draw(2.5, ColorF{ U"#FDFDFD" });
             }
-            FontAsset{ assets::font::ComboNumber }(combo).drawAt(FieldWidth * 0.5, FieldHeight - 750.0, Palette::White);
-            FontAsset{ assets::font::Display }(U"COMBO").drawAt(FieldWidth * 0.5, FieldHeight - 600.0, Palette::White);
+            if (combo >= 10) {
+                FontAsset{ assets::font::ComboNumber }(combo)
+                    .drawAt(FieldWidth * 0.5, FieldHeight - 750.0, Palette::White);
+                FontAsset{ assets::font::Display }(U"COMBO")
+                    .drawAt(FieldWidth * 0.5, FieldHeight - 600.0, Palette::White);
+            }
             primitives::Sparkle(Vec2{ StageLeft - 2.0, JudgeY }, 200.0, 300.0, 0.0, 16.0)
                 .asPolygon()
                 .drawFrame(1.5, judge_color);

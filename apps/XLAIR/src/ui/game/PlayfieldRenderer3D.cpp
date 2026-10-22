@@ -447,10 +447,12 @@ namespace xlair::ui::game {
             DrawSliderHoldBodies(chart, projection, current_sample, note_speed, judge_engine, slider_pressed);
             DrawSliderHoldHeads(chart, projection, current_sample, note_speed, judge_engine);
             DrawSliderNotes(chart, projection, current_sample, note_speed, judge_engine);
-            FontAsset{ assets::font::ComboNumber }(combo)
-                .drawAt(SourceWidth * 0.5, SourceHeight - 750.0, Palette::White);
-            FontAsset{ assets::font::Display }(U"COMBO")
-                .drawAt(SourceWidth * 0.5, SourceHeight - 600.0, Palette::White);
+            if (combo >= 10) {
+                FontAsset{ assets::font::ComboNumber }(combo)
+                    .drawAt(SourceWidth * 0.5, SourceHeight - 750.0, Palette::White);
+                FontAsset{ assets::font::Display }(U"COMBO")
+                    .drawAt(SourceWidth * 0.5, SourceHeight - 600.0, Palette::White);
+            }
             primitives::Sparkle(Vec2{ SourceStageLeft - 2.0, SourceJudgeY }, 200.0, 300.0, 0.0, 16.0)
                 .asPolygon()
                 .drawFrame(1.5, judge_color);
