@@ -61,6 +61,11 @@ namespace xlair::app::controller {
         }
     };
 
+    struct LightCapabilities {
+        bool slider = false;
+        bool side = false;
+    };
+
     struct LightFrame {
         // +----++----++----++----++----++----++----++----++----++----++----++----++----++----++----++----+
         // |    ||    ||    ||    ||    ||    ||    ||    ||    ||    ||    ||    ||    ||    ||    ||    |
@@ -75,6 +80,8 @@ namespace xlair::app::controller {
         //       |  1  |          |  2  |
         //       +-----+          +-----+
         std::array<Color, SideButtonCount> side{};
+
+        bool operator==(const LightFrame&) const = default;
 
         [[nodiscard]]
         Color sliderLight(const std::size_t index) const noexcept {

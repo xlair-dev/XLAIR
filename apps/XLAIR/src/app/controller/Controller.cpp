@@ -72,6 +72,10 @@ namespace xlair::app::controller {
         return m_lights;
     }
 
+    LightCapabilities Controller::lightCapabilities() const noexcept {
+        return m_device ? m_device->lightCapabilities() : LightCapabilities{};
+    }
+
     const ButtonState& Controller::touchZone(const std::size_t index) const {
         return m_touch_zones.at(index);
     }

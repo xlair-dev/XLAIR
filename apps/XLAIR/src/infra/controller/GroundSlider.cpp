@@ -160,6 +160,10 @@ namespace xlair::infra::controller {
         return m_snapshot;
     }
 
+    app::controller::LightCapabilities GroundSlider::lightCapabilities() const noexcept {
+        return { .slider = true, .side = false };
+    }
+
     Optional<uint8> GroundSlider::touchThreshold() const noexcept {
         return m_touch_threshold;
     }

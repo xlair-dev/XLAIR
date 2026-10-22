@@ -31,6 +31,9 @@ namespace xlair::infra::controller {
         const app::controller::InputSnapshot& snapshot() const noexcept override;
 
         [[nodiscard]]
+        app::controller::LightCapabilities lightCapabilities() const noexcept override;
+
+        [[nodiscard]]
         Optional<uint8> touchThreshold() const noexcept override;
 
         void setTouchThreshold(uint8 threshold) noexcept override;
