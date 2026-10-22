@@ -24,3 +24,29 @@ if(APPLE)
 endif()
 
 add_test(NAME XLAIRSyncTests COMMAND XLAIRSyncTests)
+
+add_executable(XLAIRMaintenanceTests
+    Main.cpp
+    MaintenanceFlowTest.cpp
+    ../src/app/controller/Controller.cpp
+    ../src/app/flows/CardReaderTest.cpp
+    ../src/app/flows/LightTest.cpp
+)
+
+target_compile_features(XLAIRMaintenanceTests PRIVATE cxx_std_23)
+target_include_directories(XLAIRMaintenanceTests PRIVATE ../src)
+target_link_libraries(XLAIRMaintenanceTests PRIVATE Siv3D::Siv3D)
+set_target_properties(XLAIRMaintenanceTests PROPERTIES FOLDER "Tests" WIN32_EXECUTABLE OFF)
+
+if(APPLE)
+    target_link_libraries(XLAIRMaintenanceTests PRIVATE "${FOUNDATION_FRAMEWORK}" "${CORE_FOUNDATION_FRAMEWORK}")
+    set_target_properties(XLAIRMaintenanceTests PROPERTIES
+        MACOSX_BUNDLE ON
+        MACOSX_BUNDLE_BUNDLE_NAME "XLAIRMaintenanceTests"
+        MACOSX_BUNDLE_GUI_IDENTIFIER "dev.xlair.XLAIRMaintenanceTests"
+        MACOSX_BUNDLE_BUNDLE_VERSION "${PROJECT_VERSION}"
+        MACOSX_BUNDLE_SHORT_VERSION_STRING "${PROJECT_VERSION}"
+    )
+endif()
+
+add_test(NAME XLAIRMaintenanceTests COMMAND XLAIRMaintenanceTests)
