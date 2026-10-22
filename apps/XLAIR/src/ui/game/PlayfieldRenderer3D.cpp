@@ -693,6 +693,29 @@ namespace xlair::ui::game {
             const MSRenderTexture& lower_xtap_surface,
             const core::judgement::JudgeEngine* judge_engine
         ) {
+            // Draw hold markers first so co-located XTap notes remain visible.
+            for (std::size_t hold_index = 0; hold_index < chart.side_holds.size(); ++hold_index) {
+                const auto& hold = chart.side_holds[hold_index];
+                const bool lower =
+                    hold.button == sheets::SideButton::LeftLower || hold.button == sheets::SideButton::RightLower;
+                for (const auto& point : hold.points) {
+                    if (judge_engine && point.kind == sheets::SideHoldPointKind::Start &&
+                        judge_engine->sideHoldPointState(hold_index, 0) != core::judgement::NoteState::Pending) {
+                        continue;
+                    }
+                    const auto z = NoteDepth(
+                        projection,
+                        point.timeline,
+                        current_sample,
+                        point.sample,
+                        note_speed,
+                        lower ? LowerNear : FieldNear
+                    );
+                    if (z) {
+                        DrawSideNotePlane(hold.button, *z, upper_surface, lower_surface);
+                    }
+                }
+            }
             for (std::size_t index = 0; index < chart.side_notes.size(); ++index) {
                 if (judge_engine && judge_engine->sideNoteState(index) != core::judgement::NoteState::Pending) {
                     continue;
@@ -718,28 +741,6 @@ namespace xlair::ui::game {
                     xtap ? upper_xtap_surface : upper_surface,
                     xtap ? lower_xtap_surface : lower_surface
                 );
-            }
-            for (std::size_t hold_index = 0; hold_index < chart.side_holds.size(); ++hold_index) {
-                const auto& hold = chart.side_holds[hold_index];
-                const bool lower =
-                    hold.button == sheets::SideButton::LeftLower || hold.button == sheets::SideButton::RightLower;
-                for (const auto& point : hold.points) {
-                    if (judge_engine && point.kind == sheets::SideHoldPointKind::Start &&
-                        judge_engine->sideHoldPointState(hold_index, 0) != core::judgement::NoteState::Pending) {
-                        continue;
-                    }
-                    const auto z = NoteDepth(
-                        projection,
-                        point.timeline,
-                        current_sample,
-                        point.sample,
-                        note_speed,
-                        lower ? LowerNear : FieldNear
-                    );
-                    if (z) {
-                        DrawSideNotePlane(hold.button, *z, upper_surface, lower_surface);
-                    }
-                }
             }
         }
     }
