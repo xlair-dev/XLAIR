@@ -27,7 +27,9 @@ namespace xlair::ui::game {
             double note_speed,
             uint32 combo,
             bool show_depth_guides = false,
-            const core::judgement::JudgeEngine* judge_engine = nullptr
+            const core::judgement::JudgeEngine* judge_engine = nullptr,
+            uint32 slider_pressed = 0,
+            uint8 side_pressed = 0
         ) const;
 
     private:
