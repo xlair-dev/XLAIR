@@ -1,10 +1,16 @@
 #pragma once
 
 #include "Common.hpp"
+#include "core/judgement/JudgeEngine.hpp"
 
 #include <ApiClient/Types.hpp>
 
 namespace xlair::app::session {
+    struct PlayedRecord {
+        UUIDValue play_id;
+        api::RecordSubmission record;
+    };
+
     class PlaySession {
     public:
         void start(api::User user, uint32 max_plays);
@@ -25,7 +31,25 @@ namespace xlair::app::session {
         [[nodiscard]]
         uint32 remainingPlays() const noexcept;
 
-        void consumePlay() noexcept;
+        [[nodiscard]]
+        bool finished() const noexcept;
+
+        // Reserve a play without consuming it. Only its ID can complete or cancel it.
+        [[nodiscard]]
+        Optional<UUIDValue> beginPlay();
+
+        [[nodiscard]]
+        bool completePlay(
+            const UUIDValue& play_id,
+            StringView sheet_id,
+            const core::judgement::ScoreState& score,
+            std::size_t total_combo
+        );
+
+        void cancelPlay(const UUIDValue& play_id) noexcept;
+
+        [[nodiscard]]
+        const Array<PlayedRecord>& playedRecords() const noexcept;
 
         void setRecords(Array<api::UserRecord> records);
 
@@ -48,6 +72,8 @@ namespace xlair::app::session {
     private:
         Optional<api::User> m_user;
         HashTable<String, api::UserRecord> m_records;
+        Array<PlayedRecord> m_played_records;
+        Optional<UUIDValue> m_active_play;
         api::PlayOptions m_play_options;
         // TODO: Fetch mirror from the API once PlayOptions includes it.
         bool m_mirror = false;
