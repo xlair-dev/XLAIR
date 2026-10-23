@@ -19,6 +19,7 @@ namespace xlair::ui::audio {
                     break;
             }
         }
+        m_slider_note_scheduled.resize(chart.slider_notes.size(), false);
         for (const auto& note : chart.side_notes) {
             m_side_notes.push_back(
                 {
@@ -86,9 +87,16 @@ namespace xlair::ui::audio {
     GameplaySoundScheduler::Frame GameplaySoundScheduler::update(
         const int64 music_sample,
         const core::judgement::JudgeEngine& judge,
-        const std::span<const core::judgement::JudgementEvent> events
+        const std::span<const core::judgement::JudgementEvent> events,
+        const std::span<const std::size_t> flick_contacts
     ) {
         Frame frame;
+        for (const auto note_index : flick_contacts) {
+            if (note_index < m_slider_notes.size() && !m_slider_note_scheduled[note_index]) {
+                m_pending.push(m_slider_notes[note_index]);
+                m_slider_note_scheduled[note_index] = true;
+            }
+        }
         for (const auto& event : events) {
             if (event.grade == core::judgement::Grade::Miss || event.linked_start) {
                 continue;
@@ -96,6 +104,10 @@ namespace xlair::ui::audio {
             Optional<Cue> cue;
             switch (event.note_kind) {
                 case core::judgement::NoteKind::Slider:
+                    if (m_slider_note_scheduled.at(event.note_index)) {
+                        continue;
+                    }
+                    m_slider_note_scheduled[event.note_index] = true;
                     cue = m_slider_notes.at(event.note_index);
                     break;
                 case core::judgement::NoteKind::Side:
@@ -134,6 +146,7 @@ namespace xlair::ui::audio {
     void GameplaySoundScheduler::clear() {
         m_pending = {};
         m_slider_notes.clear();
+        m_slider_note_scheduled.clear();
         m_side_notes.clear();
         m_slider_holds.clear();
         m_side_holds.clear();
