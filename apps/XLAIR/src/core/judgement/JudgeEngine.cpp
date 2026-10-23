@@ -373,6 +373,38 @@ namespace xlair::core::judgement {
         return events;
     }
 
+    Array<JudgementEvent> JudgeEngine::finish() {
+        Array<JudgementEvent> events;
+        // Keep advance()'s checkpoint/note/FLICK timeout order without inventing a playback time.
+        for (const auto index : m_hold_order) {
+            auto& point = holdPoint(index);
+            if (point.state == NoteState::Pending) {
+                record(point, Grade::Miss, point.sample, events);
+            }
+        }
+        for (const auto index : m_order) {
+            auto& note = m_notes[index];
+            if ((note.note_kind != NoteKind::Slider || note.slider_kind != sheets::SliderNoteKind::Flick) &&
+                note.state == NoteState::Pending) {
+                record(note, Grade::Miss, note.sample, events);
+            }
+        }
+        for (const auto index : m_flick_order) {
+            auto& note = m_notes[index];
+            if (note.state == NoteState::Pending) {
+                // Preserve the timeout result for a touched FLICK without a completed gesture.
+                const Grade grade = note.flick_gesture ? Grade::Good : Grade::Miss;
+                constexpr auto maximum = std::numeric_limits<int64>::max();
+                const int64 sample =
+                    note.sample > maximum - m_flick_slide_window ? maximum : note.sample + m_flick_slide_window;
+                record(note, grade, sample, events);
+            }
+        }
+        m_previous_slider_pressed = 0;
+        updateHoldActivity(0, 0, 0);
+        return events;
+    }
+
     void JudgeEngine::processFlickTouch(
         const TouchEvent& touch,
         const uint32 slider_pressed,

@@ -77,6 +77,10 @@ namespace xlair::core::judgement {
             uint8 side_pressed = 0
         );
 
+        // Resolve all remaining judgements when playback ends, including notes beyond the audio duration.
+        [[nodiscard]]
+        Array<JudgementEvent> finish();
+
         [[nodiscard]]
         NoteState noteState(std::size_t slider_note_index) const;
 
