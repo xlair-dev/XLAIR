@@ -5,13 +5,12 @@
 #include "ui/assets/Assets.hpp"
 #include "ui/audio/SoundEffect.hpp"
 #include "ui/components/GameMusicPlate.hpp"
+#include "ui/components/ResultPanel.hpp"
 #include "ui/components/UserNameplate.hpp"
 #include "ui/input/SliderInput.hpp"
 #include "ui/localization/Localization.hpp"
-#include "ui/presentation/ScoringText.hpp"
 #include "ui/theme/Palette.hpp"
 
-#include <array>
 #include <utility>
 
 namespace xlair::ui::scenes {
@@ -25,7 +24,7 @@ namespace xlair::ui::scenes {
             {
                 .region = { .start = 0, .width = 16 },
                 .label = localization::GetText(localization::TextId::ResultContinue),
-                .color = theme::Palette::Cyan,
+                .color = theme::Palette::Pink,
             },
         };
     }
@@ -45,7 +44,7 @@ namespace xlair::ui::scenes {
 
     void Result::draw() const {
         Scene::Rect().draw(theme::Palette::White);
-        FontAsset{ assets::font::Display }(U"RESULT").drawAt(48, Vec2{ DesignSize.x / 2.0, 260 }, theme::Palette::Gray);
+        TextureAsset{ assets::texture::ResultBackground }.resized(DesignSize).draw();
 
         if (m_result) {
             drawResult(*m_result);
@@ -90,31 +89,23 @@ namespace xlair::ui::scenes {
             Point{ DesignSize.x / 2 - 434, 56 }
         );
 
-        const auto display = FontAsset{ assets::font::Display };
-        const auto text = FontAsset{ assets::font::Text };
-        text(U"SCORE").draw(28, Vec2{ 400, 335 }, theme::Palette::Gray);
-        display(U"{:07}"_fmt(score.score)).draw(96, Vec2{ 390, 365 }, theme::Palette::Cyan);
-        display(presentation::GradeLabel(core::scoring::GradeForScore(score.score)))
-            .drawAt(96, Vec2{ 1280, 410 }, theme::Palette::Cyan);
-        text(presentation::ClearStatusLabel(core::scoring::ClearTypeForScore(score, result.total_combo)))
-            .drawAt(32, Vec2{ 1280, 500 }, theme::Palette::Gray);
+        components::DrawResultPanel(
+            {
+                .score = score,
+                .total_combo = result.total_combo,
+                .rating = session.user() ? Optional<uint32>{ session.user()->rating } : none,
+            },
+            Point{ DesignSize.x / 2 - 700, 200 },
+            m_elapsed
+        );
+    }
 
-        const std::array counts{
-            std::pair{ StringView{ U"PERFECT" }, score.perfect_count },
-            std::pair{ StringView{ U"GREAT" }, score.great_count },
-            std::pair{ StringView{ U"GOOD" }, score.good_count },
-            std::pair{ StringView{ U"MISS" }, score.miss_count },
-        };
-        for (std::size_t index = 0; index < counts.size(); ++index) {
-            const double y = 570.0 + index * 72.0;
-            const auto& [label, count] = counts[index];
-            text(label).draw(30, Vec2{ 400, y }, theme::Palette::Gray);
-            display(count).draw(36, Arg::topRight(840, y), theme::Palette::Gray);
-        }
-        text(U"MAX COMBO").draw(28, Vec2{ 1100, 590 }, theme::Palette::Gray);
-        display(U"{} / {}"_fmt(score.max_combo, result.total_combo)).draw(40, Vec2{ 1100, 635 }, theme::Palette::Pink);
-        text(U"CLEAR GAUGE").draw(28, Vec2{ 1100, 730 }, theme::Palette::Gray);
-        display(U"{:.1f}%"_fmt(score.clear_gauge * 100.0)).draw(40, Vec2{ 1100, 775 }, theme::Palette::Cyan);
+    void Result::updateFadeIn(const double) {
+        m_elapsed += Scene::DeltaTime();
+    }
+
+    void Result::updateFadeOut(const double) {
+        m_elapsed += Scene::DeltaTime();
     }
 
     void Result::drawFadeIn(const double t) const {

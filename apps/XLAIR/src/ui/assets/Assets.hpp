@@ -16,6 +16,15 @@ namespace xlair::ui::assets {
         inline constexpr AssetNameView GameScoreBarFrame{ U"XLAIR.UI.Texture.GameScoreBarFrame" };
         inline constexpr AssetNameView SettingValueArrowEnabled{ U"XLAIR.UI.Texture.SettingValueArrowEnabled" };
         inline constexpr AssetNameView SettingValueArrowDisabled{ U"XLAIR.UI.Texture.SettingValueArrowDisabled" };
+        inline constexpr AssetNameView ResultBackground{ U"XLAIR.UI.Texture.ResultBackground" };
+        inline constexpr AssetNameView ResultPerfect{ U"XLAIR.UI.Texture.ResultPerfect" };
+        inline constexpr AssetNameView ResultGreat{ U"XLAIR.UI.Texture.ResultGreat" };
+        inline constexpr AssetNameView ResultGood{ U"XLAIR.UI.Texture.ResultGood" };
+        inline constexpr AssetNameView ResultMiss{ U"XLAIR.UI.Texture.ResultMiss" };
+        inline constexpr AssetNameView ResultGradeBack{ U"XLAIR.UI.Texture.ResultGradeBack" };
+        inline constexpr AssetNameView ResultGradeS{ U"XLAIR.UI.Texture.ResultGradeS" };
+        inline constexpr AssetNameView ResultGradeA{ U"XLAIR.UI.Texture.ResultGradeA" };
+        inline constexpr AssetNameView ResultGradeB{ U"XLAIR.UI.Texture.ResultGradeB" };
     }
 
     namespace sound {

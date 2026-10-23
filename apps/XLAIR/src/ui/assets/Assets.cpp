@@ -1,5 +1,7 @@
 #include "Assets.hpp"
 
+#include <array>
+
 namespace xlair::ui::assets {
     namespace {
         void Require(const bool succeeded, const StringView message) {
@@ -57,7 +59,9 @@ namespace xlair::ui::assets {
         void InitializeTextures() {
             Require(
                 TextureAsset::Register(
-                    texture::GameScoreBarFrame, Resource(U"ui/textures/game-score-bar-frame.png"), TextureDesc::Mipped
+                    texture::GameScoreBarFrame,
+                    Resource(U"ui/textures/game-score-bar-frame.png"),
+                    TextureDesc::Mipped
                 ),
                 U"Failed to register the game score bar frame."
             );
@@ -94,6 +98,29 @@ namespace xlair::ui::assets {
                 TextureAsset::Load(texture::SettingValueArrowDisabled),
                 U"Failed to load the disabled setting value arrow."
             );
+
+            struct ResultTexture {
+                AssetNameView name;
+                FilePathView path;
+            };
+            constexpr std::array result_textures{
+                ResultTexture{ texture::ResultBackground, U"ui/textures/result/background.png" },
+                ResultTexture{ texture::ResultPerfect, U"ui/textures/result/perfect.png" },
+                ResultTexture{ texture::ResultGreat, U"ui/textures/result/great.png" },
+                ResultTexture{ texture::ResultGood, U"ui/textures/result/good.png" },
+                ResultTexture{ texture::ResultMiss, U"ui/textures/result/miss.png" },
+                ResultTexture{ texture::ResultGradeBack, U"ui/textures/result/grade-back.png" },
+                ResultTexture{ texture::ResultGradeS, U"ui/textures/result/grade-s.png" },
+                ResultTexture{ texture::ResultGradeA, U"ui/textures/result/grade-a.png" },
+                ResultTexture{ texture::ResultGradeB, U"ui/textures/result/grade-b.png" },
+            };
+            for (const auto& entry : result_textures) {
+                Require(
+                    TextureAsset::Register(entry.name, Resource(entry.path), TextureDesc::Mipped),
+                    U"Failed to register the result texture: {}"_fmt(entry.path)
+                );
+                Require(TextureAsset::Load(entry.name), U"Failed to load the result texture: {}"_fmt(entry.path));
+            }
         }
 
         void InitializeSounds() {

@@ -10,6 +10,8 @@ namespace xlair::ui::scenes {
         explicit Result(const InitData& init);
 
         void update() override;
+        void updateFadeIn(double t) override;
+        void updateFadeOut(double t) override;
         void draw() const override;
         void drawFadeIn(double t) const override;
         void drawFadeOut(double t) const override;
