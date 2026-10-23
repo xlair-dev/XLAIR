@@ -104,7 +104,7 @@ namespace xlair::ui::scenes {
                 // A positive offset compensates late input; it moves touch time earlier, not the visual chart.
                 const int64 judged_sample = m_current_sample - m_judgment_offset_samples;
                 if (getData().application->playSession().autoplay()) {
-                    const auto events = m_judge_engine->advanceAuto(judged_sample);
+                    const auto events = m_judge_engine->advanceAuto(m_current_sample);
                     m_sound_player.update(m_current_sample, *m_judge_engine, events);
                     if (!events.isEmpty()) {
                         m_last_judgement = events.back();
