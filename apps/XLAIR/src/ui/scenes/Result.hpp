@@ -8,6 +8,7 @@ namespace xlair::ui::scenes {
     class Result final : public SceneBase {
     public:
         explicit Result(const InitData& init);
+        ~Result() override;
 
         void update() override;
         void updateFadeIn(double t) override;

@@ -3,6 +3,7 @@
 #include "core/user/Level.hpp"
 #include "ui/Design.hpp"
 #include "ui/assets/Assets.hpp"
+#include "ui/audio/AudioBus.hpp"
 #include "ui/audio/SoundEffect.hpp"
 #include "ui/components/GameMusicPlate.hpp"
 #include "ui/components/ResultPanel.hpp"
@@ -16,6 +17,7 @@
 namespace xlair::ui::scenes {
     namespace {
         constexpr double InputWaitSeconds = 2.0;
+        constexpr Duration MusicFadeOut{ 0.25 };
     }
 
     Result::Result(const InitData& init) : SceneBase{ init }, m_result{ std::move(getData().game_result) } {
@@ -27,6 +29,12 @@ namespace xlair::ui::scenes {
                 .color = theme::Palette::Pink,
             },
         };
+        AudioAsset{ assets::bgm::Result }.play(audio::Music);
+    }
+
+    Result::~Result() {
+        // Also stop on immediate scene changes, such as the maintenance shortcut.
+        AudioAsset{ assets::bgm::Result }.stop();
     }
 
     void Result::update() {
@@ -36,7 +44,8 @@ namespace xlair::ui::scenes {
         }
         const auto* controller = getData().application->controller();
         if (KeyEnter.down() || input::TouchRegionDown(controller, 0, 16)) {
-            audio::PlaySoundEffect(audio::SoundEffect::Confirm);
+            AudioAsset{ assets::bgm::Result }.stop(MusicFadeOut);
+            audio::PlaySoundEffect(audio::SoundEffect::Finish);
             getData().returning_from_game = true;
             changeScene(SceneState::MusicSelect, 500, CrossFade::No);
         }

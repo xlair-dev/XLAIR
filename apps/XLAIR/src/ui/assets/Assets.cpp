@@ -141,6 +141,18 @@ namespace xlair::ui::assets {
                 U"Failed to register the confirmation sound."
             );
             Require(AudioAsset::Load(sound::Confirm), U"Failed to load the confirmation sound.");
+
+            Require(
+                AudioAsset::Register(sound::Finish, Resource(U"ui/sounds/se/finish.opus")),
+                U"Failed to register the finish sound."
+            );
+            Require(AudioAsset::Load(sound::Finish), U"Failed to load the finish sound.");
+
+            Require(
+                AudioAsset::Register(bgm::Result, Resource(U"ui/sounds/bgm/result_loop.opus"), Loop::Yes),
+                U"Failed to register the result background music."
+            );
+            Require(AudioAsset::Load(bgm::Result), U"Failed to load the result background music.");
         }
     }
 

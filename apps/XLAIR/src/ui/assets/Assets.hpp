@@ -31,6 +31,11 @@ namespace xlair::ui::assets {
         inline constexpr AssetNameView Navigate{ U"XLAIR.UI.Sound.Navigate" };
         inline constexpr AssetNameView ChangeDifficulty{ U"XLAIR.UI.Sound.ChangeDifficulty" };
         inline constexpr AssetNameView Confirm{ U"XLAIR.UI.Sound.Confirm" };
+        inline constexpr AssetNameView Finish{ U"XLAIR.UI.Sound.Finish" };
+    }
+
+    namespace bgm {
+        inline constexpr AssetNameView Result{ U"XLAIR.UI.BGM.Result" };
     }
 
     void Initialize();
