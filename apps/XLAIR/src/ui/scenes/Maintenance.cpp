@@ -519,8 +519,14 @@ namespace xlair::ui::scenes {
     void Maintenance::drawLatency() const {
         const FontAsset font{ assets::font::Text };
         const auto& config = getData().application->config();
-        font(U"平均差分: {} ms"_fmt(Format(m_latency_average_ms)))
-            .draw(32, Vec2{ 48, 128 }, Palette::White);
+        String average = U"平均差分: 計測待ち";
+        if (m_latency_tap_count > 0) {
+            average = U"平均差分: {}{} ms"_fmt(
+                m_latency_average_ms >= 0.0 ? U"+" : U"",
+                Format(m_latency_average_ms)
+            );
+        }
+        font(average).draw(32, Vec2{ 48, 128 }, Palette::White);
         font(U"計測回数: {}"_fmt(m_latency_tap_count)).draw(26, Vec2{ 48, 184 }, Palette::White);
         if (config) {
             font(U"適用中の補正: {} ms"_fmt(Format(config->input.latency_offset_seconds * 1'000.0)))
