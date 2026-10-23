@@ -2,6 +2,7 @@
 
 #include "Common.hpp"
 #include "core/scoring/Grade.hpp"
+#include "core/scoring/ClearType.hpp"
 
 #include <ApiClient/Types.hpp>
 
@@ -42,6 +43,21 @@ namespace xlair::ui::presentation {
                 return U"PERFECT";
             case api::ClearType::Failed:
                 return U"";
+        }
+        return U"";
+    }
+
+    [[nodiscard]]
+    constexpr StringView ClearStatusLabel(const core::scoring::ClearType clear_type) noexcept {
+        switch (clear_type) {
+            case core::scoring::ClearType::Clear:
+                return U"CLEAR";
+            case core::scoring::ClearType::FullCombo:
+                return U"FULL COMBO";
+            case core::scoring::ClearType::Perfect:
+                return U"PERFECT";
+            case core::scoring::ClearType::Failed:
+                return U"FAILED";
         }
         return U"";
     }

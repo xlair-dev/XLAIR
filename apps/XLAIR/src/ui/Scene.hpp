@@ -7,6 +7,7 @@
 #include "ui/MusicSelectContext.hpp"
 #include "ui/assets/JacketAssets.hpp"
 #include "ui/game/GameLoader.hpp"
+#include "ui/game/GameResult.hpp"
 
 #include <memory>
 #include <utility>
@@ -19,6 +20,7 @@ namespace xlair::ui {
         MusicSelect,
         Settings,
         Game,
+        Result,
         Maintenance,
 #ifndef NDEBUG
         ComponentGallery,
@@ -44,6 +46,7 @@ namespace xlair::ui {
         assets::JacketAssets jackets;
         std::unique_ptr<MusicSelectContext> music_select_context;
         Optional<GameSelection> game_selection;
+        Optional<GameResult> game_result;
         game::GameLoader game_loader;
         bool returning_from_game = false;
         SceneState current_scene = SceneState::Boot;

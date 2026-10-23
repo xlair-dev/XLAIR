@@ -47,6 +47,7 @@ namespace xlair::ui::scenes {
     }
 
     Game::Game(const InitData& init) : SceneBase{ init } {
+        getData().game_result.reset();
         if (getData().music_select_context) {
             getData().music_select_context->pause();
         }
@@ -153,20 +154,31 @@ namespace xlair::ui::scenes {
                     m_judgement_display_seconds = 0.0;
                 }
             } else {
-                m_current_sample = static_cast<int64>(music.samples());
-                // Resolve pending notes at the end even if the audio ends within a judgement window.
-                const auto events = m_judge_engine->advance(
-                    static_cast<int64>(music.samples()) + loader.chart()->sample_rate - m_judgment_offset_samples
-                );
-                m_sound_player.update(m_current_sample, *m_judge_engine, events);
-                if (!events.isEmpty()) {
-                    m_last_judgement = events.back();
-                    m_judgement_display_seconds = 0.0;
-                }
-                m_sound_player.finish();
-                m_playback_finished = true;
+                finishPlayback();
             }
         }
+    }
+
+    void Game::finishPlayback() {
+        auto& data = getData();
+        m_current_sample = static_cast<int64>(data.game_loader.audio().samples());
+        const auto events = m_judge_engine->finish();
+        m_sound_player.update(m_current_sample, *m_judge_engine, events);
+        if (!events.isEmpty()) {
+            m_last_judgement = events.back();
+            m_judgement_display_seconds = 0.0;
+        }
+        m_sound_player.finish();
+        m_playback_finished = true;
+
+        if (data.game_selection) {
+            data.game_result = GameResult{
+                .selection = *data.game_selection,
+                .score = m_judge_engine->score(),
+                .total_combo = data.game_loader.chart()->total_combo,
+            };
+        }
+        changeScene(SceneState::Result, 500, CrossFade::No);
     }
 
     void Game::draw() const {
