@@ -22,6 +22,7 @@ namespace xlair::ui::scenes {
         void drawFadeOut(double t) const override;
 
     private:
+        void finishPlayback();
         void drawReady() const;
         void drawFailure() const;
         void drawFadeOverlay(double opacity) const;

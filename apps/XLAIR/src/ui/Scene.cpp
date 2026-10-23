@@ -7,6 +7,7 @@
 #include "scenes/MusicSelect.hpp"
 #include "scenes/Settings.hpp"
 #include "scenes/Game.hpp"
+#include "scenes/Result.hpp"
 #include "scenes/Maintenance.hpp"
 
 #include "scenes/ComponentGallery.hpp"
@@ -58,6 +59,7 @@ namespace xlair::ui {
             .add<scenes::MusicSelect>(SceneState::MusicSelect) // music
             .add<scenes::Settings>(SceneState::Settings)       // settings
             .add<scenes::Game>(SceneState::Game)               // main game screen
+            .add<scenes::Result>(SceneState::Result)           // result of the completed play
             .add<scenes::Maintenance>(SceneState::Maintenance);
 #ifndef NDEBUG
         scene_manager

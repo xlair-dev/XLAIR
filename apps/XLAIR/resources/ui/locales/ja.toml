@@ -33,3 +33,7 @@ back = "戻る"
 
 [music_card]
 chart_unavailable = "譜面が作成されていません"
+
+[result]
+continue = "次へ"
+unavailable = "プレイ結果を取得できませんでした"
