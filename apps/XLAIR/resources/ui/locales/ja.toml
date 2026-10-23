@@ -37,3 +37,8 @@ chart_unavailable = "譜面が作成されていません"
 [result]
 continue = "次へ"
 unavailable = "プレイ結果を取得できませんでした"
+
+[final_result]
+saving_unavailable = "成績の保存はまだ実装されていません"
+scroll_up = "上へ"
+scroll_down = "下へ"

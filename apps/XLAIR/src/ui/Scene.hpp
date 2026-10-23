@@ -21,6 +21,7 @@ namespace xlair::ui {
         Settings,
         Game,
         Result,
+        FinalResult,
         Maintenance,
 #ifndef NDEBUG
         ComponentGallery,

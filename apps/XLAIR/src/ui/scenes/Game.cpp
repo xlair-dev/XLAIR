@@ -63,6 +63,9 @@ namespace xlair::ui::scenes {
     Game::~Game() {
         m_sound_player.stop();
         getData().game_loader.cancel();
+        if (const auto& selection = getData().game_selection) {
+            getData().application->playSession().cancelPlay(selection->play_id);
+        }
         getData().game_selection.reset();
     }
 
@@ -172,8 +175,17 @@ namespace xlair::ui::scenes {
         m_playback_finished = true;
 
         if (data.game_selection) {
+            const auto& selection = *data.game_selection;
+            if (!data.application->playSession().completePlay(
+                    selection.play_id,
+                    selection.difficulty.id,
+                    m_judge_engine->score(),
+                    data.game_loader.chart()->total_combo
+                )) {
+                Logger << U"[Game] Could not complete the current session play.";
+            }
             data.game_result = GameResult{
-                .selection = *data.game_selection,
+                .selection = selection,
                 .score = m_judge_engine->score(),
                 .total_combo = data.game_loader.chart()->total_combo,
             };
@@ -243,8 +255,8 @@ namespace xlair::ui::scenes {
                     .jacket = getData().jackets.get(selection->music_id),
                     .difficulty_index = selection->difficulty.index,
                     .level = selection->difficulty.level,
-                    .max_plays = session.maxPlays(),
-                    .remaining_plays = session.remainingPlays(),
+                    .max_plays = selection->max_plays,
+                    .remaining_plays = selection->remaining_plays,
                 },
                 Point{ 1480, 72 },
                 m_elapsed

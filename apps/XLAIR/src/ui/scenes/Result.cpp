@@ -46,8 +46,12 @@ namespace xlair::ui::scenes {
         if (KeyEnter.down() || input::TouchRegionDown(controller, 0, 16)) {
             AudioAsset{ assets::bgm::Result }.stop(MusicFadeOut);
             audio::PlaySoundEffect(audio::SoundEffect::Finish);
-            getData().returning_from_game = true;
-            changeScene(SceneState::MusicSelect, 500, CrossFade::No);
+            if (getData().application->playSession().finished()) {
+                changeScene(SceneState::FinalResult, 500, CrossFade::No);
+            } else {
+                getData().returning_from_game = true;
+                changeScene(SceneState::MusicSelect, 500, CrossFade::No);
+            }
         }
     }
 
@@ -86,8 +90,8 @@ namespace xlair::ui::scenes {
                 .jacket = getData().jackets.get(result.selection.music_id),
                 .difficulty_index = result.selection.difficulty.index,
                 .level = result.selection.difficulty.level,
-                .max_plays = session.maxPlays(),
-                .remaining_plays = session.remainingPlays(),
+                .max_plays = result.selection.max_plays,
+                .remaining_plays = result.selection.remaining_plays,
             },
             Point{ 1480, 72 },
             m_elapsed

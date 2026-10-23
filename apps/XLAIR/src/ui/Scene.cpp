@@ -8,6 +8,7 @@
 #include "scenes/Settings.hpp"
 #include "scenes/Game.hpp"
 #include "scenes/Result.hpp"
+#include "scenes/FinalResult.hpp"
 #include "scenes/Maintenance.hpp"
 
 #include "scenes/ComponentGallery.hpp"
@@ -60,6 +61,7 @@ namespace xlair::ui {
             .add<scenes::Settings>(SceneState::Settings)       // settings
             .add<scenes::Game>(SceneState::Game)               // main game screen
             .add<scenes::Result>(SceneState::Result)           // result of the completed play
+            .add<scenes::FinalResult>(SceneState::FinalResult) // results of the whole session
             .add<scenes::Maintenance>(SceneState::Maintenance);
 #ifndef NDEBUG
         scene_manager
