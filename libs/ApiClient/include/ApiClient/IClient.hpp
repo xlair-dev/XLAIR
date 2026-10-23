@@ -1,5 +1,6 @@
 #pragma once
 
+#include <ApiClient/ClientOptions.hpp>
 #include <ApiClient/Request.hpp>
 #include <ApiClient/Types.hpp>
 
@@ -7,6 +8,9 @@ namespace xlair::api {
     class IClient {
     public:
         virtual ~IClient() = default;
+
+        // Updates the timeout used by this client, including requests already in flight.
+        virtual bool setTimeoutSeconds(double seconds) = 0;
 
         [[nodiscard]]
         virtual Request<bool> checkHealth() = 0;

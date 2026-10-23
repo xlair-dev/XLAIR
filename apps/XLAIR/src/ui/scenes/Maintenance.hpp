@@ -16,17 +16,19 @@ namespace xlair::ui::scenes {
         void draw() const override;
 
     private:
-        enum class Page { Menu, Controller, Slider, Lights, CardReader, Server, Sound };
+        enum class Page { Menu, Controller, Slider, Lights, Latency, CardReader, Server, Sound };
 
         void setPage(Page page);
         std::span<const StringView> menuItems() const;
         bool itemEnabled(std::size_t index) const;
         void updateSlider();
+        void updateLatency();
         void updateCardReader();
         void updateServer();
         void updateSound();
         void resetSoundRepeat();
         void drawSlider() const;
+        void drawLatency() const;
         void drawLights() const;
         void drawCardReader() const;
         void drawServer() const;
@@ -40,6 +42,12 @@ namespace xlair::ui::scenes {
         bool m_sync_requested = false;
         bool m_loading_jackets = false;
         bool m_highlight_touch_threshold = false;
+        int64 m_latency_next_beat_ms = 0;
+        int64 m_latency_last_beat_ms = 0;
+        int64 m_latency_last_tapped_beat_ms = -1;
+        uint32 m_latency_tap_count = 0;
+        int64 m_latency_total_ms = 0;
+        double m_latency_average_ms = 0.0;
         int32 m_sound_repeat_direction = 0;
         double m_sound_hold_seconds = 0.0;
         double m_sound_next_repeat_seconds = 0.0;

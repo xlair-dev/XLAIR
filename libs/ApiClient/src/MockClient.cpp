@@ -6,6 +6,10 @@
 #include <cmath>
 
 namespace xlair::api {
+    bool MockClient::setTimeoutSeconds(const double seconds) {
+        return std::isfinite(seconds) && seconds > 0.0;
+    }
+
     namespace {
         constexpr auto MockRecordTimestamp = U"2026-09-16T00:00:00Z";
 

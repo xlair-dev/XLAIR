@@ -373,6 +373,33 @@ namespace xlair::core::judgement {
         return events;
     }
 
+    Array<JudgementEvent> JudgeEngine::advanceAuto(const int64 current_sample) {
+        Array<JudgementEvent> events;
+        m_flick_contacts.clear();
+        for (const auto index : m_order) {
+            auto& note = m_notes[index];
+            if (note.sample > current_sample || note.state != NoteState::Pending ||
+                note.note_kind == NoteKind::SliderHold || note.note_kind == NoteKind::SideHold) {
+                continue;
+            }
+            record(note, Grade::Perfect, note.sample, events);
+        }
+        for (auto& note : m_notes) {
+            if (note.sample <= current_sample && note.state == NoteState::Pending &&
+                (note.note_kind == NoteKind::SliderHold || note.note_kind == NoteKind::SideHold)) {
+                record(note, Grade::Perfect, note.sample, events);
+            }
+        }
+        for (const auto index : m_hold_order) {
+            auto& point = holdPoint(index);
+            if (point.sample <= current_sample && point.state == NoteState::Pending) {
+                record(point, Grade::Perfect, point.sample, events);
+            }
+        }
+        updateHoldActivity(current_sample, std::numeric_limits<uint32>::max(), std::numeric_limits<uint8>::max());
+        return events;
+    }
+
     void JudgeEngine::processFlickTouch(
         const TouchEvent& touch,
         const uint32 slider_pressed,

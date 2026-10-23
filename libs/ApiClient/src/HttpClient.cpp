@@ -284,6 +284,17 @@ namespace xlair::api {
                 return m_result;
             }
 
+            s3d::Optional<RequestProgress> progress() const noexcept override {
+                if (!m_destination || !m_task) {
+                    return s3d::none;
+                }
+                const auto progress = m_task.getProgress();
+                return RequestProgress{
+                    .downloaded_bytes = progress.downloaded_bytes,
+                    .download_total_bytes = progress.download_total_bytes,
+                };
+            }
+
         private:
             void fail(ErrorKind kind, s3d::String message, s3d::Optional<s3d::int32> status = s3d::none) {
                 m_result = ApiError{ kind, std::move(message), status };
@@ -316,6 +327,14 @@ namespace xlair::api {
     }
 
     HttpClient::HttpClient(const ClientOptions& config) : m_session{ std::make_shared<HttpSession>(config) } {}
+
+    bool HttpClient::setTimeoutSeconds(const double seconds) {
+        if (!std::isfinite(seconds) || seconds <= 0.0) {
+            return false;
+        }
+        m_session->timeout = seconds;
+        return true;
+    }
 
     Request<bool> HttpClient::checkHealth() {
         // /health is public; authentication failures should not hide server reachability.

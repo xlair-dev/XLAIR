@@ -43,6 +43,11 @@ namespace xlair::app::session {
         void setMirror(bool mirror) noexcept;
 
         [[nodiscard]]
+        bool autoplay() const noexcept;
+
+        void setAutoplay(bool enabled) noexcept;
+
+        [[nodiscard]]
         const api::UserRecord* record(StringView sheet_id) const noexcept;
 
     private:
@@ -51,6 +56,7 @@ namespace xlair::app::session {
         api::PlayOptions m_play_options;
         // TODO: Fetch mirror from the API once PlayOptions includes it.
         bool m_mirror = false;
+        bool m_autoplay = false;
         uint32 m_max_plays = 0;
         uint32 m_remaining_plays = 0;
     };

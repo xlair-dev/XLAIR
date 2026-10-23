@@ -24,6 +24,9 @@ namespace xlair::app {
 
         [[nodiscard]]
         const Optional<Config>& config() const noexcept;
+        bool setApiTimeoutSeconds(double seconds);
+        void setTouchThresholdHighlight(bool enabled) noexcept;
+        void setInputLatencyOffsetSeconds(double seconds) noexcept;
 
         [[nodiscard]]
         api::IClient* apiClient() noexcept;
