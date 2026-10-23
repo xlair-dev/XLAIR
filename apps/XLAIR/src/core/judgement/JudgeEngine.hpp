@@ -99,7 +99,7 @@ namespace xlair::core::judgement {
         [[nodiscard]]
         const ScoreState& score() const noexcept;
 
-        // Contacts are reported before a FLICK gesture is fully judged so audio can be scheduled on time.
+        // Contact candidates do not imply a successful judgement and remain available until the next advance().
         [[nodiscard]]
         std::span<const std::size_t> flickContacts() const noexcept {
             return m_flick_contacts;
