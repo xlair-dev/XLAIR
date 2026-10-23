@@ -67,6 +67,7 @@ namespace xlair::app {
             };
 
             Mode mode = Mode::Keyboard;
+            bool highlight_touch_threshold = false;
 
             struct GroundSlider {
                 String port;

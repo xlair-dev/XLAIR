@@ -1,5 +1,6 @@
 #include "Application.hpp"
 
+#include <cmath>
 #include <utility>
 
 namespace xlair::app {
@@ -27,6 +28,26 @@ namespace xlair::app {
 
     const Optional<Config>& Application::config() const noexcept {
         return m_config;
+    }
+
+    bool Application::setApiTimeoutSeconds(const double seconds) {
+        if (!m_config || !m_api_client || !m_api_client->setTimeoutSeconds(seconds)) {
+            return false;
+        }
+        m_config->api.timeout_seconds = seconds;
+        return true;
+    }
+
+    void Application::setTouchThresholdHighlight(const bool enabled) noexcept {
+        if (m_config) {
+            m_config->controller.highlight_touch_threshold = enabled;
+        }
+    }
+
+    void Application::setInputLatencyOffsetSeconds(const double seconds) noexcept {
+        if (m_config && std::isfinite(seconds)) {
+            m_config->input.latency_offset_seconds = seconds;
+        }
     }
 
     api::IClient* Application::apiClient() noexcept {

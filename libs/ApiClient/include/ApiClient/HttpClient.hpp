@@ -10,6 +10,8 @@ namespace xlair::api {
     public:
         explicit HttpClient(const ClientOptions& config);
 
+        bool setTimeoutSeconds(double seconds) override;
+
         Request<bool> checkHealth() override;
 
         Request<User> findUserByCard(s3d::StringView card_id) override;

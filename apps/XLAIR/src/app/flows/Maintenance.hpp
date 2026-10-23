@@ -45,6 +45,11 @@ namespace xlair::app::flows {
             return m_message;
         }
 
+        [[nodiscard]]
+        Optional<api::RequestProgress> progress() const noexcept {
+            return m_state == State::Syncing ? m_sync.progress() : none;
+        }
+
     private:
         void fail(String message);
 

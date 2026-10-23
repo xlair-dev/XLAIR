@@ -83,4 +83,8 @@ namespace xlair::app::flows {
         m_error.reset();
         m_state = State::Idle;
     }
+
+    Optional<api::RequestProgress> CatalogSync::progress() const noexcept {
+        return m_local_sync_request ? m_local_sync_request->progress() : none;
+    }
 }
