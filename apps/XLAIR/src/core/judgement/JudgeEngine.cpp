@@ -222,6 +222,7 @@ namespace xlair::core::judgement {
         const uint8 side_pressed
     ) {
         Array<JudgementEvent> events;
+        m_flick_contacts.clear();
 
         for (const auto& touch : touches) {
             if (touch.zone >= TouchZoneCount || touch.sample > current_sample) {
@@ -466,6 +467,7 @@ namespace xlair::core::judgement {
         }
 
         contact->flick_gesture = FlickGesture{ .contact_zone = touch.zone, .contact_sample = touch.sample };
+        m_flick_contacts.push_back(contact->chart_index);
         // An already-held lane can be the other half of a two-point FLICK.
         // The newly touched lane must still be released to complete it.
         for (uint8 zone = 0; zone < TouchZoneCount; ++zone) {

@@ -99,6 +99,12 @@ namespace xlair::core::judgement {
         [[nodiscard]]
         const ScoreState& score() const noexcept;
 
+        // Contacts are reported before a FLICK gesture is fully judged so audio can be scheduled on time.
+        [[nodiscard]]
+        std::span<const std::size_t> flickContacts() const noexcept {
+            return m_flick_contacts;
+        }
+
     private:
         struct FlickGesture {
             uint8 contact_zone = 0;
@@ -170,6 +176,7 @@ namespace xlair::core::judgement {
         Array<Note> m_notes;
         Array<std::size_t> m_order;
         Array<std::size_t> m_flick_order;
+        Array<std::size_t> m_flick_contacts;
         Array<Hold> m_slider_holds;
         Array<Hold> m_side_holds;
         Array<HoldPointIndex> m_hold_order;
