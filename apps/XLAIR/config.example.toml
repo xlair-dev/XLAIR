@@ -20,6 +20,7 @@ directory = "data/sheets/sync"
 
 [controller]
 mode = "keyboard" # or ground_slider, v1
+highlight_touch_threshold = false
 
 [controller.ground_slider]
 port = "COM1"

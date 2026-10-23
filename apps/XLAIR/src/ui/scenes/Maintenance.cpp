@@ -66,6 +66,9 @@ namespace xlair::ui::scenes {
 
     Maintenance::Maintenance(const InitData& init) : SceneBase{ init } {
         auto& data = getData();
+        if (const auto& config = data.application->config()) {
+            m_highlight_touch_threshold = config->controller.highlight_touch_threshold;
+        }
         if (data.music_select_context) {
             data.music_select_context->pause();
         }
@@ -279,6 +282,9 @@ namespace xlair::ui::scenes {
     }
 
     void Maintenance::updateSlider() {
+        if (KeyEnter.down()) {
+            m_highlight_touch_threshold = !m_highlight_touch_threshold;
+        }
         auto* controller = getData().application->controller();
         if (!controller) {
             return;
@@ -345,7 +351,7 @@ namespace xlair::ui::scenes {
         }
         const StringView guide =
             busy()                       ? U"処理中..."
-            : m_page == Page::Slider     ? U"↑ / ↓: 閾値を変更（起動中のみ）    ←: 戻る    F2: Title"
+            : m_page == Page::Slider     ? U"↑ / ↓: 閾値    Enter: 緑表示切替    ←: 戻る    F2: Title"
             : m_page == Page::Lights     ? U"↑ / ↓: 選択    Enter: 点灯    →: 出力先切替    ←: 戻る    F2: Title"
             : m_page == Page::CardReader ? U"Enter: 再読取    ←: 戻る    F2: Title"
             : m_page == Page::Sound ? U"↑ / ↓: 選択    ← / →: 音量（長押し可・起動中のみ）    Enter: 決定    F2: Title"
@@ -373,6 +379,8 @@ namespace xlair::ui::scenes {
         const auto threshold = controller->touchThreshold();
         font(threshold ? U"閾値: {}"_fmt(static_cast<int32>(*threshold)) : U"閾値: -- (Keyboard)")
             .draw(28, Vec2{ 48, 128 }, Palette::White);
+        font(U"しきい値超過を緑表示: {}"_fmt(m_highlight_touch_threshold ? U"ON" : U"OFF"))
+            .draw(24, Vec2{ 48, 168 }, Palette::White);
 
         constexpr double Left = 48;
         constexpr double Top = 210;
@@ -382,7 +390,8 @@ namespace xlair::ui::scenes {
             const auto value = controller->touchValue(index);
             const auto& button = controller->touchZone(index);
             const double red = value ? Min(1.0, *value / 254.0) : button.pressed() ? 1.0 : 0.0;
-            cell.draw(ColorF{ red, 0, 0 }).drawFrame(1, Palette::White);
+            const bool above_threshold = m_highlight_touch_threshold && threshold && value && *value >= *threshold;
+            cell.draw(above_threshold ? ColorF{ 0, 1, 0 } : ColorF{ red, 0, 0 }).drawFrame(1, Palette::White);
             font(index).drawAt(18, cell.center().movedBy(0, -30), Palette::White);
             font(value ? Format(static_cast<int32>(*value)) : U"--")
                 .drawAt(30, cell.center().movedBy(0, 8), Palette::White);

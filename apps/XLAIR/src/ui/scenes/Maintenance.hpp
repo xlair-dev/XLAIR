@@ -39,6 +39,7 @@ namespace xlair::ui::scenes {
         int32 m_opened_frame = Scene::FrameCount();
         bool m_sync_requested = false;
         bool m_loading_jackets = false;
+        bool m_highlight_touch_threshold = false;
         int32 m_sound_repeat_direction = 0;
         double m_sound_hold_seconds = 0.0;
         double m_sound_next_repeat_seconds = 0.0;
