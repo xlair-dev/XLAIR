@@ -164,8 +164,13 @@ namespace xlair::ui::scenes {
             } else {
                 m_current_sample = static_cast<int64>(music.samples());
                 // Resolve pending notes at the end even if the audio ends within a judgement window.
-                const auto events = m_judge_engine->advance(
-                    static_cast<int64>(music.samples()) + loader.chart()->sample_rate - m_judgment_offset_samples
+                Array<core::judgement::JudgementEvent> events;
+                if (getData().application->playSession().autoplay()) {
+                    // Cover the final frame before resolving any notes beyond the audio.
+                    events = m_judge_engine->advanceAuto(m_current_sample);
+                }
+                events.append(
+                    m_judge_engine->advance(m_current_sample + loader.chart()->sample_rate - m_judgment_offset_samples)
                 );
                 m_sound_player.update(m_current_sample, *m_judge_engine, events);
                 if (!events.isEmpty()) {
