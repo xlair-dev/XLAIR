@@ -222,8 +222,8 @@ namespace xlair::ui::scenes {
                     setPage(Page::Sound);
                     break;
                 case 4: {
-                    auto& session = getData().application->playSession();
-                    session.setAutoplay(!session.autoplay());
+                    auto& application = *getData().application;
+                    application.setAutoplay(!application.autoplay());
                     break;
                 }
                 default:
@@ -445,9 +445,9 @@ namespace xlair::ui::scenes {
                 m_page == Page::Controller && !itemEnabled(1) ? Optional<std::size_t>{ 1 } : none;
             DrawMenu(menuItems(), m_selected_index, disabled);
             if (m_page == Page::Menu) {
-                const auto& session = getData().application->playSession();
-                font(session.autoplay() ? U"ON" : U"OFF")
-                    .draw(28, Vec2{ 480, 128.0 + 4 * 52.0 }, session.autoplay() ? Palette::Green : Palette::Gray);
+                const bool autoplay = getData().application->autoplay();
+                font(autoplay ? U"ON" : U"OFF")
+                    .draw(28, Vec2{ 480, 128.0 + 4 * 52.0 }, autoplay ? Palette::Green : Palette::Gray);
             }
         }
         const StringView guide =

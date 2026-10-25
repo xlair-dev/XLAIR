@@ -29,6 +29,10 @@ namespace xlair::app {
         void setInputLatencyOffsetSeconds(double seconds) noexcept;
 
         [[nodiscard]]
+        bool autoplay() const noexcept;
+        void setAutoplay(bool enabled) noexcept;
+
+        [[nodiscard]]
         api::IClient* apiClient() noexcept;
 
         [[nodiscard]]
@@ -73,5 +77,7 @@ namespace xlair::app {
         credits::CreditPool m_credit_pool;
         Array<sheets::Metadata> m_music_catalog;
         session::PlaySession m_play_session;
+        // Maintenance setting shared across player sessions; not an API play option.
+        bool m_autoplay = false;
     };
 }

@@ -54,6 +54,14 @@ namespace xlair::app {
         return m_api_client.get();
     }
 
+    bool Application::autoplay() const noexcept {
+        return m_autoplay;
+    }
+
+    void Application::setAutoplay(const bool enabled) noexcept {
+        m_autoplay = enabled;
+    }
+
     interfaces::ICardReader* Application::cardReader() noexcept {
         return m_card_reader.get();
     }

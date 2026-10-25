@@ -75,14 +75,6 @@ namespace xlair::app::session {
         m_mirror = mirror;
     }
 
-    bool PlaySession::autoplay() const noexcept {
-        return m_autoplay;
-    }
-
-    void PlaySession::setAutoplay(const bool enabled) noexcept {
-        m_autoplay = enabled;
-    }
-
     const api::UserRecord* PlaySession::record(const StringView sheet_id) const noexcept {
         const auto iterator = m_records.find(sheet_id);
         return iterator == m_records.end() ? nullptr : &iterator->second;
