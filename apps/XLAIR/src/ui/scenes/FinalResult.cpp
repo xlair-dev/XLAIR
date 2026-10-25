@@ -14,6 +14,25 @@
 namespace xlair::ui::scenes {
     namespace {
         constexpr std::size_t VisibleRecords = 5;
+        constexpr double InputWaitSeconds = 2.0;
+
+        [[nodiscard]]
+        localization::TextId SaveStatus(const app::flows::FinalResult& flow) {
+            using State = app::flows::FinalResult::State;
+            using TextId = localization::TextId;
+            switch (flow.state()) {
+                case State::Idle:
+                case State::SavingRecords:
+                    return TextId::FinalResultSavingRecords;
+                case State::SavingOptions:
+                    return TextId::FinalResultSavingOptions;
+                case State::Saved:
+                    return TextId::FinalResultSaved;
+                case State::Failed:
+                    return flow.canRetry() ? TextId::FinalResultSaveFailed : TextId::FinalResultSaveUnconfirmed;
+            }
+            return TextId::FinalResultSaveUnconfirmed;
+        }
 
         [[nodiscard]]
         String SheetLabel(const Array<sheets::Metadata>& catalog, const StringView sheet_id) {
@@ -44,6 +63,7 @@ namespace xlair::ui::scenes {
               .label = localization::GetText(localization::TextId::FinalResultScrollDown),
               .color = theme::Palette::Pink },
         };
+        m_save_flow.start(getData().application->apiClient(), getData().application->playSession());
         AudioAsset{ assets::bgm::FinalResult }.play(audio::Music);
     }
 
@@ -53,8 +73,22 @@ namespace xlair::ui::scenes {
 
     void FinalResult::update() {
         m_elapsed += Scene::DeltaTime();
+        updateSave();
         const auto& records = getData().application->playSession().playedRecords();
         const auto* controller = getData().application->controller();
+        const bool confirm = KeyEnter.down() || input::TouchRegionDown(controller, 0, 16);
+        if (m_elapsed >= InputWaitSeconds && confirm) {
+            if (m_save_flow.state() == app::flows::FinalResult::State::Saved) {
+                AudioAsset{ assets::bgm::FinalResult }.stop(Duration{ 0.25 });
+                audio::PlaySoundEffect(audio::SoundEffect::Confirm);
+                changeScene(SceneState::Title, 500, CrossFade::No);
+                return;
+            }
+            if (m_save_flow.canRetry()) {
+                m_save_flow.retry();
+                return;
+            }
+        }
         const bool up = KeyUp.down() || input::TouchRegionDown(controller, 0, 8);
         const bool down = KeyDown.down() || input::TouchRegionDown(controller, 8, 8);
         if (up && m_first_record > 0) {
@@ -68,6 +102,15 @@ namespace xlair::ui::scenes {
 
     void FinalResult::updateFadeIn(const double) {
         m_elapsed += Scene::DeltaTime();
+        updateSave();
+    }
+
+    void FinalResult::updateSave() {
+        const auto previous = m_save_flow.state();
+        m_save_flow.update();
+        if (m_save_flow.state() == app::flows::FinalResult::State::Failed && m_save_flow.state() != previous) {
+            Logger << U"[FinalResult] Save failed: " + m_save_flow.error()->message;
+        }
     }
 
     void FinalResult::draw() const {
@@ -101,9 +144,29 @@ namespace xlair::ui::scenes {
             FontAsset{ assets::font::Text }(clear_label).draw(22, Arg::topRight(1740, y + 56), theme::Palette::Gray);
         }
 
-        FontAsset{ assets::font::Text }(localization::GetText(localization::TextId::FinalResultSavingUnavailable))
-            .drawAt(24, Vec2{ DesignSize.x / 2.0, 960 }, theme::Palette::Gray);
-        if (records.size() > VisibleRecords) {
+        FontAsset{ assets::font::Text }(localization::GetText(SaveStatus(m_save_flow)))
+            .drawAt(24, Vec2{ DesignSize.x / 2.0, 940 }, theme::Palette::Gray);
+        if (const auto& error = m_save_flow.error()) {
+            components::DrawScrollingText(
+                FontAsset{ assets::font::Text },
+                error->message,
+                20,
+                Rect{ 210, 972, 1500, 30 },
+                m_elapsed,
+                theme::Palette::Gray
+            );
+        }
+        if (m_elapsed >= InputWaitSeconds &&
+            (m_save_flow.state() == app::flows::FinalResult::State::Saved || m_save_flow.canRetry())) {
+            const auto action = m_save_flow.canRetry() ? localization::TextId::FinalResultRetry
+                                                       : localization::TextId::FinalResultReturnToTitle;
+            components::DrawSliderMappingGuide(
+                { { .region = { .start = 0, .width = 16 },
+                    .label = localization::GetText(action),
+                    .color = theme::Palette::Pink } },
+                RectF{ 210, 1010, 1500, 70 }
+            );
+        } else if (records.size() > VisibleRecords) {
             components::DrawSliderMappingGuide(m_scroll_mappings, RectF{ 210, 1010, 1500, 70 });
         }
     }
@@ -111,5 +174,10 @@ namespace xlair::ui::scenes {
     void FinalResult::drawFadeIn(const double t) const {
         draw();
         Scene::Rect().draw(ColorF{ 0.0, 0.0, 0.0, 1.0 - Clamp(t, 0.0, 1.0) });
+    }
+
+    void FinalResult::drawFadeOut(const double t) const {
+        draw();
+        Scene::Rect().draw(ColorF{ 0.0, 0.0, 0.0, Clamp(t, 0.0, 1.0) });
     }
 }

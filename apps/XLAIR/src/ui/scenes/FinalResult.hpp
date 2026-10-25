@@ -1,5 +1,6 @@
 #pragma once
 
+#include "app/flows/FinalResult.hpp"
 #include "ui/Scene.hpp"
 #include "ui/components/SliderMappingGuide.hpp"
 
@@ -13,8 +14,12 @@ namespace xlair::ui::scenes {
         void updateFadeIn(double t) override;
         void draw() const override;
         void drawFadeIn(double t) const override;
+        void drawFadeOut(double t) const override;
 
     private:
+        void updateSave();
+
+        app::flows::FinalResult m_save_flow;
         Array<components::SliderMapping> m_scroll_mappings;
         std::size_t m_first_record = 0;
         double m_elapsed = 0.0;
