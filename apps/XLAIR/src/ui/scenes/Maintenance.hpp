@@ -26,7 +26,8 @@ namespace xlair::ui::scenes {
         void updateCardReader();
         void updateServer();
         void updateSound();
-        void resetSoundRepeat();
+        void resetValueRepeat();
+        int32 repeatedValueDelta(int32 max_steps);
         void drawSlider() const;
         void drawLatency() const;
         void drawLights() const;
@@ -48,9 +49,9 @@ namespace xlair::ui::scenes {
         uint32 m_latency_tap_count = 0;
         int64 m_latency_total_ms = 0;
         double m_latency_average_ms = 0.0;
-        int32 m_sound_repeat_direction = 0;
-        double m_sound_hold_seconds = 0.0;
-        double m_sound_next_repeat_seconds = 0.0;
+        int32 m_value_repeat_direction = 0;
+        double m_value_hold_seconds = 0.0;
+        double m_value_next_repeat_seconds = 0.0;
         std::unique_ptr<app::flows::LightTest> m_light_test;
         app::flows::CardReaderTest m_card_reader_test;
     };
