@@ -2,6 +2,8 @@
 
 #include "ui/assets/Assets.hpp"
 #include "ui/audio/AudioBus.hpp"
+#include "ui/audio/CalibrationTrack.hpp"
+#include "ui/components/LatencyCalibrationView.hpp"
 
 #include <array>
 #include <cmath>
@@ -39,6 +41,8 @@ namespace xlair::ui::scenes {
         constexpr double ValueRepeatInterval = 0.1;
         constexpr double ValueFastRepeatAfter = 1.5;
         constexpr double ValueFastRepeatInterval = 0.03;
+        constexpr auto ApplyLatencyButton = app::controller::MaintenanceButton::Button2;
+        constexpr auto ResetLatencyButton = app::controller::MaintenanceButton::Button4;
 
         void DrawMenu(
             const std::span<const StringView> items,
@@ -339,22 +343,8 @@ namespace xlair::ui::scenes {
     }
 
     void Maintenance::resetLatency() {
-        using Calibration = app::flows::LatencyCalibration;
-        constexpr uint32 SampleRate = 48000;
-        const auto first = static_cast<std::size_t>(Calibration::FirstBeatMs * SampleRate / 1000.0);
-        const auto interval = static_cast<std::size_t>(Calibration::BeatIntervalMs * SampleRate / 1000.0);
-        Wave wave{ first + interval, WaveSample{ 0.0f }, Arg::sampleRate = SampleRate };
-        // Bake the click into the waveform: no frame-driven playOneShot calls,
-        // unknown leading silence, or cumulative metronome scheduling drift.
-        for (std::size_t index = 0; index < SampleRate / 50; ++index) {
-            const double time = static_cast<double>(index) / SampleRate;
-            wave[first + index] =
-                static_cast<float>(0.4 * std::sin(Math::TwoPi * 1500.0 * time) * std::exp(-time / 0.004));
-        }
         m_latency_audio.stop();
-        m_latency_audio = Audio{ std::move(wave),
-                                 Arg::loopBegin = static_cast<uint64>(first),
-                                 Arg::loopEnd = static_cast<uint64>(first + interval) };
+        m_latency_audio = audio::CreateCalibrationTrack();
         m_latency_calibration.reset();
         m_latency_time_ms = 0.0;
         m_latency_applied = false;
@@ -363,7 +353,8 @@ namespace xlair::ui::scenes {
     }
 
     void Maintenance::updateLatency() {
-        if (KeyR.down()) {
+        const auto* controller = getData().application->controller();
+        if (controller && controller->maintenanceButton(ResetLatencyButton).down()) {
             resetLatency();
             return;
         }
@@ -372,12 +363,14 @@ namespace xlair::ui::scenes {
         }
         // samplesPlayed includes loops. posSample would jump backwards at each loop.
         m_latency_time_ms = m_latency_audio.samplesPlayed() * 1000.0 / m_latency_audio.sampleRate();
-        if (KeyEnter.down() && m_latency_calibration.ready()) {
-            getData().application->setInputLatencyOffsetSeconds(*m_latency_calibration.averageMs() / 1000.0);
-            m_latency_applied = true;
+        if (controller && controller->maintenanceButton(ApplyLatencyButton).down()) {
+            if (m_latency_calibration.ready()) {
+                getData().application->setInputLatencyOffsetSeconds(*m_latency_calibration.averageMs() / 1000.0);
+                m_latency_applied = true;
+            }
+            return;
         }
 
-        const auto* controller = getData().application->controller();
         bool tapped = KeySpace.down();
         if (controller) {
             for (std::size_t index = 0; index < app::controller::TouchZoneCount; ++index) {
@@ -455,7 +448,7 @@ namespace xlair::ui::scenes {
             : m_page == Page::Slider ? U"↑ / ↓: 閾値    Enter: 緑表示切替    ←: 戻る    F2: Title"
             : m_page == Page::Lights ? U"↑ / ↓: 選択    Enter: 点灯    →: 出力先切替    ←: 戻る    F2: Title"
             : m_page == Page::Latency
-                ? U"Space / コントローラ: タップ    Enter: 適用    R: 再計測    ←: 戻る    F2: Title"
+                ? U"Space / コントローラ: タップ    F3: 適用    F5: 再計測    ←: 戻る    F2: Title"
             : m_page == Page::CardReader ? U"Enter: 再読取    ←: 戻る    F2: Title"
             : m_page == Page::Sound ? U"↑ / ↓: 選択    ← / →: 音量（長押し可・起動中のみ）    Enter: 決定    F2: Title"
             : m_page == Page::Server && m_selected_index == 0
@@ -540,58 +533,15 @@ namespace xlair::ui::scenes {
     }
 
     void Maintenance::drawLatency() const {
-        using Calibration = app::flows::LatencyCalibration;
-        const FontAsset font{ assets::font::Text };
         const auto& config = getData().application->config();
-        const auto mean = m_latency_calibration.averageMs();
-        const String average = mean ? U"平均差分: {:+.1f} ms"_fmt(*mean) : U"平均差分: 計測待ち";
-        font(average).draw(32, Vec2{ 48, 128 }, Palette::White);
-        font(U"計測回数: {}"_fmt(m_latency_calibration.tapCount())).draw(26, Vec2{ 48, 184 }, Palette::White);
-        if (config) {
-            const double applied = config->input.latency_offset_seconds * 1000.0;
-            font(U"適用中の補正: {:+.1f} ms"_fmt(applied)).draw(26, Vec2{ 48, 232 }, Palette::White);
-            if (mean) {
-                font(U"補正後の平均差分: {:+.1f} ms"_fmt(*mean - applied)).draw(24, Vec2{ 48, 278 }, Palette::White);
-            }
-        }
-        const StringView status = !m_latency_audio || !m_latency_audio.isPlaying() ? U"音声再生エラー"
-                                  : m_latency_applied                              ? U"適用済み"
-                                  : m_latency_calibration.ready()                  ? U"適用可"
-                                                                                   : U"計測中…";
-        font(status).draw(26, Vec2{ 48, 330 }, Palette::White);
-
-        const double left = Scene::Width() * 0.43;
-        const double right = Scene::Width() - 220.0;
-        constexpr double top = 140.0;
-        const double baseline = Scene::Height() * 0.70;
-        const double bottom = Scene::Height() - 150.0;
-        const double pixels_per_ms = (baseline - top) / 1000.0;
-        Line{ left, top, left, bottom }.draw(1, Palette::Gray);
-        Line{ right, top, right, bottom }.draw(1, Palette::Gray);
-        const double phase = std::fmod(m_latency_time_ms, Calibration::BeatIntervalMs);
-        const bool flash = m_latency_time_ms >= Calibration::FirstBeatMs && phase < 100.0;
-        Line{ left, baseline, right, baseline }.draw(flash ? 10 : 6, Palette::Red);
-        font(U"0 ms").draw(20, Vec2{ right + 12, baseline - 30 }, Palette::Red);
-        const auto beat = static_cast<int64>(
-            std::floor((m_latency_time_ms - Calibration::FirstBeatMs) / Calibration::BeatIntervalMs)
+        components::DrawLatencyCalibration(
+            { .calibration = m_latency_calibration,
+              .time_ms = m_latency_time_ms,
+              .applied_offset_ms = config ? Optional<double>{ config->input.latency_offset_seconds * 1000.0 } : none,
+              .audio_playing = m_latency_audio && m_latency_audio.isPlaying(),
+              .applied = m_latency_applied },
+            Scene::Size()
         );
-        for (int64 index = Max(int64{ 0 }, beat - 1); index <= beat + 2; ++index) {
-            const double time = Calibration::FirstBeatMs + index * Calibration::BeatIntervalMs;
-            const double y = baseline + (m_latency_time_ms - time) * pixels_per_ms;
-            if (y >= top && y <= bottom) {
-                Line{ left, y, right, y }.draw(3, Palette::White);
-            }
-        }
-        for (const auto& tap : m_latency_calibration.taps()) {
-            const double opacity = Clamp(1.0 - (m_latency_time_ms - tap.time_ms) / 4000.0, 0.0, 1.0);
-            const double y = baseline + tap.offset_ms * pixels_per_ms;
-            if (opacity <= 0.0 || y < top || y > bottom) {
-                continue;
-            }
-            const ColorF color{ tap.accepted ? Palette::Cyan : Palette::Gray, opacity };
-            Line{ left, y, right, y }.draw(1, color);
-            font(U"{:+.0f} ms"_fmt(tap.offset_ms)).draw(18, Vec2{ right + 12, y }, color);
-        }
     }
 
     void Maintenance::drawCardReader() const {
