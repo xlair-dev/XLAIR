@@ -189,6 +189,8 @@ namespace xlair::core::judgement {
         std::size_t m_miss_cursor = 0;
         std::size_t m_flick_miss_cursor = 0;
         std::size_t m_hold_cursor = 0;
+        std::size_t m_auto_note_cursor = 0;
+        std::size_t m_auto_hold_cursor = 0;
         ScoreState m_score;
         std::size_t m_total_combo = 0;
         int64 m_perfect_window = 0;
