@@ -21,7 +21,8 @@ namespace xlair::ui::audio {
         void update(
             int64 music_sample,
             const core::judgement::JudgeEngine& judge,
-            std::span<const core::judgement::JudgementEvent> events
+            std::span<const core::judgement::JudgementEvent> events,
+            std::span<const std::size_t> flick_contacts = {}
         );
         /// Stops loops while allowing successful one-shot tails to finish.
         void finish();

@@ -103,6 +103,12 @@ namespace xlair::core::judgement {
         [[nodiscard]]
         const ScoreState& score() const noexcept;
 
+        // Contact candidates do not imply a successful judgement and remain available until the next advance().
+        [[nodiscard]]
+        std::span<const std::size_t> flickContacts() const noexcept {
+            return m_flick_contacts;
+        }
+
     private:
         struct FlickGesture {
             uint8 contact_zone = 0;
@@ -174,6 +180,7 @@ namespace xlair::core::judgement {
         Array<Note> m_notes;
         Array<std::size_t> m_order;
         Array<std::size_t> m_flick_order;
+        Array<std::size_t> m_flick_contacts;
         Array<Hold> m_slider_holds;
         Array<Hold> m_side_holds;
         Array<HoldPointIndex> m_hold_order;
