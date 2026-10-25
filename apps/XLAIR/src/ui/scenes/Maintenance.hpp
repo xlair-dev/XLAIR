@@ -3,6 +3,7 @@
 #include "ui/Scene.hpp"
 #include "app/flows/CardReaderTest.hpp"
 #include "app/flows/LightTest.hpp"
+#include "app/flows/LatencyCalibration.hpp"
 
 #include <span>
 
@@ -23,6 +24,7 @@ namespace xlair::ui::scenes {
         bool itemEnabled(std::size_t index) const;
         void updateSlider();
         void updateLatency();
+        void resetLatency();
         void updateCardReader();
         void updateServer();
         void updateSound();
@@ -43,12 +45,10 @@ namespace xlair::ui::scenes {
         bool m_sync_requested = false;
         bool m_loading_jackets = false;
         bool m_highlight_touch_threshold = false;
-        int64 m_latency_next_beat_ms = 0;
-        int64 m_latency_last_beat_ms = 0;
-        int64 m_latency_last_tapped_beat_ms = -1;
-        uint32 m_latency_tap_count = 0;
-        int64 m_latency_total_ms = 0;
-        double m_latency_average_ms = 0.0;
+        app::flows::LatencyCalibration m_latency_calibration;
+        Audio m_latency_audio;
+        double m_latency_time_ms = 0.0;
+        bool m_latency_applied = false;
         int32 m_value_repeat_direction = 0;
         double m_value_hold_seconds = 0.0;
         double m_value_next_repeat_seconds = 0.0;
