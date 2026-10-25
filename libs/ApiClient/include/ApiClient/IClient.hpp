@@ -1,6 +1,5 @@
 #pragma once
 
-#include <ApiClient/ClientOptions.hpp>
 #include <ApiClient/Request.hpp>
 #include <ApiClient/Types.hpp>
 
