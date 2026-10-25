@@ -35,7 +35,8 @@ namespace xlair::ui::audio {
         Frame update(
             int64 music_sample,
             const core::judgement::JudgeEngine& judge,
-            std::span<const core::judgement::JudgementEvent> events
+            std::span<const core::judgement::JudgementEvent> events,
+            std::span<const std::size_t> flick_contacts = {}
         );
 
         void clear();
@@ -58,6 +59,7 @@ namespace xlair::ui::audio {
         };
 
         Array<Cue> m_slider_notes;
+        Array<bool> m_slider_note_scheduled;
         Array<Cue> m_side_notes;
         Array<HoldSounds> m_slider_holds;
         Array<HoldSounds> m_side_holds;

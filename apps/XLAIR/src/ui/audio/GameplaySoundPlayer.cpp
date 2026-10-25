@@ -37,9 +37,10 @@ namespace xlair::ui::audio {
     void GameplaySoundPlayer::update(
         const int64 music_sample,
         const core::judgement::JudgeEngine& judge,
-        const std::span<const core::judgement::JudgementEvent> events
+        const std::span<const core::judgement::JudgementEvent> events,
+        const std::span<const std::size_t> flick_contacts
     ) {
-        const auto frame = m_scheduler.update(music_sample, judge, events);
+        const auto frame = m_scheduler.update(music_sample, judge, events, flick_contacts);
         for (const auto sound : frame.one_shots) {
             m_sounds[static_cast<std::size_t>(sound)].playOneShot(GameplaySound, JudgmentVolume);
         }
