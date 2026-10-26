@@ -107,7 +107,8 @@ namespace xlair::core::judgement {
         [[nodiscard]]
         const ScoreState& score() const noexcept;
 
-        // Contact candidates do not imply a successful judgement and remain available until the next advance().
+        // Contact candidates do not imply a successful judgement. They remain available
+        // until the next advance(), advanceAuto(), or finish().
         [[nodiscard]]
         std::span<const std::size_t> flickContacts() const noexcept {
             return m_flick_contacts;

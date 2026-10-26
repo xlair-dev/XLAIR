@@ -376,6 +376,7 @@ namespace xlair::core::judgement {
 
     Array<JudgementEvent> JudgeEngine::finish() {
         Array<JudgementEvent> events;
+        m_flick_contacts.clear();
         // Keep advance()'s checkpoint/note/FLICK timeout order without inventing a playback time.
         for (const auto index : m_hold_order) {
             auto& point = holdPoint(index);
