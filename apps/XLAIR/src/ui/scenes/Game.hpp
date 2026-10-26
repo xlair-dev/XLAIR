@@ -8,7 +8,9 @@
 #include "ui/game/PlayfieldCamera.hpp"
 #include "ui/game/PlayfieldRenderer3D.hpp"
 
+#include <array>
 #include <memory>
+#include <span>
 
 namespace xlair::ui::scenes {
     class Game final : public SceneBase {
@@ -22,6 +24,17 @@ namespace xlair::ui::scenes {
         void drawFadeOut(double t) const override;
 
     private:
+        struct InputFrame {
+            std::array<core::judgement::TouchEvent, app::controller::TouchZoneCount * 2> touches;
+            std::array<core::judgement::SideEvent, app::controller::SideButtonCount> side_down;
+            std::size_t touch_count = 0;
+            std::size_t side_count = 0;
+            uint32 slider_pressed = 0;
+            uint8 side_pressed = 0;
+        };
+
+        void readInput(const app::controller::Controller* controller, int64 judged_sample);
+        void processJudgements(std::span<const core::judgement::JudgementEvent> events);
         void finishPlayback();
         void drawReady() const;
         void drawFailure() const;
@@ -33,6 +46,7 @@ namespace xlair::ui::scenes {
                                 game::PlayfieldCameraFocus };
         game::PlayfieldRenderer3D m_playfield_renderer;
         audio::GameplaySoundPlayer m_sound_player;
+        InputFrame m_input;
         std::unique_ptr<core::judgement::JudgeEngine> m_judge_engine;
         mutable components::GameScoreBar m_score_bar;
         int64 m_current_sample = 0;

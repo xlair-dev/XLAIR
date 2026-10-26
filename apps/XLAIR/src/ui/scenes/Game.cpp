@@ -74,10 +74,16 @@ namespace xlair::ui::scenes {
         m_elapsed += Scene::DeltaTime();
         m_judgement_display_seconds += Scene::DeltaTime();
         const auto* controller = getData().application->controller();
+        const auto& music = getData().game_loader.audio();
+        const bool music_playing = m_playback_started && !m_playback_finished && music.isPlaying();
+        if (music_playing) {
+            m_current_sample = music.posSample();
+        }
+        readInput(controller, m_current_sample - m_judgment_offset_samples);
         const bool cancel = controller && controller->maintenanceButton(CancelButton).down();
         if (cancel || KeyEscape.pressedDuration() >= SecondsF{ 1.5 }) {
             m_sound_player.stop();
-            if (const auto& music = getData().game_loader.audio()) {
+            if (music) {
                 music.stop(SecondsF{ 0.25 });
             }
             getData().returning_from_game = true;
@@ -90,7 +96,6 @@ namespace xlair::ui::scenes {
             return;
         }
 
-        const auto& music = loader.audio();
         if (!m_playback_started) {
             const auto& application = *getData().application;
             const double latency = application.config() ? application.config()->input.latency_offset_seconds : 0.0;
@@ -104,71 +109,69 @@ namespace xlair::ui::scenes {
         }
 
         if (!m_playback_finished) {
-            if (music.isPlaying()) {
-                m_current_sample = music.posSample();
+            if (music_playing) {
                 // A positive offset compensates late input; it moves touch time earlier, not the visual chart.
                 const int64 judged_sample = m_current_sample - m_judgment_offset_samples;
                 if (m_autoplay) {
                     const auto events = m_judge_engine->advanceAuto(m_current_sample);
-                    m_sound_player.update(m_current_sample, *m_judge_engine, events);
-                    if (!events.isEmpty()) {
-                        m_last_judgement = events.back();
-                        m_judgement_display_seconds = 0.0;
-                    }
+                    processJudgements(events);
                     return;
-                }
-                std::array<core::judgement::TouchEvent, app::controller::TouchZoneCount * 2> touches;
-                std::array<core::judgement::SideEvent, app::controller::SideButtonCount> side_down;
-                std::size_t touch_count = 0;
-                std::size_t side_count = 0;
-                uint32 slider_pressed = 0;
-                uint8 side_pressed = 0;
-                if (controller) {
-                    for (std::size_t zone = 0; zone < app::controller::TouchZoneCount; ++zone) {
-                        const auto& state = controller->touchZone(zone);
-                        if (state.pressed()) {
-                            slider_pressed |= uint32{ 1 } << zone;
-                        }
-                        if (state.up()) {
-                            touches[touch_count++] = {
-                                .zone = static_cast<uint8>(zone),
-                                .sample = judged_sample,
-                                .phase = core::judgement::TouchEvent::Phase::Up,
-                            };
-                        }
-                    }
-                    // Releases precede presses within a sampled frame so a swipe that
-                    // crosses sensors in one update can complete a FLICK.
-                    for (std::size_t zone = 0; zone < app::controller::TouchZoneCount; ++zone) {
-                        if (controller->touchZone(zone).down()) {
-                            touches[touch_count++] = { .zone = static_cast<uint8>(zone), .sample = judged_sample };
-                        }
-                    }
-                    for (std::size_t button = 0; button < app::controller::SideButtonCount; ++button) {
-                        const auto& state = controller->sideButton(static_cast<app::controller::SideButton>(button));
-                        if (state.pressed()) {
-                            side_pressed |= uint8{ 1 } << static_cast<uint8>(SideButtonMapping[button]);
-                        }
-                        if (state.down()) {
-                            side_down[side_count++] = { .button = SideButtonMapping[button], .sample = judged_sample };
-                        }
-                    }
                 }
                 const auto events = m_judge_engine->advance(
                     judged_sample,
-                    std::span{ touches.data(), touch_count },
-                    std::span{ side_down.data(), side_count },
-                    slider_pressed,
-                    side_pressed
+                    std::span{ m_input.touches.data(), m_input.touch_count },
+                    std::span{ m_input.side_down.data(), m_input.side_count },
+                    m_input.slider_pressed,
+                    m_input.side_pressed
                 );
-                m_sound_player.update(m_current_sample, *m_judge_engine, events, m_judge_engine->flickContacts());
-                if (!events.isEmpty()) {
-                    m_last_judgement = events.back();
-                    m_judgement_display_seconds = 0.0;
-                }
+                processJudgements(events);
             } else {
                 finishPlayback();
             }
+        }
+    }
+
+    void Game::readInput(const app::controller::Controller* controller, const int64 judged_sample) {
+        m_input = {};
+        if (!controller) {
+            return;
+        }
+        for (std::size_t zone = 0; zone < app::controller::TouchZoneCount; ++zone) {
+            const auto& state = controller->touchZone(zone);
+            if (state.pressed()) {
+                m_input.slider_pressed |= uint32{ 1 } << zone;
+            }
+            if (state.up()) {
+                m_input.touches[m_input.touch_count++] = {
+                    .zone = static_cast<uint8>(zone),
+                    .sample = judged_sample,
+                    .phase = core::judgement::TouchEvent::Phase::Up,
+                };
+            }
+        }
+        // Releases precede presses so a swipe across sensors in one frame can complete a FLICK.
+        for (std::size_t zone = 0; zone < app::controller::TouchZoneCount; ++zone) {
+            if (controller->touchZone(zone).down()) {
+                m_input.touches[m_input.touch_count++] = { .zone = static_cast<uint8>(zone), .sample = judged_sample };
+            }
+        }
+        for (std::size_t button = 0; button < app::controller::SideButtonCount; ++button) {
+            const auto& state = controller->sideButton(static_cast<app::controller::SideButton>(button));
+            if (state.pressed()) {
+                m_input.side_pressed |= uint8{ 1 } << static_cast<uint8>(SideButtonMapping[button]);
+            }
+            if (state.down()) {
+                m_input.side_down[m_input.side_count++] = { .button = SideButtonMapping[button],
+                                                            .sample = judged_sample };
+            }
+        }
+    }
+
+    void Game::processJudgements(const std::span<const core::judgement::JudgementEvent> events) {
+        m_sound_player.update(m_current_sample, *m_judge_engine, events, m_judge_engine->flickContacts());
+        if (!events.empty()) {
+            m_last_judgement = events.back();
+            m_judgement_display_seconds = 0.0;
         }
     }
 
@@ -180,11 +183,7 @@ namespace xlair::ui::scenes {
             events = m_judge_engine->advanceAuto(m_current_sample);
         }
         events.append(m_judge_engine->finish());
-        m_sound_player.update(m_current_sample, *m_judge_engine, events);
-        if (!events.isEmpty()) {
-            m_last_judgement = events.back();
-            m_judgement_display_seconds = 0.0;
-        }
+        processJudgements(events);
         m_sound_player.finish();
         m_playback_finished = true;
 
@@ -223,20 +222,6 @@ namespace xlair::ui::scenes {
     void Game::drawReady() const {
         const auto& loader = getData().game_loader;
         const auto score = m_judge_engine ? m_judge_engine->score() : core::judgement::ScoreState{};
-        uint32 slider_pressed = 0;
-        uint8 side_pressed = 0;
-        if (const auto* controller = getData().application->controller()) {
-            for (std::size_t zone = 0; zone < app::controller::TouchZoneCount; ++zone) {
-                if (controller->touchZone(zone).pressed()) {
-                    slider_pressed |= uint32{ 1 } << zone;
-                }
-            }
-            for (std::size_t button = 0; button < app::controller::SideButtonCount; ++button) {
-                if (controller->sideButton(static_cast<app::controller::SideButton>(button)).pressed()) {
-                    side_pressed |= uint8{ 1 } << static_cast<uint8>(SideButtonMapping[button]);
-                }
-            }
-        }
         m_playfield_renderer.draw(
             m_camera,
             *loader.chart(),
@@ -246,8 +231,8 @@ namespace xlair::ui::scenes {
             score.combo,
             false,
             m_judge_engine.get(),
-            slider_pressed,
-            side_pressed
+            m_input.slider_pressed,
+            m_input.side_pressed
         );
         const auto& session = getData().application->playSession();
         if (const auto* user = session.user()) {
