@@ -81,6 +81,10 @@ namespace xlair::core::judgement {
         [[nodiscard]]
         Array<JudgementEvent> finish();
 
+        // Advances every chart event through current_sample as a Perfect without controller input.
+        [[nodiscard]]
+        Array<JudgementEvent> advanceAuto(int64 current_sample);
+
         [[nodiscard]]
         NoteState noteState(std::size_t slider_note_index) const;
 
@@ -102,6 +106,12 @@ namespace xlair::core::judgement {
 
         [[nodiscard]]
         const ScoreState& score() const noexcept;
+
+        // Contact candidates do not imply a successful judgement and remain available until the next advance().
+        [[nodiscard]]
+        std::span<const std::size_t> flickContacts() const noexcept {
+            return m_flick_contacts;
+        }
 
     private:
         struct FlickGesture {
@@ -174,6 +184,7 @@ namespace xlair::core::judgement {
         Array<Note> m_notes;
         Array<std::size_t> m_order;
         Array<std::size_t> m_flick_order;
+        Array<std::size_t> m_flick_contacts;
         Array<Hold> m_slider_holds;
         Array<Hold> m_side_holds;
         Array<HoldPointIndex> m_hold_order;
@@ -182,6 +193,8 @@ namespace xlair::core::judgement {
         std::size_t m_miss_cursor = 0;
         std::size_t m_flick_miss_cursor = 0;
         std::size_t m_hold_cursor = 0;
+        std::size_t m_auto_note_cursor = 0;
+        std::size_t m_auto_hold_cursor = 0;
         ScoreState m_score;
         std::size_t m_total_combo = 0;
         int64 m_perfect_window = 0;

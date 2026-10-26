@@ -146,6 +146,20 @@ namespace xlair::infra::api {
                 return m_result;
             }
 
+            Optional<remote::RequestProgress> progress() const noexcept override {
+                remote::RequestProgress progress{
+                    .completed_files = m_index,
+                    .total_files = m_assets.size(),
+                };
+                if (m_request) {
+                    if (const auto transfer = m_request->progress()) {
+                        progress.downloaded_bytes = transfer->downloaded_bytes;
+                        progress.download_total_bytes = transfer->download_total_bytes;
+                    }
+                }
+                return progress;
+            }
+
             void update() override {
                 if (m_result) {
                     return;

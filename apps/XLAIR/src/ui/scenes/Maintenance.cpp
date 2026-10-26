@@ -2,6 +2,8 @@
 
 #include "ui/assets/Assets.hpp"
 #include "ui/audio/AudioBus.hpp"
+#include "ui/audio/CalibrationTrack.hpp"
+#include "ui/components/LatencyCalibrationView.hpp"
 
 #include <array>
 #include <cmath>
@@ -9,10 +11,16 @@
 
 namespace xlair::ui::scenes {
     namespace {
-        constexpr std::array<StringView, 5> MenuItems{
-            U"コントローラテスト", U"カードリーダーテスト", U"サーバ通信", U"サウンド", U"Title に戻る",
+        constexpr std::array<StringView, 6> MenuItems{
+            U"コントローラテスト", U"カードリーダーテスト", U"サーバ通信",
+            U"サウンド",           U"オートプレイ",         U"Title に戻る",
         };
-        constexpr std::array<StringView, 3> ControllerItems{ U"入力テスト", U"LED テスト", U"戻る" };
+        constexpr std::array<StringView, 4> ControllerItems{
+            U"入力テスト",
+            U"LED テスト",
+            U"遅延補正",
+            U"戻る",
+        };
         constexpr std::array<StringView, 7> LightItems{
             U"消灯", U"赤", U"緑", U"青", U"白", U"順番に点灯", U"入力に連動して点灯",
         };
@@ -22,16 +30,19 @@ namespace xlair::ui::scenes {
             app::flows::LightTest::Pattern::White, app::flows::LightTest::Pattern::Sequence,
             app::flows::LightTest::Pattern::Input,
         };
-        constexpr std::array<StringView, 4> ServerItems{ U"API ヘルスチェック",
-                                                         U"同期する",
-                                                         U"全件再検証・修復",
-                                                         U"戻る" };
+        constexpr std::array<StringView, 5> ServerItems{
+            U"API タイムアウト", U"API ヘルスチェック", U"同期する", U"全件再検証・修復", U"戻る",
+        };
         constexpr std::array<StringView, 4> SoundItems{ U"楽曲", U"UI SE", U"判定・ホールド SE", U"戻る" };
         constexpr std::array SoundBuses{ audio::Music, audio::UISound, audio::GameplaySound };
-        constexpr double SoundRepeatDelay = 0.4;
-        constexpr double SoundRepeatInterval = 0.1;
-        constexpr double SoundFastRepeatAfter = 1.5;
-        constexpr double SoundFastRepeatInterval = 0.03;
+        constexpr double MenuTop = 128.0;
+        constexpr double MenuRowHeight = 52.0;
+        constexpr double ValueRepeatDelay = 0.4;
+        constexpr double ValueRepeatInterval = 0.1;
+        constexpr double ValueFastRepeatAfter = 1.5;
+        constexpr double ValueFastRepeatInterval = 0.03;
+        constexpr auto ApplyLatencyButton = app::controller::MaintenanceButton::Button2;
+        constexpr auto ResetLatencyButton = app::controller::MaintenanceButton::Button4;
 
         void DrawMenu(
             const std::span<const StringView> items,
@@ -40,7 +51,7 @@ namespace xlair::ui::scenes {
         ) {
             const FontAsset font{ assets::font::Text };
             for (std::size_t index = 0; index < items.size(); ++index) {
-                const double y = 128.0 + index * 52.0;
+                const double y = MenuTop + index * MenuRowHeight;
                 if (index == selected) {
                     font(U"▶").draw(28, Vec2{ 48, y }, Palette::White);
                 }
@@ -66,6 +77,9 @@ namespace xlair::ui::scenes {
 
     Maintenance::Maintenance(const InitData& init) : SceneBase{ init } {
         auto& data = getData();
+        if (const auto& config = data.application->config()) {
+            m_highlight_touch_threshold = config->controller.highlight_touch_threshold;
+        }
         if (data.music_select_context) {
             data.music_select_context->pause();
         }
@@ -75,6 +89,7 @@ namespace xlair::ui::scenes {
     }
 
     Maintenance::~Maintenance() {
+        m_latency_audio.stop();
         m_card_reader_test.stop();
         m_light_test.reset();
         getData().maintenance_flow->reset();
@@ -85,17 +100,20 @@ namespace xlair::ui::scenes {
     }
 
     void Maintenance::setPage(const Page page) {
+        m_latency_audio.stop();
         m_card_reader_test.stop();
         m_light_test.reset();
         m_page = page;
         m_selected_index = 0;
-        resetSoundRepeat();
+        resetValueRepeat();
         if (page == Page::Lights) {
             if (auto* controller = getData().application->controller()) {
                 m_light_test = std::make_unique<app::flows::LightTest>(*controller);
             }
         } else if (page == Page::CardReader) {
             m_card_reader_test.start(getData().application->cardReader());
+        } else if (page == Page::Latency) {
+            resetLatency();
         }
     }
 
@@ -142,12 +160,17 @@ namespace xlair::ui::scenes {
             changeScene(SceneState::Title, 0);
             return;
         }
-        if (KeyLeft.down() && m_page != Page::Menu && m_page != Page::Sound) {
+        if (KeyLeft.down() && m_page != Page::Menu && m_page != Page::Sound &&
+            !(m_page == Page::Server && m_selected_index == 0)) {
             back();
             return;
         }
         if (m_page == Page::Slider) {
             updateSlider();
+            return;
+        }
+        if (m_page == Page::Latency) {
+            updateLatency();
             return;
         }
         if (m_page == Page::CardReader) {
@@ -169,10 +192,20 @@ namespace xlair::ui::scenes {
             do {
                 m_selected_index = (m_selected_index + items.size() + direction) % items.size();
             } while (!itemEnabled(m_selected_index));
-            resetSoundRepeat();
+            resetValueRepeat();
         }
         if (m_page == Page::Sound) {
             updateSound();
+            return;
+        }
+        if (m_page == Page::Server && m_selected_index == 0) {
+            const int32 delta = repeatedValueDelta(299);
+            if (delta != 0) {
+                if (const auto& config = getData().application->config()) {
+                    const double seconds = Clamp(config->api.timeout_seconds + delta, 1.0, 300.0);
+                    getData().application->setApiTimeoutSeconds(seconds);
+                }
+            }
             return;
         }
         if (!KeyEnter.down() || !itemEnabled(m_selected_index)) {
@@ -192,25 +225,32 @@ namespace xlair::ui::scenes {
                 case 3:
                     setPage(Page::Sound);
                     break;
+                case 4: {
+                    auto& application = *getData().application;
+                    application.setAutoplay(!application.autoplay());
+                    break;
+                }
                 default:
                     changeScene(SceneState::Title, 0);
                     break;
             }
         } else if (m_page == Page::Controller) {
-            if (m_selected_index == 2) {
+            if (m_selected_index == 3) {
                 back();
+            } else if (m_selected_index == 2) {
+                setPage(Page::Latency);
             } else {
                 setPage(m_selected_index == 0 ? Page::Slider : Page::Lights);
             }
         } else if (m_page == Page::Lights) {
             m_light_test->start(LightPatterns[m_selected_index]);
-        } else if (m_selected_index == 0) {
+        } else if (m_selected_index == 1) {
             getData().maintenance_flow->checkHealth();
-        } else if (m_selected_index == 1 || m_selected_index == 2) {
+        } else if (m_selected_index == 2 || m_selected_index == 3) {
             // Discard the selection before replacing the catalog it references.
             getData().music_select_context.reset();
             getData().maintenance_flow->sync(
-                m_selected_index == 2 ? app::flows::CatalogSync::Mode::VerifyAll
+                m_selected_index == 3 ? app::flows::CatalogSync::Mode::VerifyAll
                                       : app::flows::CatalogSync::Mode::Incremental
             );
             m_sync_requested = true;
@@ -221,9 +261,9 @@ namespace xlair::ui::scenes {
 
     void Maintenance::back() {
         const auto previous = m_page;
-        if (previous == Page::Slider || previous == Page::Lights) {
+        if (previous == Page::Slider || previous == Page::Lights || previous == Page::Latency) {
             setPage(Page::Controller);
-            m_selected_index = previous == Page::Lights ? 1 : 0;
+            m_selected_index = previous == Page::Slider ? 0 : previous == Page::Lights ? 1 : 2;
         } else {
             setPage(Page::Menu);
             m_selected_index = previous == Page::Sound        ? 3
@@ -233,52 +273,61 @@ namespace xlair::ui::scenes {
         }
     }
 
-    void Maintenance::resetSoundRepeat() {
-        m_sound_repeat_direction = 0;
-        m_sound_hold_seconds = 0.0;
-        m_sound_next_repeat_seconds = SoundRepeatDelay;
+    void Maintenance::resetValueRepeat() {
+        m_value_repeat_direction = 0;
+        m_value_hold_seconds = 0.0;
+        m_value_next_repeat_seconds = ValueRepeatDelay;
+    }
+
+    int32 Maintenance::repeatedValueDelta(const int32 max_steps) {
+        const int32 direction = (KeyRight.pressed() ? 1 : 0) - (KeyLeft.pressed() ? 1 : 0);
+        if (direction == 0) {
+            resetValueRepeat();
+            return 0;
+        }
+
+        int32 steps = 0;
+        if (direction != m_value_repeat_direction) {
+            resetValueRepeat();
+            m_value_repeat_direction = direction;
+            steps = 1;
+        } else {
+            m_value_hold_seconds += Scene::DeltaTime();
+            // Catch up across slow frames, bounded by the setting's full range.
+            while (m_value_hold_seconds >= m_value_next_repeat_seconds && steps < max_steps) {
+                ++steps;
+                m_value_next_repeat_seconds +=
+                    m_value_next_repeat_seconds >= ValueFastRepeatAfter ? ValueFastRepeatInterval : ValueRepeatInterval;
+            }
+            if (steps == max_steps) {
+                m_value_next_repeat_seconds = m_value_hold_seconds + ValueFastRepeatInterval;
+            }
+        }
+        return direction * steps;
     }
 
     void Maintenance::updateSound() {
         if (m_selected_index == SoundBuses.size()) {
-            resetSoundRepeat();
+            resetValueRepeat();
             if (KeyEnter.down()) {
                 back();
             }
             return;
         }
-        const int32 direction = (KeyRight.pressed() ? 1 : 0) - (KeyLeft.pressed() ? 1 : 0);
-        if (direction == 0) {
-            resetSoundRepeat();
-            return;
-        }
-
-        int32 steps = 0;
-        if (direction != m_sound_repeat_direction) {
-            resetSoundRepeat();
-            m_sound_repeat_direction = direction;
-            steps = 1;
-        } else {
-            m_sound_hold_seconds += Scene::DeltaTime();
-            // Catch up across slow frames, but never apply more than the full volume range.
-            while (m_sound_hold_seconds >= m_sound_next_repeat_seconds && steps < 100) {
-                ++steps;
-                m_sound_next_repeat_seconds +=
-                    m_sound_next_repeat_seconds >= SoundFastRepeatAfter ? SoundFastRepeatInterval : SoundRepeatInterval;
-            }
-            if (steps == 100) {
-                m_sound_next_repeat_seconds = m_sound_hold_seconds + SoundFastRepeatInterval;
-            }
-        }
-        if (steps == 0) {
+        const int32 delta = repeatedValueDelta(100);
+        if (delta == 0) {
             return;
         }
         const auto bus = SoundBuses[m_selected_index];
         const int32 volume = static_cast<int32>(std::lround(GlobalAudio::BusGetVolume(bus) * 100.0));
-        GlobalAudio::BusSetVolume(bus, Clamp(volume + direction * steps, 0, 100) / 100.0);
+        GlobalAudio::BusSetVolume(bus, Clamp(volume + delta, 0, 100) / 100.0);
     }
 
     void Maintenance::updateSlider() {
+        if (KeyEnter.down()) {
+            m_highlight_touch_threshold = !m_highlight_touch_threshold;
+            getData().application->setTouchThresholdHighlight(m_highlight_touch_threshold);
+        }
         auto* controller = getData().application->controller();
         if (!controller) {
             return;
@@ -290,6 +339,49 @@ namespace xlair::ui::scenes {
                     static_cast<uint8>(Clamp(static_cast<int32>(*threshold) + change, 1, 255))
                 );
             }
+        }
+    }
+
+    void Maintenance::resetLatency() {
+        m_latency_audio.stop();
+        m_latency_audio = audio::CreateCalibrationTrack();
+        m_latency_calibration.reset();
+        m_latency_time_ms = 0.0;
+        m_latency_applied = false;
+        // Use the same bus/clock as gameplay music, not the UI sound bus.
+        m_latency_audio.play(audio::Music);
+    }
+
+    void Maintenance::updateLatency() {
+        const auto* controller = getData().application->controller();
+        if (controller && controller->maintenanceButton(ResetLatencyButton).down()) {
+            resetLatency();
+            return;
+        }
+        if (!m_latency_audio || !m_latency_audio.isPlaying()) {
+            return;
+        }
+        // samplesPlayed includes loops. posSample would jump backwards at each loop.
+        m_latency_time_ms = m_latency_audio.samplesPlayed() * 1000.0 / m_latency_audio.sampleRate();
+        if (controller && controller->maintenanceButton(ApplyLatencyButton).down()) {
+            if (m_latency_calibration.ready()) {
+                getData().application->setInputLatencyOffsetSeconds(*m_latency_calibration.averageMs() / 1000.0);
+                m_latency_applied = true;
+            }
+            return;
+        }
+
+        bool tapped = KeySpace.down();
+        if (controller) {
+            for (std::size_t index = 0; index < app::controller::TouchZoneCount; ++index) {
+                tapped = tapped || controller->touchZone(index).down();
+            }
+            for (std::size_t index = 0; index < app::controller::SideButtonCount; ++index) {
+                tapped = tapped || controller->sideButton(static_cast<app::controller::SideButton>(index)).down();
+            }
+        }
+        if (tapped && m_latency_calibration.tap(m_latency_time_ms)) {
+            m_latency_applied = false;
         }
     }
 
@@ -323,6 +415,7 @@ namespace xlair::ui::scenes {
         const StringView title = m_page == Page::Controller   ? U"コントローラテスト"
                                  : m_page == Page::Slider     ? U"入力テスト"
                                  : m_page == Page::Lights     ? U"LED テスト"
+                                 : m_page == Page::Latency    ? U"入力遅延補正"
                                  : m_page == Page::CardReader ? U"カードリーダーテスト"
                                  : m_page == Page::Server     ? U"サーバ通信"
                                  : m_page == Page::Sound      ? U"サウンド"
@@ -332,6 +425,8 @@ namespace xlair::ui::scenes {
             drawSlider();
         } else if (m_page == Page::Lights) {
             drawLights();
+        } else if (m_page == Page::Latency) {
+            drawLatency();
         } else if (m_page == Page::CardReader) {
             drawCardReader();
         } else if (m_page == Page::Server) {
@@ -342,14 +437,23 @@ namespace xlair::ui::scenes {
             const Optional<std::size_t> disabled =
                 m_page == Page::Controller && !itemEnabled(1) ? Optional<std::size_t>{ 1 } : none;
             DrawMenu(menuItems(), m_selected_index, disabled);
+            if (m_page == Page::Menu) {
+                const bool autoplay = getData().application->autoplay();
+                font(autoplay ? U"ON" : U"OFF")
+                    .draw(28, Vec2{ 480, 128.0 + 4 * 52.0 }, autoplay ? Palette::Green : Palette::Gray);
+            }
         }
         const StringView guide =
-            busy()                       ? U"処理中..."
-            : m_page == Page::Slider     ? U"↑ / ↓: 閾値を変更（起動中のみ）    ←: 戻る    F2: Title"
-            : m_page == Page::Lights     ? U"↑ / ↓: 選択    Enter: 点灯    →: 出力先切替    ←: 戻る    F2: Title"
+            busy()                   ? U"処理中..."
+            : m_page == Page::Slider ? U"↑ / ↓: 閾値    Enter: 緑表示切替    ←: 戻る    F2: Title"
+            : m_page == Page::Lights ? U"↑ / ↓: 選択    Enter: 点灯    →: 出力先切替    ←: 戻る    F2: Title"
+            : m_page == Page::Latency
+                ? U"Space / コントローラ: タップ    F3: 適用    F5: 再計測    ←: 戻る    F2: Title"
             : m_page == Page::CardReader ? U"Enter: 再読取    ←: 戻る    F2: Title"
             : m_page == Page::Sound ? U"↑ / ↓: 選択    ← / →: 音量（長押し可・起動中のみ）    Enter: 決定    F2: Title"
-                                    : U"↑ / ↓: 選択    Enter: 決定    ←: 戻る    F2: Title";
+            : m_page == Page::Server && m_selected_index == 0
+                ? U"↑ / ↓: 選択    ← / →: タイムアウト（長押し可・起動中のみ）    F2: Title"
+                : U"↑ / ↓: 選択    Enter: 決定    ←: 戻る    F2: Title";
         font(guide).draw(20, Vec2{ 48, Scene::Height() - 56.0 }, Palette::White);
     }
 
@@ -373,6 +477,8 @@ namespace xlair::ui::scenes {
         const auto threshold = controller->touchThreshold();
         font(threshold ? U"閾値: {}"_fmt(static_cast<int32>(*threshold)) : U"閾値: -- (Keyboard)")
             .draw(28, Vec2{ 48, 128 }, Palette::White);
+        font(U"しきい値超過を緑表示: {}"_fmt(m_highlight_touch_threshold ? U"ON" : U"OFF"))
+            .draw(24, Vec2{ 48, 168 }, Palette::White);
 
         constexpr double Left = 48;
         constexpr double Top = 210;
@@ -382,7 +488,8 @@ namespace xlair::ui::scenes {
             const auto value = controller->touchValue(index);
             const auto& button = controller->touchZone(index);
             const double red = value ? Min(1.0, *value / 254.0) : button.pressed() ? 1.0 : 0.0;
-            cell.draw(ColorF{ red, 0, 0 }).drawFrame(1, Palette::White);
+            const bool above_threshold = m_highlight_touch_threshold && threshold && value && *value >= *threshold;
+            cell.draw(above_threshold ? ColorF{ 0, 1, 0 } : ColorF{ red, 0, 0 }).drawFrame(1, Palette::White);
             font(index).drawAt(18, cell.center().movedBy(0, -30), Palette::White);
             font(value ? Format(static_cast<int32>(*value)) : U"--")
                 .drawAt(30, cell.center().movedBy(0, 8), Palette::White);
@@ -425,6 +532,18 @@ namespace xlair::ui::scenes {
         }
     }
 
+    void Maintenance::drawLatency() const {
+        const auto& config = getData().application->config();
+        components::DrawLatencyCalibration(
+            { .calibration = m_latency_calibration,
+              .time_ms = m_latency_time_ms,
+              .applied_offset_ms = config ? Optional<double>{ config->input.latency_offset_seconds * 1000.0 } : none,
+              .audio_playing = m_latency_audio && m_latency_audio.isPlaying(),
+              .applied = m_latency_applied },
+            Scene::Size()
+        );
+    }
+
     void Maintenance::drawCardReader() const {
         const FontAsset font{ assets::font::Text };
         if (m_card_reader_test.waiting()) {
@@ -448,12 +567,50 @@ namespace xlair::ui::scenes {
 
     void Maintenance::drawServer() const {
         DrawMenu(ServerItems, m_selected_index);
+        const double endpoint_y = MenuTop + ServerItems.size() * MenuRowHeight + 24.0;
+        const double status_y = endpoint_y + 84.0;
+        const double progress_y = status_y + 128.0;
         const auto& flow = *getData().maintenance_flow;
         const FontAsset font{ assets::font::Text };
         if (const auto& config = getData().application->config()) {
-            font(config->api.syncSource()).draw(22, RectF{ 48, 340, Scene::Width() - 96.0, 60 }, Palette::White);
+            font(U"{} 秒"_fmt(config->api.timeout_seconds)).draw(28, Vec2{ 580, 128 }, Palette::White);
+        }
+        if (const auto& config = getData().application->config()) {
+            font(config->api.syncSource()).draw(22, RectF{ 48, endpoint_y, Scene::Width() - 96.0, 60 }, Palette::White);
         }
         const String message = m_loading_jackets ? U"Loading jackets..." : flow.message();
-        font(message).draw(26, RectF{ 48, 420, Scene::Width() - 96.0, 400 }, Palette::White);
+        font(message).draw(26, RectF{ 48, status_y, Scene::Width() - 96.0, 104 }, Palette::White);
+        if (const auto progress = flow.progress(); progress && progress->total_files > 0) {
+            constexpr std::array Colors{ ColorF{ 0.2, 0.65, 1.0 },
+                                         ColorF{ 0.3, 0.85, 0.45 },
+                                         ColorF{ 1.0, 0.65, 0.2 },
+                                         ColorF{ 0.8, 0.4, 0.9 } };
+            const RectF bar{ 48, progress_y, Scene::Width() - 96.0, 24 };
+            bar.draw(Palette::Gray);
+            const double segment_width = bar.w / progress->total_files;
+            const double active_fraction =
+                progress->download_total_bytes && *progress->download_total_bytes > 0
+                    ? Clamp(static_cast<double>(progress->downloaded_bytes) / *progress->download_total_bytes, 0.0, 1.0)
+                    : 0.0;
+            for (std::size_t index = 0; index < progress->total_files; ++index) {
+                const double fraction = index < progress->completed_files    ? 1.0
+                                        : index == progress->completed_files ? active_fraction
+                                                                             : 0.0;
+                if (fraction > 0.0) {
+                    RectF{ bar.x + index * segment_width, bar.y, segment_width * fraction, bar.h }.draw(
+                        Colors[index % Colors.size()]
+                    );
+                }
+            }
+            font(U"完了ファイル: {}/{}"_fmt(progress->completed_files, progress->total_files))
+                .draw(24, Vec2{ 48, progress_y + 44 }, Palette::White);
+            if (progress->download_total_bytes) {
+                font(U"現在のファイル: {} / {} bytes"_fmt(progress->downloaded_bytes, *progress->download_total_bytes))
+                    .draw(24, Vec2{ 400, progress_y + 44 }, Palette::White);
+            } else {
+                font(U"現在のファイル: {} bytes"_fmt(progress->downloaded_bytes))
+                    .draw(24, Vec2{ 400, progress_y + 44 }, Palette::White);
+            }
+        }
     }
 }

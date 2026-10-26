@@ -101,6 +101,7 @@ namespace xlair::infra::config {
             .read(U"window.letterbox_color", config.window.letterbox_color)
             // controller
             .read(U"controller.mode", controller_mode)
+            .read(U"controller.highlight_touch_threshold", config.controller.highlight_touch_threshold)
             .read(U"controller.ground_slider.port", config.controller.ground_slider.port)
             .read(U"controller.ground_slider.baud_rate", config.controller.ground_slider.baud_rate)
             .read(U"controller.ground_slider.touch_threshold", config.controller.ground_slider.touch_threshold)
