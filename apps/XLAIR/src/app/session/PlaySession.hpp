@@ -6,9 +6,11 @@
 #include <ApiClient/Types.hpp>
 
 namespace xlair::app::session {
-    struct PlayedRecord {
+    struct PlayResult {
         UUIDValue play_id;
-        api::RecordSubmission record;
+        String sheet_id;
+        uint32 score = 0;
+        api::ClearType clear_type = api::ClearType::Failed;
         // Autoplay still consumes a track, but never updates bests or the API.
         bool autoplay = false;
     };
@@ -51,7 +53,7 @@ namespace xlair::app::session {
         void cancelPlay(const UUIDValue& play_id) noexcept;
 
         [[nodiscard]]
-        const Array<PlayedRecord>& playedRecords() const noexcept;
+        const Array<PlayResult>& playedResults() const noexcept;
 
         void setRecords(Array<api::UserRecord> records);
 
@@ -79,7 +81,7 @@ namespace xlair::app::session {
 
         Optional<api::User> m_user;
         HashTable<String, api::UserRecord> m_records;
-        Array<PlayedRecord> m_played_records;
+        Array<PlayResult> m_played_results;
         Optional<ActivePlay> m_active_play;
         api::PlayOptions m_play_options;
         // TODO: Fetch mirror from the API once PlayOptions includes it.

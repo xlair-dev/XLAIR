@@ -74,7 +74,7 @@ namespace xlair::ui::scenes {
     void FinalResult::update() {
         m_elapsed += Scene::DeltaTime();
         updateSave();
-        const auto& records = getData().application->playSession().playedRecords();
+        const auto& records = getData().application->playSession().playedResults();
         const auto* controller = getData().application->controller();
         const bool confirm = KeyEnter.down() || input::TouchRegionDown(controller, 0, 16);
         if (m_elapsed >= InputWaitSeconds && confirm) {
@@ -117,7 +117,7 @@ namespace xlair::ui::scenes {
         Scene::Rect().draw(theme::Palette::White);
         const auto& application = *getData().application;
         const auto& session = application.playSession();
-        const auto& records = session.playedRecords();
+        const auto& records = session.playedResults();
         FontAsset{ assets::font::Display }(U"FINAL RESULT")
             .drawAt(48, Vec2{ DesignSize.x / 2.0, 150 }, theme::Palette::Gray);
         FontAsset{ assets::font::Text }(U"TRACKS {} / {}"_fmt(records.size(), session.maxPlays()))
@@ -126,7 +126,7 @@ namespace xlair::ui::scenes {
         for (std::size_t row = 0; row < VisibleRecords && m_first_record + row < records.size(); ++row) {
             const std::size_t index = m_first_record + row;
             const auto& played = records[index];
-            const auto& record = played.record;
+            const auto& record = played;
             const int32 y = 290 + static_cast<int32>(row) * 128;
             FontAsset{ assets::font::Display }(index + 1).draw(28, Vec2{ 170, y + 8 }, theme::Palette::Cyan);
             components::DrawScrollingText(

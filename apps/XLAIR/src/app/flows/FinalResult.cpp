@@ -28,13 +28,15 @@ namespace xlair::app::flows {
         m_client = client;
         m_user_id = session.user()->id;
         m_options = session.playOptions();
-        m_records.reserve(session.playedRecords().size());
-        for (const auto& played : session.playedRecords()) {
+        m_records.reserve(session.playedResults().size());
+        for (const auto& played : session.playedResults()) {
             if (played.autoplay) {
                 continue;
             }
             // Keep repeated plays of the same sheet: each one counts on the server.
-            m_records.push_back(played.record);
+            m_records.push_back(
+                { .sheet_id = played.sheet_id, .score = played.score, .clear_type = played.clear_type }
+            );
         }
         saveRecords();
     }

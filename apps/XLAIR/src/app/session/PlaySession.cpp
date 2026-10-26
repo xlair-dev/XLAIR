@@ -47,7 +47,7 @@ namespace xlair::app::session {
     void PlaySession::reset() {
         m_user.reset();
         m_records.clear();
-        m_played_records.clear();
+        m_played_results.clear();
         m_active_play.reset();
         m_play_options = {};
         m_mirror = false;
@@ -98,20 +98,21 @@ namespace xlair::app::session {
             return false;
         }
 
-        const api::RecordSubmission record{
+        const PlayResult result{
+            .play_id = play_id,
             .sheet_id = String{ sheet_id },
             .score = score.score,
             .clear_type = ToApiClearType(core::scoring::ClearTypeForScore(score, total_combo)),
+            .autoplay = m_active_play->autoplay,
         };
-        const bool autoplay = m_active_play->autoplay;
-        m_played_records.push_back({ .play_id = play_id, .record = record, .autoplay = autoplay });
+        m_played_results.push_back(result);
 
-        if (!autoplay) {
-            auto& best = m_records[record.sheet_id];
-            best.sheet_id = record.sheet_id;
-            best.score = Max(best.score, record.score);
-            if (ClearRank(record.clear_type) > ClearRank(best.clear_type)) {
-                best.clear_type = record.clear_type;
+        if (!result.autoplay) {
+            auto& best = m_records[result.sheet_id];
+            best.sheet_id = result.sheet_id;
+            best.score = Max(best.score, result.score);
+            if (ClearRank(result.clear_type) > ClearRank(best.clear_type)) {
+                best.clear_type = result.clear_type;
             }
         }
 
@@ -126,8 +127,8 @@ namespace xlair::app::session {
         }
     }
 
-    const Array<PlayedRecord>& PlaySession::playedRecords() const noexcept {
-        return m_played_records;
+    const Array<PlayResult>& PlaySession::playedResults() const noexcept {
+        return m_played_results;
     }
 
     void PlaySession::setRecords(Array<api::UserRecord> records) {
