@@ -17,10 +17,16 @@ namespace xlair::ui::scenes {
         void drawFadeOut(double t) const override;
 
     private:
+        struct ResultRow {
+            String sheet_label;
+            String score_label;
+            String clear_label;
+        };
+
         void updateSave();
 
         app::flows::FinalResult m_save_flow;
-        Array<components::SliderMapping> m_scroll_mappings;
+        Array<ResultRow> m_rows;
         std::size_t m_first_record = 0;
         double m_elapsed = 0.0;
     };
