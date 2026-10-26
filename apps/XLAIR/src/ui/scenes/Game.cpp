@@ -103,6 +103,15 @@ namespace xlair::ui::scenes {
                 m_current_sample = music.posSample();
                 // A positive offset compensates late input; it moves touch time earlier, not the visual chart.
                 const int64 judged_sample = m_current_sample - m_judgment_offset_samples;
+                if (getData().application->autoplay()) {
+                    const auto events = m_judge_engine->advanceAuto(m_current_sample);
+                    m_sound_player.update(m_current_sample, *m_judge_engine, events);
+                    if (!events.isEmpty()) {
+                        m_last_judgement = events.back();
+                        m_judgement_display_seconds = 0.0;
+                    }
+                    return;
+                }
                 std::array<core::judgement::TouchEvent, app::controller::TouchZoneCount * 2> touches;
                 std::array<core::judgement::SideEvent, app::controller::SideButtonCount> side_down;
                 std::size_t touch_count = 0;
@@ -155,8 +164,13 @@ namespace xlair::ui::scenes {
             } else {
                 m_current_sample = static_cast<int64>(music.samples());
                 // Resolve pending notes at the end even if the audio ends within a judgement window.
-                const auto events = m_judge_engine->advance(
-                    static_cast<int64>(music.samples()) + loader.chart()->sample_rate - m_judgment_offset_samples
+                Array<core::judgement::JudgementEvent> events;
+                if (getData().application->autoplay()) {
+                    // Cover the final frame before resolving any notes beyond the audio.
+                    events = m_judge_engine->advanceAuto(m_current_sample);
+                }
+                events.append(
+                    m_judge_engine->advance(m_current_sample + loader.chart()->sample_rate - m_judgment_offset_samples)
                 );
                 m_sound_player.update(m_current_sample, *m_judge_engine, events);
                 if (!events.isEmpty()) {

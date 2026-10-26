@@ -32,6 +32,9 @@ namespace xlair::app::flows {
         void cancel();
 
         [[nodiscard]]
+        Optional<api::RequestProgress> progress() const noexcept;
+
+        [[nodiscard]]
         inline State state() const noexcept {
             return m_state;
         }

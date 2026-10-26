@@ -374,6 +374,37 @@ namespace xlair::core::judgement {
         return events;
     }
 
+    Array<JudgementEvent> JudgeEngine::advanceAuto(const int64 current_sample) {
+        Array<JudgementEvent> events;
+        m_flick_contacts.clear();
+        // Merge the sorted note/start and checkpoint streams. Each entry is
+        // visited once, even if a slow frame crosses several chart events.
+        while (true) {
+            const auto* note = m_auto_note_cursor < m_order.size() ? &m_notes[m_order[m_auto_note_cursor]] : nullptr;
+            const auto* point =
+                m_auto_hold_cursor < m_hold_order.size() ? &holdPoint(m_hold_order[m_auto_hold_cursor]) : nullptr;
+            const bool note_due = note && note->sample <= current_sample;
+            const bool point_due = point && point->sample <= current_sample;
+            if (!note_due && !point_due) {
+                break;
+            }
+            // Stable note ordering puts a co-located XTap before its hold start.
+            if (note_due && (!point_due || note->sample <= point->sample)) {
+                auto& due = m_notes[m_order[m_auto_note_cursor++]];
+                if (due.state == NoteState::Pending) {
+                    record(due, Grade::Perfect, due.sample, events);
+                }
+            } else {
+                auto& due = holdPoint(m_hold_order[m_auto_hold_cursor++]);
+                if (due.state == NoteState::Pending) {
+                    record(due, Grade::Perfect, due.sample, events);
+                }
+            }
+        }
+        updateHoldActivity(current_sample, std::numeric_limits<uint32>::max(), std::numeric_limits<uint8>::max());
+        return events;
+    }
+
     void JudgeEngine::processFlickTouch(
         const TouchEvent& touch,
         const uint32 slider_pressed,

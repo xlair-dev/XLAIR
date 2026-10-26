@@ -77,6 +77,10 @@ namespace xlair::core::judgement {
             uint8 side_pressed = 0
         );
 
+        // Advances every chart event through current_sample as a Perfect without controller input.
+        [[nodiscard]]
+        Array<JudgementEvent> advanceAuto(int64 current_sample);
+
         [[nodiscard]]
         NoteState noteState(std::size_t slider_note_index) const;
 
@@ -185,6 +189,8 @@ namespace xlair::core::judgement {
         std::size_t m_miss_cursor = 0;
         std::size_t m_flick_miss_cursor = 0;
         std::size_t m_hold_cursor = 0;
+        std::size_t m_auto_note_cursor = 0;
+        std::size_t m_auto_hold_cursor = 0;
         ScoreState m_score;
         std::size_t m_total_combo = 0;
         int64 m_perfect_window = 0;
