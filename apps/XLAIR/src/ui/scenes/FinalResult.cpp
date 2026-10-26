@@ -125,7 +125,8 @@ namespace xlair::ui::scenes {
 
         for (std::size_t row = 0; row < VisibleRecords && m_first_record + row < records.size(); ++row) {
             const std::size_t index = m_first_record + row;
-            const auto& record = records[index].record;
+            const auto& played = records[index];
+            const auto& record = played.record;
             const int32 y = 290 + static_cast<int32>(row) * 128;
             FontAsset{ assets::font::Display }(index + 1).draw(28, Vec2{ 170, y + 8 }, theme::Palette::Cyan);
             components::DrawScrollingText(
@@ -138,7 +139,8 @@ namespace xlair::ui::scenes {
             );
             FontAsset{ assets::font::Display }(U"{:07}"_fmt(record.score))
                 .draw(42, Arg::topRight(1740, y), theme::Palette::Cyan);
-            const StringView clear_label = record.clear_type == api::ClearType::Failed
+            const StringView clear_label = played.autoplay ? U"AUTO"
+                                           : record.clear_type == api::ClearType::Failed
                                                ? U"FAILED"
                                                : presentation::ClearStatusLabel(record.clear_type);
             FontAsset{ assets::font::Text }(clear_label).draw(22, Arg::topRight(1740, y + 56), theme::Palette::Gray);

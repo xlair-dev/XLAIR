@@ -9,6 +9,8 @@ namespace xlair::app::session {
     struct PlayedRecord {
         UUIDValue play_id;
         api::RecordSubmission record;
+        // Autoplay still consumes a track, but never updates bests or the API.
+        bool autoplay = false;
     };
 
     class PlaySession {
@@ -36,7 +38,7 @@ namespace xlair::app::session {
 
         // Reserve a play without consuming it. Only its ID can complete or cancel it.
         [[nodiscard]]
-        Optional<UUIDValue> beginPlay();
+        Optional<UUIDValue> beginPlay(bool autoplay = false);
 
         [[nodiscard]]
         bool completePlay(
@@ -70,10 +72,15 @@ namespace xlair::app::session {
         const api::UserRecord* record(StringView sheet_id) const noexcept;
 
     private:
+        struct ActivePlay {
+            UUIDValue id;
+            bool autoplay = false;
+        };
+
         Optional<api::User> m_user;
         HashTable<String, api::UserRecord> m_records;
         Array<PlayedRecord> m_played_records;
-        Optional<UUIDValue> m_active_play;
+        Optional<ActivePlay> m_active_play;
         api::PlayOptions m_play_options;
         // TODO: Fetch mirror from the API once PlayOptions includes it.
         bool m_mirror = false;

@@ -30,6 +30,9 @@ namespace xlair::app::flows {
         m_options = session.playOptions();
         m_records.reserve(session.playedRecords().size());
         for (const auto& played : session.playedRecords()) {
+            if (played.autoplay) {
+                continue;
+            }
             // Keep repeated plays of the same sheet: each one counts on the server.
             m_records.push_back(played.record);
         }

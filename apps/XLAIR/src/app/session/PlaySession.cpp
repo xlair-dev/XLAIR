@@ -79,12 +79,12 @@ namespace xlair::app::session {
         return active() && m_remaining_plays == 0;
     }
 
-    Optional<UUIDValue> PlaySession::beginPlay() {
+    Optional<UUIDValue> PlaySession::beginPlay(const bool autoplay) {
         if (!active() || m_remaining_plays == 0 || m_active_play) {
             return none;
         }
-        m_active_play = UUIDValue::Generate();
-        return m_active_play;
+        m_active_play = ActivePlay{ .id = UUIDValue::Generate(), .autoplay = autoplay };
+        return m_active_play->id;
     }
 
     bool PlaySession::completePlay(
@@ -93,7 +93,8 @@ namespace xlair::app::session {
         const core::judgement::ScoreState& score,
         const std::size_t total_combo
     ) {
-        if (!active() || m_remaining_plays == 0 || !m_active_play || *m_active_play != play_id || sheet_id.isEmpty()) {
+        if (!active() || m_remaining_plays == 0 || !m_active_play || m_active_play->id != play_id ||
+            sheet_id.isEmpty()) {
             return false;
         }
 
@@ -102,13 +103,16 @@ namespace xlair::app::session {
             .score = score.score,
             .clear_type = ToApiClearType(core::scoring::ClearTypeForScore(score, total_combo)),
         };
-        m_played_records.push_back({ .play_id = play_id, .record = record });
+        const bool autoplay = m_active_play->autoplay;
+        m_played_records.push_back({ .play_id = play_id, .record = record, .autoplay = autoplay });
 
-        auto& best = m_records[record.sheet_id];
-        best.sheet_id = record.sheet_id;
-        best.score = Max(best.score, record.score);
-        if (ClearRank(record.clear_type) > ClearRank(best.clear_type)) {
-            best.clear_type = record.clear_type;
+        if (!autoplay) {
+            auto& best = m_records[record.sheet_id];
+            best.sheet_id = record.sheet_id;
+            best.score = Max(best.score, record.score);
+            if (ClearRank(record.clear_type) > ClearRank(best.clear_type)) {
+                best.clear_type = record.clear_type;
+            }
         }
 
         --m_remaining_plays;
@@ -117,7 +121,7 @@ namespace xlair::app::session {
     }
 
     void PlaySession::cancelPlay(const UUIDValue& play_id) noexcept {
-        if (m_active_play && *m_active_play == play_id) {
+        if (m_active_play && m_active_play->id == play_id) {
             m_active_play.reset();
         }
     }

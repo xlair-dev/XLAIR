@@ -52,6 +52,7 @@ namespace xlair::ui::scenes {
             getData().music_select_context->pause();
         }
         if (const auto& selection = getData().game_selection) {
+            m_autoplay = selection->autoplay;
             getData().game_loader.start(*selection);
         }
         const double speed = getData().application->playSession().playOptions().note_speed;
@@ -107,7 +108,7 @@ namespace xlair::ui::scenes {
                 m_current_sample = music.posSample();
                 // A positive offset compensates late input; it moves touch time earlier, not the visual chart.
                 const int64 judged_sample = m_current_sample - m_judgment_offset_samples;
-                if (getData().application->autoplay()) {
+                if (m_autoplay) {
                     const auto events = m_judge_engine->advanceAuto(m_current_sample);
                     m_sound_player.update(m_current_sample, *m_judge_engine, events);
                     if (!events.isEmpty()) {
@@ -175,7 +176,7 @@ namespace xlair::ui::scenes {
         auto& data = getData();
         m_current_sample = static_cast<int64>(data.game_loader.audio().samples());
         Array<core::judgement::JudgementEvent> events;
-        if (data.application->autoplay()) {
+        if (m_autoplay) {
             events = m_judge_engine->advanceAuto(m_current_sample);
         }
         events.append(m_judge_engine->finish());

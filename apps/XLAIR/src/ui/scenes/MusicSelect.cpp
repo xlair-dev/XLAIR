@@ -207,7 +207,8 @@ namespace xlair::ui::scenes {
                 } else {
                     auto& data = getData();
                     auto& session = data.application->playSession();
-                    const auto play_id = session.beginPlay();
+                    const bool autoplay = data.application->autoplay();
+                    const auto play_id = session.beginPlay(autoplay);
                     if (!play_id) {
                         Logger << U"[MusicSelect] No play is available in the current session.";
                         return;
@@ -218,6 +219,7 @@ namespace xlair::ui::scenes {
                         .play_id = *play_id,
                         .max_plays = session.maxPlays(),
                         .remaining_plays = session.remainingPlays(),
+                        .autoplay = autoplay,
                         .music_id = music->id,
                         .title = music->title,
                         .music_path = music->music,

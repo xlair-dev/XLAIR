@@ -43,5 +43,6 @@ namespace xlair::ui::scenes {
         double m_note_speed = 1.0;
         bool m_playback_started = false;
         bool m_playback_finished = false;
+        bool m_autoplay = false;
     };
 }
