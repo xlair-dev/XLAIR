@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Common.hpp"
+#include "Base.hpp"
 
 namespace xlair::ui::scenes::maintenance {
     class Server final : public Base {
