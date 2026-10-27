@@ -17,9 +17,11 @@ escape. Structured parser diagnostics retain the source path and line.
 - A diagonal AIR child of a simultaneous XTap becomes one side XTap. Its parent is
   not emitted as a main-slider note. The ChartConverter IR itself is unchanged.
 - Absolute rational beats are integrated across tempo changes before rounding to
-  audio samples. `ChartLoadOptions::offset_seconds` is the only applied audio
-  offset. Source `WAVEOFFSET` / `BGMOFS` is not added, preserving the existing
-  metadata `music_offset_seconds` behavior.
+  audio samples. Audio-file time is chart time plus `ChartLoadOptions::offset_seconds`
+  minus source `WAVEOFFSET` / `BGMOFS` (zero when absent). Positive source offsets
+  delay audio relative to the chart, while the additional metadata
+  `music_offset_seconds` keeps its existing additive note-offset behavior. The
+  combined offset applies once to notes, tempos, scrolls, and hold judgements.
 - Global speed steps multiply the selected speed group. Group zero is a real
   group; unassigned notes use a separate default timeline. Point-level group
   selections are retained, including groups without scroll events.
