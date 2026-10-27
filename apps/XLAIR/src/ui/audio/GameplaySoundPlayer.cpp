@@ -3,10 +3,6 @@
 #include "AudioBus.hpp"
 
 namespace xlair::ui::audio {
-    namespace {
-        constexpr double JudgmentVolume = 0.55;
-    }
-
     GameplaySoundPlayer::GameplaySoundPlayer() {
         constexpr std::array<StringView, static_cast<std::size_t>(GameplaySoundKind::Count)> filenames{
             U"tap", U"slide-tap", U"x-tap", U"flick", U"side-tap", U"checkpoint", U"side-hold", U"slide-hold",
@@ -20,7 +16,6 @@ namespace xlair::ui::audio {
         }
         for (const auto kind : { GameplaySoundKind::SideHold, GameplaySoundKind::SlideHold }) {
             const auto& sound = m_sounds[static_cast<std::size_t>(kind)];
-            sound.setVolume(JudgmentVolume);
             sound.setLoop(true);
         }
     }
@@ -42,7 +37,7 @@ namespace xlair::ui::audio {
     ) {
         const auto frame = m_scheduler.update(music_sample, judge, events, flick_contacts);
         for (const auto sound : frame.one_shots) {
-            m_sounds[static_cast<std::size_t>(sound)].playOneShot(GameplaySound, JudgmentVolume);
+            m_sounds[static_cast<std::size_t>(sound)].playOneShot(GameplaySound);
         }
         syncLoop(GameplaySoundKind::SlideHold, frame.slider_hold_active);
         syncLoop(GameplaySoundKind::SideHold, frame.side_hold_active);
