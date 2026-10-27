@@ -51,6 +51,27 @@ namespace xlair::app {
         return true;
     }
 
+    void Application::setTouchThreshold(const uint8 threshold) noexcept {
+        if (!m_config || !m_controller) {
+            return;
+        }
+        m_controller->setTouchThreshold(threshold);
+        const auto applied = m_controller->touchThreshold();
+        if (!applied) {
+            return;
+        }
+        switch (m_config->controller.mode) {
+            case Config::Controller::Mode::GroundSlider:
+                m_config->controller.ground_slider.touch_threshold = *applied;
+                break;
+            case Config::Controller::Mode::V1:
+                m_config->controller.v1.touch_threshold = *applied;
+                break;
+            case Config::Controller::Mode::Keyboard:
+                break;
+        }
+    }
+
     void Application::setTouchThresholdHighlight(const bool enabled) noexcept {
         if (m_config) {
             m_config->controller.highlight_touch_threshold = enabled;

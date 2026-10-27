@@ -348,7 +348,7 @@ namespace xlair::ui::scenes {
         if (const auto threshold = controller->touchThreshold()) {
             const int32 change = (KeyUp.down() ? 1 : 0) - (KeyDown.down() ? 1 : 0);
             if (change != 0) {
-                controller->setTouchThreshold(
+                getData().application->setTouchThreshold(
                     static_cast<uint8>(Clamp(static_cast<int32>(*threshold) + change, 1, 255))
                 );
             }

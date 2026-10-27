@@ -26,6 +26,7 @@ namespace xlair::app {
         const Optional<Config>& config() const noexcept;
         bool setApiTimeoutSeconds(double seconds);
         bool setAudioVolumes(const Config::Audio& volumes) noexcept;
+        void setTouchThreshold(uint8 threshold) noexcept;
         void setTouchThresholdHighlight(bool enabled) noexcept;
         void setInputLatencyOffsetSeconds(double seconds) noexcept;
 
