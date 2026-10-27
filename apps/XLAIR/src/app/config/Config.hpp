@@ -59,6 +59,12 @@ namespace xlair::app {
             ColorF letterbox_color{ 0.0 };
         } window;
 
+        struct Audio {
+            double music_volume = 1.0;
+            double ui_sound_volume = 1.0;
+            double gameplay_sound_volume = 0.55;
+        } audio;
+
         struct Controller {
             enum class Mode {
                 Keyboard,

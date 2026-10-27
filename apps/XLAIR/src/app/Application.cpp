@@ -38,6 +38,19 @@ namespace xlair::app {
         return true;
     }
 
+    bool Application::setAudioVolumes(const Config::Audio& volumes) noexcept {
+        if (!m_config) {
+            return false;
+        }
+        for (const double volume : { volumes.music_volume, volumes.ui_sound_volume, volumes.gameplay_sound_volume }) {
+            if (!std::isfinite(volume) || volume < 0.0 || volume > 1.0) {
+                return false;
+            }
+        }
+        m_config->audio = volumes;
+        return true;
+    }
+
     void Application::setTouchThresholdHighlight(const bool enabled) noexcept {
         if (m_config) {
             m_config->controller.highlight_touch_threshold = enabled;

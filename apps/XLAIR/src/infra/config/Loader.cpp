@@ -99,6 +99,10 @@ namespace xlair::infra::config {
             .read(U"window.sizable", config.window.sizable)
             .read(U"window.fullscreen", config.window.fullscreen)
             .read(U"window.letterbox_color", config.window.letterbox_color)
+            // audio
+            .read(U"audio.music_volume", config.audio.music_volume)
+            .read(U"audio.ui_sound_volume", config.audio.ui_sound_volume)
+            .read(U"audio.gameplay_sound_volume", config.audio.gameplay_sound_volume)
             // controller
             .read(U"controller.mode", controller_mode)
             .read(U"controller.highlight_touch_threshold", config.controller.highlight_touch_threshold)
@@ -137,6 +141,16 @@ namespace xlair::infra::config {
         }
         if (config.window.width <= 0 || config.window.height <= 0) {
             return MakeError(U"Config values 'window.width' and 'window.height' must be positive.", m_path);
+        }
+
+        for (const auto& [key, volume] : {
+                 std::pair{ U"audio.music_volume", config.audio.music_volume },
+                 std::pair{ U"audio.ui_sound_volume", config.audio.ui_sound_volume },
+                 std::pair{ U"audio.gameplay_sound_volume", config.audio.gameplay_sound_volume },
+             }) {
+            if (!std::isfinite(volume) || volume < 0.0 || volume > 1.0) {
+                return MakeError(U"Config value '{}' must be a finite number between 0.0 and 1.0."_fmt(key), m_path);
+            }
         }
 
         if (controller_mode == U"keyboard") {

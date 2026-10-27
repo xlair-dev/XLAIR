@@ -34,7 +34,11 @@ namespace xlair::ui::scenes {
             U"API タイムアウト", U"API ヘルスチェック", U"同期する", U"全件再検証・修復", U"戻る",
         };
         constexpr std::array<StringView, 4> SoundItems{ U"楽曲", U"UI SE", U"判定・ホールド SE", U"戻る" };
-        constexpr std::array SoundBuses{ audio::Music, audio::UISound, audio::GameplaySound };
+        constexpr std::array SoundVolumes{
+            &app::Config::Audio::music_volume,
+            &app::Config::Audio::ui_sound_volume,
+            &app::Config::Audio::gameplay_sound_volume,
+        };
         constexpr double MenuTop = 128.0;
         constexpr double MenuRowHeight = 52.0;
         constexpr double ValueRepeatDelay = 0.4;
@@ -307,7 +311,7 @@ namespace xlair::ui::scenes {
     }
 
     void Maintenance::updateSound() {
-        if (m_selected_index == SoundBuses.size()) {
+        if (m_selected_index == SoundVolumes.size()) {
             resetValueRepeat();
             if (KeyEnter.down()) {
                 back();
@@ -318,9 +322,18 @@ namespace xlair::ui::scenes {
         if (delta == 0) {
             return;
         }
-        const auto bus = SoundBuses[m_selected_index];
-        const int32 volume = static_cast<int32>(std::lround(GlobalAudio::BusGetVolume(bus) * 100.0));
-        GlobalAudio::BusSetVolume(bus, Clamp(volume + delta, 0, 100) / 100.0);
+        auto& application = *getData().application;
+        const auto& config = application.config();
+        if (!config) {
+            return;
+        }
+        auto volumes = config->audio;
+        auto& value = volumes.*SoundVolumes[m_selected_index];
+        const int32 volume = static_cast<int32>(std::lround(value * 100.0));
+        value = Clamp(volume + delta, 0, 100) / 100.0;
+        if (application.setAudioVolumes(volumes)) {
+            audio::ApplyVolumes(config->audio);
+        }
     }
 
     void Maintenance::updateSlider() {
@@ -459,9 +472,13 @@ namespace xlair::ui::scenes {
 
     void Maintenance::drawSound() const {
         DrawMenu(SoundItems, m_selected_index);
+        const auto& config = getData().application->config();
+        if (!config) {
+            return;
+        }
         const FontAsset font{ assets::font::Text };
-        for (std::size_t index = 0; index < SoundBuses.size(); ++index) {
-            const auto volume = static_cast<int32>(std::lround(GlobalAudio::BusGetVolume(SoundBuses[index]) * 100.0));
+        for (std::size_t index = 0; index < SoundVolumes.size(); ++index) {
+            const auto volume = static_cast<int32>(std::lround(config->audio.*SoundVolumes[index] * 100.0));
             font(U"{}%"_fmt(volume)).draw(28, Vec2{ 480, 128.0 + index * 52.0 }, Palette::White);
         }
     }

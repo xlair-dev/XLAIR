@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Common.hpp"
+#include "app/config/Config.hpp"
 
 namespace xlair::ui::audio {
     inline constexpr MixBus Music = MixBus0;
@@ -11,4 +12,6 @@ namespace xlair::ui::audio {
 
     // Call once at startup, before playback or volume controls access the buses.
     void InitializeBuses();
+
+    void ApplyVolumes(const app::Config::Audio& volumes);
 }
