@@ -47,6 +47,7 @@ namespace xlair::app {
 
         struct System {
             bool arcade = false;
+            bool autoplay = false;
             int32 playable = 3;
             int32 menu_timer_seconds = 90;
         } system;

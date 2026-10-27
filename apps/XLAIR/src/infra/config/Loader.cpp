@@ -91,6 +91,7 @@ namespace xlair::infra::config {
         reader
             // system
             .read(U"system.arcade", config.system.arcade)
+            .read(U"system.autoplay", config.system.autoplay)
             .read(U"system.playable", config.system.playable)
             .read(U"system.menu_timer_seconds", config.system.menu_timer_seconds)
             // window

@@ -78,7 +78,5 @@ namespace xlair::app {
         credits::CreditPool m_credit_pool;
         Array<sheets::Metadata> m_music_catalog;
         session::PlaySession m_play_session;
-        // Maintenance setting shared across player sessions; not an API play option.
-        bool m_autoplay = false;
     };
 }

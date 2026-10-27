@@ -1,5 +1,6 @@
 [system]
 arcade = false
+autoplay = false
 playable = 3
 menu_timer_seconds = 90
 
