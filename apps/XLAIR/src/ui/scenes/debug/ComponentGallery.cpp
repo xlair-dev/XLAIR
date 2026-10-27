@@ -11,7 +11,7 @@
 #include "ui/theme/DifficultyTheme.hpp"
 #include "ui/theme/Palette.hpp"
 
-namespace xlair::ui::scenes {
+namespace xlair::ui::scenes::debug {
     namespace {
         Texture MakeJacket() {
             Image image{ 512, 512, Color{ 28, 36, 58 } };

@@ -16,9 +16,9 @@
 #include "scenes/maintenance/Server.hpp"
 #include "scenes/maintenance/Sound.hpp"
 
-#include "scenes/ComponentGallery.hpp"
 #ifndef NDEBUG
-#include "scenes/PlayfieldDebug.hpp"
+#include "scenes/debug/ComponentGallery.hpp"
+#include "scenes/debug/PlayfieldDebug.hpp"
 #endif
 
 namespace xlair::ui {
@@ -94,8 +94,8 @@ namespace xlair::ui {
             .add<scenes::maintenance::Sound>(SceneState::MaintenanceSound);
 #ifndef NDEBUG
         scene_manager
-            .add<scenes::ComponentGallery>(SceneState::ComponentGallery) // check ui
-            .add<scenes::PlayfieldDebug>(SceneState::PlayfieldDebug);
+            .add<scenes::debug::ComponentGallery>(SceneState::ComponentGallery) // check ui
+            .add<scenes::debug::PlayfieldDebug>(SceneState::PlayfieldDebug);
 #endif
         scene_manager.init(SceneState::Boot, 0);
 
