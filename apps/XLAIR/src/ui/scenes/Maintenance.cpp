@@ -581,36 +581,17 @@ namespace xlair::ui::scenes {
         const String message = m_loading_jackets ? U"Loading jackets..." : flow.message();
         font(message).draw(26, RectF{ 48, status_y, Scene::Width() - 96.0, 104 }, Palette::White);
         if (const auto progress = flow.progress(); progress && progress->total_files > 0) {
-            constexpr std::array Colors{ ColorF{ 0.2, 0.65, 1.0 },
-                                         ColorF{ 0.3, 0.85, 0.45 },
-                                         ColorF{ 1.0, 0.65, 0.2 },
-                                         ColorF{ 0.8, 0.4, 0.9 } };
             const RectF bar{ 48, progress_y, Scene::Width() - 96.0, 24 };
             bar.draw(Palette::Gray);
-            const double segment_width = bar.w / progress->total_files;
             const double active_fraction =
                 progress->download_total_bytes && *progress->download_total_bytes > 0
                     ? Clamp(static_cast<double>(progress->downloaded_bytes) / *progress->download_total_bytes, 0.0, 1.0)
                     : 0.0;
-            for (std::size_t index = 0; index < progress->total_files; ++index) {
-                const double fraction = index < progress->completed_files    ? 1.0
-                                        : index == progress->completed_files ? active_fraction
-                                                                             : 0.0;
-                if (fraction > 0.0) {
-                    RectF{ bar.x + index * segment_width, bar.y, segment_width * fraction, bar.h }.draw(
-                        Colors[index % Colors.size()]
-                    );
-                }
-            }
+            const double fraction =
+                Clamp((progress->completed_files + active_fraction) / progress->total_files, 0.0, 1.0);
+            RectF{ bar.x, bar.y, bar.w * fraction, bar.h }.draw(Palette::White);
             font(U"完了ファイル: {}/{}"_fmt(progress->completed_files, progress->total_files))
                 .draw(24, Vec2{ 48, progress_y + 44 }, Palette::White);
-            if (progress->download_total_bytes) {
-                font(U"現在のファイル: {} / {} bytes"_fmt(progress->downloaded_bytes, *progress->download_total_bytes))
-                    .draw(24, Vec2{ 400, progress_y + 44 }, Palette::White);
-            } else {
-                font(U"現在のファイル: {} bytes"_fmt(progress->downloaded_bytes))
-                    .draw(24, Vec2{ 400, progress_y + 44 }, Palette::White);
-            }
         }
     }
 }
