@@ -3,7 +3,6 @@
 #include "Common.hpp"
 #include "app/controller/Controller.hpp"
 #include "app/config/Config.hpp"
-#include "app/config/MaintenanceSettings.hpp"
 #include "app/credits/CreditPool.hpp"
 #include "app/interfaces/ICardReader.hpp"
 #include "app/session/PlaySession.hpp"
@@ -75,7 +74,7 @@ namespace xlair::app {
         void setMusicCatalog(Array<sheets::Metadata> catalog);
 
         Optional<Config> m_config;
-        Optional<MaintenanceSettings> m_saved_settings;
+        Optional<Config> m_saved_config;
         std::unique_ptr<api::IClient> m_api_client;
         std::unique_ptr<interfaces::ICardReader> m_card_reader;
         std::unique_ptr<app::controller::Controller> m_controller;

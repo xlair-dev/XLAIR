@@ -31,7 +31,7 @@ namespace xlair::app {
     }
 
     bool Application::hasUnsavedConfig() const noexcept {
-        return m_config && m_saved_settings && MaintenanceSettings{ *m_config } != *m_saved_settings;
+        return m_config && m_saved_config && *m_config != *m_saved_config;
     }
 
     bool Application::setApiTimeoutSeconds(const double seconds) {
@@ -136,7 +136,7 @@ namespace xlair::app {
 
     void Application::setConfig(Config config) {
         m_config = std::move(config);
-        m_saved_settings = MaintenanceSettings{ *m_config };
+        m_saved_config = m_config;
     }
 
     void Application::setApiClient(std::unique_ptr<api::IClient> client) {

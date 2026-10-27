@@ -6,33 +6,41 @@
 
 namespace xlair::infra::config {
     namespace {
-        void ApplyChanges(
-            app::Config& config,
-            const app::MaintenanceSettings& saved,
-            const app::MaintenanceSettings& current
-        ) {
+        void ApplyChanges(app::Config& config, const app::Config& saved, const app::Config& current) {
             const auto update = [](auto& destination, const auto before, const auto after) {
                 if (before != after) {
                     destination = after;
                 }
             };
-            update(config.system.autoplay, saved.autoplay, current.autoplay);
-            update(config.audio.music_volume, saved.music_volume, current.music_volume);
-            update(config.audio.ui_sound_volume, saved.ui_sound_volume, current.ui_sound_volume);
-            update(config.audio.gameplay_sound_volume, saved.gameplay_sound_volume, current.gameplay_sound_volume);
+            update(config.system.autoplay, saved.system.autoplay, current.system.autoplay);
+            update(config.audio.music_volume, saved.audio.music_volume, current.audio.music_volume);
+            update(config.audio.ui_sound_volume, saved.audio.ui_sound_volume, current.audio.ui_sound_volume);
+            update(
+                config.audio.gameplay_sound_volume,
+                saved.audio.gameplay_sound_volume,
+                current.audio.gameplay_sound_volume
+            );
             update(
                 config.controller.highlight_touch_threshold,
-                saved.highlight_touch_threshold,
-                current.highlight_touch_threshold
+                saved.controller.highlight_touch_threshold,
+                current.controller.highlight_touch_threshold
             );
             update(
                 config.controller.ground_slider.touch_threshold,
-                saved.ground_slider_touch_threshold,
-                current.ground_slider_touch_threshold
+                saved.controller.ground_slider.touch_threshold,
+                current.controller.ground_slider.touch_threshold
             );
-            update(config.controller.v1.touch_threshold, saved.v1_touch_threshold, current.v1_touch_threshold);
-            update(config.input.latency_offset_seconds, saved.latency_offset_seconds, current.latency_offset_seconds);
-            update(config.api.timeout_seconds, saved.api_timeout_seconds, current.api_timeout_seconds);
+            update(
+                config.controller.v1.touch_threshold,
+                saved.controller.v1.touch_threshold,
+                current.controller.v1.touch_threshold
+            );
+            update(
+                config.input.latency_offset_seconds,
+                saved.input.latency_offset_seconds,
+                current.input.latency_offset_seconds
+            );
+            update(config.api.timeout_seconds, saved.api.timeout_seconds, current.api.timeout_seconds);
         }
 
         String Serialize(const app::Config& config, const String& letterbox_color) {
@@ -120,7 +128,7 @@ namespace xlair::infra::config {
         : m_path{ std::move(path) }, m_local_sheets_directory{ std::move(local_sheets_directory) } {}
 
     Optional<app::interfaces::ConfigSaveError>
-    Writer::save(const app::MaintenanceSettings& saved, const app::MaintenanceSettings& current) const {
+    Writer::save(const app::Config& saved, const app::Config& current) const {
         try {
             if (saved == current) {
                 return none;

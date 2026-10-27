@@ -1,6 +1,6 @@
 #pragma once
 
-#include "app/config/MaintenanceSettings.hpp"
+#include "app/config/Config.hpp"
 
 namespace xlair::app::interfaces {
     struct ConfigSaveError {
@@ -14,7 +14,6 @@ namespace xlair::app::interfaces {
 
         // Regenerates the file with known settings; returns an error on failure.
         [[nodiscard]]
-        virtual Optional<ConfigSaveError>
-        save(const MaintenanceSettings& saved, const MaintenanceSettings& current) const = 0;
+        virtual Optional<ConfigSaveError> save(const Config& saved, const Config& current) const = 0;
     };
 }

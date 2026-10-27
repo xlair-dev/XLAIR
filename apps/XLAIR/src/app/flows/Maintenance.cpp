@@ -33,14 +33,14 @@ namespace xlair::app::flows {
             m_config_message = U"設定の保存先が利用できません。";
             return;
         }
-        const MaintenanceSettings current{ *m_application.config() };
-        if (const auto error = m_config_writer->save(*m_application.m_saved_settings, current)) {
+        const auto& current = *m_application.config();
+        if (const auto error = m_config_writer->save(*m_application.m_saved_config, current)) {
             m_config_save_failed = true;
             m_config_message = U"設定を保存できませんでした。\n{}\n{}"_fmt(error->message, error->path);
             Logger << U"[Maintenance] " + m_config_message;
             return;
         }
-        m_application.m_saved_settings = current;
+        m_application.m_saved_config = current;
         m_config_message = U"設定を保存しました。";
     }
 

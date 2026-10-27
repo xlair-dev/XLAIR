@@ -9,7 +9,7 @@ namespace xlair::infra::config {
 
         [[nodiscard]]
         Optional<app::interfaces::ConfigSaveError>
-        save(const app::MaintenanceSettings& saved, const app::MaintenanceSettings& current) const override;
+        save(const app::Config& saved, const app::Config& current) const override;
 
     private:
         FilePath m_path;
