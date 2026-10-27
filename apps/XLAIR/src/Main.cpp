@@ -49,7 +49,7 @@ void Main() {
     const auto scene_data = scene_manager.get();
 
     while (System::Update()) {
-        application->update(scene_data->current_scene != ui::SceneState::Maintenance);
+        application->update(!ui::IsMaintenanceScene(scene_data->current_scene));
         if (!ui::HandleMaintenanceShortcut(scene_manager)) {
             break;
         }

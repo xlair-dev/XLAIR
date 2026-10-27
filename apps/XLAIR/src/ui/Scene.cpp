@@ -8,6 +8,13 @@
 #include "scenes/Settings.hpp"
 #include "scenes/Game.hpp"
 #include "scenes/Maintenance.hpp"
+#include "scenes/maintenance/ControllerMenu.hpp"
+#include "scenes/maintenance/InputTest.hpp"
+#include "scenes/maintenance/LightTest.hpp"
+#include "scenes/maintenance/LatencyCalibration.hpp"
+#include "scenes/maintenance/CardReaderTest.hpp"
+#include "scenes/maintenance/Server.hpp"
+#include "scenes/maintenance/Sound.hpp"
 
 #include "scenes/ComponentGallery.hpp"
 #ifndef NDEBUG
@@ -19,14 +26,33 @@ namespace xlair::ui {
         getData().current_scene = init.state;
     }
 
+    bool IsMaintenanceScene(const SceneState state) noexcept {
+        switch (state) {
+            case SceneState::Maintenance:
+            case SceneState::MaintenanceController:
+            case SceneState::MaintenanceInputTest:
+            case SceneState::MaintenanceLightTest:
+            case SceneState::MaintenanceLatencyCalibration:
+            case SceneState::MaintenanceCardReaderTest:
+            case SceneState::MaintenanceServer:
+            case SceneState::MaintenanceSound:
+                return true;
+            default:
+                return false;
+        }
+    }
+
     bool HandleMaintenanceShortcut(SceneManager& scene_manager) {
         const auto data = scene_manager.get();
-        if (data->current_scene == SceneState::Boot || data->current_scene == SceneState::Maintenance) {
+        if (data->current_scene == SceneState::Boot || IsMaintenanceScene(data->current_scene)) {
             return true;
         }
 
         const auto* controller = data->application->controller();
         if (controller && controller->maintenanceButton(app::controller::MaintenanceButton::Button1).down()) {
+            data->maintenance_menu_index = 0;
+            data->maintenance_controller_index = 0;
+            data->maintenance_flow->reset();
             return scene_manager.changeScene(SceneState::Maintenance, 0);
         }
         return true;
@@ -58,7 +84,14 @@ namespace xlair::ui {
             .add<scenes::MusicSelect>(SceneState::MusicSelect) // music
             .add<scenes::Settings>(SceneState::Settings)       // settings
             .add<scenes::Game>(SceneState::Game)               // main game screen
-            .add<scenes::Maintenance>(SceneState::Maintenance);
+            .add<scenes::Maintenance>(SceneState::Maintenance)
+            .add<scenes::maintenance::ControllerMenu>(SceneState::MaintenanceController)
+            .add<scenes::maintenance::InputTest>(SceneState::MaintenanceInputTest)
+            .add<scenes::maintenance::LightTest>(SceneState::MaintenanceLightTest)
+            .add<scenes::maintenance::LatencyCalibration>(SceneState::MaintenanceLatencyCalibration)
+            .add<scenes::maintenance::CardReaderTest>(SceneState::MaintenanceCardReaderTest)
+            .add<scenes::maintenance::Server>(SceneState::MaintenanceServer)
+            .add<scenes::maintenance::Sound>(SceneState::MaintenanceSound);
 #ifndef NDEBUG
         scene_manager
             .add<scenes::ComponentGallery>(SceneState::ComponentGallery) // check ui
