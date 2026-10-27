@@ -1,6 +1,7 @@
 #pragma once
 
 #include "app/Application.hpp"
+#include "app/interfaces/IConfigWriter.hpp"
 #include "CatalogSync.hpp"
 #include "MetadataLoad.hpp"
 
@@ -23,12 +24,14 @@ namespace xlair::app::flows {
         Maintenance(
             Application& application,
             MetadataLoaderFactory metadata_loader_factory,
-            CatalogSync::LocalSyncFactory local_sync_factory
+            CatalogSync::LocalSyncFactory local_sync_factory,
+            std::unique_ptr<interfaces::IConfigWriter> config_writer
         );
         ~Maintenance();
 
         void checkHealth();
         void sync(CatalogSync::Mode mode = CatalogSync::Mode::Incremental);
+        void saveConfig();
         void update();
         void reset();
 
@@ -46,6 +49,16 @@ namespace xlair::app::flows {
         }
 
         [[nodiscard]]
+        const String& configMessage() const noexcept {
+            return m_config_message;
+        }
+
+        [[nodiscard]]
+        bool configSaveFailed() const noexcept {
+            return m_config_save_failed;
+        }
+
+        [[nodiscard]]
         Optional<api::RequestProgress> progress() const noexcept {
             return m_state == State::Syncing ? m_sync.progress() : none;
         }
@@ -54,6 +67,9 @@ namespace xlair::app::flows {
         void fail(String message);
 
         Application& m_application;
+        std::unique_ptr<interfaces::IConfigWriter> m_config_writer;
+        String m_config_message;
+        bool m_config_save_failed = false;
         MetadataLoaderFactory m_metadata_loader_factory;
         CatalogSync m_sync;
         MetadataLoad m_metadata_load;

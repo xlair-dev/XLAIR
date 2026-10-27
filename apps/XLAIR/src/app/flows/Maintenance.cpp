@@ -4,10 +4,12 @@ namespace xlair::app::flows {
     Maintenance::Maintenance(
         Application& application,
         MetadataLoaderFactory metadata_loader_factory,
-        CatalogSync::LocalSyncFactory local_sync_factory
+        CatalogSync::LocalSyncFactory local_sync_factory,
+        std::unique_ptr<interfaces::IConfigWriter> config_writer
     )
-        : m_application{ application }, m_metadata_loader_factory{ std::move(metadata_loader_factory) },
-          m_sync{ std::move(local_sync_factory) }, m_metadata_load{ nullptr } {}
+        : m_application{ application }, m_config_writer{ std::move(config_writer) },
+          m_metadata_loader_factory{ std::move(metadata_loader_factory) }, m_sync{ std::move(local_sync_factory) },
+          m_metadata_load{ nullptr } {}
 
     Maintenance::~Maintenance() {
         reset();
@@ -15,6 +17,31 @@ namespace xlair::app::flows {
 
     bool Maintenance::busy() const noexcept {
         return m_state == State::CheckingHealth || m_state == State::Syncing || m_state == State::LoadingMetadata;
+    }
+
+    void Maintenance::saveConfig() {
+        if (busy()) {
+            return;
+        }
+        m_config_save_failed = false;
+        if (!m_application.hasUnsavedConfig()) {
+            m_config_message = U"保存する変更はありません。";
+            return;
+        }
+        if (!m_config_writer) {
+            m_config_save_failed = true;
+            m_config_message = U"設定の保存先が利用できません。";
+            return;
+        }
+        const MaintenanceSettings current{ *m_application.config() };
+        if (const auto error = m_config_writer->save(*m_application.m_saved_settings, current)) {
+            m_config_save_failed = true;
+            m_config_message = U"設定を保存できませんでした。\n{}\n{}"_fmt(error->message, error->path);
+            Logger << U"[Maintenance] " + m_config_message;
+            return;
+        }
+        m_application.m_saved_settings = current;
+        m_config_message = U"設定を保存しました。";
     }
 
     void Maintenance::checkHealth() {
@@ -111,6 +138,8 @@ namespace xlair::app::flows {
         m_sync.cancel();
         m_state = State::Idle;
         m_message.clear();
+        m_config_message.clear();
+        m_config_save_failed = false;
     }
 
     void Maintenance::fail(String message) {
