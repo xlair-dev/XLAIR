@@ -69,6 +69,11 @@ namespace xlair::ui::scenes {
     }
 
     void MusicSelect::update() {
+        if (getData().application->playSession().finished()) {
+            getData().music_select_context->pause();
+            changeScene(SceneState::FinalResult, 500, CrossFade::No);
+            return;
+        }
         handleInput();
         updatePresentation();
     }
@@ -197,13 +202,24 @@ namespace xlair::ui::scenes {
             const auto* music = flow.selectedMusic();
             const auto* difficulty = flow.selectedDifficulty();
             if (music && difficulty) {
-                if (difficulty->src.isEmpty()) {
-                    Logger << U"[MusicSelect] Sheet '{}' is not implemented."_fmt(difficulty->id);
+                if (difficulty->src.isEmpty() || difficulty->id.isEmpty()) {
+                    Logger << U"[MusicSelect] A sheet ID and chart file are required to start a play.";
                 } else {
+                    auto& data = getData();
+                    auto& session = data.application->playSession();
+                    const bool autoplay = data.application->autoplay();
+                    const auto play_id = session.beginPlay(autoplay);
+                    if (!play_id) {
+                        Logger << U"[MusicSelect] No play is available in the current session.";
+                        return;
+                    }
                     audio::PlaySoundEffect(audio::SoundEffect::Confirm);
                     Logger << U"[MusicSelect] Selected music '{}' / sheet '{}'."_fmt(music->id, difficulty->id);
-                    auto& data = getData();
                     data.game_selection = GameSelection{
+                        .play_id = *play_id,
+                        .max_plays = session.maxPlays(),
+                        .remaining_plays = session.remainingPlays(),
+                        .autoplay = autoplay,
                         .music_id = music->id,
                         .title = music->title,
                         .music_path = music->music,

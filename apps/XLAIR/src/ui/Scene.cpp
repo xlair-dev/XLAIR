@@ -7,6 +7,8 @@
 #include "scenes/MusicSelect.hpp"
 #include "scenes/Settings.hpp"
 #include "scenes/Game.hpp"
+#include "scenes/Result.hpp"
+#include "scenes/FinalResult.hpp"
 #include "scenes/Maintenance.hpp"
 #include "scenes/maintenance/ControllerMenu.hpp"
 #include "scenes/maintenance/InputTest.hpp"
@@ -44,7 +46,10 @@ namespace xlair::ui {
 
     bool HandleMaintenanceShortcut(SceneManager& scene_manager) {
         const auto data = scene_manager.get();
-        if (data->current_scene == SceneState::Boot || IsMaintenanceScene(data->current_scene)) {
+        // Do not discard a completed session or interrupt its pending save via Maintenance.
+        if (data->current_scene == SceneState::Boot || IsMaintenanceScene(data->current_scene) ||
+            data->current_scene == SceneState::FinalResult ||
+            (data->current_scene == SceneState::Result && data->application->playSession().finished())) {
             return true;
         }
 
@@ -84,6 +89,8 @@ namespace xlair::ui {
             .add<scenes::MusicSelect>(SceneState::MusicSelect) // music
             .add<scenes::Settings>(SceneState::Settings)       // settings
             .add<scenes::Game>(SceneState::Game)               // main game screen
+            .add<scenes::Result>(SceneState::Result)           // result of the completed play
+            .add<scenes::FinalResult>(SceneState::FinalResult) // results of the whole session
             .add<scenes::Maintenance>(SceneState::Maintenance)
             .add<scenes::maintenance::ControllerMenu>(SceneState::MaintenanceController)
             .add<scenes::maintenance::InputTest>(SceneState::MaintenanceInputTest)

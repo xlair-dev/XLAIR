@@ -77,6 +77,10 @@ namespace xlair::core::judgement {
             uint8 side_pressed = 0
         );
 
+        // Resolve all remaining judgements when playback ends, including notes beyond the audio duration.
+        [[nodiscard]]
+        Array<JudgementEvent> finish();
+
         // Advances every chart event through current_sample as a Perfect without controller input.
         [[nodiscard]]
         Array<JudgementEvent> advanceAuto(int64 current_sample);
@@ -103,7 +107,8 @@ namespace xlair::core::judgement {
         [[nodiscard]]
         const ScoreState& score() const noexcept;
 
-        // Contact candidates do not imply a successful judgement and remain available until the next advance().
+        // Contact candidates do not imply a successful judgement. They remain available
+        // until the next advance(), advanceAuto(), or finish().
         [[nodiscard]]
         std::span<const std::size_t> flickContacts() const noexcept {
             return m_flick_contacts;

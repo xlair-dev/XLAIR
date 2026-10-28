@@ -1,10 +1,20 @@
 #pragma once
 
 #include "Common.hpp"
+#include "core/judgement/JudgeEngine.hpp"
 
 #include <ApiClient/Types.hpp>
 
 namespace xlair::app::session {
+    struct PlayResult {
+        UUIDValue play_id;
+        String sheet_id;
+        uint32 score = 0;
+        api::ClearType clear_type = api::ClearType::Failed;
+        // Autoplay still consumes a track, but never updates bests or the API.
+        bool autoplay = false;
+    };
+
     class PlaySession {
     public:
         void start(api::User user, uint32 max_plays);
@@ -25,7 +35,25 @@ namespace xlair::app::session {
         [[nodiscard]]
         uint32 remainingPlays() const noexcept;
 
-        void consumePlay() noexcept;
+        [[nodiscard]]
+        bool finished() const noexcept;
+
+        // Reserve a play without consuming it. Only its ID can complete or cancel it.
+        [[nodiscard]]
+        Optional<UUIDValue> beginPlay(bool autoplay = false);
+
+        [[nodiscard]]
+        bool completePlay(
+            const UUIDValue& play_id,
+            StringView sheet_id,
+            const core::judgement::ScoreState& score,
+            std::size_t total_combo
+        );
+
+        void cancelPlay(const UUIDValue& play_id) noexcept;
+
+        [[nodiscard]]
+        const Array<PlayResult>& playedResults() const noexcept;
 
         void setRecords(Array<api::UserRecord> records);
 
@@ -46,8 +74,15 @@ namespace xlair::app::session {
         const api::UserRecord* record(StringView sheet_id) const noexcept;
 
     private:
+        struct ActivePlay {
+            UUIDValue id;
+            bool autoplay = false;
+        };
+
         Optional<api::User> m_user;
         HashTable<String, api::UserRecord> m_records;
+        Array<PlayResult> m_played_results;
+        Optional<ActivePlay> m_active_play;
         api::PlayOptions m_play_options;
         // TODO: Fetch mirror from the API once PlayOptions includes it.
         bool m_mirror = false;

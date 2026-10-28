@@ -7,6 +7,7 @@ namespace xlair::ui::audio {
         Navigate,
         ChangeDifficulty,
         Confirm,
+        Finish,
     };
 
     void PlaySoundEffect(SoundEffect sound);

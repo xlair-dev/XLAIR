@@ -19,6 +19,8 @@ namespace xlair::ui::audio {
                     return { assets::sound::ChangeDifficulty, UISound };
                 case SoundEffect::Confirm:
                     return { assets::sound::Confirm, UISound };
+                case SoundEffect::Finish:
+                    return { assets::sound::Finish, UISound };
             }
 
             throw Error{ U"Unknown sound effect." };
