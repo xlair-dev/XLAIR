@@ -30,12 +30,50 @@ namespace xlair::app {
         return m_config;
     }
 
+    bool Application::hasUnsavedConfig() const noexcept {
+        return m_config && m_saved_config && *m_config != *m_saved_config;
+    }
+
     bool Application::setApiTimeoutSeconds(const double seconds) {
         if (!m_config || !m_api_client || !m_api_client->setTimeoutSeconds(seconds)) {
             return false;
         }
         m_config->api.timeout_seconds = seconds;
         return true;
+    }
+
+    bool Application::setAudioVolumes(const Config::Audio& volumes) noexcept {
+        if (!m_config) {
+            return false;
+        }
+        for (const double volume : { volumes.music_volume, volumes.ui_sound_volume, volumes.gameplay_sound_volume }) {
+            if (!std::isfinite(volume) || volume < 0.0 || volume > 1.0) {
+                return false;
+            }
+        }
+        m_config->audio = volumes;
+        return true;
+    }
+
+    void Application::setTouchThreshold(const uint8 threshold) noexcept {
+        if (!m_config || !m_controller) {
+            return;
+        }
+        m_controller->setTouchThreshold(threshold);
+        const auto applied = m_controller->touchThreshold();
+        if (!applied) {
+            return;
+        }
+        switch (m_config->controller.mode) {
+            case Config::Controller::Mode::GroundSlider:
+                m_config->controller.ground_slider.touch_threshold = *applied;
+                break;
+            case Config::Controller::Mode::V1:
+                m_config->controller.v1.touch_threshold = *applied;
+                break;
+            case Config::Controller::Mode::Keyboard:
+                break;
+        }
     }
 
     void Application::setTouchThresholdHighlight(const bool enabled) noexcept {
@@ -55,11 +93,13 @@ namespace xlair::app {
     }
 
     bool Application::autoplay() const noexcept {
-        return m_autoplay;
+        return m_config && m_config->system.autoplay;
     }
 
     void Application::setAutoplay(const bool enabled) noexcept {
-        m_autoplay = enabled;
+        if (m_config) {
+            m_config->system.autoplay = enabled;
+        }
     }
 
     interfaces::ICardReader* Application::cardReader() noexcept {
@@ -96,6 +136,7 @@ namespace xlair::app {
 
     void Application::setConfig(Config config) {
         m_config = std::move(config);
+        m_saved_config = m_config;
     }
 
     void Application::setApiClient(std::unique_ptr<api::IClient> client) {

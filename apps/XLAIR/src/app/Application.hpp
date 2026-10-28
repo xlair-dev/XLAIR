@@ -24,7 +24,11 @@ namespace xlair::app {
 
         [[nodiscard]]
         const Optional<Config>& config() const noexcept;
+        [[nodiscard]]
+        bool hasUnsavedConfig() const noexcept;
         bool setApiTimeoutSeconds(double seconds);
+        bool setAudioVolumes(const Config::Audio& volumes) noexcept;
+        void setTouchThreshold(uint8 threshold) noexcept;
         void setTouchThresholdHighlight(bool enabled) noexcept;
         void setInputLatencyOffsetSeconds(double seconds) noexcept;
 
@@ -70,6 +74,7 @@ namespace xlair::app {
         void setMusicCatalog(Array<sheets::Metadata> catalog);
 
         Optional<Config> m_config;
+        Optional<Config> m_saved_config;
         std::unique_ptr<api::IClient> m_api_client;
         std::unique_ptr<interfaces::ICardReader> m_card_reader;
         std::unique_ptr<app::controller::Controller> m_controller;
@@ -77,7 +82,5 @@ namespace xlair::app {
         credits::CreditPool m_credit_pool;
         Array<sheets::Metadata> m_music_catalog;
         session::PlaySession m_play_session;
-        // Maintenance setting shared across player sessions; not an API play option.
-        bool m_autoplay = false;
     };
 }

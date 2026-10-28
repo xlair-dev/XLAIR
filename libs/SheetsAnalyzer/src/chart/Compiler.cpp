@@ -226,7 +226,12 @@ namespace xlair::sheets::chart {
 
     Result<Chart> Compile(const CcResult& parsed, const ChartLoadOptions& options) {
         const auto view = cc_result_chart(&parsed);
-        auto timing_result = TimingMap::Build({ view.tempos, view.tempo_count }, options);
+        const auto audio_offset = cc_result_metadata(&parsed).audio_offset_seconds;
+        auto timing_options = options;
+        if (audio_offset.has_value) {
+            timing_options.offset_seconds -= audio_offset.value;
+        }
+        auto timing_result = TimingMap::Build({ view.tempos, view.tempo_count }, timing_options);
         if (!timing_result) {
             Result<Chart> result;
             result.diagnostics = std::move(timing_result.diagnostics);

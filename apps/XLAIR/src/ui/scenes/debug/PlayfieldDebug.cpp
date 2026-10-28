@@ -4,7 +4,7 @@
 #ifndef NDEBUG
 #include <cmath>
 
-namespace xlair::ui::scenes {
+namespace xlair::ui::scenes::debug {
     namespace {
         constexpr double LoopDuration = 8.0;
         constexpr int64 SampleRate = 48'000;

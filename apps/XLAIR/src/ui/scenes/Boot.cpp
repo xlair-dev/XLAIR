@@ -1,6 +1,7 @@
 #include "Boot.hpp"
 
 #include "ui/Design.hpp"
+#include "ui/audio/AudioBus.hpp"
 
 namespace xlair::ui::scenes {
     namespace {
@@ -14,6 +15,7 @@ namespace xlair::ui::scenes {
             Scene::Resize(DesignSize);
             Scene::SetResizeMode(ResizeMode::Keep);
             Scene::SetLetterbox(config.window.letterbox_color);
+            audio::ApplyVolumes(config.audio);
         }
 
         void ReportBoot(const StringView message) {
