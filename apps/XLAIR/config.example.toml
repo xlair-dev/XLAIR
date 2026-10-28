@@ -1,5 +1,6 @@
 [system]
 arcade = false
+autoplay = false
 playable = 3
 menu_timer_seconds = 90
 
@@ -9,6 +10,11 @@ height = 1080
 sizable = true
 fullscreen = false
 letterbox_color = "#000000"
+
+[audio]
+music_volume = 1.0
+ui_sound_volume = 1.0
+gameplay_sound_volume = 0.55
 
 [input]
 latency_offset_seconds = 0.0

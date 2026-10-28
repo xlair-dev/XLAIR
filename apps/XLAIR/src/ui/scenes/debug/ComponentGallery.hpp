@@ -5,7 +5,7 @@
 #include "ui/components/SettingCard.hpp"
 #include "ui/Scene.hpp"
 
-namespace xlair::ui::scenes {
+namespace xlair::ui::scenes::debug {
     class ComponentGallery final : public SceneBase {
     public:
         explicit ComponentGallery(const InitData& init);

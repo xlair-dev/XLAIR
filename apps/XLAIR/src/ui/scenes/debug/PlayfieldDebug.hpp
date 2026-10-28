@@ -6,7 +6,7 @@
 #include <Playfield/ChartProjection.hpp>
 
 #ifndef NDEBUG
-namespace xlair::ui::scenes {
+namespace xlair::ui::scenes::debug {
     class PlayfieldDebug final : public SceneBase {
     public:
         explicit PlayfieldDebug(const InitData& init);

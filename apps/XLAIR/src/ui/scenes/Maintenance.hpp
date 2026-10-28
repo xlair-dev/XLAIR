@@ -1,58 +1,13 @@
 #pragma once
 
-#include "ui/Scene.hpp"
-#include "app/flows/CardReaderTest.hpp"
-#include "app/flows/LightTest.hpp"
-#include "app/flows/LatencyCalibration.hpp"
-
-#include <span>
+#include "maintenance/Base.hpp"
 
 namespace xlair::ui::scenes {
-    class Maintenance final : public SceneBase {
+    class Maintenance final : public maintenance::Base {
     public:
         explicit Maintenance(const InitData& init);
-        ~Maintenance() override;
 
         void update() override;
         void draw() const override;
-
-    private:
-        enum class Page { Menu, Controller, Slider, Lights, Latency, CardReader, Server, Sound };
-
-        void setPage(Page page);
-        std::span<const StringView> menuItems() const;
-        bool itemEnabled(std::size_t index) const;
-        void updateSlider();
-        void updateLatency();
-        void resetLatency();
-        void updateCardReader();
-        void updateServer();
-        void updateSound();
-        void resetValueRepeat();
-        int32 repeatedValueDelta(int32 max_steps);
-        void drawSlider() const;
-        void drawLatency() const;
-        void drawLights() const;
-        void drawCardReader() const;
-        void drawServer() const;
-        void drawSound() const;
-        void back();
-        bool busy() const;
-
-        Page m_page = Page::Menu;
-        std::size_t m_selected_index = 0;
-        int32 m_opened_frame = Scene::FrameCount();
-        bool m_sync_requested = false;
-        bool m_loading_jackets = false;
-        bool m_highlight_touch_threshold = false;
-        app::flows::LatencyCalibration m_latency_calibration;
-        Audio m_latency_audio;
-        double m_latency_time_ms = 0.0;
-        bool m_latency_applied = false;
-        int32 m_value_repeat_direction = 0;
-        double m_value_hold_seconds = 0.0;
-        double m_value_next_repeat_seconds = 0.0;
-        std::unique_ptr<app::flows::LightTest> m_light_test;
-        app::flows::CardReaderTest m_card_reader_test;
     };
 }

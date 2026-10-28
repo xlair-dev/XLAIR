@@ -6,6 +6,7 @@
 
 #include <cmath>
 #include <limits>
+#include <string>
 #include <string_view>
 #include <future>
 #include <vector>
@@ -132,11 +133,107 @@ TEST_CASE("IR diagnostics refer to original source lines and reject information 
     CHECK_FALSE(Parse("#00030A:14\n"));
 }
 
-TEST_CASE("File offset metadata is not applied a second time during IR migration", "[SheetsAnalyzer][IR]") {
-    const auto result =
-        Parse("#WAVEOFFSET 10\n#00010:14\n", CcFormat_Sus, { .sample_rate = 480, .offset_seconds = 0.25 });
+TEST_CASE("Source audio offsets are subtracted while metadata note offsets are added", "[SheetsAnalyzer][IR][Timing]") {
+    const auto format = GENERATE(CcFormat_Sus, CcFormat_Ugc);
+    const double source_offset = GENERATE(-0.5, 0.0, 1.25);
+    const double metadata_offset = GENERATE(-0.25, 0.0, 0.25);
+    CAPTURE(format, source_offset, metadata_offset);
+
+    const auto source = std::string{ format == CcFormat_Sus ? "#WAVEOFFSET " : "@BGMOFS\t" } +
+                        std::to_string(source_offset) + "\n" +
+                        (format == CcFormat_Sus ? "#BPM01:120\n#00008:01\n#00010:00140000\n"
+                                                : "@BPM\t0'0\t120\n@ENDHEAD\n#0'480:t04\n");
+    const auto result = Parse(source, format, { .sample_rate = 480, .offset_seconds = metadata_offset });
     REQUIRE(result);
-    CHECK(result->slider_notes[0].sample == 120);
+    REQUIRE(result->slider_notes.size() == 1);
+    CHECK(result->slider_notes[0].sample == std::llround((0.5 + metadata_offset - source_offset) * 480));
+}
+
+TEST_CASE("Missing source audio offsets preserve metadata-only timing", "[SheetsAnalyzer][IR][Timing]") {
+    const auto format = GENERATE(CcFormat_Sus, CcFormat_Ugc);
+    const double metadata_offset = GENERATE(-0.25, 0.0, 0.25);
+    const auto result = Parse(
+        format == CcFormat_Sus ? "#00010:14\n" : "@ENDHEAD\n#0'0:t04\n",
+        format,
+        { .sample_rate = 480, .offset_seconds = metadata_offset }
+    );
+    REQUIRE(result);
+    REQUIRE(result->slider_notes.size() == 1);
+    CHECK(result->slider_notes[0].sample == std::llround(metadata_offset * 480));
+}
+
+TEST_CASE("IR audio offsets align notes, tempos, scrolls and hold judgements", "[SheetsAnalyzer][IR][Timing]") {
+    const auto result = Parse(
+        R"(@BGMOFS	1.25
+@TICKS	480
+@BPM	0'0	120
+@BPM	0'480	180
+@TIL	0	0'0	0.5
+@TIL	0	0'480	1.5
+@TIL	1	0'0	2
+@SPDMOD	0'0	1
+@ENDHEAD
+#0'480:t04
+#0'0:x04
+#0'0:a04DRN
+#0'0:s04
+@USETIL	1
+#960>s44
+#1920>s84
+#0'0:h22
+#960>s22
+#1920>s22
+)",
+        CcFormat_Ugc,
+        { .sample_rate = 480, .offset_seconds = 0.25 }
+    );
+    REQUIRE(result);
+    REQUIRE(result->slider_notes.size() == 1);
+    REQUIRE(result->side_notes.size() == 1);
+    CHECK(result->slider_notes[0].sample == -240);
+    CHECK(result->side_notes[0].sample == -480);
+    REQUIRE(result->tempo_changes.size() == 3);
+    CHECK(result->tempo_changes[0].sample == -480);
+    CHECK(result->tempo_changes[1].sample == -480);
+    CHECK(result->tempo_changes[2].sample == -240);
+    CHECK(result->tempo_changes[2].bpm == 180.0);
+    for (const auto& timeline : result->timelines) {
+        REQUIRE_FALSE(timeline.speed_changes.isEmpty());
+        CHECK(timeline.speed_changes.front().sample == -480);
+    }
+    const auto& speed = result->timelines[result->slider_notes[0].timeline].speed_changes;
+    CHECK(speed.back().sample == -240);
+    CHECK(speed.back().multiplier == 1.5);
+
+    REQUIRE(result->slider_holds.size() == 1);
+    REQUIRE(result->side_holds.size() == 1);
+    const auto& slider_hold = result->slider_holds[0];
+    const auto& side_hold = result->side_holds[0];
+    const s3d::Array<s3d::int64> point_samples{ -480, -80, 240 };
+    const s3d::Array<s3d::int64> judge_samples{ -480, -360, -240, -160, -80, 0, 80, 160, 240 };
+    CHECK(slider_hold.points.map([](const auto& point) {
+        return point.sample;
+    }) == point_samples);
+    CHECK(side_hold.points.map([](const auto& point) {
+        return point.sample;
+    }) == point_samples);
+    CHECK(slider_hold.judge_points.map([](const auto& point) {
+        return point.sample;
+    }) == judge_samples);
+    CHECK(side_hold.judge_samples == judge_samples);
+    CHECK(result->total_combo == 20);
+}
+
+TEST_CASE("IR timing rejects overflow when combining finite audio offsets", "[SheetsAnalyzer][IR][Timing]") {
+    const auto format = GENERATE(CcFormat_Sus, CcFormat_Ugc);
+    const auto result = Parse(
+        format == CcFormat_Sus ? "#WAVEOFFSET -1e308\n#00010:14\n" : "@BGMOFS\t-1e308\n@ENDHEAD\n#0'0:t04\n",
+        format,
+        { .sample_rate = 480, .offset_seconds = 1e308 }
+    );
+    REQUIRE_FALSE(result);
+    REQUIRE_FALSE(result.diagnostics.isEmpty());
+    CHECK(result.diagnostics.front().severity == sheets::DiagnosticSeverity::Error);
 }
 
 TEST_CASE(

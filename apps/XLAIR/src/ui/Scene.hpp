@@ -20,6 +20,13 @@ namespace xlair::ui {
         Settings,
         Game,
         Maintenance,
+        MaintenanceController,
+        MaintenanceInputTest,
+        MaintenanceLightTest,
+        MaintenanceLatencyCalibration,
+        MaintenanceCardReaderTest,
+        MaintenanceServer,
+        MaintenanceSound,
 #ifndef NDEBUG
         ComponentGallery,
         PlayfieldDebug,
@@ -46,6 +53,8 @@ namespace xlair::ui {
         Optional<GameSelection> game_selection;
         game::GameLoader game_loader;
         bool returning_from_game = false;
+        std::size_t maintenance_menu_index = 0;
+        std::size_t maintenance_controller_index = 0;
         SceneState current_scene = SceneState::Boot;
     };
 
@@ -54,6 +63,9 @@ namespace xlair::ui {
     public:
         explicit SceneBase(const InitData& init);
     };
+
+    [[nodiscard]]
+    bool IsMaintenanceScene(SceneState state) noexcept;
 
     bool HandleMaintenanceShortcut(SceneManager& scene_manager);
 

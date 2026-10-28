@@ -14,6 +14,12 @@ if(NOT DEFINED DESTINATION_FILE OR DESTINATION_FILE STREQUAL "")
     message(FATAL_ERROR "${APP_NAME} config destination file is not set")
 endif()
 
+# Runtime settings may have been explicitly saved from Maintenance.
+# Remove the destination manually to seed it from the source config again.
+if(EXISTS "${DESTINATION_FILE}")
+    return()
+endif()
+
 if(EXISTS "${CONFIG_FILE}")
     set(source_file "${CONFIG_FILE}")
 else()

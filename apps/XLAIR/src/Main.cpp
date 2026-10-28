@@ -6,6 +6,7 @@
 #include "infra/api/LocalCatalogSync.hpp"
 #include "infra/card/Factories.hpp"
 #include "infra/config/Loader.hpp"
+#include "infra/config/Writer.hpp"
 #include "infra/controller/Factories.hpp"
 #include "infra/filesystem/RuntimePaths.hpp"
 #include "infra/sheets/MetadataLoader.hpp"
@@ -38,13 +39,17 @@ void Main() {
         infra::controller::CreateDevice,
         infra::api::SyncCatalog
     );
-    auto maintenance_flow =
-        std::make_shared<app::flows::Maintenance>(*application, metadata_loader_factory, infra::api::SyncCatalog);
+    auto maintenance_flow = std::make_shared<app::flows::Maintenance>(
+        *application,
+        metadata_loader_factory,
+        infra::api::SyncCatalog,
+        std::make_unique<infra::config::Writer>(paths.config_file, paths.sheets_directory)
+    );
     auto scene_manager = ui::CreateSceneManager(application, boot_flow, maintenance_flow);
     const auto scene_data = scene_manager.get();
 
     while (System::Update()) {
-        application->update(scene_data->current_scene != ui::SceneState::Maintenance);
+        application->update(!ui::IsMaintenanceScene(scene_data->current_scene));
         if (!ui::HandleMaintenanceShortcut(scene_manager)) {
             break;
         }
