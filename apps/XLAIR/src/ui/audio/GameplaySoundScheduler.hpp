@@ -2,6 +2,7 @@
 
 #include "core/judgement/JudgeEngine.hpp"
 
+#include <array>
 #include <queue>
 #include <vector>
 
@@ -63,6 +64,7 @@ namespace xlair::ui::audio {
         Array<Cue> m_side_notes;
         Array<HoldSounds> m_slider_holds;
         Array<HoldSounds> m_side_holds;
+        std::array<HashSet<int64>, static_cast<std::size_t>(GameplaySoundKind::Count)> m_played_samples;
         std::priority_queue<Cue, std::vector<Cue>, LaterCue> m_pending;
     };
 }

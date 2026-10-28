@@ -127,8 +127,12 @@ namespace xlair::ui::audio {
         // Never use offset_samples here: a FLICK can finish late despite early
         // contact, and input offsets must not shift the music's sound timeline.
         while (!m_pending.empty() && m_pending.top().sample <= music_sample) {
-            frame.one_shots.push_back(m_pending.top().sound);
+            const auto cue = m_pending.top();
             m_pending.pop();
+            // A chord may be judged across frames; coalesce by chart sample, not update time.
+            if (m_played_samples[static_cast<std::size_t>(cue.sound)].insert(cue.sample).second) {
+                frame.one_shots.push_back(cue.sound);
+            }
         }
         for (std::size_t index = 0; index < m_slider_holds.size(); ++index) {
             const auto& hold = m_slider_holds[index];
@@ -145,6 +149,9 @@ namespace xlair::ui::audio {
 
     void GameplaySoundScheduler::clear() {
         m_pending = {};
+        for (auto& samples : m_played_samples) {
+            samples.clear();
+        }
         m_slider_notes.clear();
         m_slider_note_scheduled.clear();
         m_side_notes.clear();
