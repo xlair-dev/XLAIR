@@ -149,13 +149,13 @@ namespace xlair::ui::assets {
             Require(AudioAsset::Load(sound::Finish), U"Failed to load the finish sound.");
 
             Require(
-                AudioAsset::Register(bgm::Result, Resource(U"ui/sounds/bgm/result_loop.opus"), Loop::Yes),
+                AudioAsset::Register(bgm::Result, Resource(U"ui/sounds/bgm/result.opus"), Loop::Yes),
                 U"Failed to register the result background music."
             );
             Require(AudioAsset::Load(bgm::Result), U"Failed to load the result background music.");
 
             Require(
-                AudioAsset::Register(bgm::FinalResult, Resource(U"ui/sounds/bgm/final_result.opus")),
+                AudioAsset::Register(bgm::FinalResult, Resource(U"ui/sounds/bgm/result.opus")),
                 U"Failed to register the final result background music."
             );
             Require(AudioAsset::Load(bgm::FinalResult), U"Failed to load the final result background music.");
