@@ -221,6 +221,7 @@ namespace xlair::ui::scenes {
                         .max_plays = session.maxPlays(),
                         .remaining_plays = session.remainingPlays(),
                         .autoplay = autoplay,
+                        .mirror = session.mirror(),
                         .music_id = music->id,
                         .title = music->title,
                         .music_path = music->music,

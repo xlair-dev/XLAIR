@@ -1,5 +1,7 @@
 #include "GameLoader.hpp"
 
+#include "core/chart/Mirror.hpp"
+
 #include <algorithm>
 #include <utility>
 
@@ -33,6 +35,7 @@ namespace xlair::ui::game {
         m_diagnostics.clear();
         m_chart_path = selection.difficulty.src;
         m_offset_seconds = selection.music_offset_seconds;
+        m_mirror = selection.mirror;
 
         if (selection.music_path.isEmpty()) {
             fail(U"The selected music does not specify an audio file.");
@@ -127,14 +130,20 @@ namespace xlair::ui::game {
         const FilePath chart_path = m_chart_path;
         const int64 sample_rate = m_audio.sampleRate();
         const double offset_seconds = m_offset_seconds;
-        m_chart_task = AsyncTask<sheets::Result<sheets::Chart>>{ [chart_path, sample_rate, offset_seconds]() {
-            return sheets::LoadChart(
+        const bool mirror = m_mirror;
+        m_chart_task = AsyncTask<sheets::Result<sheets::Chart>>{ [chart_path, sample_rate, offset_seconds, mirror]() {
+            auto result = sheets::LoadChart(
                 chart_path,
                 {
                     .sample_rate = sample_rate,
                     .offset_seconds = offset_seconds,
                 }
             );
+            if (result && mirror) {
+                // Transform once, before both the renderer and judge engine consume the chart.
+                core::chart::ApplyMirror(*result);
+            }
+            return result;
         } };
         m_state = State::LoadingChart;
     }

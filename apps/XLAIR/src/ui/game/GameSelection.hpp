@@ -10,6 +10,7 @@ namespace xlair::ui {
         uint32 max_plays = 0;
         uint32 remaining_plays = 0;
         bool autoplay = false;
+        bool mirror = false;
         String music_id;
         String title;
         FilePath music_path;

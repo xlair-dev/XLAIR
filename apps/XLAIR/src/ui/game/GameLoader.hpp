@@ -64,5 +64,6 @@ namespace xlair::ui::game {
         Array<AsyncTask<sheets::Result<sheets::Chart>>> m_retired_chart_tasks;
         FilePath m_chart_path;
         double m_offset_seconds = 0.0;
+        bool m_mirror = false;
     };
 }
