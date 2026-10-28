@@ -5,6 +5,7 @@
 #include "ui/components/MusicCard.hpp"
 #include "ui/components/SliderMappingGuide.hpp"
 #include "ui/transitions/CardTransition.hpp"
+#include "ui/input/MenuInput.hpp"
 
 namespace xlair::ui::scenes {
     class MusicSelect final : public SceneBase {
@@ -38,6 +39,7 @@ namespace xlair::ui::scenes {
         void drawEmptyCatalog() const;
 
         components::CardCarousel m_card_carousel;
+        input::MenuInput m_menu_input;
         mutable components::MusicCard m_music_card;
         Array<components::SliderMapping> m_slider_mappings;
         double m_text_elapsed = 0.0;
