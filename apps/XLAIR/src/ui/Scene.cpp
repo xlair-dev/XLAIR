@@ -46,10 +46,10 @@ namespace xlair::ui {
 
     bool HandleMaintenanceShortcut(SceneManager& scene_manager) {
         const auto data = scene_manager.get();
-        // Leaving FinalResult through Maintenance could cancel a write and then
-        // discard its session on Title. Only its save flow may finish the session.
+        // Do not discard a completed session or interrupt its pending save via Maintenance.
         if (data->current_scene == SceneState::Boot || IsMaintenanceScene(data->current_scene) ||
-            data->current_scene == SceneState::FinalResult) {
+            data->current_scene == SceneState::FinalResult ||
+            (data->current_scene == SceneState::Result && data->application->playSession().finished())) {
             return true;
         }
 

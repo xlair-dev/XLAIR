@@ -2,7 +2,6 @@
 
 #include "app/flows/FinalResult.hpp"
 #include "ui/Scene.hpp"
-#include "ui/components/SliderMappingGuide.hpp"
 
 namespace xlair::ui::scenes {
     class FinalResult final : public SceneBase {
@@ -17,17 +16,10 @@ namespace xlair::ui::scenes {
         void drawFadeOut(double t) const override;
 
     private:
-        struct ResultRow {
-            String sheet_label;
-            String score_label;
-            String clear_label;
-        };
-
         void updateSave();
 
         app::flows::FinalResult m_save_flow;
-        Array<ResultRow> m_rows;
-        std::size_t m_first_record = 0;
         double m_elapsed = 0.0;
+        bool m_return_requested = false;
     };
 }

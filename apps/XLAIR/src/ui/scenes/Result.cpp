@@ -33,8 +33,10 @@ namespace xlair::ui::scenes {
     }
 
     Result::~Result() {
-        // Also stop on immediate scene changes, such as the maintenance shortcut.
-        AudioAsset{ assets::bgm::Result }.stop();
+        // FinalResult takes over the same playing asset without restarting it.
+        if (!m_continue_music) {
+            AudioAsset{ assets::bgm::Result }.stop();
+        }
     }
 
     void Result::update() {
@@ -44,11 +46,11 @@ namespace xlair::ui::scenes {
         }
         const auto* controller = getData().application->controller();
         if (KeyEnter.down() || input::TouchRegionDown(controller, 0, 16)) {
-            AudioAsset{ assets::bgm::Result }.stop(MusicFadeOut);
             audio::PlaySoundEffect(audio::SoundEffect::Finish);
             if (getData().application->playSession().finished()) {
-                changeScene(SceneState::FinalResult, 500, CrossFade::No);
+                m_continue_music = changeScene(SceneState::FinalResult, 500, CrossFade::No);
             } else {
+                AudioAsset{ assets::bgm::Result }.stop(MusicFadeOut);
                 getData().returning_from_game = true;
                 changeScene(SceneState::MusicSelect, 500, CrossFade::No);
             }

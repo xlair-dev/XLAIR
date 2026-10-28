@@ -25,5 +25,6 @@ namespace xlair::ui::scenes {
         Array<components::SliderMapping> m_slider_mappings;
         mutable components::GameScoreBar m_score_bar;
         double m_elapsed = 0.0;
+        bool m_continue_music = false;
     };
 }

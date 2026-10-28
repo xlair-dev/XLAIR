@@ -39,12 +39,7 @@ continue = "次へ"
 unavailable = "プレイ結果を取得できませんでした"
 
 [final_result]
-saving_records = "成績を保存しています…"
-saving_options = "プレイ設定を保存しています…"
-saved = "保存が完了しました"
+thank_you = "Thank you for playing!"
 save_failed = "保存に失敗しました。再試行してください"
 save_unconfirmed = "成績の保存を確認できません。重複送信を避けるため、再送せず管理者に確認してください"
 retry = "再試行"
-return_to_title = "Title へ戻る"
-scroll_up = "上へ"
-scroll_down = "下へ"

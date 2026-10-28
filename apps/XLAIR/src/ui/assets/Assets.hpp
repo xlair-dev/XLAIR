@@ -36,7 +36,6 @@ namespace xlair::ui::assets {
 
     namespace bgm {
         inline constexpr AssetNameView Result{ U"XLAIR.UI.BGM.Result" };
-        inline constexpr AssetNameView FinalResult{ U"XLAIR.UI.BGM.FinalResult" };
     }
 
     void Initialize();
