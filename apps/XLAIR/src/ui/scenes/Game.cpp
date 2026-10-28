@@ -263,7 +263,7 @@ namespace xlair::ui::scenes {
         }
         m_score_bar.draw(
             { .score = score.score, .clear_gauge = score.clear_gauge },
-            Point{ DesignSize.x / 2 - 434, 56 }
+            Point{ DesignSize.x / 2 - 434, 32 }
         );
         if (m_last_judgement && m_judgement_display_seconds < 0.75) {
             const Vec2 feedback_position{ DesignSize.x / 2.0, 780 };
