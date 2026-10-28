@@ -41,7 +41,10 @@ namespace xlair::sheets::chart {
     }
 
     s3d::int64 TimingMap::toSample(const CcPosition position) const {
-        const long double beat = Beat(position);
+        return sampleAtBeat(Beat(position));
+    }
+
+    s3d::int64 TimingMap::sampleAtBeat(const long double beat) const {
         // Events and query positions already use absolute beats, independent of source format.
         const auto next =
             std::upper_bound(m_segments.begin(), m_segments.end(), beat, [](long double value, const Segment& segment) {

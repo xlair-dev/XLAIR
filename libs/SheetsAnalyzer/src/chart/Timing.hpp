@@ -14,6 +14,9 @@ namespace xlair::sheets::chart {
         [[nodiscard]]
         s3d::int64 toSample(CcPosition position) const;
 
+        [[nodiscard]]
+        s3d::int64 sampleAtBeat(long double beat) const;
+
     private:
         struct Segment {
             long double beat = 0.0L;
