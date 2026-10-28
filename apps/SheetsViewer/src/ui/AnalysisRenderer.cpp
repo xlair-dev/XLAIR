@@ -123,6 +123,14 @@ namespace xlair::sheets_viewer {
             Line{ x, 0, x, height }.draw(edge ? 1.5 : 1.0, ColorF{ 0.55, edge ? 0.75 : 0.35 });
         }
 
+        for (const auto& line : chart.measure_lines) {
+            const double y =
+                SampleY(projection, chart.main_timeline, current_sample, line.sample, judge_y, pixels_per_second);
+            if (IsVisible(y, height)) {
+                Line{ stage_left, y, stage_left + stage_width, y }.draw(1.0, ColorF{ 0.60, 0.70, 0.78, 0.5 });
+            }
+        }
+
         // Hold bodies are drawn first so their anchors and short notes stay readable.
         for (const auto& hold : chart.slider_holds) {
             for (std::size_t index = 1; index < hold.points.size(); ++index) {
