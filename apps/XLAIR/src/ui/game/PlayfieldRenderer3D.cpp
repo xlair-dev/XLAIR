@@ -29,9 +29,9 @@ namespace xlair::ui::game {
         constexpr double LowerLength = FieldFar - LowerNear;
         constexpr double LowerCenter = (LowerNear + FieldFar) * 0.5;
         constexpr double LowerWidth = 3.5355339059;
-        constexpr double SideLowerX = 9.25;
+        constexpr double SideLowerX = FieldWidth * 0.5 + 1.25;
         constexpr double SideLowerY = 1.25;
-        constexpr double SideUpperX = 10.5;
+        constexpr double SideUpperX = FieldWidth * 0.5 + 2.5;
         constexpr double SideUpperY = 4.0;
         // A side note covers the same fraction of the field's depth as a plate on the 2D surface.
         constexpr double NoteDepthSize = FieldLength * NotePlateHeight / FieldSurfaceSize.y;
