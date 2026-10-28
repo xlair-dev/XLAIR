@@ -28,11 +28,15 @@ namespace xlair::ui::game {
         constexpr double LowerNear = FieldNear - 8.0;
         constexpr double LowerLength = FieldFar - LowerNear;
         constexpr double LowerCenter = (LowerNear + FieldFar) * 0.5;
-        constexpr double LowerWidth = 3.5355339059;
-        constexpr double SideLowerX = FieldWidth * 0.5 + 1.25;
-        constexpr double SideLowerY = 1.25;
-        constexpr double SideUpperX = FieldWidth * 0.5 + 2.5;
-        constexpr double SideUpperY = 4.0;
+        constexpr double LowerWidth = 3.0;
+        constexpr double SideLowerAngle = 55_deg;
+        const double SideLowerExtent = LowerWidth * Math::Cos(SideLowerAngle);
+        const double SideLowerRise = LowerWidth * Math::Sin(SideLowerAngle);
+        const double SideLowerX = FieldWidth * 0.5 + SideLowerExtent * 0.5;
+        const double SideLowerY = SideLowerRise * 0.5;
+        constexpr double SideUpperHeight = 3.0;
+        const double SideUpperX = FieldWidth * 0.5 + SideLowerExtent;
+        const double SideUpperY = SideLowerRise + SideUpperHeight * 0.5;
         constexpr double SideNoteDepthSize = FieldLength * NotePlateHeight / FieldSurfaceSize.y * 1.5;
         // Begin the fade gradually beyond the combo area, with the same world-z range for all 3D geometry.
         constexpr double FadeStart = FieldNear + FieldLength * 0.3;
@@ -51,7 +55,16 @@ namespace xlair::ui::game {
 
         [[nodiscard]]
         Quaternion SideSlope(const double side) {
-            return Quaternion::RotateZ(side < 0.0 ? 135_deg : 45_deg);
+            return Quaternion::RotateZ(side < 0.0 ? 180_deg - SideLowerAngle : SideLowerAngle);
+        }
+
+        [[nodiscard]]
+        Vec3 SideLowerPosition(const double side, const double z, const double offset) {
+            return {
+                side * (SideLowerX - offset * SideLowerRise / LowerWidth),
+                SideLowerY + offset * SideLowerExtent / LowerWidth,
+                z,
+            };
         }
 
         [[nodiscard]]
@@ -494,8 +507,12 @@ namespace xlair::ui::game {
                     Vec3{ side * SideLowerX, SideLowerY, LowerCenter }, LowerWidth, 0.12, LowerLength, SideSlope(side),
                 }
                     .draw(lower_color);
-                Box{ Vec3{ side * SideUpperX, SideUpperY, FieldCenter }, 0.12, 3.0, FieldLength }.draw(upper_color);
-                Box{ Vec3{ side * SideUpperX, 2.52, LowerCenter }, 0.06, 0.06, LowerLength }.draw(edge_color);
+                Box{ Vec3{ side * SideUpperX, SideUpperY, FieldCenter }, 0.12, SideUpperHeight, FieldLength }.draw(
+                    upper_color
+                );
+                Box{ Vec3{ side * SideUpperX, SideLowerRise + 0.02, LowerCenter }, 0.06, 0.06, LowerLength }.draw(
+                    edge_color
+                );
             }
         }
 
@@ -526,14 +543,13 @@ namespace xlair::ui::game {
                     const ColorF color = touch_color.withA(0.65 * (1.0 - (index + 0.5) / SegmentCount));
                     if (upper) {
                         const Quaternion facing_inward = Quaternion::RotateZ(side > 0.0 ? 90_deg : -90_deg);
-                        Plane{ Vec3{ side * (SideUpperX - 0.09), SideUpperY, z }, 3.0, segment_depth }.draw(
+                        Plane{ Vec3{ side * (SideUpperX - 0.09), SideUpperY, z }, SideUpperHeight, segment_depth }.draw(
                             facing_inward,
                             color
                         );
                     } else {
-                        const Quaternion facing_inward = Quaternion::RotateZ(side > 0.0 ? 45_deg : -45_deg);
-                        Plane{ Vec3{ side * (SideLowerX - 0.055), SideLowerY + 0.055, z }, LowerWidth, segment_depth }
-                            .draw(facing_inward, color);
+                        const Quaternion facing_inward = Quaternion::RotateZ(side * SideLowerAngle);
+                        Plane{ SideLowerPosition(side, z, 0.08), LowerWidth, segment_depth }.draw(facing_inward, color);
                     }
                 }
             }
@@ -542,12 +558,12 @@ namespace xlair::ui::game {
         void DrawSideCrossSection(const double z, const double depth, const ColorF& color) {
             for (const double side : { -1.0, 1.0 }) {
                 if (z >= LowerNear) {
-                    OrientedBox{ Vec3{ side * SideLowerX, 1.32, z }, LowerWidth, 0.08, depth, SideSlope(side) }.draw(
+                    OrientedBox{ SideLowerPosition(side, z, 0.07), LowerWidth, 0.08, depth, SideSlope(side) }.draw(
                         color
                     );
                 }
                 if (z >= FieldNear) {
-                    Box{ Vec3{ side * SideUpperX, SideUpperY, z }, 0.16, 3.0, depth }.draw(color);
+                    Box{ Vec3{ side * SideUpperX, SideUpperY, z }, 0.16, SideUpperHeight, depth }.draw(color);
                 }
             }
         }
@@ -664,13 +680,13 @@ namespace xlair::ui::game {
             const bool upper = button == sheets::SideButton::LeftUpper || button == sheets::SideButton::RightUpper;
             if (upper) {
                 const Quaternion facing_inward = Quaternion::RotateZ(side > 0.0 ? 90_deg : -90_deg);
-                Plane{ Vec3{ side * (SideUpperX - 0.12), SideUpperY, z }, 3.0, SideNoteDepthSize }.draw(
+                Plane{ Vec3{ side * (SideUpperX - 0.12), SideUpperY, z }, SideUpperHeight, SideNoteDepthSize }.draw(
                     facing_inward,
                     upper_surface
                 );
             } else {
-                const Quaternion facing_inward = Quaternion::RotateZ(side > 0.0 ? 45_deg : -45_deg);
-                Plane{ Vec3{ side * (SideLowerX - 0.085), SideLowerY + 0.085, z }, LowerWidth, SideNoteDepthSize }.draw(
+                const Quaternion facing_inward = Quaternion::RotateZ(side * SideLowerAngle);
+                Plane{ SideLowerPosition(side, z, 0.12), LowerWidth, SideNoteDepthSize }.draw(
                     facing_inward,
                     lower_surface
                 );
@@ -721,14 +737,16 @@ namespace xlair::ui::game {
                             const double center_z = (near_z + far_z) * 0.5;
                             if (upper) {
                                 const Quaternion facing_inward = Quaternion::RotateZ(side > 0.0 ? 90_deg : -90_deg);
-                                Plane{ Vec3{ side * (SideUpperX - 0.09), SideUpperY, center_z }, 3.0, far_z - near_z }
-                                    .draw(facing_inward, color);
-                            } else {
-                                const Quaternion facing_inward = Quaternion::RotateZ(side > 0.0 ? 45_deg : -45_deg);
-                                Plane{ Vec3{ side * (SideLowerX - 0.065), SideLowerY + 0.065, center_z },
-                                       LowerWidth,
+                                Plane{ Vec3{ side * (SideUpperX - 0.09), SideUpperY, center_z },
+                                       SideUpperHeight,
                                        far_z - near_z }
                                     .draw(facing_inward, color);
+                            } else {
+                                const Quaternion facing_inward = Quaternion::RotateZ(side * SideLowerAngle);
+                                Plane{ SideLowerPosition(side, center_z, 0.09), LowerWidth, far_z - near_z }.draw(
+                                    facing_inward,
+                                    color
+                                );
                             }
                         }
                     );
