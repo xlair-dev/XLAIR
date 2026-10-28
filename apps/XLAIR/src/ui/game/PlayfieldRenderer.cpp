@@ -103,7 +103,7 @@ namespace xlair::ui::game {
                 const double x = StageLeft + lane * LaneWidth;
                 Line{ x, 0, x, FieldHeight }.draw(2.5, ColorF{ U"#FDFDFD" });
             }
-            if (combo >= 10) {
+            if (combo >= 5) {
                 FontAsset{ assets::font::ComboNumber }(combo)
                     .drawAt(FieldWidth * 0.5, FieldHeight - 750.0, Palette::White);
                 FontAsset{ assets::font::Display }(U"COMBO")

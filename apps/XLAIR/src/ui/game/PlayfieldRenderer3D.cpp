@@ -432,7 +432,7 @@ namespace xlair::ui::game {
             DrawSliderHoldBodies(chart, projection, current_sample, note_speed, judge_engine, slider_pressed);
             DrawSliderHoldHeads(chart, projection, current_sample, note_speed, judge_engine);
             DrawSliderNotes(chart, projection, current_sample, note_speed, judge_engine);
-            if (combo >= 10) {
+            if (combo >= 5) {
                 FontAsset{ assets::font::ComboNumber }(combo)
                     .drawAt(SourceWidth * 0.5, SourceHeight - 750.0, Palette::White);
                 FontAsset{ assets::font::Display }(U"COMBO")
