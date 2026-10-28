@@ -9,6 +9,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <span>
 
 namespace xlair::ui::game {
     namespace {
@@ -59,6 +60,23 @@ namespace xlair::ui::game {
             // Play options scale the visual distance without changing the chart's sample clock.
             return static_cast<double>(projection.noteDistance(timeline, current_sample, note_sample)) *
                    WorldUnitsPerSecond * note_speed;
+        }
+
+        [[nodiscard]]
+        Array<double> MeasureLineDepths(
+            const sheets::Chart& chart,
+            const playfield::ChartProjection& projection,
+            const int64 current_sample,
+            const double note_speed
+        ) {
+            Array<double> depths;
+            for (const auto& line : chart.measure_lines) {
+                const double z = WorldZ(projection, chart.main_timeline, current_sample, line.sample, note_speed);
+                if (std::isfinite(z) && LowerNear <= z && z <= FieldFar) {
+                    depths.push_back(z);
+                }
+            }
+            return depths;
         }
 
         template <class Point, class DrawSection>
@@ -413,7 +431,8 @@ namespace xlair::ui::game {
             const int64 current_sample,
             const double note_speed,
             const core::judgement::JudgeEngine* judge_engine,
-            const uint32 slider_pressed
+            const uint32 slider_pressed,
+            const std::span<const double> measure_depths
         ) {
             constexpr double SourceWidth = FieldSurfaceSize.x;
             constexpr double SourceHeight = FieldSurfaceSize.y;
@@ -427,6 +446,13 @@ namespace xlair::ui::game {
             for (int32 lane = 4; lane < 16; lane += 4) {
                 const double x = SourceStageLeft + lane * SourceLaneWidth;
                 Line{ x, 0, x, SourceHeight }.draw(2.5, ColorF{ U"#FDFDFD" }.removeSRGBCurve());
+            }
+            for (const double z : measure_depths) {
+                if (z < FieldNear) {
+                    continue;
+                }
+                const double y = (FieldFar - z) * SourceHeight / FieldLength;
+                Line{ 0.0, y, SourceWidth, y }.draw(2.0, ColorF{ U"#A8BCC8" }.removeSRGBCurve().withA(0.5));
             }
             DrawSliderTouchEffects(slider_pressed);
             DrawSliderHoldBodies(chart, projection, current_sample, note_speed, judge_engine, slider_pressed);
@@ -510,18 +536,37 @@ namespace xlair::ui::game {
 
         void DrawSideCrossSection(const double z, const double depth, const ColorF& color) {
             for (const double side : { -1.0, 1.0 }) {
-                OrientedBox{ Vec3{ side * SideLowerX, 1.32, z }, LowerWidth, 0.08, depth, SideSlope(side) }.draw(color);
-                Box{ Vec3{ side * SideUpperX, SideUpperY, z }, 0.16, 3.0, depth }.draw(color);
+                if (z >= LowerNear) {
+                    OrientedBox{ Vec3{ side * SideLowerX, 1.32, z }, LowerWidth, 0.08, depth, SideSlope(side) }.draw(
+                        color
+                    );
+                }
+                if (z >= FieldNear) {
+                    Box{ Vec3{ side * SideUpperX, SideUpperY, z }, 0.16, 3.0, depth }.draw(color);
+                }
             }
         }
 
-        void DrawField(const MSRenderTexture& surface, const bool show_depth_guides, const uint8 side_pressed) {
+        void DrawField(
+            const MSRenderTexture& surface,
+            const bool show_depth_guides,
+            const uint8 side_pressed,
+            const std::span<const double> measure_depths
+        ) {
             const ColorF floor_color = ColorF{ U"#212830" }.removeSRGBCurve();
             const ColorF judge_color = ColorF{ U"#79C8FF" }.removeSRGBCurve();
 
             Box{ Vec3{ 0.0, -0.06, FieldCenter }, FieldWidth, 0.12, FieldLength }.draw(floor_color);
             Plane{ Vec3{ 0.0, 0.02, FieldCenter }, FieldWidth, FieldLength }.draw(surface);
             DrawSideSurfaces();
+            // Use exactly the same world depths as the main field's textured lines.
+            {
+                // Background markings must not occlude hold bodies or notes drawn later.
+                const ScopedRenderStates3D depth{ DepthStencilState::DepthTest };
+                for (const double z : measure_depths) {
+                    DrawSideCrossSection(z, 0.06, ColorF{ U"#A8BCC8" }.removeSRGBCurve());
+                }
+            }
             DrawSideTouchEffects(side_pressed);
 
             // Side judgement strips meet the main field's textured judgement line at world depth zero.
@@ -786,9 +831,19 @@ namespace xlair::ui::game {
         const uint32 slider_pressed,
         const uint8 side_pressed
     ) const {
+        const auto measure_depths = MeasureLineDepths(chart, projection, current_sample, note_speed);
         {
             const ScopedRenderTarget2D target{ m_field_surface.clear(ColorF{ 0.0, 0.0 }) };
-            DrawFieldSurface(combo, chart, projection, current_sample, note_speed, judge_engine, slider_pressed);
+            DrawFieldSurface(
+                combo,
+                chart,
+                projection,
+                current_sample,
+                note_speed,
+                judge_engine,
+                slider_pressed,
+                measure_depths
+            );
             Graphics2D::Flush();
             m_field_surface.resolve();
         }
@@ -800,7 +855,7 @@ namespace xlair::ui::game {
         {
             const ScopedRenderTarget3D target{ m_render_texture.clear(BackgroundColor.removeSRGBCurve()) };
             const ScopedCustomShader3D fog_shader{ m_fog_shader };
-            DrawField(m_field_surface, show_depth_guides, side_pressed);
+            DrawField(m_field_surface, show_depth_guides, side_pressed, measure_depths);
             DrawSliderHoldDiamonds(chart, projection, current_sample, note_speed);
             DrawSideHoldBodies(chart, projection, current_sample, note_speed, judge_engine, side_pressed);
             DrawSideNotes(
