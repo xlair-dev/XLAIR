@@ -24,16 +24,22 @@ namespace xlair::ui::scenes {
         void drawFadeOut(double t) const override;
 
     private:
+        struct PressedInput {
+            uint32 slider_pressed = 0;
+            uint8 side_pressed = 0;
+        };
+
         struct InputFrame {
             std::array<core::judgement::TouchEvent, app::controller::TouchZoneCount * 2> touches;
             std::array<core::judgement::SideEvent, app::controller::SideButtonCount> side_down;
             std::size_t touch_count = 0;
             std::size_t side_count = 0;
-            uint32 slider_pressed = 0;
-            uint8 side_pressed = 0;
+            PressedInput pressed;
         };
 
         void readInput(const app::controller::Controller* controller, int64 judged_sample);
+        [[nodiscard]]
+        PressedInput pressedInputForDrawing() const;
         void processJudgements(std::span<const core::judgement::JudgementEvent> events);
         void finishPlayback();
         void drawReady() const;
