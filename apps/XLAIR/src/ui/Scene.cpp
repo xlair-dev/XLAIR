@@ -63,8 +63,8 @@ namespace xlair::ui {
     bool HandleMaintenanceShortcut(SceneManager& scene_manager) {
         const auto data = scene_manager.get();
         // Do not discard a completed session or interrupt its pending save via Maintenance.
-        if (data->current_scene == SceneState::Boot || IsMaintenanceScene(data->current_scene) ||
-            data->current_scene == SceneState::FinalResult ||
+        if (data->current_scene == SceneState::Boot || data->current_scene == SceneState::Login ||
+            IsMaintenanceScene(data->current_scene) || data->current_scene == SceneState::FinalResult ||
             (data->current_scene == SceneState::Result && data->application->playSession().finished())) {
             return true;
         }
@@ -93,6 +93,7 @@ namespace xlair::ui {
         const std::shared_ptr<app::flows::Boot>& boot_flow,
         const std::shared_ptr<app::flows::Maintenance>& maintenance_flow
     ) {
+        scenes::Login::RegisterAssets();
         scenes::MusicSelect::RegisterAssets();
         scenes::Settings::RegisterAssets();
 
