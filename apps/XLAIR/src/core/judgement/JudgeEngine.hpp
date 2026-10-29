@@ -121,6 +121,8 @@ namespace xlair::core::judgement {
             Optional<uint8> motion_zone;
             int64 motion_sample = 0;
             bool preheld_motion = false;
+            Optional<uint8> edge_lane;
+            int64 edge_sample = 0;
         };
 
         struct Note {
@@ -176,8 +178,7 @@ namespace xlair::core::judgement {
         [[nodiscard]]
         HoldPoint& holdPoint(HoldPointIndex index);
         void processFlickTouch(const TouchEvent& touch, uint32 slider_pressed, Array<JudgementEvent>& events);
-        [[nodiscard]]
-        Grade flickGrade(const Note& note) const;
+        void armEdgeFlick(Note& note, int64 sample, uint32 slider_pressed);
         void applyGrade(Grade grade);
         void record(Note& note, Grade grade, int64 sample, Array<JudgementEvent>& events, bool linked_start = false);
         void record(HoldPoint& point, Grade grade, int64 sample, Array<JudgementEvent>& events);
