@@ -165,6 +165,15 @@ namespace xlair::api {
         });
     }
 
+    s3d::JSON
+    SerializeUserRegistration(const s3d::StringView card_id, const s3d::StringView display_name, const bool is_public) {
+        s3d::JSON json;
+        json[U"card"] = s3d::String{ card_id };
+        json[U"displayName"] = s3d::String{ display_name };
+        json[U"isPublic"] = is_public;
+        return json;
+    }
+
     s3d::JSON SerializeRecords(s3d::StringView user_id, const s3d::Array<RecordSubmission>& records) {
         s3d::JSON json = s3d::JSON::Parse(U"[]");
         for (const auto& record : records) {

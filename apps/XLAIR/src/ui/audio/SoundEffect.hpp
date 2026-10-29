@@ -8,6 +8,8 @@ namespace xlair::ui::audio {
         ChangeDifficulty,
         Confirm,
         Finish,
+        CoinInsert,
+        LoginComplete,
     };
 
     void PlaySoundEffect(SoundEffect sound);

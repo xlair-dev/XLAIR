@@ -1,6 +1,38 @@
 [title]
 touch_to_start = "カードをタッチして始める"
 
+[login]
+prompt = "ログイン"
+name_prompt = "プレイヤー名を入力してください"
+visibility_prompt = "ランキングへの公開を選択してください"
+confirm_prompt = "この内容で登録しますか？"
+name_label = "プレイヤー名"
+name_empty = "名前を入力"
+public = "公開する"
+private = "非公開"
+visibility_description = "xlair.dev のランキングに表示されます"
+confirm_name = "プレイヤー名"
+confirm_visibility = "ランキング"
+waiting_for_credit = "コインを投入してください"
+loading_user = "ログイン中"
+registering = "ユーザーを登録しています"
+complete = "ログイン完了"
+failed = "ログインできませんでした"
+missing_card = "カード情報がありません"
+missing_api = "API に接続できません"
+return_title = "タイトルへ戻る"
+
+[login.slider]
+move_left = "左"
+move_right = "右"
+insert = "入力"
+delete = "1文字消す"
+category = "文字種"
+done = "入力完了"
+next = "次へ"
+back = "戻る"
+register = "登録する"
+
 [music_select]
 prompt = "楽曲を選択してください"
 empty_catalog = "選択できる楽曲がありません"

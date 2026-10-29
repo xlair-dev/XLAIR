@@ -5,9 +5,11 @@
 #include "ui/assets/Assets.hpp"
 #include "ui/localization/Localization.hpp"
 #include "ui/theme/Palette.hpp"
+#include "ui/transitions/ScreenWipe.hpp"
 
 namespace xlair::ui::scenes {
     Title::Title(const InitData& init) : SceneBase{ init } {
+        getData().title_to_login_wipe = false;
         getData().music_select_context.reset();
         getData().scanned_card.reset();
         getData().game_result.reset();
@@ -35,7 +37,10 @@ namespace xlair::ui::scenes {
             reportState();
             if (m_title_flow->state() == app::flows::Title::State::CardRead) {
                 getData().scanned_card = *m_title_flow->card();
-                changeScene(SceneState::Login, 0);
+                getData().title_to_login_wipe = true;
+                if (!changeScene(SceneState::Login, transitions::ScreenWipeMillisec, CrossFade::No)) {
+                    getData().title_to_login_wipe = false;
+                }
             }
         }
     }
@@ -61,6 +66,19 @@ namespace xlair::ui::scenes {
         FontAsset{ assets::font::Label }(U"G: COMPONENT GALLERY")
             .draw(16, Vec2{ 24, DesignSize.y - 28 }, theme::Palette::Gray);
 #endif
+    }
+
+    void Title::updateFadeOut(const double) {
+        m_elapsed += Scene::DeltaTime();
+    }
+
+    void Title::drawFadeOut(const double t) const {
+        if (getData().title_to_login_wipe) {
+            draw();
+            transitions::DrawScreenWipe(Clamp(t, 0.0, 1.0) * 0.5);
+        } else {
+            SceneBase::drawFadeOut(t);
+        }
     }
 
     void Title::reportState() const {

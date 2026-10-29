@@ -17,6 +17,7 @@ namespace xlair::api {
         Request<bool> checkHealth() override;
 
         Request<User> findUserByCard(s3d::StringView card_id) override;
+        Request<User> registerUser(s3d::StringView card_id, s3d::StringView display_name, bool is_public) override;
         Request<s3d::Array<UserRecord>> fetchUserRecords(s3d::StringView user_id) override;
         Request<s3d::Array<UserRecord>>
         submitPlayRecords(s3d::StringView user_id, const s3d::Array<RecordSubmission>& records) override;

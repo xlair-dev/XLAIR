@@ -346,6 +346,17 @@ namespace xlair::api {
         return MakeRequest(m_session, U"/users?card=" + s3d::PercentEncode(card_id), ParseUser);
     }
 
+    Request<User>
+    HttpClient::registerUser(const s3d::StringView card_id, const s3d::StringView display_name, const bool is_public) {
+        return MakeRequest(
+            m_session,
+            U"/users",
+            ParseUser,
+            SerializeUserRegistration(card_id, display_name, is_public).formatUTF8(),
+            201
+        );
+    }
+
     Request<s3d::Array<UserRecord>> HttpClient::fetchUserRecords(s3d::StringView user_id) {
         return MakeRequest(m_session, UserPath(user_id, U"/records"), ParseRecords);
     }

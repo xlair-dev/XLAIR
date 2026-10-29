@@ -57,6 +57,7 @@ namespace xlair::ui {
         Optional<GameResult> game_result;
         game::GameLoader game_loader;
         bool returning_from_game = false;
+        bool title_to_login_wipe = false;
         std::size_t maintenance_menu_index = 0;
         std::size_t maintenance_controller_index = 0;
         SceneState current_scene = SceneState::Boot;
@@ -70,6 +71,8 @@ namespace xlair::ui {
 
     [[nodiscard]]
     bool IsMaintenanceScene(SceneState state) noexcept;
+
+    void DrawSceneOverlay(const SceneData& data);
 
     bool HandleMaintenanceShortcut(SceneManager& scene_manager);
 

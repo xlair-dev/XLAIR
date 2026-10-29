@@ -1,5 +1,8 @@
 #include "Scene.hpp"
 
+#include "assets/Assets.hpp"
+#include "theme/Palette.hpp"
+
 #include "scenes/Boot.hpp"
 #include "scenes/Title.hpp"
 #include "scenes/Login.hpp"
@@ -44,10 +47,24 @@ namespace xlair::ui {
         }
     }
 
+    void DrawSceneOverlay(const SceneData& data) {
+        if (data.current_scene == SceneState::Game || data.title_to_login_wipe) {
+            return;
+        }
+#ifndef NDEBUG
+        if (data.current_scene == SceneState::PlayfieldDebug) {
+            return;
+        }
+#endif
+        FontAsset{ assets::font::Label }(U"CREDIT(S): {}"_fmt(data.application->creditPool().pending()))
+            .draw(18, Arg::bottomRight(Scene::Width() - 10, Scene::Height() - 32), theme::Palette::Gray);
+    }
+
     bool HandleMaintenanceShortcut(SceneManager& scene_manager) {
         const auto data = scene_manager.get();
         // Do not discard a completed session or interrupt its pending save via Maintenance.
-        if (data->current_scene == SceneState::Boot || IsMaintenanceScene(data->current_scene) ||
+        if (data->title_to_login_wipe || data->current_scene == SceneState::Boot ||
+            data->current_scene == SceneState::Login || IsMaintenanceScene(data->current_scene) ||
             data->current_scene == SceneState::FinalResult ||
             (data->current_scene == SceneState::Result && data->application->playSession().finished())) {
             return true;
@@ -77,6 +94,7 @@ namespace xlair::ui {
         const std::shared_ptr<app::flows::Boot>& boot_flow,
         const std::shared_ptr<app::flows::Maintenance>& maintenance_flow
     ) {
+        scenes::Login::RegisterAssets();
         scenes::MusicSelect::RegisterAssets();
         scenes::Settings::RegisterAssets();
 
