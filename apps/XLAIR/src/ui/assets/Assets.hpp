@@ -35,6 +35,7 @@ namespace xlair::ui::assets {
     }
 
     namespace bgm {
+        inline constexpr AssetNameView Login{ U"XLAIR.UI.BGM.Login" };
         inline constexpr AssetNameView Result{ U"XLAIR.UI.BGM.Result" };
     }
 
