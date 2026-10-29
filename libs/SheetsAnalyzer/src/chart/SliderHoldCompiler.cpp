@@ -3,8 +3,6 @@
 #include "HoldJudgement.hpp"
 #include "SheetsAnalyzer/SliderHoldPath.hpp"
 
-#include <algorithm>
-
 namespace xlair::sheets::chart {
     namespace {
         constexpr s3d::int32 SliderLaneCount = 16;
@@ -34,21 +32,24 @@ namespace xlair::sheets::chart {
 
         // Path density is a rendering detail. Only musical intervals and visible
         // checkpoints contribute judgements, so normalized controls add no combo.
-        auto judge_samples =
-            GenerateHoldJudgeSamples(points.front().sample, points.back().sample, sample_rate, tempo_changes);
+        s3d::Array<s3d::int64> visible_samples;
+        for (const auto& point : points) {
+            if (point.kind == SliderHoldPointKind::Visible) {
+                visible_samples.push_back(point.sample);
+            }
+        }
+        auto judge_samples = GenerateHoldJudgeSamples(
+            points.front().sample,
+            points.back().sample,
+            sample_rate,
+            tempo_changes,
+            visible_samples
+        );
         if (!judge_samples) {
             Result<SliderHold> result;
             result.diagnostics = std::move(judge_samples.diagnostics);
             return result;
         }
-        for (const auto& point : points) {
-            if (point.kind == SliderHoldPointKind::Visible) {
-                judge_samples->push_back(point.sample);
-            }
-        }
-        judge_samples->sort();
-        judge_samples->erase(std::unique(judge_samples->begin(), judge_samples->end()), judge_samples->end());
-
         SliderHold hold{ .points = points };
         hold.judge_points.reserve(judge_samples->size());
         for (const auto sample : *judge_samples) {
