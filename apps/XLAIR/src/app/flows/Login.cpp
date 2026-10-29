@@ -3,14 +3,27 @@
 #include <utility>
 
 namespace xlair::app::flows {
+    namespace {
+        bool ShouldConfirmRegistration(const api::ApiError& error) {
+            return error.kind == api::ErrorKind::Network || error.kind == api::ErrorKind::Timeout ||
+                   error.kind == api::ErrorKind::InvalidResponse ||
+                   (error.kind == api::ErrorKind::Http &&
+                    (error.status_code == 409 || error.status_code.value_or(0) >= 500));
+        }
+    }
+
     Login::~Login() {
-        cancel();
+        reset();
     }
 
     void Login::start(api::IClient& client, const StringView card_id) {
+        if (!canCancel()) {
+            return;
+        }
         cancel();
         m_client = &client;
-        m_user_request = client.findUserByCard(card_id);
+        m_card_id = card_id;
+        m_user_request = client.findUserByCard(m_card_id);
         if (!m_user_request) {
             fail(
                 {
@@ -22,6 +35,24 @@ namespace xlair::app::flows {
             return;
         }
         m_state = State::FindingUser;
+    }
+
+    void Login::registerUser(const StringView display_name, const bool is_public) {
+        if (m_state != State::RegistrationRequired || !m_client) {
+            return;
+        }
+        m_user_request = m_client->registerUser(m_card_id, display_name, is_public);
+        if (!m_user_request) {
+            fail(
+                {
+                    .kind = api::ErrorKind::Configuration,
+                    .message = U"The API client did not create a user registration request.",
+                    .status_code = none,
+                }
+            );
+            return;
+        }
+        m_state = State::RegisteringUser;
     }
 
     void Login::update(credits::CreditPool& credit_pool) {
@@ -46,12 +77,26 @@ namespace xlair::app::flows {
                 updateOptionsFetch(credit_pool);
                 break;
 
+            case State::RegisteringUser:
+                updateRegistration();
+                break;
+
+            case State::ConfirmingRegistration:
+                updateRegistrationConfirmation();
+                break;
+
             default:
                 break;
         }
     }
 
     void Login::cancel() {
+        if (canCancel()) {
+            reset();
+        }
+    }
+
+    void Login::reset() {
         if (m_user_request) {
             m_user_request->cancel();
         }
@@ -65,6 +110,7 @@ namespace xlair::app::flows {
             m_options_request->cancel();
         }
         m_client = nullptr;
+        m_card_id.clear();
         m_user_request.reset();
         m_credit_request.reset();
         m_records_request.reset();
@@ -73,8 +119,14 @@ namespace xlair::app::flows {
         m_records.clear();
         m_play_options.reset();
         m_error.reset();
+        m_registration_error.reset();
         m_account_state = AccountState::Unknown;
         m_state = State::Idle;
+    }
+
+    bool Login::canCancel() const noexcept {
+        return m_state != State::RegisteringUser && m_state != State::ConfirmingRegistration &&
+               m_state != State::IncrementingCredits;
     }
 
     Login::State Login::state() const noexcept {
@@ -109,10 +161,7 @@ namespace xlair::app::flows {
         }
 
         if (const auto* user = std::get_if<api::User>(&*result)) {
-            m_user = *user;
-            m_account_state = AccountState::Registered;
-            m_user_request.reset();
-            startRecordFetch();
+            acceptUser(*user);
             return;
         } else {
             const auto& error = std::get<api::ApiError>(*result);
@@ -128,6 +177,66 @@ namespace xlair::app::flows {
         m_user_request.reset();
         m_state = State::WaitingForCredit;
         continueWithCredit(credit_pool);
+    }
+
+    void Login::updateRegistration() {
+        if (!m_user_request) {
+            return;
+        }
+
+        m_user_request->update();
+        const auto& result = m_user_request->result();
+        if (!result) {
+            return;
+        }
+
+        if (const auto* user = std::get_if<api::User>(&*result)) {
+            acceptUser(*user);
+            return;
+        }
+
+        const auto error = std::get<api::ApiError>(*result);
+        m_user_request.reset();
+        if (!ShouldConfirmRegistration(error)) {
+            fail(error);
+            return;
+        }
+
+        // Registration is unique by card. Read back an uncertain write instead of replaying it.
+        m_registration_error = error;
+        m_user_request = m_client->findUserByCard(m_card_id);
+        if (!m_user_request) {
+            fail(error);
+            return;
+        }
+        m_state = State::ConfirmingRegistration;
+    }
+
+    void Login::updateRegistrationConfirmation() {
+        if (!m_user_request) {
+            return;
+        }
+
+        m_user_request->update();
+        const auto& result = m_user_request->result();
+        if (!result) {
+            return;
+        }
+
+        if (const auto* user = std::get_if<api::User>(&*result)) {
+            m_registration_error.reset();
+            acceptUser(*user);
+            return;
+        }
+
+        const auto error = std::get<api::ApiError>(*result);
+        m_user_request.reset();
+        if (error.kind == api::ErrorKind::Http && error.status_code == 404 && m_registration_error) {
+            fail(*m_registration_error);
+        } else {
+            fail(error);
+        }
+        m_registration_error.reset();
     }
 
     void Login::updateCreditIncrement(credits::CreditPool& credit_pool) {
@@ -279,6 +388,13 @@ namespace xlair::app::flows {
             return;
         }
         m_state = State::IncrementingCredits;
+    }
+
+    void Login::acceptUser(const api::User& user) {
+        m_user = user;
+        m_account_state = AccountState::Registered;
+        m_user_request.reset();
+        startRecordFetch();
     }
 
     void Login::fail(api::ApiError error) {

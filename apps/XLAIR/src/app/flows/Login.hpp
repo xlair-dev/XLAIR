@@ -17,6 +17,8 @@ namespace xlair::app::flows {
             FetchingOptions,
             UserFound,
             RegistrationRequired,
+            RegisteringUser,
+            ConfirmingRegistration,
             Failed,
         };
 
@@ -27,8 +29,12 @@ namespace xlair::app::flows {
         Login& operator=(const Login&) = delete;
 
         void start(api::IClient& client, StringView card_id);
+        void registerUser(StringView display_name, bool is_public);
         void update(credits::CreditPool& credit_pool);
         void cancel();
+
+        [[nodiscard]]
+        bool canCancel() const noexcept;
 
         [[nodiscard]]
         State state() const noexcept;
@@ -53,15 +59,20 @@ namespace xlair::app::flows {
         };
 
         void updateUserLookup(credits::CreditPool& credit_pool);
+        void updateRegistration();
+        void updateRegistrationConfirmation();
         void updateCreditIncrement(credits::CreditPool& credit_pool);
         void updateRecordFetch();
         void updateOptionsFetch(credits::CreditPool& credit_pool);
         void startRecordFetch();
         void startOptionsFetch();
         void continueWithCredit(credits::CreditPool& credit_pool);
+        void acceptUser(const api::User& user);
+        void reset();
         void fail(api::ApiError error);
 
         api::IClient* m_client = nullptr;
+        String m_card_id;
         api::Request<api::User> m_user_request;
         api::Request<uint32> m_credit_request;
         api::Request<Array<api::UserRecord>> m_records_request;
@@ -70,6 +81,7 @@ namespace xlair::app::flows {
         Array<api::UserRecord> m_records;
         Optional<api::PlayOptions> m_play_options;
         Optional<api::ApiError> m_error;
+        Optional<api::ApiError> m_registration_error;
         AccountState m_account_state = AccountState::Unknown;
         State m_state = State::Idle;
     };
