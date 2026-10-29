@@ -1,5 +1,8 @@
 #include "Scene.hpp"
 
+#include "assets/Assets.hpp"
+#include "theme/Palette.hpp"
+
 #include "scenes/Boot.hpp"
 #include "scenes/Title.hpp"
 #include "scenes/Login.hpp"
@@ -42,6 +45,19 @@ namespace xlair::ui {
             default:
                 return false;
         }
+    }
+
+    void DrawSceneOverlay(const SceneData& data) {
+        if (data.current_scene == SceneState::Game) {
+            return;
+        }
+#ifndef NDEBUG
+        if (data.current_scene == SceneState::PlayfieldDebug) {
+            return;
+        }
+#endif
+        FontAsset{ assets::font::Label }(U"CREDIT(S): {}"_fmt(data.application->creditPool().pending()))
+            .draw(18, Arg::bottomRight(Scene::Width() - 10, Scene::Height() - 32), theme::Palette::Gray);
     }
 
     bool HandleMaintenanceShortcut(SceneManager& scene_manager) {

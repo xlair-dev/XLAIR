@@ -62,5 +62,6 @@ void Main() {
             context->update(Scene::DeltaTime());
         }
         scene_manager.drawScene();
+        ui::DrawSceneOverlay(*scene_data);
     }
 }

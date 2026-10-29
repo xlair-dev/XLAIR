@@ -71,6 +71,8 @@ namespace xlair::ui {
     [[nodiscard]]
     bool IsMaintenanceScene(SceneState state) noexcept;
 
+    void DrawSceneOverlay(const SceneData& data);
+
     bool HandleMaintenanceShortcut(SceneManager& scene_manager);
 
     SceneManager CreateSceneManager(
