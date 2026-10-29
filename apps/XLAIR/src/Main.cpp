@@ -13,6 +13,7 @@
 #include "ui/Scene.hpp"
 #include "ui/assets/Assets.hpp"
 #include "ui/audio/AudioBus.hpp"
+#include "ui/audio/SoundEffect.hpp"
 #include "ui/localization/Localization.hpp"
 
 void Main() {
@@ -49,7 +50,11 @@ void Main() {
     const auto scene_data = scene_manager.get();
 
     while (System::Update()) {
+        const auto previous_credits = application->creditPool().pending();
         application->update(!ui::IsMaintenanceScene(scene_data->current_scene));
+        if (application->creditPool().pending() > previous_credits) {
+            ui::audio::PlaySoundEffect(ui::audio::SoundEffect::CoinInsert);
+        }
         if (!ui::HandleMaintenanceShortcut(scene_manager)) {
             break;
         }
