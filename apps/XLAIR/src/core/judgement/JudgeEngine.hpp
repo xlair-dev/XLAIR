@@ -49,7 +49,7 @@ namespace xlair::core::judgement {
         std::size_t point_index = 0;
         Grade grade = Grade::Miss;
         int64 offset_samples = 0;
-        // A hold start acquired by its co-located XTap; do not play a second start sound.
+        // A hold start acquired with its overlapping XTap; do not play a second start sound.
         bool linked_start = false;
     };
 
@@ -134,6 +134,7 @@ namespace xlair::core::judgement {
             sheets::SideNoteKind side_kind = sheets::SideNoteKind::Tap;
             NoteState state = NoteState::Pending;
             Optional<FlickGesture> flick_gesture;
+            Optional<std::size_t> linked_xtap;
 
             [[nodiscard]]
             bool isXTap() const noexcept {
@@ -181,6 +182,7 @@ namespace xlair::core::judgement {
         void record(Note& note, Grade grade, int64 sample, Array<JudgementEvent>& events, bool linked_start = false);
         void record(HoldPoint& point, Grade grade, int64 sample, Array<JudgementEvent>& events);
         void updateHoldActivity(int64 sample, uint32 slider_pressed, uint8 side_pressed);
+        void linkXTapStarts();
 
         Array<Note> m_notes;
         Array<std::size_t> m_order;

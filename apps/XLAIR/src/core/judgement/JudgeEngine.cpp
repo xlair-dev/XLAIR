@@ -206,10 +206,40 @@ namespace xlair::core::judgement {
         m_order.stable_sort_by([this](const std::size_t left, const std::size_t right) {
             return m_notes[left].sample < m_notes[right].sample;
         });
+        linkXTapStarts();
         for (const std::size_t index : m_order) {
             const auto& note = m_notes[index];
             if (note.note_kind == NoteKind::Slider && note.slider_kind == sheets::SliderNoteKind::Flick) {
                 m_flick_order.push_back(index);
+            }
+        }
+    }
+
+    void JudgeEngine::linkXTapStarts() {
+        for (auto& start : m_notes) {
+            if (start.note_kind != NoteKind::SliderHold && start.note_kind != NoteKind::SideHold) {
+                continue;
+            }
+            const auto first = std::lower_bound(
+                m_order.begin(),
+                m_order.end(),
+                start.sample,
+                [this](const std::size_t index, const int64 sample) {
+                    return m_notes[index].sample < sample;
+                }
+            );
+            for (auto it = first; it != m_order.end() && m_notes[*it].sample == start.sample; ++it) {
+                const auto& note = m_notes[*it];
+                if (!note.isXTap()) {
+                    continue;
+                }
+                const bool linked = start.note_kind == NoteKind::SliderHold
+                                        ? note.note_kind == NoteKind::Slider && Overlaps(start.lane, note.lane)
+                                        : note.note_kind == NoteKind::Side && start.side_button == note.side_button;
+                if (linked) {
+                    start.linked_xtap = *it;
+                    break;
+                }
             }
         }
     }
@@ -665,7 +695,7 @@ namespace xlair::core::judgement {
 
     Grade JudgeEngine::gradeFor(const Note& note, const int64 sample) const {
         const long double distance = std::abs(static_cast<long double>(sample) - note.sample);
-        if (distance <= m_perfect_window || (note.isXTap() && distance <= m_good_window)) {
+        if (distance <= m_perfect_window || ((note.isXTap() || note.linked_xtap) && distance <= m_good_window)) {
             return Grade::Perfect;
         }
         if (distance <= m_great_window) {
@@ -714,6 +744,12 @@ namespace xlair::core::judgement {
         Array<JudgementEvent>& events,
         const bool linked_start
     ) {
+        // Selecting the hold start must have the same result as selecting its XTap.
+        if (!linked_start && grade != Grade::Miss && note.linked_xtap &&
+            m_notes[*note.linked_xtap].state == NoteState::Pending) {
+            record(m_notes[*note.linked_xtap], grade, sample, events);
+            return;
+        }
         note.state = grade == Grade::Miss ? NoteState::Missed : NoteState::Hit;
         if (note.note_kind == NoteKind::SliderHold || note.note_kind == NoteKind::SideHold) {
             auto& hold = (note.note_kind == NoteKind::SideHold ? m_side_holds : m_slider_holds)[note.chart_index];
@@ -735,7 +771,7 @@ namespace xlair::core::judgement {
             return;
         }
 
-        // A co-located XTap also starts the hold. Both still count towards combo,
+        // A simultaneous overlapping XTap also starts the hold. Both count towards combo,
         // but the linked event lets audio avoid playing two start sounds.
         const auto first = std::lower_bound(
             m_order.begin(),
@@ -747,10 +783,8 @@ namespace xlair::core::judgement {
         );
         for (auto it = first; it != m_order.end() && m_notes[*it].sample == note.sample; ++it) {
             auto& start = m_notes[*it];
-            const bool linked = note.note_kind == NoteKind::Slider
-                                    ? start.note_kind == NoteKind::SliderHold && start.lane.start == note.lane.start &&
-                                          start.lane.width == note.lane.width
-                                    : start.note_kind == NoteKind::SideHold && start.side_button == note.side_button;
+            const bool linked =
+                start.linked_xtap && *start.linked_xtap == static_cast<std::size_t>(&note - m_notes.data());
             if (linked && start.state == NoteState::Pending) {
                 record(start, grade, sample, events, true);
             }
