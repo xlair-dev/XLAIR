@@ -306,6 +306,9 @@ namespace xlair::ui::scenes {
         const uint32 max_plays = config ? static_cast<uint32>(Max(0, config->system.playable)) : 0;
         data.application->playSession().start(*m_login_flow.user(), max_plays);
         data.application->playSession().setRecords(m_login_flow.records());
+        if (const auto& catalog = m_login_flow.ratingCatalog()) {
+            data.application->playSession().setRatingCatalog(*catalog);
+        }
         data.application->playSession().setPlayOptions(*m_login_flow.playOptions());
         AudioAsset{ assets::bgm::Login }.stop(Duration{ 0.3 });
         m_leaving = changeScene(SceneState::MusicSelect, transitions::CardTransitionMillisec, CrossFade::No);
