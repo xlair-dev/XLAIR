@@ -870,6 +870,39 @@ namespace xlair::ui::game {
         );
     }
 
+    void PlayfieldRenderer3D::addJudgements(
+        const sheets::Chart& chart,
+        const std::span<const core::judgement::JudgementEvent> events
+    ) {
+        for (const auto& event : events) {
+            const auto hit = TapHitForJudgement(chart, event);
+            if (!hit) {
+                continue;
+            }
+            TapHitSurface surface;
+            if (hit->side_button) {
+                const auto button = *hit->side_button;
+                const bool left = button == sheets::SideButton::LeftUpper || button == sheets::SideButton::LeftLower;
+                const bool upper = button == sheets::SideButton::LeftUpper || button == sheets::SideButton::RightUpper;
+                const double side = left ? -1.0 : 1.0;
+                if (upper) {
+                    surface.center = Vec3{ side * (SideUpperX - 0.16), SideUpperY, 0.0 };
+                    surface.rotation = Quaternion::RotateZ(side > 0.0 ? 90_deg : -90_deg);
+                    surface.width = SideUpperHeight;
+                } else {
+                    surface.center = SideLowerPosition(side, 0.0, 0.16);
+                    surface.rotation = Quaternion::RotateZ(side * SideLowerAngle);
+                    surface.width = LowerWidth;
+                }
+            } else {
+                const double x = -FieldWidth * 0.5 + StageLeft + (hit->lane.start + hit->lane.width * 0.5) * LaneWidth;
+                surface.center = Vec3{ x, 0.10, 0.0 };
+                surface.width = hit->lane.width * LaneWidth;
+            }
+            m_hit_effects.add(*hit, surface);
+        }
+    }
+
     void PlayfieldRenderer3D::draw(
         const BasicCamera3D& camera,
         const sheets::Chart& chart,
@@ -920,6 +953,7 @@ namespace xlair::ui::game {
                 m_side_lower_xtap_surface,
                 judge_engine
             );
+            m_hit_effects.draw(camera);
         }
         Graphics3D::Flush();
         m_render_texture.resolve();

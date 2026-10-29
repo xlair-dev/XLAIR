@@ -171,6 +171,7 @@ namespace xlair::ui::scenes {
 
     void Game::processJudgements(const std::span<const core::judgement::JudgementEvent> events) {
         m_sound_player.update(m_current_sample, *m_judge_engine, events, m_judge_engine->flickContacts());
+        m_playfield_renderer.addJudgements(*getData().game_loader.chart(), events);
         if (!events.empty()) {
             m_last_judgement = events.back();
             m_judgement_display_seconds = 0.0;

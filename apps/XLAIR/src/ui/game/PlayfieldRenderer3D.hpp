@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Common.hpp"
+#include "TapHitEffects.hpp"
 
 #include <Playfield/ChartProjection.hpp>
 #include <SheetsAnalyzer/Chart.hpp>
@@ -18,6 +19,8 @@ namespace xlair::ui::game {
         static constexpr double FieldNear = -FieldFar * 100.0 / 3900.0;
 
         PlayfieldRenderer3D();
+
+        void addJudgements(const sheets::Chart& chart, std::span<const core::judgement::JudgementEvent> events);
 
         void draw(
             const BasicCamera3D& camera,
@@ -46,5 +49,6 @@ namespace xlair::ui::game {
         MSRenderTexture m_side_lower_xtap_surface;
         PixelShader m_fog_shader;
         ConstantBuffer<FogParameters> m_fog_parameters;
+        TapHitEffects m_hit_effects;
     };
 }
