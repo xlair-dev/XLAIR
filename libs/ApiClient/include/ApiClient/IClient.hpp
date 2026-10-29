@@ -18,6 +18,9 @@ namespace xlair::api {
         virtual Request<User> findUserByCard(s3d::StringView card_id) = 0;
 
         [[nodiscard]]
+        virtual Request<User> registerUser(s3d::StringView card_id, s3d::StringView display_name, bool is_public) = 0;
+
+        [[nodiscard]]
         virtual Request<s3d::Array<UserRecord>> fetchUserRecords(s3d::StringView user_id) = 0;
 
         [[nodiscard]]

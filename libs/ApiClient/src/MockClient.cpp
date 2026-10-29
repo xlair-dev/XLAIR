@@ -106,6 +106,28 @@ namespace xlair::api {
                                       : Complete<User>(*found);
     }
 
+    Request<User>
+    MockClient::registerUser(const s3d::StringView card_id, const s3d::StringView display_name, const bool is_public) {
+        if (m_load_error) {
+            return Complete<User>(*m_load_error);
+        }
+        if (m_users.any([&](const User& user) {
+                return user.card == card_id;
+            })) {
+            return Complete<User>(Error(ErrorKind::Http, U"The card is already registered.", 409));
+        }
+
+        User user{
+            .id = U"mock-user-" + s3d::UUIDValue::Generate().str(),
+            .card = s3d::String{ card_id },
+            .display_name = s3d::String{ display_name },
+            .is_public = is_public,
+            .created_at = MockRecordTimestamp,
+        };
+        m_users.push_back(user);
+        return Complete<User>(std::move(user));
+    }
+
     bool MockClient::hasUser(s3d::StringView user_id) const {
         return std::any_of(m_users.begin(), m_users.end(), [&](const User& user) {
             return user.id == user_id;

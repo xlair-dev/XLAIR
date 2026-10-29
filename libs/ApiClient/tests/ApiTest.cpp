@@ -97,6 +97,15 @@ TEST_CASE("User visibility and administrator flags are required", "[API][User]")
     CHECK_FALSE(user.is_admin);
 }
 
+TEST_CASE("User registration serializes the server contract without changing the name", "[API][User]") {
+    const auto json = api::SerializeUserRegistration(U"0123456789abcdef", U"XLAIR あいう!?", true);
+    CHECK(json[U"card"].get<s3d::String>() == U"0123456789abcdef");
+    CHECK(json[U"displayName"].get<s3d::String>() == U"XLAIR あいう!?");
+    CHECK(json[U"isPublic"].get<bool>());
+    CHECK_FALSE(json.hasElement(U"display_name"));
+    CHECK_FALSE(api::SerializeUserRegistration(U"card", U"Player", false)[U"isPublic"].get<bool>());
+}
+
 TEST_CASE("API integer fields reject negative, fractional and overflowing values", "[API]") {
     CHECK_THROWS_AS(api::ParseCredits(s3d::JSON::Parse(U"{\"credits\":-1}")), s3d::Error);
     CHECK_THROWS_AS(api::ParseCredits(s3d::JSON::Parse(U"{\"credits\":1.5}")), s3d::Error);

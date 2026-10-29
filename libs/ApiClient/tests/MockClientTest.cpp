@@ -115,6 +115,44 @@ TEST_CASE("Mock record submission returns only submitted records in submission o
     CHECK(std::get<Array<api::UserRecord>>(ResultOf(stored)).size() == 2);
 }
 
+TEST_CASE("Mock user registration creates an account with initial records and options", "[API][Mock][User]") {
+    Directory directory;
+    directory.create();
+    api::MockClient client{ { directory.path } };
+
+    auto request = client.registerUser(U"new-card", U"Player", true);
+    REQUIRE(std::holds_alternative<api::User>(ResultOf(request)));
+    const auto user = std::get<api::User>(ResultOf(request));
+    CHECK_FALSE(user.id.isEmpty());
+    CHECK(user.card == U"new-card");
+    CHECK(user.display_name == U"Player");
+    CHECK(user.rating == 0);
+    CHECK(user.xp == 0);
+    CHECK(user.credits == 0);
+    CHECK(user.is_public);
+    CHECK_FALSE(user.is_admin);
+
+    auto lookup = client.findUserByCard(U"new-card");
+    CHECK(std::get<api::User>(ResultOf(lookup)).id == user.id);
+    auto records = client.fetchUserRecords(user.id);
+    CHECK(std::get<Array<api::UserRecord>>(ResultOf(records)).isEmpty());
+    auto options = client.fetchPlayOptions(user.id);
+    CHECK(std::get<api::PlayOptions>(ResultOf(options)).note_speed == 1.0);
+    CHECK(std::get<api::PlayOptions>(ResultOf(options)).judgment_offset_ms == 0);
+    auto credits = client.incrementCredits(user.id);
+    CHECK(std::get<uint32>(ResultOf(credits)) == 1);
+
+    auto duplicate = client.registerUser(U"new-card", U"Different", false);
+    REQUIRE(std::holds_alternative<api::ApiError>(ResultOf(duplicate)));
+    CHECK(std::get<api::ApiError>(ResultOf(duplicate)).status_code == 409);
+    lookup = client.findUserByCard(U"new-card");
+    CHECK(std::get<api::User>(ResultOf(lookup)).display_name == U"Player");
+    CHECK(std::get<api::User>(ResultOf(lookup)).is_public);
+
+    auto duplicate_name = client.registerUser(U"another-card", U"Player", false);
+    CHECK(std::holds_alternative<api::User>(ResultOf(duplicate_name)));
+}
+
 TEST_CASE("MockClient copies only safe local asset URLs", "[API][Mock]") {
     Directory directory;
     directory.create();
