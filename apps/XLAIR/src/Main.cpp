@@ -58,14 +58,14 @@ void Main() {
         if (!ui::HandleMaintenanceShortcut(scene_manager)) {
             break;
         }
+        if (const auto& context = scene_data->music_select_context) {
+            context->update(Scene::DeltaTime());
+        }
         if (!scene_manager.updateScene()) {
             break;
         }
 
         scene_data->game_loader.update();
-        if (const auto& context = scene_data->music_select_context) {
-            context->update(Scene::DeltaTime());
-        }
         scene_manager.drawScene();
         ui::DrawSceneOverlay(*scene_data);
     }

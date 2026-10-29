@@ -27,6 +27,7 @@ namespace xlair::ui::scenes {
         };
 
         void handleInput();
+        bool startSelectedMusic();
         void updatePresentation();
         void drawScene(const transitions::CardTransition& transition) const;
         void drawCards(const transitions::CardTransition& transition) const;
@@ -43,6 +44,8 @@ namespace xlair::ui::scenes {
         mutable components::MusicCard m_music_card;
         Array<components::SliderMapping> m_slider_mappings;
         double m_text_elapsed = 0.0;
+        double m_active_elapsed = 0.0;
+        bool m_auto_confirm_attempted = false;
         bool m_fade_to_game = false;
         bool m_fade_from_game = false;
     };

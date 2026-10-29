@@ -25,6 +25,9 @@ namespace xlair::ui {
         double remainingSeconds() const noexcept;
 
         [[nodiscard]]
+        bool timerExpired() const noexcept;
+
+        [[nodiscard]]
         std::size_t selectedSettingIndex() const noexcept;
 
         void setSelectedSettingIndex(std::size_t index) noexcept;

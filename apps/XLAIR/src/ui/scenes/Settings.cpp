@@ -97,6 +97,13 @@ namespace xlair::ui::scenes {
     }
 
     void Settings::update() {
+        if (getData().music_select_context->timerExpired()) {
+            if (changeScene(SceneState::MusicSelect, transitions::CardTransitionMillisec, CrossFade::No)) {
+                audio::PlaySoundEffect(audio::SoundEffect::Navigate);
+            }
+            updatePresentation();
+            return;
+        }
         handleInput();
         updatePresentation();
     }

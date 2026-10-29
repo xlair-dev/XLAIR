@@ -18,6 +18,7 @@
 namespace xlair::ui::scenes {
     namespace {
         constexpr double CardY = 553.0;
+        constexpr double AutoConfirmWaitSeconds = 0.5;
         constexpr std::array MenuKeys{ KeyTab, KeyLeft, KeyRight, KeyEnter, KeyDown, KeyUp };
 
         [[nodiscard]]
@@ -72,6 +73,17 @@ namespace xlair::ui::scenes {
         if (getData().application->playSession().finished()) {
             getData().music_select_context->pause();
             changeScene(SceneState::FinalResult, 500, CrossFade::No);
+            return;
+        }
+        m_active_elapsed += Scene::DeltaTime();
+        if (getData().music_select_context->timerExpired()) {
+            m_menu_input.update(getData().application->controller(), MenuKeys, Scene::DeltaTime(), false);
+            // After returning from Settings, show the selected song fully before starting it.
+            if (m_active_elapsed >= AutoConfirmWaitSeconds && !m_auto_confirm_attempted) {
+                m_auto_confirm_attempted = true;
+                startSelectedMusic();
+            }
+            updatePresentation();
             return;
         }
         handleInput();
@@ -200,40 +212,49 @@ namespace xlair::ui::scenes {
         }
 
         if (select) {
-            const auto* music = flow.selectedMusic();
-            const auto* difficulty = flow.selectedDifficulty();
-            if (music && difficulty) {
-                if (difficulty->src.isEmpty() || difficulty->id.isEmpty()) {
-                    Logger << U"[MusicSelect] A sheet ID and chart file are required to start a play.";
-                } else {
-                    auto& data = getData();
-                    auto& session = data.application->playSession();
-                    const bool autoplay = data.application->autoplay();
-                    const auto play_id = session.beginPlay(autoplay);
-                    if (!play_id) {
-                        Logger << U"[MusicSelect] No play is available in the current session.";
-                        return;
-                    }
-                    audio::PlaySoundEffect(audio::SoundEffect::Confirm);
-                    Logger << U"[MusicSelect] Selected music '{}' / sheet '{}'."_fmt(music->id, difficulty->id);
-                    data.game_selection = GameSelection{
-                        .play_id = *play_id,
-                        .max_plays = session.maxPlays(),
-                        .remaining_plays = session.remainingPlays(),
-                        .autoplay = autoplay,
-                        .mirror = session.mirror(),
-                        .music_id = music->id,
-                        .title = music->title,
-                        .music_path = music->music,
-                        .music_offset_seconds = music->music_offset_seconds,
-                        .difficulty = *difficulty,
-                    };
-                    data.music_select_context->pause();
-                    m_fade_to_game = true;
-                    changeScene(SceneState::Game, 500, CrossFade::No);
-                }
-            }
+            startSelectedMusic();
         }
+    }
+
+    bool MusicSelect::startSelectedMusic() {
+        auto& data = getData();
+        const auto& flow = data.music_select_context->flow();
+        const auto* music = flow.selectedMusic();
+        const auto* difficulty = flow.selectedDifficulty();
+        if (!music || !difficulty || difficulty->src.isEmpty() || difficulty->id.isEmpty()) {
+            Logger << U"[MusicSelect] A selected song, sheet ID and chart file are required to start a play.";
+            return false;
+        }
+
+        auto& session = data.application->playSession();
+        const bool autoplay = data.application->autoplay();
+        const auto play_id = session.beginPlay(autoplay);
+        if (!play_id) {
+            Logger << U"[MusicSelect] No play is available in the current session.";
+            return false;
+        }
+        data.game_selection = GameSelection{
+            .play_id = *play_id,
+            .max_plays = session.maxPlays(),
+            .remaining_plays = session.remainingPlays(),
+            .autoplay = autoplay,
+            .mirror = session.mirror(),
+            .music_id = music->id,
+            .title = music->title,
+            .music_path = music->music,
+            .music_offset_seconds = music->music_offset_seconds,
+            .difficulty = *difficulty,
+        };
+        if (!changeScene(SceneState::Game, 500, CrossFade::No)) {
+            session.cancelPlay(*play_id);
+            data.game_selection.reset();
+            return false;
+        }
+        data.music_select_context->pause();
+        m_fade_to_game = true;
+        audio::PlaySoundEffect(audio::SoundEffect::Confirm);
+        Logger << U"[MusicSelect] Selected music '{}' / sheet '{}'."_fmt(music->id, difficulty->id);
+        return true;
     }
 
     void MusicSelect::RegisterAssets() {

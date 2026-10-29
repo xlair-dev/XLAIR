@@ -43,6 +43,10 @@ namespace xlair::ui {
         return m_remaining_seconds;
     }
 
+    bool MusicSelectContext::timerExpired() const noexcept {
+        return m_remaining_seconds <= 0.0;
+    }
+
     std::size_t MusicSelectContext::selectedSettingIndex() const noexcept {
         return m_selected_setting_index;
     }
