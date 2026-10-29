@@ -9,6 +9,7 @@
 #include "ui/components/ResultPanel.hpp"
 #include "ui/components/UserNameplate.hpp"
 #include "ui/localization/Localization.hpp"
+#include "ui/presentation/ResultRating.hpp"
 #include "ui/theme/Palette.hpp"
 
 #include <utility>
@@ -77,10 +78,11 @@ namespace xlair::ui::scenes {
         const auto& session = getData().application->playSession();
         if (const auto* user = session.user()) {
             const auto level = core::user::CalculateLevelProgress(user->xp);
+            const auto rating = presentation::ResultRatingAt(result.previous_rating, result.rating, m_elapsed);
             components::DrawUserNameplate(
                 {
                     .display_name = user->display_name,
-                    .rating = user->rating,
+                    .rating = rating.value_or(user->rating),
                     .level = level.level,
                     .level_progress = level.progress,
                 },
@@ -109,7 +111,8 @@ namespace xlair::ui::scenes {
             {
                 .score = score,
                 .total_combo = result.total_combo,
-                .rating = session.user() ? Optional<uint32>{ session.user()->rating } : none,
+                .previous_rating = result.previous_rating,
+                .rating = result.rating,
             },
             Point{ DesignSize.x / 2 - 700, 200 },
             m_elapsed

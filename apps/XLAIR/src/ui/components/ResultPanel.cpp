@@ -1,6 +1,7 @@
 #include "ResultPanel.hpp"
 
 #include "ui/assets/Assets.hpp"
+#include "ui/presentation/ResultRating.hpp"
 #include "ui/presentation/ScoringText.hpp"
 #include "ui/theme/Palette.hpp"
 
@@ -101,7 +102,13 @@ namespace xlair::ui::components {
 
         Circle{ 1100, 500, 70 }.drawFrame(5, 0, theme::Palette::Purple.withA(0.7 * frame_opacity));
         display(U"RATE").drawAt(40, Vec2{ 1100, 410 }, ColorF{ 0.0, frame_opacity });
-        const String rating = data.rating ? Format(*data.rating) : U"-";
-        display(rating).drawAt(70, Vec2{ 1100, 500 }, ColorF{ 0.0, frame_opacity });
+        const auto rating = presentation::ResultRatingAt(data.previous_rating, data.rating, elapsed);
+        display(rating ? Format(*rating) : U"-").drawAt(70, Vec2{ 1100, 500 }, ColorF{ 0.0, frame_opacity });
+        if (data.rating && data.previous_rating && data.previous_rating != data.rating) {
+            const int64 difference = static_cast<int64>(*data.rating) - *data.previous_rating;
+            const auto label = text(U"{:+}"_fmt(difference));
+            const double font_size = Min(24.0, 24.0 * 140.0 / Max(1.0, label.region(24).w));
+            label.drawAt(font_size, Vec2{ 1100, 610 }, theme::Palette::Purple.withA(Reveal(elapsed, 1.0, 0.25)));
+        }
     }
 }
