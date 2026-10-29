@@ -9,6 +9,7 @@
 #include "ui/components/UserNameplate.hpp"
 #include "ui/localization/Localization.hpp"
 #include "ui/theme/Palette.hpp"
+#include "ui/transitions/ScreenWipe.hpp"
 
 namespace xlair::ui::scenes {
     namespace {
@@ -67,10 +68,12 @@ namespace xlair::ui::scenes {
     }
 
     Login::~Login() {
+        getData().title_to_login_wipe = false;
         AudioAsset{ assets::bgm::Login }.stop();
     }
 
     void Login::update() {
+        getData().title_to_login_wipe = false;
         updatePresentation();
         if (m_leaving) {
             return;
@@ -309,7 +312,12 @@ namespace xlair::ui::scenes {
     }
 
     void Login::drawFadeIn(const double t) const {
-        drawScene(transitions::CardFadeIn(t));
+        if (getData().title_to_login_wipe) {
+            drawScene({});
+            transitions::DrawScreenWipe(0.5 + Clamp(t, 0.0, 1.0) * 0.5);
+        } else {
+            drawScene(transitions::CardFadeIn(t));
+        }
     }
 
     void Login::drawFadeOut(const double t) const {

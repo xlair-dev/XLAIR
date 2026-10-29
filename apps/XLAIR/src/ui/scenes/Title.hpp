@@ -11,6 +11,8 @@ namespace xlair::ui::scenes {
 
         void update() override;
         void draw() const override;
+        void updateFadeOut(double t) override;
+        void drawFadeOut(double t) const override;
 
     private:
         void reportState() const;
