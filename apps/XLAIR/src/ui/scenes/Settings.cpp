@@ -7,7 +7,6 @@
 #include "ui/components/MenuHeader.hpp"
 #include "ui/components/MenuTimerPlate.hpp"
 #include "ui/components/UserNameplate.hpp"
-#include "ui/input/SliderInput.hpp"
 #include "ui/localization/Localization.hpp"
 #include "ui/theme/Palette.hpp"
 
@@ -116,16 +115,18 @@ namespace xlair::ui::scenes {
 
     void Settings::handleInput() {
         const auto* controller = getData().application->controller();
-        if (KeyTab.down() || input::TouchRegionDown(controller, 14, 2)) {
+        constexpr std::array MenuKeys{ KeyTab, KeyLeft, KeyRight, KeyDown, KeyUp };
+        m_menu_input.update(controller, MenuKeys, Scene::DeltaTime());
+        if (m_menu_input.keyDown(KeyTab) || m_menu_input.touchDown(14, 2)) {
             audio::PlaySoundEffect(audio::SoundEffect::Navigate);
             changeScene(SceneState::MusicSelect, transitions::CardTransitionMillisec, CrossFade::No);
             return;
         }
 
-        const bool move_left = KeyLeft.down() || input::TouchRegionDown(controller, 0, 3);
-        const bool move_right = KeyRight.down() || input::TouchRegionDown(controller, 3, 3);
-        const bool decrease = KeyDown.down() || input::TouchRegionDown(controller, 10, 2);
-        const bool increase = KeyUp.down() || input::TouchRegionDown(controller, 12, 2);
+        const bool move_left = m_menu_input.keyDown(KeyLeft) || m_menu_input.touchDown(0, 3);
+        const bool move_right = m_menu_input.keyDown(KeyRight) || m_menu_input.touchDown(3, 3);
+        const bool decrease = m_menu_input.keyDown(KeyDown) || m_menu_input.touchDown(10, 2);
+        const bool increase = m_menu_input.keyDown(KeyUp) || m_menu_input.touchDown(12, 2);
 
         if (move_left && moveItem(-1)) {
             audio::PlaySoundEffect(audio::SoundEffect::Navigate);

@@ -5,7 +5,6 @@
 #include "ui/audio/AudioBus.hpp"
 #include "ui/audio/SoundEffect.hpp"
 #include "ui/components/ScrollingText.hpp"
-#include "ui/input/SliderInput.hpp"
 #include "ui/localization/Localization.hpp"
 #include "ui/theme/Palette.hpp"
 
@@ -35,8 +34,9 @@ namespace xlair::ui::scenes {
         m_elapsed += Scene::DeltaTime();
         updateSave();
         const auto* controller = getData().application->controller();
-        const bool confirm =
-            m_elapsed >= InputWaitSeconds && (KeyEnter.down() || input::TouchRegionDown(controller, 0, 16));
+        constexpr std::array MenuKeys{ KeyEnter };
+        m_menu_input.update(controller, MenuKeys, Scene::DeltaTime(), m_elapsed >= InputWaitSeconds);
+        const bool confirm = m_menu_input.keyDown(KeyEnter) || m_menu_input.touchDown(0, 16);
         m_return_requested |= confirm || m_elapsed >= AutoReturnSeconds;
 
         // Keep the return request while saving; Title resets the session history.

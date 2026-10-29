@@ -18,6 +18,7 @@ namespace xlair::ui::scenes {
     }
 
     void Title::update() {
+        m_elapsed += Scene::DeltaTime();
 #ifndef NDEBUG
         if (KeyP.down() || KeyF11.down()) {
             changeScene(SceneState::PlayfieldDebug, 0);
@@ -40,7 +41,7 @@ namespace xlair::ui::scenes {
     }
 
     void Title::draw() const {
-        Scene::Rect().draw(theme::Palette::White);
+        m_background.draw(m_elapsed);
 
         const Vec2 center{ DesignSize.x / 2.0, DesignSize.y / 2.0 };
         TextureAsset{ assets::texture::Logo }.drawAt(center.x, DesignSize.y * 0.4);

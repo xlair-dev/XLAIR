@@ -9,6 +9,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <span>
 
 namespace xlair::ui::game {
     namespace {
@@ -27,25 +28,43 @@ namespace xlair::ui::game {
         constexpr double LowerNear = FieldNear - 8.0;
         constexpr double LowerLength = FieldFar - LowerNear;
         constexpr double LowerCenter = (LowerNear + FieldFar) * 0.5;
-        constexpr double LowerWidth = 3.5355339059;
-        constexpr double SideLowerX = 9.25;
-        constexpr double SideLowerY = 1.25;
-        constexpr double SideUpperX = 10.5;
-        constexpr double SideUpperY = 4.0;
-        // A side note covers the same fraction of the field's depth as a plate on the 2D surface.
-        constexpr double NoteDepthSize = FieldLength * NotePlateHeight / FieldSurfaceSize.y;
+        constexpr double LowerWidth = 3.0;
+        constexpr double SideLowerAngle = 55_deg;
+        const double SideLowerExtent = LowerWidth * Math::Cos(SideLowerAngle);
+        const double SideLowerRise = LowerWidth * Math::Sin(SideLowerAngle);
+        const double SideLowerX = FieldWidth * 0.5 + SideLowerExtent * 0.5;
+        const double SideLowerY = SideLowerRise * 0.5;
+        constexpr double SideUpperHeight = 3.0;
+        const double SideUpperX = FieldWidth * 0.5 + SideLowerExtent;
+        const double SideUpperY = SideLowerRise + SideUpperHeight * 0.5;
+        constexpr double SideNoteDepthSize = FieldLength * NotePlateHeight / FieldSurfaceSize.y * 1.5;
         // Begin the fade gradually beyond the combo area, with the same world-z range for all 3D geometry.
         constexpr double FadeStart = FieldNear + FieldLength * 0.3;
         constexpr double FadeStrength = 0.8;
-        const ColorF BackgroundColor{ U"#F7F8FC" };
+        const ColorF BackgroundColor{ U"#F2F3F5" };
         const ColorF SideUpperColor{ U"#D5F0FB" };
-        const ColorF SideLowerColor{ U"#FFFFFF" };
+        const ColorF SideLowerColor{ BackgroundColor };
+        const ColorF SideUpperNoteLightColor{ U"#504160" };
+        const ColorF SideUpperNoteDarkColor{ U"#20172E" };
+        const ColorF SideUpperNoteOutlineColor{ U"#100C19" };
+        const ColorF SideLowerNoteLightColor{ U"#F060D8" };
+        const ColorF SideLowerNoteDarkColor{ U"#BC269F" };
+        const ColorF SideLowerNoteOutlineColor{ U"#661953" };
         // At 1.0x, map 100 px/s in the 880 px reference viewport to the 3D field length.
         constexpr double WorldUnitsPerSecond = FieldLength * 100.0 / 880.0;
 
         [[nodiscard]]
         Quaternion SideSlope(const double side) {
-            return Quaternion::RotateZ(side < 0.0 ? 135_deg : 45_deg);
+            return Quaternion::RotateZ(side < 0.0 ? 180_deg - SideLowerAngle : SideLowerAngle);
+        }
+
+        [[nodiscard]]
+        Vec3 SideLowerPosition(const double side, const double z, const double offset) {
+            return {
+                side * (SideLowerX - offset * SideLowerRise / LowerWidth),
+                SideLowerY + offset * SideLowerExtent / LowerWidth,
+                z,
+            };
         }
 
         [[nodiscard]]
@@ -59,6 +78,23 @@ namespace xlair::ui::game {
             // Play options scale the visual distance without changing the chart's sample clock.
             return static_cast<double>(projection.noteDistance(timeline, current_sample, note_sample)) *
                    WorldUnitsPerSecond * note_speed;
+        }
+
+        [[nodiscard]]
+        Array<double> MeasureLineDepths(
+            const sheets::Chart& chart,
+            const playfield::ChartProjection& projection,
+            const int64 current_sample,
+            const double note_speed
+        ) {
+            Array<double> depths;
+            for (const auto& line : chart.measure_lines) {
+                const double z = WorldZ(projection, chart.main_timeline, current_sample, line.sample, note_speed);
+                if (std::isfinite(z) && LowerNear <= z && z <= FieldFar) {
+                    depths.push_back(z);
+                }
+            }
+            return depths;
         }
 
         template <class Point, class DrawSection>
@@ -413,7 +449,8 @@ namespace xlair::ui::game {
             const int64 current_sample,
             const double note_speed,
             const core::judgement::JudgeEngine* judge_engine,
-            const uint32 slider_pressed
+            const uint32 slider_pressed,
+            const std::span<const double> measure_depths
         ) {
             constexpr double SourceWidth = FieldSurfaceSize.x;
             constexpr double SourceHeight = FieldSurfaceSize.y;
@@ -428,11 +465,18 @@ namespace xlair::ui::game {
                 const double x = SourceStageLeft + lane * SourceLaneWidth;
                 Line{ x, 0, x, SourceHeight }.draw(2.5, ColorF{ U"#FDFDFD" }.removeSRGBCurve());
             }
+            for (const double z : measure_depths) {
+                if (z < FieldNear) {
+                    continue;
+                }
+                const double y = (FieldFar - z) * SourceHeight / FieldLength;
+                Line{ 0.0, y, SourceWidth, y }.draw(2.0, ColorF{ U"#A8BCC8" }.removeSRGBCurve().withA(0.5));
+            }
             DrawSliderTouchEffects(slider_pressed);
             DrawSliderHoldBodies(chart, projection, current_sample, note_speed, judge_engine, slider_pressed);
             DrawSliderHoldHeads(chart, projection, current_sample, note_speed, judge_engine);
             DrawSliderNotes(chart, projection, current_sample, note_speed, judge_engine);
-            if (combo >= 10) {
+            if (combo >= 5) {
                 FontAsset{ assets::font::ComboNumber }(combo)
                     .drawAt(SourceWidth * 0.5, SourceHeight - 750.0, Palette::White);
                 FontAsset{ assets::font::Display }(U"COMBO")
@@ -463,8 +507,12 @@ namespace xlair::ui::game {
                     Vec3{ side * SideLowerX, SideLowerY, LowerCenter }, LowerWidth, 0.12, LowerLength, SideSlope(side),
                 }
                     .draw(lower_color);
-                Box{ Vec3{ side * SideUpperX, SideUpperY, FieldCenter }, 0.12, 3.0, FieldLength }.draw(upper_color);
-                Box{ Vec3{ side * SideUpperX, 2.52, LowerCenter }, 0.06, 0.06, LowerLength }.draw(edge_color);
+                Box{ Vec3{ side * SideUpperX, SideUpperY, FieldCenter }, 0.12, SideUpperHeight, FieldLength }.draw(
+                    upper_color
+                );
+                Box{ Vec3{ side * SideUpperX, SideLowerRise + 0.02, LowerCenter }, 0.06, 0.06, LowerLength }.draw(
+                    edge_color
+                );
             }
         }
 
@@ -495,14 +543,13 @@ namespace xlair::ui::game {
                     const ColorF color = touch_color.withA(0.65 * (1.0 - (index + 0.5) / SegmentCount));
                     if (upper) {
                         const Quaternion facing_inward = Quaternion::RotateZ(side > 0.0 ? 90_deg : -90_deg);
-                        Plane{ Vec3{ side * (SideUpperX - 0.09), SideUpperY, z }, 3.0, segment_depth }.draw(
+                        Plane{ Vec3{ side * (SideUpperX - 0.09), SideUpperY, z }, SideUpperHeight, segment_depth }.draw(
                             facing_inward,
                             color
                         );
                     } else {
-                        const Quaternion facing_inward = Quaternion::RotateZ(side > 0.0 ? 45_deg : -45_deg);
-                        Plane{ Vec3{ side * (SideLowerX - 0.055), SideLowerY + 0.055, z }, LowerWidth, segment_depth }
-                            .draw(facing_inward, color);
+                        const Quaternion facing_inward = Quaternion::RotateZ(side * SideLowerAngle);
+                        Plane{ SideLowerPosition(side, z, 0.08), LowerWidth, segment_depth }.draw(facing_inward, color);
                     }
                 }
             }
@@ -510,18 +557,37 @@ namespace xlair::ui::game {
 
         void DrawSideCrossSection(const double z, const double depth, const ColorF& color) {
             for (const double side : { -1.0, 1.0 }) {
-                OrientedBox{ Vec3{ side * SideLowerX, 1.32, z }, LowerWidth, 0.08, depth, SideSlope(side) }.draw(color);
-                Box{ Vec3{ side * SideUpperX, SideUpperY, z }, 0.16, 3.0, depth }.draw(color);
+                if (z >= LowerNear) {
+                    OrientedBox{ SideLowerPosition(side, z, 0.07), LowerWidth, 0.08, depth, SideSlope(side) }.draw(
+                        color
+                    );
+                }
+                if (z >= FieldNear) {
+                    Box{ Vec3{ side * SideUpperX, SideUpperY, z }, 0.16, SideUpperHeight, depth }.draw(color);
+                }
             }
         }
 
-        void DrawField(const MSRenderTexture& surface, const bool show_depth_guides, const uint8 side_pressed) {
+        void DrawField(
+            const MSRenderTexture& surface,
+            const bool show_depth_guides,
+            const uint8 side_pressed,
+            const std::span<const double> measure_depths
+        ) {
             const ColorF floor_color = ColorF{ U"#212830" }.removeSRGBCurve();
             const ColorF judge_color = ColorF{ U"#79C8FF" }.removeSRGBCurve();
 
             Box{ Vec3{ 0.0, -0.06, FieldCenter }, FieldWidth, 0.12, FieldLength }.draw(floor_color);
             Plane{ Vec3{ 0.0, 0.02, FieldCenter }, FieldWidth, FieldLength }.draw(surface);
             DrawSideSurfaces();
+            // Use exactly the same world depths as the main field's textured lines.
+            {
+                // Background markings must not occlude hold bodies or notes drawn later.
+                const ScopedRenderStates3D depth{ DepthStencilState::DepthTest };
+                for (const double z : measure_depths) {
+                    DrawSideCrossSection(z, 0.06, ColorF{ U"#A8BCC8" }.removeSRGBCurve());
+                }
+            }
             DrawSideTouchEffects(side_pressed);
 
             // Side judgement strips meet the main field's textured judgement line at world depth zero.
@@ -585,17 +651,20 @@ namespace xlair::ui::game {
             MSRenderTexture& surface,
             const ColorF& background,
             const ColorF& light,
-            const ColorF& dark
+            const ColorF& dark,
+            const ColorF& outline
         ) {
             // Keep the texture opaque so the existing 3D depth and blend states remain unchanged.
             const ScopedRenderTarget2D target{ surface.clear(background.removeSRGBCurve()) };
             const Vec2 left_center{ 0.0, SideNoteSurfaceSize.y * 0.5 };
             const Transformer2D transform{ Mat3x2::Rotate(-90_deg, left_center) };
-            RoundRect{ left_center.movedBy(-SideNoteSurfaceSize.y * 0.5, 0),
-                       SideNoteSurfaceSize.y,
-                       SideNoteSurfaceSize.x,
-                       12.0 }
-                .draw(Arg::top = light.removeSRGBCurve(), Arg::bottom = dark.removeSRGBCurve());
+            const RoundRect plate{ left_center.movedBy(-SideNoteSurfaceSize.y * 0.5, 0),
+                                   SideNoteSurfaceSize.y,
+                                   SideNoteSurfaceSize.x,
+                                   12.0 };
+            plate.draw(outline.removeSRGBCurve());
+            plate.stretched(-4).draw(Arg::top = light.removeSRGBCurve(), Arg::bottom = dark.removeSRGBCurve());
+            plate.stretched(-7).drawFrame(1.5, ColorF{ 1.0 });
             Graphics2D::Flush();
             surface.resolve();
         }
@@ -611,13 +680,13 @@ namespace xlair::ui::game {
             const bool upper = button == sheets::SideButton::LeftUpper || button == sheets::SideButton::RightUpper;
             if (upper) {
                 const Quaternion facing_inward = Quaternion::RotateZ(side > 0.0 ? 90_deg : -90_deg);
-                Plane{ Vec3{ side * (SideUpperX - 0.12), SideUpperY, z }, 3.0, NoteDepthSize }.draw(
+                Plane{ Vec3{ side * (SideUpperX - 0.12), SideUpperY, z }, SideUpperHeight, SideNoteDepthSize }.draw(
                     facing_inward,
                     upper_surface
                 );
             } else {
-                const Quaternion facing_inward = Quaternion::RotateZ(side > 0.0 ? 45_deg : -45_deg);
-                Plane{ Vec3{ side * (SideLowerX - 0.085), SideLowerY + 0.085, z }, LowerWidth, NoteDepthSize }.draw(
+                const Quaternion facing_inward = Quaternion::RotateZ(side * SideLowerAngle);
+                Plane{ SideLowerPosition(side, z, 0.12), LowerWidth, SideNoteDepthSize }.draw(
                     facing_inward,
                     lower_surface
                 );
@@ -632,7 +701,6 @@ namespace xlair::ui::game {
             const core::judgement::JudgeEngine* judge_engine,
             const uint8 side_pressed
         ) {
-            const ColorF color = ColorF{ U"#D45CD7" }.removeSRGBCurve().withA(0.42);
             const ScopedRenderStates3D translucent{ BlendState::NonPremultiplied, DepthStencilState::DepthTest };
             for (std::size_t hold_index = 0; hold_index < chart.side_holds.size(); ++hold_index) {
                 const auto& hold = chart.side_holds[hold_index];
@@ -647,6 +715,8 @@ namespace xlair::ui::game {
                 const double side = left ? -1.0 : 1.0;
                 const bool upper =
                     hold.button == sheets::SideButton::LeftUpper || hold.button == sheets::SideButton::RightUpper;
+                const ColorF color =
+                    (upper ? SideUpperNoteDarkColor : SideLowerNoteDarkColor).removeSRGBCurve().withA(0.6);
                 const bool active = SideHoldActive(hold, hold_index, current_sample, side_pressed, judge_engine);
                 for (std::size_t index = 1; index < hold.points.size(); ++index) {
                     const auto& before = hold.points[index - 1];
@@ -667,14 +737,16 @@ namespace xlair::ui::game {
                             const double center_z = (near_z + far_z) * 0.5;
                             if (upper) {
                                 const Quaternion facing_inward = Quaternion::RotateZ(side > 0.0 ? 90_deg : -90_deg);
-                                Plane{ Vec3{ side * (SideUpperX - 0.09), SideUpperY, center_z }, 3.0, far_z - near_z }
-                                    .draw(facing_inward, color);
-                            } else {
-                                const Quaternion facing_inward = Quaternion::RotateZ(side > 0.0 ? 45_deg : -45_deg);
-                                Plane{ Vec3{ side * (SideLowerX - 0.065), SideLowerY + 0.065, center_z },
-                                       LowerWidth,
+                                Plane{ Vec3{ side * (SideUpperX - 0.09), SideUpperY, center_z },
+                                       SideUpperHeight,
                                        far_z - near_z }
                                     .draw(facing_inward, color);
+                            } else {
+                                const Quaternion facing_inward = Quaternion::RotateZ(side * SideLowerAngle);
+                                Plane{ SideLowerPosition(side, center_z, 0.09), LowerWidth, far_z - near_z }.draw(
+                                    facing_inward,
+                                    color
+                                );
                             }
                         }
                     );
@@ -768,10 +840,34 @@ namespace xlair::ui::game {
         m_fog_parameters->end_and_strength =
             Float4{ static_cast<float>(FieldFar), static_cast<float>(FadeStrength), 0.0f, 0.0f };
 
-        DrawSideNoteSurface(m_side_upper_note_surface, SideUpperColor, ColorF{ U"#F489E9" }, ColorF{ U"#D45CD7" });
-        DrawSideNoteSurface(m_side_lower_note_surface, SideLowerColor, ColorF{ U"#F489E9" }, ColorF{ U"#D45CD7" });
-        DrawSideNoteSurface(m_side_upper_xtap_surface, SideUpperColor, ColorF{ U"#FEEFB4" }, ColorF{ U"#FEDF64" });
-        DrawSideNoteSurface(m_side_lower_xtap_surface, SideLowerColor, ColorF{ U"#FEEFB4" }, ColorF{ U"#FEDF64" });
+        DrawSideNoteSurface(
+            m_side_upper_note_surface,
+            SideUpperColor,
+            SideUpperNoteLightColor,
+            SideUpperNoteDarkColor,
+            SideUpperNoteOutlineColor
+        );
+        DrawSideNoteSurface(
+            m_side_lower_note_surface,
+            SideLowerColor,
+            SideLowerNoteLightColor,
+            SideLowerNoteDarkColor,
+            SideLowerNoteOutlineColor
+        );
+        DrawSideNoteSurface(
+            m_side_upper_xtap_surface,
+            SideUpperColor,
+            ColorF{ U"#FFECA0" },
+            ColorF{ U"#F4B900" },
+            ColorF{ U"#8A4B00" }
+        );
+        DrawSideNoteSurface(
+            m_side_lower_xtap_surface,
+            SideLowerColor,
+            ColorF{ U"#FFECA0" },
+            ColorF{ U"#F4B900" },
+            ColorF{ U"#8A4B00" }
+        );
     }
 
     void PlayfieldRenderer3D::draw(
@@ -786,9 +882,19 @@ namespace xlair::ui::game {
         const uint32 slider_pressed,
         const uint8 side_pressed
     ) const {
+        const auto measure_depths = MeasureLineDepths(chart, projection, current_sample, note_speed);
         {
             const ScopedRenderTarget2D target{ m_field_surface.clear(ColorF{ 0.0, 0.0 }) };
-            DrawFieldSurface(combo, chart, projection, current_sample, note_speed, judge_engine, slider_pressed);
+            DrawFieldSurface(
+                combo,
+                chart,
+                projection,
+                current_sample,
+                note_speed,
+                judge_engine,
+                slider_pressed,
+                measure_depths
+            );
             Graphics2D::Flush();
             m_field_surface.resolve();
         }
@@ -800,7 +906,7 @@ namespace xlair::ui::game {
         {
             const ScopedRenderTarget3D target{ m_render_texture.clear(BackgroundColor.removeSRGBCurve()) };
             const ScopedCustomShader3D fog_shader{ m_fog_shader };
-            DrawField(m_field_surface, show_depth_guides, side_pressed);
+            DrawField(m_field_surface, show_depth_guides, side_pressed, measure_depths);
             DrawSliderHoldDiamonds(chart, projection, current_sample, note_speed);
             DrawSideHoldBodies(chart, projection, current_sample, note_speed, judge_engine, side_pressed);
             DrawSideNotes(

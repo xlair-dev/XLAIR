@@ -20,7 +20,7 @@ prompt = "プレイ設定を変更してください"
 speed_title = "スピード"
 speed_description = "スピードを調整します。0.25〜10.00から選択できます。"
 judgment_offset_title = "判定タイミング"
-judgment_offset_description = "ノーツの判定タイミングを変更できます。"
+judgment_offset_description = "ノーツの判定時刻を調整します。\nFAST が多い場合は−、LATE は＋。"
 mirror_title = "ミラー"
 mirror_description = "「ON」にするとノーツの表示が左右反転します。"
 

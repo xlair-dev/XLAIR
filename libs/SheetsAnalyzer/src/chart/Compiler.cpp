@@ -2,6 +2,7 @@
 #include "Timing.hpp"
 #include "SliderHoldCompiler.hpp"
 #include "HoldJudgement.hpp"
+#include "MeasureLines.hpp"
 
 #include <algorithm>
 #include <cmath>
@@ -65,6 +66,10 @@ namespace xlair::sheets::chart {
         Result<TimelineLookup>
         BuildTimelines(const CcResult& parsed, const CcChartView& view, const TimingMap& timing, Chart& chart) {
             std::set<s3d::int64> groups{ -1 };
+            const auto main_group = cc_result_metadata(&parsed).main_speed_group;
+            if (main_group >= 0) {
+                groups.insert(main_group);
+            }
             for (const auto& note : std::span{ view.notes, view.note_count }) {
                 groups.insert(note.speed_group);
                 const auto* details = cc_result_note_details(&parsed, note.id);
@@ -249,6 +254,15 @@ namespace xlair::sheets::chart {
             result.diagnostics = std::move(timelines.diagnostics);
             return result;
         }
+        const auto main_group = cc_result_metadata(&parsed).main_speed_group;
+        chart.main_timeline = timelines->at(main_group >= 0 ? main_group : -1);
+        auto measure_lines = CompileMeasureLines(parsed, timing);
+        if (!measure_lines) {
+            Result<Chart> result;
+            result.diagnostics = std::move(measure_lines.diagnostics);
+            return result;
+        }
+        chart.measure_lines = std::move(*measure_lines);
         const std::span notes{ view.notes, view.note_count };
         auto side_xtap_parents = CompileSideXTaps(notes, timing, *timelines, chart);
         if (!side_xtap_parents) {

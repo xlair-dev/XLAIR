@@ -103,7 +103,7 @@ namespace xlair::ui::game {
                 const double x = StageLeft + lane * LaneWidth;
                 Line{ x, 0, x, FieldHeight }.draw(2.5, ColorF{ U"#FDFDFD" });
             }
-            if (combo >= 10) {
+            if (combo >= 5) {
                 FontAsset{ assets::font::ComboNumber }(combo)
                     .drawAt(FieldWidth * 0.5, FieldHeight - 750.0, Palette::White);
                 FontAsset{ assets::font::Display }(U"COMBO")
@@ -193,6 +193,12 @@ namespace xlair::ui::game {
             const ScopedRenderTarget2D target{ m_field_texture.clear(ColorF{ 0.0, 0.0 }) };
             const ScopedRenderStates2D blend{ MaxAlphaBlend() };
             DrawFieldBackground(combo);
+            for (const auto& line : chart.measure_lines) {
+                const double y = NoteY(projection, chart.main_timeline, current_sample, line.sample, pixels_per_second);
+                if (Visible(y)) {
+                    Line{ 0.0, y, FieldWidth, y }.draw(2.0, ColorF{ U"#A8BCC8" }.withA(0.5));
+                }
+            }
             DrawSliderHolds(chart, projection, current_sample, pixels_per_second);
             for (const auto& note : chart.slider_notes) {
                 const double y = NoteY(projection, note.timeline, current_sample, note.sample, pixels_per_second);

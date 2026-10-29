@@ -5,6 +5,7 @@
 #include "ui/components/SettingCard.hpp"
 #include "ui/components/SliderMappingGuide.hpp"
 #include "ui/transitions/CardTransition.hpp"
+#include "ui/input/MenuInput.hpp"
 
 namespace xlair::ui::scenes {
     class Settings final : public SceneBase {
@@ -41,6 +42,7 @@ namespace xlair::ui::scenes {
         };
 
         components::CardCarousel m_card_carousel;
+        input::MenuInput m_menu_input;
         mutable components::SettingCard m_setting_card;
         Array<components::SettingCardData> m_setting_cards;
         Array<components::SliderMapping> m_slider_mappings;

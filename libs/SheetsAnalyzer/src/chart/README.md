@@ -25,6 +25,10 @@ escape. Structured parser diagnostics retain the source path and line.
 - Global speed steps multiply the selected speed group. Group zero is a real
   group; unassigned notes use a separate default timeline. Point-level group
   selections are retained, including groups without scroll events.
+- Measure boundaries are generated from measure-length metadata (four beats by
+  default), through the first boundary after the last note or hold tail. They use
+  the same tempo/offset conversion as notes and follow the IR's main speed group
+  when supplied, otherwise the default timeline. They do not add combo or judgements.
 - ChartConverter expands SUS Bezier handles before exposing the shared IR.
   Every IR point is on the path: `Control` and `Invisible` become hidden runtime
   points and are joined linearly, just like authored UGC controls. XLAIR never
@@ -45,8 +49,9 @@ than being downgraded. Parser warnings currently describe omitted information,
 so a warning also prevents a partial chart from being played.
 
 UGC support does not mean every UGC feature is playable: speed fields such as
-`SPDDEF` / `SPDFLD` are rejected by ChartConverter, and SUS `MEASUREHS` is not
-represented in the current IR. Visual note attributes (height, roll, priority)
+`SPDDEF` / `SPDFLD` are rejected by ChartConverter. The pinned SUS parser currently
+discards `MEASUREHS`, so SUS measure lines use the default timeline; UGC `MAINTIL`
+is preserved and used. Visual note attributes (height, roll, priority)
 are not used by XLAIR's renderer.
 
 Source syntax regression tests live in ChartConverter. Tests here cover public

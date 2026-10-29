@@ -8,6 +8,8 @@
 #include "ui/components/UserNameplate.hpp"
 #include "ui/theme/Palette.hpp"
 
+#include <SheetsAnalyzer/SliderHoldPath.hpp>
+
 #include <array>
 #include <cmath>
 #include <limits>
@@ -121,8 +123,8 @@ namespace xlair::ui::scenes {
                     judged_sample,
                     std::span{ m_input.touches.data(), m_input.touch_count },
                     std::span{ m_input.side_down.data(), m_input.side_count },
-                    m_input.slider_pressed,
-                    m_input.side_pressed
+                    m_input.pressed.slider_pressed,
+                    m_input.pressed.side_pressed
                 );
                 processJudgements(events);
             } else {
@@ -139,7 +141,7 @@ namespace xlair::ui::scenes {
         for (std::size_t zone = 0; zone < app::controller::TouchZoneCount; ++zone) {
             const auto& state = controller->touchZone(zone);
             if (state.pressed()) {
-                m_input.slider_pressed |= uint32{ 1 } << zone;
+                m_input.pressed.slider_pressed |= uint32{ 1 } << zone;
             }
             if (state.up()) {
                 m_input.touches[m_input.touch_count++] = {
@@ -158,7 +160,7 @@ namespace xlair::ui::scenes {
         for (std::size_t button = 0; button < app::controller::SideButtonCount; ++button) {
             const auto& state = controller->sideButton(static_cast<app::controller::SideButton>(button));
             if (state.pressed()) {
-                m_input.side_pressed |= uint8{ 1 } << static_cast<uint8>(SideButtonMapping[button]);
+                m_input.pressed.side_pressed |= uint8{ 1 } << static_cast<uint8>(SideButtonMapping[button]);
             }
             if (state.down()) {
                 m_input.side_down[m_input.side_count++] = { .button = SideButtonMapping[button],
@@ -219,9 +221,43 @@ namespace xlair::ui::scenes {
         }
     }
 
+    Game::PressedInput Game::pressedInputForDrawing() const {
+        auto pressed = m_input.pressed;
+        const auto& chart = getData().game_loader.chart();
+        if (!m_autoplay || !m_judge_engine || !chart) {
+            return pressed;
+        }
+
+        // Autoplay sustains holds without physical input. These virtual presses
+        // are used only for rendering, never fed back into judgement.
+        for (std::size_t index = 0; index < chart->slider_holds.size(); ++index) {
+            if (!m_judge_engine->sliderHoldActive(index)) {
+                continue;
+            }
+            const auto lane = sheets::EvaluateSliderHoldLane(chart->slider_holds[index].points, m_current_sample);
+            if (!lane) {
+                continue;
+            }
+            const std::size_t end = Min<std::size_t>(
+                (static_cast<std::size_t>(lane->start) + lane->width) * 2,
+                app::controller::TouchZoneCount
+            );
+            for (std::size_t zone = static_cast<std::size_t>(lane->start) * 2; zone < end; ++zone) {
+                pressed.slider_pressed |= uint32{ 1 } << zone;
+            }
+        }
+        for (std::size_t index = 0; index < chart->side_holds.size(); ++index) {
+            if (m_judge_engine->sideHoldActive(index)) {
+                pressed.side_pressed |= uint8{ 1 } << static_cast<uint8>(chart->side_holds[index].button);
+            }
+        }
+        return pressed;
+    }
+
     void Game::drawReady() const {
         const auto& loader = getData().game_loader;
         const auto score = m_judge_engine ? m_judge_engine->score() : core::judgement::ScoreState{};
+        const auto pressed = pressedInputForDrawing();
         m_playfield_renderer.draw(
             m_camera,
             *loader.chart(),
@@ -231,8 +267,8 @@ namespace xlair::ui::scenes {
             score.combo,
             false,
             m_judge_engine.get(),
-            m_input.slider_pressed,
-            m_input.side_pressed
+            pressed.slider_pressed,
+            pressed.side_pressed
         );
         const auto& session = getData().application->playSession();
         if (const auto* user = session.user()) {
@@ -263,7 +299,7 @@ namespace xlair::ui::scenes {
         }
         m_score_bar.draw(
             { .score = score.score, .clear_gauge = score.clear_gauge },
-            Point{ DesignSize.x / 2 - 434, 56 }
+            Point{ DesignSize.x / 2 - 434, 8 }
         );
         if (m_last_judgement && m_judgement_display_seconds < 0.75) {
             const Vec2 feedback_position{ DesignSize.x / 2.0, 780 };

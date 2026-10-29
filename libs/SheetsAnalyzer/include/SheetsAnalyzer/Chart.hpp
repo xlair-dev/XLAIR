@@ -25,6 +25,11 @@ namespace xlair::sheets {
         double bpm = 120.0;
     };
 
+    struct MeasureLine {
+        s3d::uint32 measure = 0;
+        s3d::int64 sample = 0;
+    };
+
     // Notes played on the slider.
     enum class SliderNoteKind : s3d::uint8 {
         Tap,
@@ -114,5 +119,8 @@ namespace xlair::sheets {
         s3d::Array<SideHold> side_holds;
 
         std::size_t total_combo = 0;
+        // Measure lines follow the source's main speed group, not each note's timeline.
+        TimelineIndex main_timeline = 0;
+        s3d::Array<MeasureLine> measure_lines;
     };
 }

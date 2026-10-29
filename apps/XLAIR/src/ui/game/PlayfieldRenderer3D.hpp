@@ -12,7 +12,7 @@ namespace xlair::core::judgement {
 namespace xlair::ui::game {
     class PlayfieldRenderer3D {
     public:
-        static constexpr double FieldWidth = 16.0;
+        static constexpr double FieldWidth = 18.0;
         static constexpr double FieldFar = 129.2447;
         // The judgement line is 100 / 4000 of the field length from the near edge.
         static constexpr double FieldNear = -FieldFar * 100.0 / 3900.0;
