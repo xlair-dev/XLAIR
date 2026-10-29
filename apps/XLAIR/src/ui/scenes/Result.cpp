@@ -51,10 +51,11 @@ namespace xlair::ui::scenes {
             audio::PlaySoundEffect(audio::SoundEffect::Finish);
             if (getData().application->playSession().finished()) {
                 m_continue_music = changeScene(SceneState::FinalResult, 500, CrossFade::No);
-            } else {
+            } else if (changeScene(SceneState::MusicSelect, 500, CrossFade::No)) {
+                const auto& config = getData().application->config();
+                getData().ensureMusicSelectContext().resetTimer(config ? config->system.menu_timer_seconds : 0.0);
                 AudioAsset{ assets::bgm::Result }.stop(MusicFadeOut);
                 getData().returning_from_game = true;
-                changeScene(SceneState::MusicSelect, 500, CrossFade::No);
             }
         }
     }

@@ -27,6 +27,10 @@ namespace xlair::ui {
         m_paused = false;
     }
 
+    void MusicSelectContext::resetTimer(const double seconds) noexcept {
+        m_remaining_seconds = Max(0.0, seconds);
+    }
+
     app::flows::MusicSelect& MusicSelectContext::flow() noexcept {
         return m_flow;
     }

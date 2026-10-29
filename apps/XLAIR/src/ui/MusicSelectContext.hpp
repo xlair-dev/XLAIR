@@ -13,6 +13,7 @@ namespace xlair::ui {
 
         void pause();
         void resume() noexcept;
+        void resetTimer(double seconds) noexcept;
 
         [[nodiscard]]
         app::flows::MusicSelect& flow() noexcept;
