@@ -1,6 +1,7 @@
 #pragma once
 
 #include "app/flows/MusicSelect.hpp"
+#include "ui/audio/MenuTimerSoundPlayer.hpp"
 #include "ui/audio/MusicPreviewPlayer.hpp"
 
 namespace xlair::ui {
@@ -13,7 +14,7 @@ namespace xlair::ui {
 
         void pause();
         void resume() noexcept;
-        void resetTimer(double seconds) noexcept;
+        void resetTimer(double seconds);
 
         [[nodiscard]]
         app::flows::MusicSelect& flow() noexcept;
@@ -35,6 +36,7 @@ namespace xlair::ui {
     private:
         app::flows::MusicSelect m_flow;
         audio::MusicPreviewPlayer m_preview_player;
+        audio::MenuTimerSoundPlayer m_timer_sound_player;
         double m_remaining_seconds = 0.0;
         std::size_t m_selected_setting_index = 0;
         bool m_paused = false;

@@ -10,6 +10,7 @@ namespace xlair::ui::audio {
         Finish,
         CoinInsert,
         LoginComplete,
+        TimerNormal,
     };
 
     void PlaySoundEffect(SoundEffect sound);

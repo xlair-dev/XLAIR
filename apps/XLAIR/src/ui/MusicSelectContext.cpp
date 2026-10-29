@@ -10,6 +10,7 @@ namespace xlair::ui {
         }
 
         m_remaining_seconds = Max(0.0, m_remaining_seconds - delta_seconds);
+        m_timer_sound_player.update(m_remaining_seconds);
 
         if (const auto* music = m_flow.selectedMusic()) {
             m_preview_player.update(music->music, music->demo_start_seconds);
@@ -20,6 +21,7 @@ namespace xlair::ui {
 
     void MusicSelectContext::pause() {
         m_paused = true;
+        m_timer_sound_player.stop();
         m_preview_player.stop(SecondsF{ 0.25 });
     }
 
@@ -27,7 +29,8 @@ namespace xlair::ui {
         m_paused = false;
     }
 
-    void MusicSelectContext::resetTimer(const double seconds) noexcept {
+    void MusicSelectContext::resetTimer(const double seconds) {
+        m_timer_sound_player.stop();
         m_remaining_seconds = Max(0.0, seconds);
     }
 
