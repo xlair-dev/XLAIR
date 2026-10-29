@@ -53,7 +53,8 @@ namespace xlair::ui::scenes {
     }
 
     Login::Login(const InitData& init)
-        : SceneBase{ init }, m_visibility_carousel{ SizeF{ 530, 340 }, Vec2{ DesignSize.x / 2.0, 570 }, DesignSize.x } {
+        : SceneBase{ init }, m_visibility_carousel{ SizeF{ 530, 340 }, Vec2{ DesignSize.x / 2.0, 570 }, DesignSize.x },
+          m_completion{ AudioAsset{ assets::sound::LoginComplete }.lengthSec() } {
         ClearPrint();
         AudioAsset{ assets::bgm::Login }.play(audio::Music);
 
@@ -80,7 +81,8 @@ namespace xlair::ui::scenes {
         }
 
         const auto* controller = getData().application->controller();
-        if (controller && controller->maintenanceButton(CancelButton).down() && m_login_flow.canCancel()) {
+        if (controller && controller->maintenanceButton(CancelButton).down() && m_login_flow.canCancel() &&
+            m_login_flow.state() != LoginState::UserFound) {
             returnToTitle();
             return;
         }
@@ -92,10 +94,22 @@ namespace xlair::ui::scenes {
             m_repeat_action = RepeatAction::None;
             if (m_login_flow.state() == LoginState::RegistrationRequired) {
                 m_step_elapsed = 0.0;
-            } else if (m_login_flow.state() == LoginState::UserFound) {
+            }
+        }
+        const bool complete = m_login_flow.state() == LoginState::UserFound;
+        switch (m_completion.update(complete, Scene::DeltaTime())) {
+            case presentation::LoginCompletion::Action::Announce:
+                audio::PlaySoundEffect(audio::SoundEffect::LoginComplete);
+                break;
+            case presentation::LoginCompletion::Action::Continue:
                 startSession();
                 return;
-            }
+            case presentation::LoginCompletion::Action::None:
+                break;
+        }
+        if (complete) {
+            m_menu_input.update(controller, MenuKeys, Scene::DeltaTime(), false);
+            return;
         }
         handleInput();
     }
@@ -278,7 +292,7 @@ namespace xlair::ui::scenes {
     }
 
     void Login::returnToTitle() {
-        if (!m_login_flow.canCancel()) {
+        if (!m_login_flow.canCancel() || m_login_flow.state() == LoginState::UserFound) {
             return;
         }
         audio::PlaySoundEffect(audio::SoundEffect::Navigate);
@@ -294,7 +308,6 @@ namespace xlair::ui::scenes {
         data.application->playSession().setRecords(m_login_flow.records());
         data.application->playSession().setPlayOptions(*m_login_flow.playOptions());
         AudioAsset{ assets::bgm::Login }.stop(Duration{ 0.3 });
-        audio::PlaySoundEffect(audio::SoundEffect::Finish);
         m_leaving = changeScene(SceneState::MusicSelect, transitions::CardTransitionMillisec, CrossFade::No);
     }
 
@@ -358,7 +371,7 @@ namespace xlair::ui::scenes {
                 Point{ 59, 72 }
             );
         }
-        if (m_login_flow.canCancel() && !m_leaving &&
+        if (m_login_flow.canCancel() && m_login_flow.state() != LoginState::UserFound && !m_leaving &&
             (m_login_flow.state() != LoginState::RegistrationRequired || m_step_elapsed >= StepTransitionSeconds)) {
             components::DrawSliderMappingGuide(sliderMappings(), RectF{ 210, 1010, 1500, 70 });
         }
@@ -497,16 +510,13 @@ namespace xlair::ui::scenes {
             return m_local_error;
         }
         switch (m_login_flow.state()) {
-            case LoginState::FindingUser:
-                return Text(TextId::LoginFindingUser);
             case LoginState::WaitingForCredit:
                 return Text(TextId::LoginWaitingForCredit);
             case LoginState::RegisteringUser:
             case LoginState::ConfirmingRegistration:
                 return Text(TextId::LoginRegistering);
-            case LoginState::IncrementingCredits:
             case LoginState::UserFound:
-                return Text(TextId::LoginUpdatingCredits);
+                return Text(m_completion.announced() ? TextId::LoginComplete : TextId::LoginLoadingUser);
             case LoginState::Failed:
                 return Text(TextId::LoginFailed);
             default:
