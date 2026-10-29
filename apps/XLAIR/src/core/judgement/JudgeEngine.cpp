@@ -84,6 +84,7 @@ namespace xlair::core::judgement {
         // Provisional values from player measurements: contact +/-83 ms, slide +/-167 ms.
         m_flick_tap_window = static_cast<int64>(std::llround(chart.sample_rate / 12.0));
         m_flick_slide_window = static_cast<int64>(std::llround(chart.sample_rate / 6.0));
+        m_hold_end_release_window = static_cast<int64>(std::llround(chart.sample_rate / 10.0));
 
         m_notes.reserve(
             chart.slider_notes.size() + chart.side_notes.size() + chart.slider_holds.size() + chart.side_holds.size()
@@ -343,6 +344,8 @@ namespace xlair::core::judgement {
             }
         }
 
+        updateSliderEndContacts(current_sample, touches, slider_pressed);
+
         // Starts use down-edge windows above. Later checkpoints use the held
         // slider lane or side button; each can recover after a previous miss.
         for (std::size_t cursor = m_hold_cursor; cursor < m_hold_order.size(); ++cursor) {
@@ -354,10 +357,18 @@ namespace xlair::core::judgement {
             if (point.state != NoteState::Pending) {
                 continue;
             }
+            const auto& hold =
+                (point.note_kind == NoteKind::SideHold ? m_side_holds : m_slider_holds)[point.hold_index];
+            const bool slider_end = point.note_kind == NoteKind::SliderHold && index.point + 1 == hold.points.size();
+            if (slider_end && current_sample < point.sample) {
+                continue;
+            }
             const long double distance = std::abs(static_cast<long double>(current_sample) - point.sample);
             const bool pressed = point.note_kind == NoteKind::SliderHold ? PressedInSpan(slider_pressed, point.lane)
                                                                          : SidePressed(side_pressed, point.side_button);
-            if (distance <= m_great_window && pressed) {
+            // Resolve the tail at its chart time, remembering contact shortly before release.
+            const bool released_near_end = slider_end && hold.last_end_contact_sample.has_value();
+            if (released_near_end || (distance <= m_great_window && pressed)) {
                 record(point, Grade::Perfect, current_sample, events);
             } else if ((static_cast<long double>(current_sample) - point.sample) > m_good_window) {
                 record(point, Grade::Miss, current_sample, events);
@@ -605,6 +616,39 @@ namespace xlair::core::judgement {
 
     bool JudgeEngine::sideHoldActive(const std::size_t hold_index) const {
         return m_side_holds.at(hold_index).active;
+    }
+
+    void JudgeEngine::updateSliderEndContacts(
+        const int64 sample,
+        const std::span<const TouchEvent> touches,
+        const uint32 slider_pressed
+    ) {
+        for (auto& hold : m_slider_holds) {
+            const auto& end = hold.points.back();
+            if (!hold.acquired || end.state != NoteState::Pending ||
+                static_cast<long double>(sample) < static_cast<long double>(end.sample) - m_hold_end_release_window) {
+                continue;
+            }
+            const auto lane_at = [&hold, &end](const int64 contact_sample) {
+                return hold.path.isEmpty() ? Optional<sheets::LaneSpan>{ end.lane }
+                                           : sheets::EvaluateSliderHoldLane(hold.path, contact_sample);
+            };
+            const auto lane = lane_at(sample);
+            if (sample <= end.sample && lane && PressedInSpan(slider_pressed, *lane)) {
+                hold.last_end_contact_sample = sample;
+            }
+            for (const auto& touch : touches) {
+                if (touch.phase == TouchEvent::Phase::Up && touch.zone < TouchZoneCount && touch.sample <= sample &&
+                    touch.sample <= end.sample &&
+                    static_cast<long double>(touch.sample) >=
+                        static_cast<long double>(end.sample) - m_hold_end_release_window) {
+                    const auto released_lane = lane_at(touch.sample);
+                    if (released_lane && Contains(*released_lane, touch.zone / 2)) {
+                        hold.last_end_contact_sample = touch.sample;
+                    }
+                }
+            }
+        }
     }
 
     void JudgeEngine::updateHoldActivity(const int64 sample, const uint32 slider_pressed, const uint8 side_pressed) {

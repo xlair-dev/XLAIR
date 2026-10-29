@@ -165,6 +165,7 @@ namespace xlair::core::judgement {
             Array<sheets::SliderHoldPoint> path;
             bool acquired = false;
             bool active = false;
+            Optional<int64> last_end_contact_sample;
         };
 
         [[nodiscard]]
@@ -183,6 +184,7 @@ namespace xlair::core::judgement {
         void record(HoldPoint& point, Grade grade, int64 sample, Array<JudgementEvent>& events);
         void updateHoldActivity(int64 sample, uint32 slider_pressed, uint8 side_pressed);
         void linkXTapStarts();
+        void updateSliderEndContacts(int64 sample, std::span<const TouchEvent> touches, uint32 slider_pressed);
 
         Array<Note> m_notes;
         Array<std::size_t> m_order;
@@ -205,6 +207,7 @@ namespace xlair::core::judgement {
         int64 m_good_window = 0;
         int64 m_flick_tap_window = 0;
         int64 m_flick_slide_window = 0;
+        int64 m_hold_end_release_window = 0;
         uint32 m_previous_slider_pressed = 0;
     };
 }
