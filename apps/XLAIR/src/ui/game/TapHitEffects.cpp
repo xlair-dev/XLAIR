@@ -83,8 +83,10 @@ namespace xlair::ui::game {
             return;
         }
 
-        const ColorF color = ColorF{ U"#75D8FF" }.removeSRGBCurve();
-        const ColorF accent = ColorF{ U"#C999F5" }.removeSRGBCurve();
+        const ColorF color =
+            (hit.xtap ? (hit.side_button ? ColorF{ U"#F4B900" } : ColorF{ U"#FEDF64" }) : ColorF{ U"#75D8FF" })
+                .removeSRGBCurve();
+        const ColorF accent = (hit.side_button ? ColorF{ U"#FFECA0" } : ColorF{ U"#FEEFB4" }).removeSRGBCurve();
         const double strength = hit.grade == core::judgement::Grade::Perfect ? 1.0
                                 : hit.grade == core::judgement::Grade::Great ? 0.8
                                                                              : 0.6;
