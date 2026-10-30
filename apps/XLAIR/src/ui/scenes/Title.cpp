@@ -32,7 +32,7 @@ namespace xlair::ui::scenes {
         }
 #endif
         const auto previous = m_title_flow->state();
-        m_title_flow->update();
+        m_title_flow->update(Scene::DeltaTime());
         if (m_title_flow->state() != previous) {
             reportState();
             if (m_title_flow->state() == app::flows::Title::State::CardRead) {

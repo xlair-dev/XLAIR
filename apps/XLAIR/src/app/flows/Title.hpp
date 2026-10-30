@@ -5,6 +5,8 @@
 namespace xlair::app::flows {
     class Title {
     public:
+        static constexpr double RetryDelaySeconds = 3.0;
+
         enum class State {
             Idle,
             WaitingForCard,
@@ -19,7 +21,7 @@ namespace xlair::app::flows {
         Title& operator=(const Title&) = delete;
 
         void start();
-        void update();
+        void update(double delta_seconds);
         void cancel();
 
         [[nodiscard]]
@@ -32,6 +34,7 @@ namespace xlair::app::flows {
         const Optional<card::Error>& error() const noexcept;
 
     private:
+        void startScan();
         void fail(card::Error error);
 
         interfaces::ICardReader& m_card_reader;
@@ -39,5 +42,6 @@ namespace xlair::app::flows {
         Optional<card::Card> m_card;
         Optional<card::Error> m_error;
         State m_state = State::Idle;
+        double m_retry_elapsed = 0.0;
     };
 }
