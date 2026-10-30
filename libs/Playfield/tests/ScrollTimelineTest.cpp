@@ -110,6 +110,51 @@ TEST_CASE("ScrollTimeline sorts changes and uses the last change at the same sam
     CHECK(static_cast<double>(timeline.positionAt(200)) == Approx(4.0));
 }
 
+TEST_CASE("ScrollTimeline reuses ordered breakpoint output across ranges", "[Playfield][ScrollTimeline]") {
+    const xlair::sheets::Timeline source{
+        .speed_changes = {
+            { .sample = 200, .multiplier = -1.0 },
+            { .sample = 100, .multiplier = 2.0 },
+            { .sample = 0, .multiplier = 1.0 },
+            { .sample = 100, .multiplier = 0.0 },
+            { .sample = 300, .multiplier = 1.0 },
+        },
+    };
+    const xlair::playfield::ScrollTimeline timeline{ source, SampleRate };
+    s3d::Array<s3d::int64> samples{ 999 };
+    samples.reserve(16);
+    const auto capacity = samples.capacity();
+    const auto check_range = [&](const s3d::int64 current,
+                                 const s3d::int64 from,
+                                 const s3d::int64 to,
+                                 const s3d::Array<s3d::int64>& expected) {
+        timeline.noteDistanceBreakpoints(current, from, to, samples);
+        CHECK(samples == expected);
+        CHECK(samples == timeline.noteDistanceBreakpoints(current, from, to));
+        CHECK(samples.capacity() == capacity);
+    };
+
+    check_range(-50, -100, 350, { -50, 0, 100, 200, 300 });
+    check_range(100, -100, 300, { 100, 200 });
+    check_range(200, 100, 300, { 200 });
+    check_range(50, 100, 300, { 200 });
+    check_range(350, 0, 300, {});
+    check_range(0, 0, 300, { 100, 200 });
+    check_range(300, 0, 300, {});
+    check_range(0, 100, 100, {});
+    check_range(0, 300, 100, {});
+}
+
+TEST_CASE("ScrollTimeline clears reused breakpoint output with no speed changes", "[Playfield][ScrollTimeline]") {
+    const xlair::playfield::ScrollTimeline timeline{ xlair::sheets::Timeline{}, SampleRate };
+    s3d::Array<s3d::int64> samples{ 999 };
+
+    timeline.noteDistanceBreakpoints(50, 0, 100, samples);
+    CHECK(samples == s3d::Array<s3d::int64>{ 50 });
+    timeline.noteDistanceBreakpoints(150, 0, 100, samples);
+    CHECK(samples.isEmpty());
+}
+
 TEST_CASE("ScrollTimeline uses normal speed before its first change", "[Playfield][ScrollTimeline]") {
     const xlair::sheets::Timeline source{
         .speed_changes = {

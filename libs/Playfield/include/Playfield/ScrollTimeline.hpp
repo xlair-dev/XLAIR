@@ -23,6 +23,14 @@ namespace xlair::playfield {
         s3d::Array<s3d::int64>
         noteDistanceBreakpoints(s3d::int64 current_sample, s3d::int64 from_sample, s3d::int64 to_sample) const;
 
+        // Replaces the output while retaining its allocated storage.
+        void noteDistanceBreakpoints(
+            s3d::int64 current_sample,
+            s3d::int64 from_sample,
+            s3d::int64 to_sample,
+            s3d::Array<s3d::int64>& samples
+        ) const;
+
     private:
         struct Segment {
             s3d::int64 sample = 0;

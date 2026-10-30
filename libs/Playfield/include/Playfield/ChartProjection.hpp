@@ -27,6 +27,15 @@ namespace xlair::playfield {
             s3d::int64 to_sample
         ) const;
 
+        // Replaces the output while retaining its allocated storage.
+        void noteDistanceBreakpoints(
+            sheets::TimelineIndex timeline,
+            s3d::int64 current_sample,
+            s3d::int64 from_sample,
+            s3d::int64 to_sample,
+            s3d::Array<s3d::int64>& samples
+        ) const;
+
         [[nodiscard]]
         std::size_t timelineCount() const noexcept;
 

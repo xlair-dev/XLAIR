@@ -98,8 +98,19 @@ namespace xlair::playfield {
         const s3d::int64 to_sample
     ) const {
         s3d::Array<s3d::int64> samples;
+        noteDistanceBreakpoints(current_sample, from_sample, to_sample, samples);
+        return samples;
+    }
+
+    void ScrollTimeline::noteDistanceBreakpoints(
+        const s3d::int64 current_sample,
+        const s3d::int64 from_sample,
+        const s3d::int64 to_sample,
+        s3d::Array<s3d::int64>& samples
+    ) const {
+        samples.clear();
         if (from_sample >= to_sample) {
-            return samples;
+            return;
         }
 
         if (from_sample < current_sample && current_sample < to_sample) {
@@ -113,10 +124,9 @@ namespace xlair::playfield {
                 return value < segment.sample;
             }
         );
+        // Segments are strictly ordered and follow the judgement crossing, if included.
         for (auto segment = first; segment != m_segments.end() && segment->sample < to_sample; ++segment) {
             samples.push_back(segment->sample);
         }
-        samples.sort();
-        return samples;
     }
 }

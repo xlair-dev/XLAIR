@@ -31,11 +31,53 @@ TEST_CASE("ChartProjection supplies a normal timeline for an empty chart", "[Pla
     CHECK(static_cast<double>(projection.positionAt(0, 250)) == Approx(2.5));
 }
 
+TEST_CASE("ChartProjection reuses breakpoint output across timelines", "[Playfield][ChartProjection]") {
+    const xlair::sheets::Chart chart{
+        .sample_rate = 100,
+        .timelines = {
+            { .speed_changes = { { .sample = 0, .multiplier = 1.0 } } },
+            { .speed_changes = {
+                { .sample = 200, .multiplier = -1.0 },
+                { .sample = 100, .multiplier = 1.0 },
+                { .sample = 100, .multiplier = 0.0 },
+            } },
+        },
+    };
+    const xlair::playfield::ChartProjection projection{ chart };
+    s3d::Array<s3d::int64> samples{ 999 };
+    samples.reserve(16);
+    const auto capacity = samples.capacity();
+
+    projection.noteDistanceBreakpoints(1, 100, 0, 300, samples);
+    CHECK(samples == (s3d::Array<s3d::int64>{ 100, 200 }));
+    CHECK(samples == projection.noteDistanceBreakpoints(1, 100, 0, 300));
+    projection.noteDistanceBreakpoints(0, 50, 0, 100, samples);
+    CHECK(samples == s3d::Array<s3d::int64>{ 50 });
+    projection.noteDistanceBreakpoints(1, 250, 0, 200, samples);
+    CHECK(samples.isEmpty());
+    projection.noteDistanceBreakpoints(1, 0, 200, 200, samples);
+    CHECK(samples.isEmpty());
+    CHECK(samples.capacity() == capacity);
+}
+
 TEST_CASE("ChartProjection rejects an invalid timeline index", "[Playfield][ChartProjection]") {
     const xlair::playfield::ChartProjection projection{ xlair::sheets::Chart{} };
 
     CHECK_THROWS_AS(projection.positionAt(1, 0), std::out_of_range);
     CHECK_THROWS_AS(projection.noteDistanceBreakpoints(1, 0, 0, 100), std::out_of_range);
+
+    s3d::Array<s3d::int64> samples{ 999 };
+    samples.reserve(16);
+    const auto capacity = samples.capacity();
+    CHECK_THROWS_AS(projection.noteDistanceBreakpoints(1, 0, 0, 100, samples), std::out_of_range);
+    CHECK(samples.isEmpty());
+    CHECK(samples.capacity() == capacity);
+    samples.push_back(999);
+    CHECK_THROWS_AS(projection.noteDistanceBreakpoints(1, 0, 100, 100, samples), std::out_of_range);
+    CHECK_THROWS_AS(projection.noteDistanceBreakpoints(1, 0, 100, 100), std::out_of_range);
+    CHECK(samples.isEmpty());
+    projection.noteDistanceBreakpoints(0, 50, 0, 100, samples);
+    CHECK(samples == s3d::Array<s3d::int64>{ 50 });
 }
 
 TEST_CASE("Measure lines use the main timeline through stops and reverse scroll", "[Playfield][ChartProjection]") {
