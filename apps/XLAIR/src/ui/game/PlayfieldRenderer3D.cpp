@@ -80,21 +80,20 @@ namespace xlair::ui::game {
                    WorldUnitsPerSecond * note_speed;
         }
 
-        [[nodiscard]]
-        Array<double> MeasureLineDepths(
+        void UpdateMeasureLineDepths(
             const sheets::Chart& chart,
             const playfield::ChartProjection& projection,
             const int64 current_sample,
-            const double note_speed
+            const double note_speed,
+            Array<double>& depths
         ) {
-            Array<double> depths;
+            depths.clear();
             for (const auto& line : chart.measure_lines) {
                 const double z = WorldZ(projection, chart.main_timeline, current_sample, line.sample, note_speed);
                 if (std::isfinite(z) && LowerNear <= z && z <= FieldFar) {
                     depths.push_back(z);
                 }
             }
-            return depths;
         }
 
         template <class Point, class DrawSection>
@@ -104,14 +103,14 @@ namespace xlair::ui::game {
             const double note_speed,
             const Point& before,
             const Point& after,
+            Array<int64>& samples,
             DrawSection&& draw_section
         ) {
             if (before.sample >= after.sample) {
                 return;
             }
 
-            auto samples =
-                projection.noteDistanceBreakpoints(before.timeline, current_sample, before.sample, after.sample);
+            projection.noteDistanceBreakpoints(before.timeline, current_sample, before.sample, after.sample, samples);
             samples.push_back(after.sample);
 
             int64 previous_sample = before.sample;
@@ -231,7 +230,8 @@ namespace xlair::ui::game {
             const int64 current_sample,
             const double note_speed,
             const core::judgement::JudgeEngine* judge_engine,
-            const uint32 slider_pressed
+            const uint32 slider_pressed,
+            Array<int64>& section_samples
         ) {
             constexpr double SourceWidth = FieldSurfaceSize.x;
             constexpr double SourceHeight = FieldSurfaceSize.y;
@@ -308,6 +308,7 @@ namespace xlair::ui::game {
                         note_speed,
                         before,
                         after,
+                        section_samples,
                         [&](const int64 section_start,
                             const double before_z,
                             const int64 section_end,
@@ -450,7 +451,8 @@ namespace xlair::ui::game {
             const double note_speed,
             const core::judgement::JudgeEngine* judge_engine,
             const uint32 slider_pressed,
-            const std::span<const double> measure_depths
+            const std::span<const double> measure_depths,
+            Array<int64>& section_samples
         ) {
             constexpr double SourceWidth = FieldSurfaceSize.x;
             constexpr double SourceHeight = FieldSurfaceSize.y;
@@ -473,7 +475,15 @@ namespace xlair::ui::game {
                 Line{ 0.0, y, SourceWidth, y }.draw(2.0, ColorF{ U"#A8BCC8" }.removeSRGBCurve().withA(0.5));
             }
             DrawSliderTouchEffects(slider_pressed);
-            DrawSliderHoldBodies(chart, projection, current_sample, note_speed, judge_engine, slider_pressed);
+            DrawSliderHoldBodies(
+                chart,
+                projection,
+                current_sample,
+                note_speed,
+                judge_engine,
+                slider_pressed,
+                section_samples
+            );
             DrawSliderHoldHeads(chart, projection, current_sample, note_speed, judge_engine);
             DrawSliderNotes(chart, projection, current_sample, note_speed, judge_engine);
             if (combo >= 5) {
@@ -482,12 +492,13 @@ namespace xlair::ui::game {
                 FontAsset{ assets::font::Display }(U"COMBO")
                     .drawAt(SourceWidth * 0.5, SourceHeight - 600.0, Palette::White);
             }
-            primitives::Sparkle(Vec2{ SourceStageLeft - 2.0, SourceJudgeY }, 200.0, 300.0, 0.0, 16.0)
-                .asPolygon()
-                .drawFrame(1.5, judge_color);
-            primitives::Sparkle(Vec2{ SourceWidth - SourceStageLeft + 2.0, SourceJudgeY }, 200.0, 300.0, 0.0, 16.0)
-                .asPolygon()
-                .drawFrame(1.5, judge_color);
+            static const Polygon LeftJudgeSparkle =
+                primitives::Sparkle(Vec2{ SourceStageLeft - 2.0, SourceJudgeY }, 200.0, 300.0, 0.0, 16.0).asPolygon();
+            static const Polygon RightJudgeSparkle =
+                primitives::Sparkle(Vec2{ SourceWidth - SourceStageLeft + 2.0, SourceJudgeY }, 200.0, 300.0, 0.0, 16.0)
+                    .asPolygon();
+            LeftJudgeSparkle.drawFrame(1.5, judge_color);
+            RightJudgeSparkle.drawFrame(1.5, judge_color);
             RectF{ 0, SourceJudgeY - 2.5, SourceWidth, 5.0 }
                 .drawShadow(Vec2{ 0, 10 }, 30.0, 0.0, judge_color.withA(0.15))
                 .draw(judge_color);
@@ -699,7 +710,8 @@ namespace xlair::ui::game {
             const int64 current_sample,
             const double note_speed,
             const core::judgement::JudgeEngine* judge_engine,
-            const uint8 side_pressed
+            const uint8 side_pressed,
+            Array<int64>& section_samples
         ) {
             const ScopedRenderStates3D translucent{ BlendState::NonPremultiplied, DepthStencilState::DepthTest };
             for (std::size_t hold_index = 0; hold_index < chart.side_holds.size(); ++hold_index) {
@@ -727,6 +739,7 @@ namespace xlair::ui::game {
                         note_speed,
                         before,
                         after,
+                        section_samples,
                         [&](const int64, const double before_z, const int64, const double after_z) {
                             const double near_limit = active ? 0.0 : (upper ? FieldNear : LowerNear);
                             const double near_z = Clamp(Min(before_z, after_z), near_limit, FieldFar);
@@ -915,7 +928,7 @@ namespace xlair::ui::game {
         const uint32 slider_pressed,
         const uint8 side_pressed
     ) const {
-        const auto measure_depths = MeasureLineDepths(chart, projection, current_sample, note_speed);
+        UpdateMeasureLineDepths(chart, projection, current_sample, note_speed, m_measure_depths);
         {
             const ScopedRenderTarget2D target{ m_field_surface.clear(ColorF{ 0.0, 0.0 }) };
             DrawFieldSurface(
@@ -926,7 +939,8 @@ namespace xlair::ui::game {
                 note_speed,
                 judge_engine,
                 slider_pressed,
-                measure_depths
+                m_measure_depths,
+                m_hold_section_samples
             );
             Graphics2D::Flush();
             m_field_surface.resolve();
@@ -939,9 +953,17 @@ namespace xlair::ui::game {
         {
             const ScopedRenderTarget3D target{ m_render_texture.clear(BackgroundColor.removeSRGBCurve()) };
             const ScopedCustomShader3D fog_shader{ m_fog_shader };
-            DrawField(m_field_surface, show_depth_guides, side_pressed, measure_depths);
+            DrawField(m_field_surface, show_depth_guides, side_pressed, m_measure_depths);
             DrawSliderHoldDiamonds(chart, projection, current_sample, note_speed);
-            DrawSideHoldBodies(chart, projection, current_sample, note_speed, judge_engine, side_pressed);
+            DrawSideHoldBodies(
+                chart,
+                projection,
+                current_sample,
+                note_speed,
+                judge_engine,
+                side_pressed,
+                m_hold_section_samples
+            );
             DrawSideNotes(
                 chart,
                 projection,

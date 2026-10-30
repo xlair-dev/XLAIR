@@ -50,5 +50,7 @@ namespace xlair::ui::game {
         PixelShader m_fog_shader;
         ConstantBuffer<FogParameters> m_fog_parameters;
         TapHitEffects m_hit_effects;
+        mutable Array<double> m_measure_depths;
+        mutable Array<int64> m_hold_section_samples;
     };
 }
