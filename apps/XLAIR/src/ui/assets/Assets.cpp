@@ -161,6 +161,12 @@ namespace xlair::ui::assets {
             Require(AudioAsset::Load(sound::LoginComplete), U"Failed to load the login completion sound.");
 
             Require(
+                AudioAsset::Register(sound::PopupError, Resource(U"ui/sounds/se/popup_error.wav")),
+                U"Failed to register the error popup sound."
+            );
+            Require(AudioAsset::Load(sound::PopupError), U"Failed to load the error popup sound.");
+
+            Require(
                 AudioAsset::Register(sound::TimerNormal, Resource(U"ui/sounds/se/timer_normal.wav")),
                 U"Failed to register the normal timer sound."
             );

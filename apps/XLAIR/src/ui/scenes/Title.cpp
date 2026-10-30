@@ -3,6 +3,7 @@
 #include "app/Version.hpp"
 #include "ui/Design.hpp"
 #include "ui/assets/Assets.hpp"
+#include "ui/audio/SoundEffect.hpp"
 #include "ui/localization/Localization.hpp"
 #include "ui/theme/Palette.hpp"
 #include "ui/transitions/ScreenWipe.hpp"
@@ -21,6 +22,7 @@ namespace xlair::ui::scenes {
 
     void Title::update() {
         m_elapsed += Scene::DeltaTime();
+        m_error_popup.update(Scene::DeltaTime());
 #ifndef NDEBUG
         if (KeyP.down() || KeyF11.down()) {
             changeScene(SceneState::PlayfieldDebug, 0);
@@ -33,7 +35,7 @@ namespace xlair::ui::scenes {
 #endif
         const auto previous = m_title_flow->state();
         m_title_flow->update(Scene::DeltaTime());
-        if (m_title_flow->state() != previous) {
+        if (m_title_flow->state() != previous || m_title_flow->state() == app::flows::Title::State::Failed) {
             reportState();
             if (m_title_flow->state() == app::flows::Title::State::CardRead) {
                 getData().scanned_card = *m_title_flow->card();
@@ -66,10 +68,12 @@ namespace xlair::ui::scenes {
         FontAsset{ assets::font::Label }(U"G: COMPONENT GALLERY")
             .draw(16, Vec2{ 24, DesignSize.y - 28 }, theme::Palette::Gray);
 #endif
+        m_error_popup.draw(center);
     }
 
     void Title::updateFadeOut(const double) {
         m_elapsed += Scene::DeltaTime();
+        m_error_popup.update(Scene::DeltaTime());
     }
 
     void Title::drawFadeOut(const double t) const {
@@ -81,7 +85,7 @@ namespace xlair::ui::scenes {
         }
     }
 
-    void Title::reportState() const {
+    void Title::reportState() {
         switch (m_title_flow->state()) {
             case app::flows::Title::State::Idle:
                 break;
@@ -97,9 +101,23 @@ namespace xlair::ui::scenes {
                 Logger << U"[Title] Card ID: " + m_title_flow->card()->card_id;
                 break;
 
-            case app::flows::Title::State::Failed:
-                Logger << U"[Title] Card reader error: " + m_title_flow->error()->message;
+            case app::flows::Title::State::Failed: {
+                const auto& error = *m_title_flow->error();
+                // Reconnect silently while the same failure persists on this Title screen.
+                if (m_notified_error && m_notified_error->kind == error.kind &&
+                    m_notified_error->message == error.message) {
+                    break;
+                }
+                m_notified_error = error;
+                Logger << U"[Title] Card reader error: " + error.message;
+                m_error_popup.show(
+                    localization::GetText(localization::TextId::TitleCardReadError),
+                    localization::GetText(localization::TextId::TitleCardReadRetry),
+                    app::flows::Title::RetryDelaySeconds
+                );
+                audio::PlaySoundEffect(audio::SoundEffect::PopupError);
                 break;
+            }
         }
     }
 }
