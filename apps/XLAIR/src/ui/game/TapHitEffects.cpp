@@ -114,11 +114,14 @@ namespace xlair::ui::game {
                         Plane{ surface.center + normal * 0.015, width * expansion * 0.75, width * expansion * 0.5 }
                             .draw(surface.rotation, m_ring, accent.withA(alpha * 0.8));
                     }
-                    const double glow = strength * std::pow(Max(0.0, 1.0 - t / 0.1), 2.0);
-                    Plane{ surface.center + normal * 0.02, width * 1.3, width * 0.6 }
-                        .draw(surface.rotation, m_glow, color.withA(glow * 0.65));
-                    Plane{ surface.center + normal * 0.025, width * 0.8, width * 0.25 }
-                        .draw(surface.rotation, m_glow, ColorF{ 1.0, glow });
+                    const double glow_fade = Max(0.0, 1.0 - t / 0.1);
+                    const double glow = strength * (glow_fade * glow_fade);
+                    if (glow > 0.0) {
+                        Plane{ surface.center + normal * 0.02, width * 1.3, width * 0.6 }
+                            .draw(surface.rotation, m_glow, color.withA(glow * 0.65));
+                        Plane{ surface.center + normal * 0.025, width * 0.8, width * 0.25 }
+                            .draw(surface.rotation, m_glow, ColorF{ 1.0, glow });
+                    }
                 }
 
                 for (std::size_t index = 0; index < count; ++index) {
@@ -127,7 +130,8 @@ namespace xlair::ui::game {
                     if (age < 0.0 || age >= ParticleLifetime) {
                         continue;
                     }
-                    const double alpha = strength * std::pow(1.0 - age / ParticleLifetime, 2.0);
+                    const double fade = 1.0 - age / ParticleLifetime;
+                    const double alpha = strength * (fade * fade);
                     const Vec3 position = particle.origin + particle.velocity * age - normal * (2.0 * age * age);
                     drawParticle(position, Float2{ particle.size * 0.7f, particle.size * 2.2f }, color.withA(alpha));
                     drawParticle(position, Float2{ particle.size * 0.5f, particle.size * 0.5f }, ColorF{ 1.0, alpha });
