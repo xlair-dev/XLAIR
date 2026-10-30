@@ -52,5 +52,6 @@ namespace xlair::ui::game {
         TapHitEffects m_hit_effects;
         mutable Array<double> m_measure_depths;
         mutable Array<int64> m_hold_section_samples;
+        mutable Array<long double> m_current_positions;
     };
 }

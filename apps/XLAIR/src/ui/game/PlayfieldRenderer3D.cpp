@@ -69,27 +69,25 @@ namespace xlair::ui::game {
 
         [[nodiscard]]
         double WorldZ(
-            const playfield::ChartProjection& projection,
+            const playfield::ChartProjection::Frame& projection,
             const sheets::TimelineIndex timeline,
-            const int64 current_sample,
             const int64 note_sample,
             const double note_speed
         ) {
             // Play options scale the visual distance without changing the chart's sample clock.
-            return static_cast<double>(projection.noteDistance(timeline, current_sample, note_sample)) *
-                   WorldUnitsPerSecond * note_speed;
+            return static_cast<double>(projection.noteDistance(timeline, note_sample)) * WorldUnitsPerSecond *
+                   note_speed;
         }
 
         void UpdateMeasureLineDepths(
             const sheets::Chart& chart,
-            const playfield::ChartProjection& projection,
-            const int64 current_sample,
+            const playfield::ChartProjection::Frame& projection,
             const double note_speed,
             Array<double>& depths
         ) {
             depths.clear();
             for (const auto& line : chart.measure_lines) {
-                const double z = WorldZ(projection, chart.main_timeline, current_sample, line.sample, note_speed);
+                const double z = WorldZ(projection, chart.main_timeline, line.sample, note_speed);
                 if (std::isfinite(z) && LowerNear <= z && z <= FieldFar) {
                     depths.push_back(z);
                 }
@@ -98,8 +96,7 @@ namespace xlair::ui::game {
 
         template <class Point, class DrawSection>
         void ForEachHoldSection(
-            const playfield::ChartProjection& projection,
-            const int64 current_sample,
+            const playfield::ChartProjection::Frame& projection,
             const double note_speed,
             const Point& before,
             const Point& after,
@@ -110,16 +107,16 @@ namespace xlair::ui::game {
                 return;
             }
 
-            projection.noteDistanceBreakpoints(before.timeline, current_sample, before.sample, after.sample, samples);
+            projection.noteDistanceBreakpoints(before.timeline, before.sample, after.sample, samples);
             samples.push_back(after.sample);
 
             int64 previous_sample = before.sample;
-            double previous_z = WorldZ(projection, before.timeline, current_sample, previous_sample, note_speed);
+            double previous_z = WorldZ(projection, before.timeline, previous_sample, note_speed);
             for (const int64 sample : samples) {
                 // The preceding anchor owns the interval's scroll timeline. The final
                 // endpoint keeps its own timeline, matching the anchor rendering.
                 const auto timeline = sample == after.sample ? after.timeline : before.timeline;
-                const double z = WorldZ(projection, timeline, current_sample, sample, note_speed);
+                const double z = WorldZ(projection, timeline, sample, note_speed);
                 if (std::isfinite(previous_z) && std::isfinite(z)) {
                     draw_section(previous_sample, previous_z, sample, z);
                 }
@@ -226,7 +223,7 @@ namespace xlair::ui::game {
 
         void DrawSliderHoldBodies(
             const sheets::Chart& chart,
-            const playfield::ChartProjection& projection,
+            const playfield::ChartProjection::Frame& projection,
             const int64 current_sample,
             const double note_speed,
             const core::judgement::JudgeEngine* judge_engine,
@@ -304,7 +301,6 @@ namespace xlair::ui::game {
                     };
                     ForEachHoldSection(
                         projection,
-                        current_sample,
                         note_speed,
                         before,
                         after,
@@ -338,8 +334,7 @@ namespace xlair::ui::game {
 
         void DrawSliderHoldHeads(
             const sheets::Chart& chart,
-            const playfield::ChartProjection& projection,
-            const int64 current_sample,
+            const playfield::ChartProjection::Frame& projection,
             const double note_speed,
             const core::judgement::JudgeEngine* judge_engine
         ) {
@@ -360,7 +355,7 @@ namespace xlair::ui::game {
                         judge_engine->sliderHoldPointState(hold_index, 0) != core::judgement::NoteState::Pending) {
                         continue;
                     }
-                    const double z = WorldZ(projection, point.timeline, current_sample, point.sample, note_speed);
+                    const double z = WorldZ(projection, point.timeline, point.sample, note_speed);
                     if (!std::isfinite(z)) {
                         continue;
                     }
@@ -378,8 +373,7 @@ namespace xlair::ui::game {
 
         void DrawSliderNotes(
             const sheets::Chart& chart,
-            const playfield::ChartProjection& projection,
-            const int64 current_sample,
+            const playfield::ChartProjection::Frame& projection,
             const double note_speed,
             const core::judgement::JudgeEngine* judge_engine
         ) {
@@ -391,7 +385,7 @@ namespace xlair::ui::game {
                     continue;
                 }
                 const auto& note = chart.slider_notes[index];
-                const double z = WorldZ(projection, note.timeline, current_sample, note.sample, note_speed);
+                const double z = WorldZ(projection, note.timeline, note.sample, note_speed);
                 if (!std::isfinite(z)) {
                     continue;
                 }
@@ -446,7 +440,7 @@ namespace xlair::ui::game {
         void DrawFieldSurface(
             const uint32 combo,
             const sheets::Chart& chart,
-            const playfield::ChartProjection& projection,
+            const playfield::ChartProjection::Frame& projection,
             const int64 current_sample,
             const double note_speed,
             const core::judgement::JudgeEngine* judge_engine,
@@ -484,8 +478,8 @@ namespace xlair::ui::game {
                 slider_pressed,
                 section_samples
             );
-            DrawSliderHoldHeads(chart, projection, current_sample, note_speed, judge_engine);
-            DrawSliderNotes(chart, projection, current_sample, note_speed, judge_engine);
+            DrawSliderHoldHeads(chart, projection, note_speed, judge_engine);
+            DrawSliderNotes(chart, projection, note_speed, judge_engine);
             if (combo >= 5) {
                 FontAsset{ assets::font::ComboNumber }(combo)
                     .drawAt(SourceWidth * 0.5, SourceHeight - 750.0, Palette::White);
@@ -616,14 +610,13 @@ namespace xlair::ui::game {
 
         [[nodiscard]]
         Optional<double> NoteDepth(
-            const playfield::ChartProjection& projection,
+            const playfield::ChartProjection::Frame& projection,
             const sheets::TimelineIndex timeline,
-            const int64 current_sample,
             const int64 note_sample,
             const double note_speed,
             const double near_limit = FieldNear
         ) {
-            const double z = WorldZ(projection, timeline, current_sample, note_sample, note_speed);
+            const double z = WorldZ(projection, timeline, note_sample, note_speed);
             if (!std::isfinite(z) || z < near_limit - 2.0 || z > FieldFar + 2.0) {
                 return none;
             }
@@ -632,8 +625,7 @@ namespace xlair::ui::game {
 
         void DrawSliderHoldDiamonds(
             const sheets::Chart& chart,
-            const playfield::ChartProjection& projection,
-            const int64 current_sample,
+            const playfield::ChartProjection::Frame& projection,
             const double note_speed
         ) {
             constexpr double Edge = 0.4;
@@ -645,7 +637,7 @@ namespace xlair::ui::game {
                     if (point.kind != sheets::SliderHoldPointKind::Visible) {
                         continue;
                     }
-                    const auto z = NoteDepth(projection, point.timeline, current_sample, point.sample, note_speed);
+                    const auto z = NoteDepth(projection, point.timeline, point.sample, note_speed);
                     if (!z) {
                         continue;
                     }
@@ -706,7 +698,7 @@ namespace xlair::ui::game {
 
         void DrawSideHoldBodies(
             const sheets::Chart& chart,
-            const playfield::ChartProjection& projection,
+            const playfield::ChartProjection::Frame& projection,
             const int64 current_sample,
             const double note_speed,
             const core::judgement::JudgeEngine* judge_engine,
@@ -735,7 +727,6 @@ namespace xlair::ui::game {
                     const auto& after = hold.points[index];
                     ForEachHoldSection(
                         projection,
-                        current_sample,
                         note_speed,
                         before,
                         after,
@@ -769,8 +760,7 @@ namespace xlair::ui::game {
 
         void DrawSideNotes(
             const sheets::Chart& chart,
-            const playfield::ChartProjection& projection,
-            const int64 current_sample,
+            const playfield::ChartProjection::Frame& projection,
             const double note_speed,
             const MSRenderTexture& upper_surface,
             const MSRenderTexture& lower_surface,
@@ -788,14 +778,8 @@ namespace xlair::ui::game {
                         judge_engine->sideHoldPointState(hold_index, 0) != core::judgement::NoteState::Pending) {
                         continue;
                     }
-                    const auto z = NoteDepth(
-                        projection,
-                        point.timeline,
-                        current_sample,
-                        point.sample,
-                        note_speed,
-                        lower ? LowerNear : FieldNear
-                    );
+                    const auto z =
+                        NoteDepth(projection, point.timeline, point.sample, note_speed, lower ? LowerNear : FieldNear);
                     if (z) {
                         DrawSideNotePlane(hold.button, *z, upper_surface, lower_surface);
                     }
@@ -808,14 +792,8 @@ namespace xlair::ui::game {
                 const auto& note = chart.side_notes[index];
                 const bool lower =
                     note.button == sheets::SideButton::LeftLower || note.button == sheets::SideButton::RightLower;
-                const auto z = NoteDepth(
-                    projection,
-                    note.timeline,
-                    current_sample,
-                    note.sample,
-                    note_speed,
-                    lower ? LowerNear : FieldNear
-                );
+                const auto z =
+                    NoteDepth(projection, note.timeline, note.sample, note_speed, lower ? LowerNear : FieldNear);
                 if (!z) {
                     continue;
                 }
@@ -928,13 +906,14 @@ namespace xlair::ui::game {
         const uint32 slider_pressed,
         const uint8 side_pressed
     ) const {
-        UpdateMeasureLineDepths(chart, projection, current_sample, note_speed, m_measure_depths);
+        const auto frame = projection.frameAt(current_sample, m_current_positions);
+        UpdateMeasureLineDepths(chart, frame, note_speed, m_measure_depths);
         {
             const ScopedRenderTarget2D target{ m_field_surface.clear(ColorF{ 0.0, 0.0 }) };
             DrawFieldSurface(
                 combo,
                 chart,
-                projection,
+                frame,
                 current_sample,
                 note_speed,
                 judge_engine,
@@ -954,10 +933,10 @@ namespace xlair::ui::game {
             const ScopedRenderTarget3D target{ m_render_texture.clear(BackgroundColor.removeSRGBCurve()) };
             const ScopedCustomShader3D fog_shader{ m_fog_shader };
             DrawField(m_field_surface, show_depth_guides, side_pressed, m_measure_depths);
-            DrawSliderHoldDiamonds(chart, projection, current_sample, note_speed);
+            DrawSliderHoldDiamonds(chart, frame, note_speed);
             DrawSideHoldBodies(
                 chart,
-                projection,
+                frame,
                 current_sample,
                 note_speed,
                 judge_engine,
@@ -966,8 +945,7 @@ namespace xlair::ui::game {
             );
             DrawSideNotes(
                 chart,
-                projection,
-                current_sample,
+                frame,
                 note_speed,
                 m_side_upper_note_surface,
                 m_side_lower_note_surface,

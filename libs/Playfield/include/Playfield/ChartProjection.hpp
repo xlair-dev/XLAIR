@@ -2,10 +2,44 @@
 
 #include "ScrollTimeline.hpp"
 
+#include <span>
+
 namespace xlair::playfield {
     class ChartProjection {
     public:
+        // A non-owning view valid only while its projection and output buffer live,
+        // and until that buffer is modified or reused by frameAt().
+        class Frame {
+        public:
+            [[nodiscard]]
+            long double noteDistance(sheets::TimelineIndex timeline, s3d::int64 note_sample) const;
+
+            void noteDistanceBreakpoints(
+                sheets::TimelineIndex timeline,
+                s3d::int64 from_sample,
+                s3d::int64 to_sample,
+                s3d::Array<s3d::int64>& samples
+            ) const;
+
+        private:
+            friend class ChartProjection;
+
+            Frame(
+                const ChartProjection& projection,
+                s3d::int64 current_sample,
+                std::span<const long double> current_positions
+            );
+
+            const ChartProjection& m_projection;
+            s3d::int64 m_current_sample;
+            std::span<const long double> m_current_positions;
+        };
+
         explicit ChartProjection(const sheets::Chart& chart);
+
+        [[nodiscard]]
+        Frame frameAt(s3d::int64 current_sample, s3d::Array<long double>& current_positions) const&;
+        Frame frameAt(s3d::int64 current_sample, s3d::Array<long double>& current_positions) const&& = delete;
 
         [[nodiscard]]
         long double positionAt(sheets::TimelineIndex timeline, s3d::int64 sample) const;
