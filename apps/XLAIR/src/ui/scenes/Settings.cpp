@@ -84,7 +84,7 @@ namespace xlair::ui::scenes {
           m_setting_cards{ MakeSettingCards() }, m_slider_mappings{ MakeSliderMappings() } {
         const auto& session = getData().application->playSession();
         const auto& options = session.playOptions();
-        m_note_speed = std::isfinite(options.note_speed) ? options.note_speed : 1.0;
+        m_note_speed = std::isfinite(options.note_speed) ? options.note_speed : 3.0;
         m_judgment_offset_ms = options.judgment_offset_ms;
         m_mirror = session.mirror();
         updateCardValues();

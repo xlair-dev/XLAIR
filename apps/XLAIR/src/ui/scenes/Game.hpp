@@ -60,7 +60,7 @@ namespace xlair::ui::scenes {
         Optional<core::judgement::JudgementEvent> m_last_judgement;
         double m_elapsed = 0.0;
         double m_judgement_display_seconds = 0.0;
-        double m_note_speed = 1.0;
+        double m_note_speed = 3.0;
         bool m_playback_started = false;
         bool m_playback_finished = false;
         bool m_autoplay = false;
