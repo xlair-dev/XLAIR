@@ -16,7 +16,7 @@ namespace xlair::ui::components {
             m_cached_score = data.score;
             m_cached_width = width;
         }
-        m_gaussian_a4.resized(DesignSize).draw(theme::Palette::DarkBlue);
+        m_gaussian_a4.resized(ShadowSize).draw(m_shadow_left, 0, theme::Palette::DarkBlue);
         font(score_text).drawAt(48, Vec2{ width / 2.0, 30 }, theme::Palette::White);
 
         TextureAsset{ assets::texture::GameScoreBarFrame }.resized(width, 67).draw(0, 49);
@@ -37,10 +37,12 @@ namespace xlair::ui::components {
     }
 
     void GameScoreBar::updateScoreShadow(const StringView score_text, const Font& font, const int32 width) {
+        // Keep the crop on the same 1/4-resolution blur grid as the original full-screen texture.
+        m_shadow_left = Max(0, (width - ShadowSize.x) / 8) * 4;
         {
             const ScopedRenderTarget2D target{ m_shadow_texture.clear(ColorF{ 1.0, 0.0 }) };
             const ScopedRenderStates2D blend{ BlendState::MaxAlpha };
-            const Transformer2D transform{ Mat3x2::Translate(Vec2{ 1, 1 }) };
+            const Transformer2D transform{ Mat3x2::Translate(Vec2{ 1 - m_shadow_left, 1 }) };
             font(score_text).drawAt(48, Vec2{ width / 2.0, 30 });
         }
         Shader::Downsample(m_shadow_texture, m_gaussian_a4);

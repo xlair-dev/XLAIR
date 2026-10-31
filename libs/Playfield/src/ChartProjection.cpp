@@ -140,7 +140,12 @@ namespace xlair::playfield {
         return { spans.data(), spans.size() };
     }
 
-    void ChartProjection::Frame::holdSections(const PreparedHoldSpan& span, s3d::Array<HoldSection>& sections) const {
+    void ChartProjection::Frame::holdSections(
+        const PreparedHoldSpan& span,
+        s3d::Array<HoldSection>& sections,
+        const long double minimum_distance,
+        const long double maximum_distance
+    ) const {
         sections.clear();
         if (span.before.sample >= span.after.sample) {
             return;
@@ -156,8 +161,21 @@ namespace xlair::playfield {
         };
         PreparedHoldPoint previous = span.before;
         long double previous_distance = distance(previous);
-        const auto append = [&](const PreparedHoldPoint& point) {
-            const long double point_distance = distance(point);
+        const long double after_distance = distance(span.after);
+        const bool crosses_current = span.before.sample < m_current_sample && m_current_sample < span.after.sample;
+        if (minimum_distance <= maximum_distance &&
+            (span.breakpoints.isEmpty() || span.breakpoints.back().sample <= m_current_sample)) {
+            // Without future speed boundaries the only interior vertex can be the judgement line.
+            if (previous_distance > maximum_distance && after_distance > maximum_distance &&
+                (!crosses_current || 0.0L > maximum_distance)) {
+                return;
+            }
+            if (previous_distance < minimum_distance && after_distance < minimum_distance &&
+                (!crosses_current || 0.0L < minimum_distance)) {
+                return;
+            }
+        }
+        const auto append = [&](const PreparedHoldPoint& point, const long double point_distance) {
             sections.push_back(
                 {
                     .before = previous,
@@ -169,7 +187,7 @@ namespace xlair::playfield {
             previous = point;
             previous_distance = point_distance;
         };
-        if (span.before.sample < m_current_sample && m_current_sample < span.after.sample) {
+        if (crosses_current) {
             if (span.before.timeline >= m_current_positions.size()) {
                 throw std::out_of_range{ "The timeline index is outside the chart projection." };
             }
@@ -177,16 +195,15 @@ namespace xlair::playfield {
                 (static_cast<long double>(m_current_sample) - span.before.sample) /
                 (static_cast<long double>(span.after.sample) - span.before.sample)
             );
-            append(
-                {
-                    .sample = m_current_sample,
-                    .timeline = span.before.timeline,
-                    .position = m_current_positions[span.before.timeline],
-                    .lane_start = s3d::Math::Lerp(span.before.lane_start, span.after.lane_start, ratio),
-                    .lane_width = s3d::Math::Lerp(span.before.lane_width, span.after.lane_width, ratio),
-                    .color_progress = ColorProgress(m_current_sample, span.first_sample, span.duration),
-                }
-            );
+            const PreparedHoldPoint current{
+                .sample = m_current_sample,
+                .timeline = span.before.timeline,
+                .position = m_current_positions[span.before.timeline],
+                .lane_start = s3d::Math::Lerp(span.before.lane_start, span.after.lane_start, ratio),
+                .lane_width = s3d::Math::Lerp(span.before.lane_width, span.after.lane_width, ratio),
+                .color_progress = ColorProgress(m_current_sample, span.first_sample, span.duration),
+            };
+            append(current, distance(current));
         }
         const auto first = std::upper_bound(
             span.breakpoints.begin(),
@@ -197,9 +214,9 @@ namespace xlair::playfield {
             }
         );
         for (auto point = first; point != span.breakpoints.end(); ++point) {
-            append(*point);
+            append(*point, distance(*point));
         }
-        append(span.after);
+        append(span.after, after_distance);
     }
 
     ChartProjection::ChartProjection(const sheets::Chart& chart) {
