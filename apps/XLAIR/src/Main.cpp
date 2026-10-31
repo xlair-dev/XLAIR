@@ -68,5 +68,8 @@ void Main() {
         scene_data->game_loader.update();
         scene_manager.drawScene();
         ui::DrawSceneOverlay(*scene_data);
+        if (const auto& config = application->config(); config && config->system.arcade) {
+            Cursor::RequestStyle(CursorStyle::Hidden);
+        }
     }
 }
