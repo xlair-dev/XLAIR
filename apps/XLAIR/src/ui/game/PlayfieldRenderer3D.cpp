@@ -707,7 +707,8 @@ namespace xlair::ui::game {
             const ColorF& background,
             const ColorF& light,
             const ColorF& dark,
-            const ColorF& outline
+            const ColorF& outline,
+            const bool xtap = false
         ) {
             // Keep the texture opaque so the existing 3D depth and blend states remain unchanged.
             const ScopedRenderTarget2D target{ surface.clear(background.removeSRGBCurve()) };
@@ -718,8 +719,17 @@ namespace xlair::ui::game {
                                    SideNoteSurfaceSize.x,
                                    12.0 };
             plate.draw(outline.removeSRGBCurve());
-            plate.stretched(-4).draw(Arg::top = light.removeSRGBCurve(), Arg::bottom = dark.removeSRGBCurve());
-            plate.stretched(-7).drawFrame(1.5, ColorF{ 1.0 });
+            if (xtap) {
+                plate.stretched(-3).draw(
+                    Arg::top = ColorF{ U"#FFECA0" }.removeSRGBCurve(),
+                    Arg::bottom = ColorF{ U"#F4B900" }.removeSRGBCurve()
+                );
+                plate.stretched(-10).draw(Arg::top = light.removeSRGBCurve(), Arg::bottom = dark.removeSRGBCurve());
+                plate.stretched(-5).drawFrame(1.5, ColorF{ U"#FFF3C5" }.removeSRGBCurve());
+            } else {
+                plate.stretched(-4).draw(Arg::top = light.removeSRGBCurve(), Arg::bottom = dark.removeSRGBCurve());
+                plate.stretched(-7).drawFrame(1.5, ColorF{ 1.0 });
+            }
             Graphics2D::Flush();
             surface.resolve();
         }
@@ -903,16 +913,18 @@ namespace xlair::ui::game {
         DrawSideNoteSurface(
             m_side_upper_xtap_surface,
             SideUpperColor,
-            ColorF{ U"#FFECA0" },
-            ColorF{ U"#F4B900" },
-            ColorF{ U"#8A4B00" }
+            SideUpperNoteLightColor,
+            SideUpperNoteDarkColor,
+            SideUpperNoteOutlineColor,
+            true
         );
         DrawSideNoteSurface(
             m_side_lower_xtap_surface,
             SideLowerColor,
-            ColorF{ U"#FFECA0" },
-            ColorF{ U"#F4B900" },
-            ColorF{ U"#8A4B00" }
+            SideLowerNoteLightColor,
+            SideLowerNoteDarkColor,
+            SideLowerNoteOutlineColor,
+            true
         );
     }
 
