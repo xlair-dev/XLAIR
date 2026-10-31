@@ -817,7 +817,7 @@ namespace xlair::ui::game {
           m_side_lower_xtap_surface{ SideNoteSurfaceSize, TextureFormat::R8G8B8A8_Unorm_SRGB }, m_fog_shader{
               HLSL{ Resource(U"ui/shaders/hlsl/playfield_fog.hlsl"), U"PS" } |
               GLSL{ Resource(U"ui/shaders/glsl/playfield_fog.frag"),
-                    { { U"PSPerFrame", 0 }, { U"PSPerView", 1 }, { U"PSPerMaterial", 3 }, { U"PSFog", 4 } } }
+                    { { U"PSPerFrame", 0 }, { U"PSPerMaterial", 3 }, { U"PSFog", 4 } } }
           } {
         if (!m_fog_shader) {
             throw Error{ U"Failed to load the 3D playfield depth-fade shader." };

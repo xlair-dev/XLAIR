@@ -8,7 +8,6 @@ namespace s3d {
         float4 position : SV_POSITION;
         float3 worldPosition : TEXCOORD0;
         float2 uv : TEXCOORD1;
-        float3 normal : TEXCOORD2;
     };
 }
 
@@ -18,14 +17,11 @@ cbuffer PSPerFrame : register(b0) {
     float3 g_sunDirection;
 }
 
-cbuffer PSPerView : register(b1) {
-    float3 g_eyePosition;
-}
-
 cbuffer PSPerMaterial : register(b3) {
     float3 g_ambientColor;
     uint g_hasTexture;
     float4 g_diffuseColor;
+    // Preserve Siv3D's material-buffer layout and the emission offset.
     float3 g_specularColor;
     float g_shininess;
     float3 g_emissionColor;
@@ -42,17 +38,9 @@ float4 PS(s3d::PSInput input) : SV_TARGET {
         diffuseColor *= g_texture0.Sample(g_sampler0, input.uv);
     }
 
-    float3 n = normalize(input.normal);
-    float3 l = g_sunDirection;
+    // The playfield uses ambient-only lighting (sun color is always zero).
     float3 ambientColor = g_ambientColor * g_globalAmbientColor;
-    float3 directColor = g_sunColor * saturate(dot(n, l));
-    float3 diffuseReflection = (ambientColor + directColor) * diffuseColor.rgb;
-
-    float3 v = normalize(g_eyePosition - input.worldPosition);
-    float3 h = normalize(v + l);
-    float highlight = pow(saturate(dot(n, h)), g_shininess) * float(dot(n, l) > 0.0);
-    float3 specularReflection = g_sunColor * g_specularColor * highlight;
-    float3 surfaceColor = diffuseReflection + specularReflection + g_emissionColor;
+    float3 surfaceColor = ambientColor * diffuseColor.rgb + g_emissionColor;
 
     float fog = smoothstep(g_fogColorAndStart.w, g_fogEndAndStrength.x, input.worldPosition.z);
     fog *= g_fogEndAndStrength.y;
