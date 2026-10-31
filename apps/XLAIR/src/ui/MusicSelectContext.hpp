@@ -7,7 +7,11 @@
 namespace xlair::ui {
     class MusicSelectContext {
     public:
-        MusicSelectContext(const Array<sheets::Metadata>& catalog, double remaining_seconds);
+        MusicSelectContext(
+            const Array<sheets::Metadata>& catalog,
+            double remaining_seconds,
+            bool include_test_music = true
+        );
 
         // Main updates this once per frame, including while Settings is active.
         void update(double delta_seconds);

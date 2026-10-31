@@ -1,8 +1,12 @@
 #include "MusicSelectContext.hpp"
 
 namespace xlair::ui {
-    MusicSelectContext::MusicSelectContext(const Array<sheets::Metadata>& catalog, const double remaining_seconds)
-        : m_flow{ catalog }, m_remaining_seconds{ Max(0.0, remaining_seconds) } {}
+    MusicSelectContext::MusicSelectContext(
+        const Array<sheets::Metadata>& catalog,
+        const double remaining_seconds,
+        const bool include_test_music
+    )
+        : m_flow{ catalog, include_test_music }, m_remaining_seconds{ Max(0.0, remaining_seconds) } {}
 
     void MusicSelectContext::update(const double delta_seconds) {
         if (m_paused) {

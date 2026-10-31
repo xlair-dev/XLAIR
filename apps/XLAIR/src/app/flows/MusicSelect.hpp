@@ -7,7 +7,7 @@
 namespace xlair::app::flows {
     class MusicSelect {
     public:
-        explicit MusicSelect(const Array<sheets::Metadata>& catalog);
+        explicit MusicSelect(const Array<sheets::Metadata>& catalog, bool include_test_music = true);
 
         [[nodiscard]]
         bool moveMusic(int32 direction) noexcept;
@@ -40,6 +40,7 @@ namespace xlair::app::flows {
         void normalizeDifficulty() noexcept;
 
         const Array<sheets::Metadata>* m_catalog = nullptr;
+        Array<std::size_t> m_music_indices;
         std::size_t m_selected_index = 0;
         uint32 m_difficulty_code = 0;
     };

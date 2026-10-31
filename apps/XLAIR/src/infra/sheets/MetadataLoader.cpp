@@ -51,7 +51,26 @@ namespace xlair::infra::sheets {
             return synced;
         }
 
+        // Older synced metadata did not retain isTest; its manifest still does.
+        s3d::HashTable<s3d::String, bool> test_flags;
+        const auto manifest_path = s3d::FileSystem::PathAppend(m_sync_directory, U"manifest.json");
+        const auto manifest = s3d::FileSystem::IsFile(manifest_path) ? s3d::JSON::Load(manifest_path) : s3d::JSON{};
+        if (manifest.isObject() && manifest.hasElement(U"musics") && manifest[U"musics"].isArray()) {
+            for (const auto& entry : manifest[U"musics"]) {
+                if (!entry.value.isObject() || !entry.value.hasElement(U"id") || !entry.value.hasElement(U"isTest")) {
+                    continue;
+                }
+                const auto id = entry.value[U"id"].getOpt<s3d::String>();
+                const auto is_test = entry.value[U"isTest"].getOpt<bool>();
+                if (id && is_test) {
+                    test_flags[*id] = *is_test;
+                }
+            }
+        }
         for (auto& metadata : *synced) {
+            if (const auto flag = test_flags.find(metadata.id); flag != test_flags.end()) {
+                metadata.is_test = flag->second;
+            }
             local->push_back(std::move(metadata));
         }
         return local;

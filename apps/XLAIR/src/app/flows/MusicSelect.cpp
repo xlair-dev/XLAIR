@@ -3,7 +3,14 @@
 #include <limits>
 
 namespace xlair::app::flows {
-    MusicSelect::MusicSelect(const Array<sheets::Metadata>& catalog) : m_catalog{ &catalog } {
+    MusicSelect::MusicSelect(const Array<sheets::Metadata>& catalog, const bool include_test_music)
+        : m_catalog{ &catalog } {
+        m_music_indices.reserve(catalog.size());
+        for (std::size_t index = 0; index < catalog.size(); ++index) {
+            if (include_test_music || !catalog[index].is_test) {
+                m_music_indices.push_back(index);
+            }
+        }
         normalizeDifficulty();
     }
 
@@ -13,7 +20,7 @@ namespace xlair::app::flows {
         }
 
         const int64 destination = static_cast<int64>(m_selected_index) + (direction < 0 ? -1 : 1);
-        if (destination < 0 || destination >= static_cast<int64>(m_catalog->size())) {
+        if (destination < 0 || destination >= static_cast<int64>(musicCount())) {
             return false;
         }
 
@@ -46,11 +53,11 @@ namespace xlair::app::flows {
     }
 
     bool MusicSelect::empty() const noexcept {
-        return !m_catalog || m_catalog->isEmpty();
+        return m_music_indices.isEmpty();
     }
 
     std::size_t MusicSelect::musicCount() const noexcept {
-        return m_catalog ? m_catalog->size() : 0;
+        return m_music_indices.size();
     }
 
     std::size_t MusicSelect::selectedIndex() const noexcept {
@@ -58,10 +65,10 @@ namespace xlair::app::flows {
     }
 
     const sheets::Metadata* MusicSelect::musicAt(const std::size_t index) const noexcept {
-        if (!m_catalog || index >= m_catalog->size()) {
+        if (!m_catalog || index >= m_music_indices.size()) {
             return nullptr;
         }
-        return &(*m_catalog)[index];
+        return &(*m_catalog)[m_music_indices[index]];
     }
 
     const sheets::Metadata* MusicSelect::selectedMusic() const noexcept {

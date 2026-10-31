@@ -11,6 +11,7 @@
   "music_offset": -0.125,
   "demo_start": 12.5,
   "bpm": 175,
+  "is_test": true,
   "difficulties": [
     {
       "id": "expert",

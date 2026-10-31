@@ -84,7 +84,12 @@ namespace xlair::ui {
         if (!music_select_context) {
             const auto& config = application->config();
             const double remaining_seconds = config ? config->system.menu_timer_seconds : 0.0;
-            music_select_context = std::make_unique<MusicSelectContext>(application->musicCatalog(), remaining_seconds);
+            const bool include_test_music = !config || !config->system.arcade;
+            music_select_context = std::make_unique<MusicSelectContext>(
+                application->musicCatalog(),
+                remaining_seconds,
+                include_test_music
+            );
         }
         return *music_select_context;
     }
