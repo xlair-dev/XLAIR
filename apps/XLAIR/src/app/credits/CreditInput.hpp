@@ -9,12 +9,9 @@ namespace xlair::app::credits {
         [[nodiscard]]
         bool update(const bool pressed, const std::uint64_t now_ms) noexcept {
             if (pressed) {
-                const bool accepted = m_armed && (!m_last_press_ms || now_ms - *m_last_press_ms >= CooldownMillisec);
+                const bool accepted = m_armed;
                 m_armed = false;
                 m_release_since_ms.reset();
-                if (accepted) {
-                    m_last_press_ms = now_ms;
-                }
                 return accepted;
             }
 
@@ -33,10 +30,9 @@ namespace xlair::app::credits {
         }
 
     private:
-        static constexpr std::uint64_t CooldownMillisec = 100;
-        static constexpr std::uint64_t ReleaseMillisec = 30;
+        // Rearm only after the whole pulse burst has settled, not a fixed delay after its first edge.
+        static constexpr std::uint64_t ReleaseMillisec = 200;
 
-        std::optional<std::uint64_t> m_last_press_ms;
         std::optional<std::uint64_t> m_release_since_ms;
         bool m_armed = true;
     };
