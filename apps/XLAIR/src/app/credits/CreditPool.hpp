@@ -26,6 +26,10 @@ namespace xlair::app::credits {
             --m_pending;
         }
 
+        void reset() noexcept {
+            m_pending = 0;
+        }
+
         [[nodiscard]]
         uint32 pending() const noexcept {
             return m_pending;

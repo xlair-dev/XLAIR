@@ -33,6 +33,11 @@ namespace xlair::ui::scenes {
             return;
         }
 #endif
+        auto& application = *getData().application;
+        if (const auto* controller = application.controller();
+            controller && controller->maintenanceButton(app::controller::MaintenanceButton::Button2).down()) {
+            application.creditPool().reset();
+        }
         const auto previous = m_title_flow->state();
         m_title_flow->update(Scene::DeltaTime());
         if (m_title_flow->state() != previous || m_title_flow->state() == app::flows::Title::State::Failed) {

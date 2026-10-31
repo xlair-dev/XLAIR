@@ -10,18 +10,27 @@ namespace xlair::app {
 
     void Application::update(const bool accept_credit_input) {
         if (!m_controller || m_controller_error) {
+            m_credit_input.suspend();
             return;
         }
 
         auto result = m_controller->update();
         if (!result) {
+            m_credit_input.suspend();
             if (result.error) {
                 m_controller_error = std::move(*result.error);
             }
             return;
         }
 
-        if (accept_credit_input && m_controller->maintenanceButton(CoinButton).down()) {
+        const auto& coin = m_controller->maintenanceButton(CoinButton);
+        if (!coin.available()) {
+            m_credit_input.suspend();
+            return;
+        }
+        // Observe disabled input too, without carrying a held press out of Maintenance.
+        const bool credit_press = m_credit_input.update(coin.pressed(), Time::GetMillisec());
+        if (accept_credit_input && coin.down() && credit_press) {
             m_credit_pool.insert();
         }
     }
