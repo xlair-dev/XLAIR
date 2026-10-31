@@ -7,8 +7,8 @@
 
 namespace xlair::ui::components {
     namespace {
-        constexpr Vec2 JacketCenter{ DesignSize.x / 2.0, 430.0 };
-        constexpr double JacketSize = 400.0;
+        constexpr Vec2 JacketCenter = GameStartJacketBounds.center();
+        constexpr double JacketSize = GameStartJacketBounds.size.x;
         constexpr ColorF Background{ U"#202226" };
         constexpr ColorF Chevron{ U"#181A1E" };
 
@@ -69,13 +69,26 @@ namespace xlair::ui::components {
         }
     }
 
-    void DrawGameStart(const GameStartData& data, const double elapsed, const double reveal) {
+    void DrawGameStartBackground(const double elapsed, const double reveal, const double opacity) {
+        const double enter = EaseOutCubic(Clamp(elapsed / GameStartEnterDuration, 0.0, 1.0));
+        const double leave = EaseInOutCubic(Clamp(reveal, 0.0, 1.0));
+        const double offset = DesignSize.x / 2.0 * leave;
+        const auto color_mul = Graphics2D::GetColorMul();
+        const ScopedColorMul2D color{
+            color_mul.x,
+            color_mul.y,
+            color_mul.z,
+            color_mul.w * Clamp(opacity, 0.0, 1.0),
+        };
+        DrawBackgroundHalf(false, offset, enter);
+        DrawBackgroundHalf(true, offset, enter);
+    }
+
+    void DrawGameStart(const GameStartData& data, const double elapsed, const double reveal, const bool draw_jacket) {
         const double enter = EaseOutCubic(Clamp(elapsed / GameStartEnterDuration, 0.0, 1.0));
         const double leave = EaseInOutCubic(Clamp(reveal, 0.0, 1.0));
         const double opacity = enter * (1.0 - leave);
-        const double offset = DesignSize.x / 2.0 * leave;
-        DrawBackgroundHalf(false, offset, enter);
-        DrawBackgroundHalf(true, offset, enter);
+        DrawGameStartBackground(elapsed, reveal);
 
         if (opacity <= 0.0) {
             return;
@@ -88,9 +101,11 @@ namespace xlair::ui::components {
         const auto colors = theme::GetDifficultyTheme(data.difficulty_index);
         const Transformer2D content_transform{ Mat3x2::Scale(0.98 + 0.02 * enter, JacketCenter) *
                                                Mat3x2::Translate(0.0, 12.0 * (1.0 - enter)) };
-        RectF{ Arg::center = JacketCenter, JacketSize, JacketSize }.draw(ColorF{ 0.05, opacity });
-        if (data.jacket) {
-            data.jacket.fitted(JacketSize, JacketSize).drawAt(JacketCenter, ColorF{ 1.0, opacity });
+        if (draw_jacket) {
+            GameStartJacketBounds.draw(ColorF{ 0.05, opacity });
+            if (data.jacket) {
+                data.jacket.fitted(JacketSize, JacketSize).drawAt(JacketCenter, ColorF{ 1.0, opacity });
+            }
         }
         DrawJacketFrame(colors.accent.withA(opacity));
 

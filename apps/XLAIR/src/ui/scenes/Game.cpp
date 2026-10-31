@@ -75,6 +75,13 @@ namespace xlair::ui::scenes {
         }
         if (const auto& selection = getData().game_selection) {
             m_autoplay = selection->autoplay;
+            if (const auto& transition = getData().music_start) {
+                m_start_jacket = transition->jacket;
+                // The incoming scene transition already plays the intro's entrance.
+                m_elapsed = components::GameStartEnterDuration;
+            } else {
+                m_start_jacket = getData().jackets.get(selection->music_id);
+            }
             getData().game_loader.start(*selection);
         }
         const double speed = getData().application->playSession().playOptions().note_speed;
@@ -84,6 +91,7 @@ namespace xlair::ui::scenes {
     }
 
     Game::~Game() {
+        getData().music_start.reset();
         m_sound_player.stop();
         getData().game_loader.cancel();
         if (const auto& selection = getData().game_selection) {
@@ -93,6 +101,7 @@ namespace xlair::ui::scenes {
     }
 
     void Game::update() {
+        getData().music_start.reset();
         const double delta_seconds = Scene::DeltaTime();
         m_elapsed += delta_seconds;
         m_phase_elapsed += delta_seconds;
@@ -282,30 +291,31 @@ namespace xlair::ui::scenes {
             Scene::Rect().draw(theme::Palette::White);
             drawFailure();
         } else if (m_phase == Phase::Intro) {
-            drawIntro(0.0);
+            drawIntro(m_elapsed, 0.0);
         } else if (loader.state() == game::GameLoader::State::Ready && loader.chart() && loader.projection()) {
             Scene::Rect().draw(theme::Palette::White);
             drawReady();
             if (m_phase == Phase::Reveal) {
-                drawIntro(Clamp(m_phase_elapsed / components::GameStartRevealDuration, 0.0, 1.0));
+                drawIntro(m_elapsed, Clamp(m_phase_elapsed / components::GameStartRevealDuration, 0.0, 1.0));
             }
         } else {
             Scene::Rect().draw(Palette::Black);
         }
     }
 
-    void Game::drawIntro(const double reveal) const {
+    void Game::drawIntro(const double elapsed, const double reveal, const bool draw_jacket) const {
         if (const auto& selection = getData().game_selection) {
             components::DrawGameStart(
                 {
                     .title = selection->title,
                     .artist = selection->artist,
                     .designer = selection->difficulty.designer,
-                    .jacket = getData().jackets.get(selection->music_id),
+                    .jacket = m_start_jacket,
                     .difficulty_index = selection->difficulty.index,
                 },
-                m_elapsed,
-                reveal
+                elapsed,
+                reveal,
+                draw_jacket
             );
         } else {
             Scene::Rect().draw(Palette::Black);
@@ -423,6 +433,13 @@ namespace xlair::ui::scenes {
     }
 
     void Game::drawFadeIn(const double t) const {
+        if (const auto& transition = getData().music_start;
+            transition && getData().game_loader.state() != game::GameLoader::State::Failed) {
+            const double progress = Clamp(t, 0.0, 1.0);
+            drawIntro(progress * components::GameStartEnterDuration, 0.0, false);
+            transition->draw(0.5 + progress * 0.5);
+            return;
+        }
         drawFadeOverlay(1.0 - Clamp(t, 0.0, 1.0));
     }
 

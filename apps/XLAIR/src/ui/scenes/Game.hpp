@@ -56,7 +56,7 @@ namespace xlair::ui::scenes {
         void processJudgements(std::span<const core::judgement::JudgementEvent> events);
         void finishPlayback();
         void drawReady() const;
-        void drawIntro(double reveal) const;
+        void drawIntro(double elapsed, double reveal, bool draw_jacket = true) const;
         void drawFailure() const;
         void drawFadeOverlay(double opacity) const;
 
@@ -69,6 +69,7 @@ namespace xlair::ui::scenes {
         InputFrame m_input;
         std::unique_ptr<core::judgement::JudgeEngine> m_judge_engine;
         mutable components::GameScoreBar m_score_bar;
+        Texture m_start_jacket;
         Optional<game::LeadIn> m_lead_in;
         Phase m_phase = Phase::Intro;
         double m_phase_elapsed = 0.0;

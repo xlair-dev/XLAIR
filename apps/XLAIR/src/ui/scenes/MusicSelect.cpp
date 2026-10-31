@@ -7,6 +7,7 @@
 #include "ui/audio/SoundEffect.hpp"
 #include "ui/components/MenuHeader.hpp"
 #include "ui/components/MenuTimerPlate.hpp"
+#include "ui/components/GameStart.hpp"
 #include "ui/components/SliderMappingGuide.hpp"
 #include "ui/components/UserNameplate.hpp"
 #include "ui/localization/Localization.hpp"
@@ -64,6 +65,7 @@ namespace xlair::ui::scenes {
           m_card_carousel{ components::MusicCard::size(), Vec2{ DesignSize.x / 2.0, CardY }, DesignSize.x },
           m_slider_mappings{ MakeSliderMappings() } {
         auto& data = getData();
+        data.music_start.reset();
         data.ensureMusicSelectContext().resume();
         m_fade_from_game = data.returning_from_game;
         data.returning_from_game = false;
@@ -99,6 +101,9 @@ namespace xlair::ui::scenes {
     }
 
     void MusicSelect::updatePresentation() {
+        if (m_fade_to_game) {
+            return;
+        }
         // Keep presentation moving during fades, but leave input and the shared preview/timer alone.
         m_card_carousel.update(Scene::DeltaTime());
         m_text_elapsed += Scene::DeltaTime();
@@ -120,7 +125,10 @@ namespace xlair::ui::scenes {
     void MusicSelect::drawFadeOut(const double t) const {
         if (m_fade_to_game) {
             drawScene({});
-            Scene::Rect().draw(ColorF{ 0.0, 0.0, 0.0, Clamp(t, 0.0, 1.0) });
+            components::DrawGameStartBackground(0.0, 0.0, EaseOutCubic(Clamp(t, 0.0, 1.0)));
+            if (const auto& transition = getData().music_start) {
+                transition->draw(Clamp(t, 0.0, 1.0) * 0.5);
+            }
             return;
         }
         drawScene(transitions::CardFadeOut(t));
@@ -226,6 +234,17 @@ namespace xlair::ui::scenes {
             return false;
         }
 
+        Optional<RectF> jacket_region;
+        for (const auto& placement : m_card_carousel.layout(flow.selectedIndex(), flow.musicCount())) {
+            if (placement.selected) {
+                jacket_region = components::MusicCard::jacketRegion(placement.region);
+                break;
+            }
+        }
+        if (!jacket_region) {
+            return false;
+        }
+
         auto& session = data.application->playSession();
         const bool autoplay = data.application->autoplay();
         const auto play_id = session.beginPlay(autoplay);
@@ -246,9 +265,15 @@ namespace xlair::ui::scenes {
             .music_offset_seconds = music->music_offset_seconds,
             .difficulty = *difficulty,
         };
-        if (!changeScene(SceneState::Game, 500, CrossFade::No)) {
+        data.music_start = transitions::MusicStart{
+            .jacket = data.jackets.get(music->id),
+            .source_region = *jacket_region,
+            .source_background = theme::GetDifficultyTheme(difficulty->index).accent,
+        };
+        if (!changeScene(SceneState::Game, transitions::MusicStartMillisec, CrossFade::No)) {
             session.cancelPlay(*play_id);
             data.game_selection.reset();
+            data.music_start.reset();
             return false;
         }
         data.music_select_context->pause();
@@ -323,7 +348,8 @@ namespace xlair::ui::scenes {
                    data,
                    getData().jackets.get(music->id),
                    theme::GetDifficultyTheme(difficulty->index),
-                   text_elapsed
+                   text_elapsed,
+                   !(m_fade_to_game && music_index == flow.selectedIndex())
                ))
             .draw(ColorF{ 1.0, transition.opacity });
     }
