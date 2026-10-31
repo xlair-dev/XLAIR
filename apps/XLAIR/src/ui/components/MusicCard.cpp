@@ -13,12 +13,13 @@ namespace xlair::ui::components {
         const MusicCardData& data,
         const TextureRegion& jacket,
         const theme::DifficultyTheme& difficulty_theme,
-        const double text_offset
+        const double text_offset,
+        const bool draw_jacket
     ) {
         m_render_texture.clear(Palette::White);
         {
             const ScopedRenderTarget2D target{ m_render_texture };
-            drawBackground(jacket, difficulty_theme);
+            drawBackground(jacket, difficulty_theme, draw_jacket);
             drawDifficulty(data, difficulty_theme);
             drawMetadata(data, difficulty_theme, text_offset);
             if (!data.available) {
@@ -30,7 +31,22 @@ namespace xlair::ui::components {
         return m_render_texture;
     }
 
-    void MusicCard::drawBackground(const TextureRegion& jacket, const theme::DifficultyTheme& difficulty_theme) const {
+    RectF MusicCard::jacketRegion(const RectF& card_region) noexcept {
+        const double scale_x = card_region.w / CardSize.x;
+        const double scale_y = card_region.h / CardSize.y;
+        return {
+            card_region.x + JacketRegion.x * scale_x,
+            card_region.y + JacketRegion.y * scale_y,
+            JacketRegion.w * scale_x,
+            JacketRegion.h * scale_y,
+        };
+    }
+
+    void MusicCard::drawBackground(
+        const TextureRegion& jacket,
+        const theme::DifficultyTheme& difficulty_theme,
+        const bool draw_jacket
+    ) const {
         const ColorF corner_color = (difficulty_theme.accent * 1.5).withA(0.2);
         Circle{ 0, 0, 70 }.draw(corner_color, Palette::White);
         Circle{ CardSize.x, 0, 70 }.draw(corner_color, Palette::White);
@@ -40,7 +56,9 @@ namespace xlair::ui::components {
         RectF{ CardSize }.drawFrame(2, 0, difficulty_theme.accent);
 
         RectF{ 58, 20, 338, 338 }.draw(difficulty_theme.accent);
-        RectF{ 64, 20, 332, 332 }(jacket).draw();
+        if (draw_jacket) {
+            JacketRegion(jacket).draw();
+        }
 
         Line{ 349, 10, 406, 10 }.draw(2, difficulty_theme.accent);
         Line{ 406, 10, 406, 67 }.draw(2, difficulty_theme.accent);

@@ -48,7 +48,7 @@ namespace xlair::ui {
     }
 
     void DrawSceneOverlay(const SceneData& data) {
-        if (data.current_scene == SceneState::Game || data.title_to_login_wipe) {
+        if (data.current_scene == SceneState::Game || data.title_to_login_wipe || data.music_start) {
             return;
         }
 #ifndef NDEBUG
@@ -63,7 +63,7 @@ namespace xlair::ui {
     bool HandleMaintenanceShortcut(SceneManager& scene_manager) {
         const auto data = scene_manager.get();
         // Do not discard a completed session or interrupt its pending save via Maintenance.
-        if (data->title_to_login_wipe || data->current_scene == SceneState::Boot ||
+        if (data->title_to_login_wipe || data->music_start || data->current_scene == SceneState::Boot ||
             data->current_scene == SceneState::Login || IsMaintenanceScene(data->current_scene) ||
             data->current_scene == SceneState::FinalResult ||
             (data->current_scene == SceneState::Result && data->application->playSession().finished())) {
