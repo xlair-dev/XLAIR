@@ -3,6 +3,7 @@
 #include "Common.hpp"
 #include "app/controller/Controller.hpp"
 #include "app/config/Config.hpp"
+#include "app/credits/CreditInput.hpp"
 #include "app/credits/CreditPool.hpp"
 #include "app/interfaces/ICardReader.hpp"
 #include "app/session/PlaySession.hpp"
@@ -79,6 +80,7 @@ namespace xlair::app {
         std::unique_ptr<interfaces::ICardReader> m_card_reader;
         std::unique_ptr<app::controller::Controller> m_controller;
         Optional<app::controller::Error> m_controller_error;
+        credits::CreditInput m_credit_input;
         credits::CreditPool m_credit_pool;
         Array<sheets::Metadata> m_music_catalog;
         session::PlaySession m_play_session;
