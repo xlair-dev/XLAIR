@@ -18,6 +18,10 @@
 namespace xlair::ui::scenes {
     namespace {
         constexpr auto CancelButton = app::controller::MaintenanceButton::Button2;
+        constexpr double JudgementDisplayDuration = 0.75;
+        constexpr double JudgementPopDuration = 0.10;
+        constexpr double JudgementFadeDuration = 0.20;
+        constexpr double JudgementPopScale = 0.05;
         constexpr std::array SideButtonMapping{
             sheets::SideButton::LeftUpper,
             sheets::SideButton::LeftLower,
@@ -33,18 +37,18 @@ namespace xlair::ui::scenes {
         }
 
         [[nodiscard]]
-        StringView JudgmentLabel(const core::judgement::Grade grade) {
+        AssetNameView JudgmentTexture(const core::judgement::Grade grade) {
             switch (grade) {
                 case core::judgement::Grade::Perfect:
-                    return U"PERFECT";
+                    return assets::texture::ResultPerfect;
                 case core::judgement::Grade::Great:
-                    return U"GREAT";
+                    return assets::texture::ResultGreat;
                 case core::judgement::Grade::Good:
-                    return U"GOOD";
+                    return assets::texture::ResultGood;
                 case core::judgement::Grade::Miss:
-                    return U"MISS";
+                    return assets::texture::ResultMiss;
             }
-            return U"";
+            return assets::texture::ResultMiss;
         }
     }
 
@@ -306,15 +310,24 @@ namespace xlair::ui::scenes {
             { .score = score.score, .clear_gauge = score.clear_gauge },
             Point{ DesignSize.x / 2 - 434, 8 }
         );
-        if (m_last_judgement && m_judgement_display_seconds < 0.75) {
+        if (m_last_judgement && m_judgement_display_seconds < JudgementDisplayDuration) {
             const Vec2 feedback_position{ DesignSize.x / 2.0, 780 };
-            FontAsset{ assets::font::Display }(JudgmentLabel(m_last_judgement->grade))
-                .drawAt(44, feedback_position, theme::Palette::White);
-            if (m_last_judgement->grade != core::judgement::Grade::Miss) {
-                const double milliseconds =
-                    static_cast<double>(m_last_judgement->offset_samples) * 1'000.0 / loader.chart()->sample_rate;
-                FontAsset{ assets::font::Text }(U"{:+.1f} ms"_fmt(milliseconds))
-                    .drawAt(22, feedback_position.movedBy(0, 40), theme::Palette::White);
+            const double pop = std::sin(Math::Pi * Clamp(m_judgement_display_seconds / JudgementPopDuration, 0.0, 1.0));
+            const double scale = 1.0 + JudgementPopScale * pop * pop;
+            const double opacity =
+                Clamp((JudgementDisplayDuration - m_judgement_display_seconds) / JudgementFadeDuration, 0.0, 1.0);
+            const Transformer2D transform{ Mat3x2::Scale(scale, feedback_position) };
+            TextureAsset{ JudgmentTexture(m_last_judgement->grade) }.drawAt(feedback_position, ColorF{ 1.0, opacity });
+            const auto grade = m_last_judgement->grade;
+            if ((grade == core::judgement::Grade::Great || grade == core::judgement::Grade::Good) &&
+                m_last_judgement->offset_samples != 0) {
+                const bool late = m_last_judgement->offset_samples > 0;
+                FontAsset{ assets::font::Display }(late ? U"LATE" : U"FAST")
+                    .drawAt(
+                        22,
+                        feedback_position.movedBy(0, 48),
+                        (late ? ColorF{ U"#FF708F" } : theme::Palette::Cyan).withA(opacity)
+                    );
             }
         }
     }
