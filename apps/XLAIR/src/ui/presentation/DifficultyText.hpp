@@ -6,6 +6,12 @@
 
 namespace xlair::ui::presentation {
     [[nodiscard]]
+    inline String DifficultyLevelText(const double level) {
+        const double integer = Math::Floor(level);
+        return U"{:.0f}{}"_fmt(integer, level - integer >= 0.5 ? U"+" : U"");
+    }
+
+    [[nodiscard]]
     inline String DifficultyLabel(const uint32 index) {
         constexpr std::array Labels{
             StringView{ U"Basic" },
