@@ -241,6 +241,7 @@ namespace xlair::ui::scenes {
             .mirror = session.mirror(),
             .music_id = music->id,
             .title = music->title,
+            .artist = music->artist,
             .music_path = music->music,
             .music_offset_seconds = music->music_offset_seconds,
             .difficulty = *difficulty,
