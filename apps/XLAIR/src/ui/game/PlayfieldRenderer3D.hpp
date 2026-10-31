@@ -51,7 +51,7 @@ namespace xlair::ui::game {
         ConstantBuffer<FogParameters> m_fog_parameters;
         HitEffects m_hit_effects;
         mutable Array<double> m_measure_depths;
-        mutable Array<int64> m_hold_section_samples;
+        mutable Array<playfield::HoldSection> m_hold_sections;
         mutable Array<long double> m_current_positions;
         mutable Array<HoldGlow> m_hold_glows;
     };
