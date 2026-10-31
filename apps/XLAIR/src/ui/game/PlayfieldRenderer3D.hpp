@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Common.hpp"
-#include "TapHitEffects.hpp"
+#include "HitEffects.hpp"
 
 #include <Playfield/ChartProjection.hpp>
 #include <SheetsAnalyzer/Chart.hpp>
@@ -49,9 +49,10 @@ namespace xlair::ui::game {
         MSRenderTexture m_side_lower_xtap_surface;
         PixelShader m_fog_shader;
         ConstantBuffer<FogParameters> m_fog_parameters;
-        TapHitEffects m_hit_effects;
+        HitEffects m_hit_effects;
         mutable Array<double> m_measure_depths;
         mutable Array<int64> m_hold_section_samples;
         mutable Array<long double> m_current_positions;
+        mutable Array<HoldGlow> m_hold_glows;
     };
 }

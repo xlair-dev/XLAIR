@@ -68,6 +68,50 @@ namespace xlair::ui::game {
         }
 
         [[nodiscard]]
+        HitSurface SurfaceForHit(const Hit& hit) {
+            if (hit.side_button) {
+                const auto button = *hit.side_button;
+                const bool left = button == sheets::SideButton::LeftUpper || button == sheets::SideButton::LeftLower;
+                const bool upper = button == sheets::SideButton::LeftUpper || button == sheets::SideButton::RightUpper;
+                const double side = left ? -1.0 : 1.0;
+                if (upper) {
+                    return {
+                        .center = Vec3{ side * (SideUpperX - 0.16), SideUpperY, 0.0 },
+                        .rotation = Quaternion::RotateZ(side > 0.0 ? 90_deg : -90_deg),
+                        .width = SideUpperHeight,
+                    };
+                }
+                return {
+                    .center = SideLowerPosition(side, 0.0, 0.16),
+                    .rotation = Quaternion::RotateZ(side * SideLowerAngle),
+                    .width = LowerWidth,
+                };
+            }
+            return {
+                .center = Vec3{ -FieldWidth * 0.5 + StageLeft + (hit.lane.start + hit.lane.width * 0.5) * LaneWidth,
+                                0.10,
+                                0.0 },
+                .width = hit.lane.width * LaneWidth,
+            };
+        }
+
+        void AddHoldGlow(Array<HoldGlow>& glows, const Hit& hit) {
+            constexpr std::size_t MaximumHoldGlows = 32;
+            if (glows.size() >= MaximumHoldGlows) {
+                return;
+            }
+            const auto surface = SurfaceForHit(hit);
+            // Co-located holds share one sustained glow.
+            if (glows.any([&](const auto& glow) {
+                    return glow.side_button == hit.side_button && glow.surface.center == surface.center &&
+                           glow.surface.width == surface.width;
+                })) {
+                return;
+            }
+            glows.push_back({ .surface = surface, .side_button = hit.side_button });
+        }
+
+        [[nodiscard]]
         double WorldZ(
             const playfield::ChartProjection::Frame& projection,
             const sheets::TimelineIndex timeline,
@@ -228,7 +272,8 @@ namespace xlair::ui::game {
             const double note_speed,
             const core::judgement::JudgeEngine* judge_engine,
             const uint32 slider_pressed,
-            Array<int64>& section_samples
+            Array<int64>& section_samples,
+            Array<HoldGlow>& hold_glows
         ) {
             constexpr double SourceWidth = FieldSurfaceSize.x;
             constexpr double SourceHeight = FieldSurfaceSize.y;
@@ -258,6 +303,11 @@ namespace xlair::ui::game {
                         core::judgement::NoteState::Pending &&
                     current_sample >= hold.judge_points.back().sample) {
                     continue;
+                }
+                if (judge_engine && judge_engine->sliderHoldActive(hold_index)) {
+                    if (const auto lane = EvaluateEffectHoldLane(hold.points, current_sample)) {
+                        AddHoldGlow(hold_glows, Hit{ .lane = *lane, .kind = HitKind::HoldTick });
+                    }
                 }
                 // A held body terminates at the judgement bar instead of scrolling below it.
                 const ScopedRenderStates2D rasterizer{
@@ -446,7 +496,8 @@ namespace xlair::ui::game {
             const core::judgement::JudgeEngine* judge_engine,
             const uint32 slider_pressed,
             const std::span<const double> measure_depths,
-            Array<int64>& section_samples
+            Array<int64>& section_samples,
+            Array<HoldGlow>& hold_glows
         ) {
             constexpr double SourceWidth = FieldSurfaceSize.x;
             constexpr double SourceHeight = FieldSurfaceSize.y;
@@ -476,7 +527,8 @@ namespace xlair::ui::game {
                 note_speed,
                 judge_engine,
                 slider_pressed,
-                section_samples
+                section_samples,
+                hold_glows
             );
             DrawSliderHoldHeads(chart, projection, note_speed, judge_engine);
             DrawSliderNotes(chart, projection, note_speed, judge_engine);
@@ -703,7 +755,8 @@ namespace xlair::ui::game {
             const double note_speed,
             const core::judgement::JudgeEngine* judge_engine,
             const uint8 side_pressed,
-            Array<int64>& section_samples
+            Array<int64>& section_samples,
+            Array<HoldGlow>& hold_glows
         ) {
             const ScopedRenderStates3D translucent{ BlendState::NonPremultiplied, DepthStencilState::DepthTest };
             for (std::size_t hold_index = 0; hold_index < chart.side_holds.size(); ++hold_index) {
@@ -713,6 +766,9 @@ namespace xlair::ui::game {
                         core::judgement::NoteState::Pending &&
                     current_sample >= hold.judge_samples.back()) {
                     continue;
+                }
+                if (judge_engine && judge_engine->sideHoldActive(hold_index)) {
+                    AddHoldGlow(hold_glows, Hit{ .side_button = hold.button, .kind = HitKind::HoldTick });
                 }
                 const bool left =
                     hold.button == sheets::SideButton::LeftUpper || hold.button == sheets::SideButton::LeftLower;
@@ -814,11 +870,10 @@ namespace xlair::ui::game {
           m_side_upper_note_surface{ SideNoteSurfaceSize, TextureFormat::R8G8B8A8_Unorm_SRGB },
           m_side_lower_note_surface{ SideNoteSurfaceSize, TextureFormat::R8G8B8A8_Unorm_SRGB },
           m_side_upper_xtap_surface{ SideNoteSurfaceSize, TextureFormat::R8G8B8A8_Unorm_SRGB },
-          m_side_lower_xtap_surface{ SideNoteSurfaceSize, TextureFormat::R8G8B8A8_Unorm_SRGB }, m_fog_shader{
-              HLSL{ Resource(U"ui/shaders/hlsl/playfield_fog.hlsl"), U"PS" } |
-              GLSL{ Resource(U"ui/shaders/glsl/playfield_fog.frag"),
-                    { { U"PSPerFrame", 0 }, { U"PSPerMaterial", 3 }, { U"PSFog", 4 } } }
-          } {
+          m_side_lower_xtap_surface{ SideNoteSurfaceSize, TextureFormat::R8G8B8A8_Unorm_SRGB },
+          m_fog_shader{ HLSL{ Resource(U"ui/shaders/hlsl/playfield_fog.hlsl"), U"PS" } |
+                        GLSL{ Resource(U"ui/shaders/glsl/playfield_fog.frag"),
+                              { { U"PSPerFrame", 0 }, { U"PSPerMaterial", 3 }, { U"PSFog", 4 } } } } {
         if (!m_fog_shader) {
             throw Error{ U"Failed to load the 3D playfield depth-fade shader." };
         }
@@ -866,31 +921,11 @@ namespace xlair::ui::game {
         const std::span<const core::judgement::JudgementEvent> events
     ) {
         for (const auto& event : events) {
-            const auto hit = TapHitForJudgement(chart, event);
+            const auto hit = HitForJudgement(chart, event);
             if (!hit) {
                 continue;
             }
-            TapHitSurface surface;
-            if (hit->side_button) {
-                const auto button = *hit->side_button;
-                const bool left = button == sheets::SideButton::LeftUpper || button == sheets::SideButton::LeftLower;
-                const bool upper = button == sheets::SideButton::LeftUpper || button == sheets::SideButton::RightUpper;
-                const double side = left ? -1.0 : 1.0;
-                if (upper) {
-                    surface.center = Vec3{ side * (SideUpperX - 0.16), SideUpperY, 0.0 };
-                    surface.rotation = Quaternion::RotateZ(side > 0.0 ? 90_deg : -90_deg);
-                    surface.width = SideUpperHeight;
-                } else {
-                    surface.center = SideLowerPosition(side, 0.0, 0.16);
-                    surface.rotation = Quaternion::RotateZ(side * SideLowerAngle);
-                    surface.width = LowerWidth;
-                }
-            } else {
-                const double x = -FieldWidth * 0.5 + StageLeft + (hit->lane.start + hit->lane.width * 0.5) * LaneWidth;
-                surface.center = Vec3{ x, 0.10, 0.0 };
-                surface.width = hit->lane.width * LaneWidth;
-            }
-            m_hit_effects.add(*hit, surface);
+            m_hit_effects.add(*hit, SurfaceForHit(*hit));
         }
     }
 
@@ -908,6 +943,7 @@ namespace xlair::ui::game {
     ) const {
         const auto frame = projection.frameAt(current_sample, m_current_positions);
         UpdateMeasureLineDepths(chart, frame, note_speed, m_measure_depths);
+        m_hold_glows.clear();
         {
             const ScopedRenderTarget2D target{ m_field_surface.clear(ColorF{ 0.0, 0.0 }) };
             DrawFieldSurface(
@@ -919,7 +955,8 @@ namespace xlair::ui::game {
                 judge_engine,
                 slider_pressed,
                 m_measure_depths,
-                m_hold_section_samples
+                m_hold_section_samples,
+                m_hold_glows
             );
             Graphics2D::Flush();
             m_field_surface.resolve();
@@ -941,7 +978,8 @@ namespace xlair::ui::game {
                 note_speed,
                 judge_engine,
                 side_pressed,
-                m_hold_section_samples
+                m_hold_section_samples,
+                m_hold_glows
             );
             DrawSideNotes(
                 chart,
@@ -953,7 +991,7 @@ namespace xlair::ui::game {
                 m_side_lower_xtap_surface,
                 judge_engine
             );
-            m_hit_effects.draw(camera);
+            m_hit_effects.draw(camera, m_hold_glows, static_cast<double>(current_sample) / chart.sample_rate);
         }
         Graphics3D::Flush();
         m_render_texture.resolve();
