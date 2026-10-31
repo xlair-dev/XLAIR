@@ -364,10 +364,12 @@ namespace xlair::ui::scenes {
         const auto& session = getData().application->playSession();
         if (const auto* user = session.user()) {
             const auto level = core::user::CalculateLevelProgress(user->xp);
+            const auto& result = getData().game_result;
+            const uint32 display_rating = result ? result->previous_rating.value_or(user->rating) : user->rating;
             components::DrawUserNameplate(
                 {
                     .display_name = user->display_name,
-                    .rating = user->rating,
+                    .rating = display_rating,
                     .level = level.level,
                     .level_progress = level.progress,
                 },
