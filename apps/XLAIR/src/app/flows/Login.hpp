@@ -14,6 +14,7 @@ namespace xlair::app::flows {
             WaitingForCredit,
             IncrementingCredits,
             FetchingRecords,
+            FetchingCatalog,
             FetchingOptions,
             UserFound,
             RegistrationRequired,
@@ -46,6 +47,9 @@ namespace xlair::app::flows {
         const Array<api::UserRecord>& records() const noexcept;
 
         [[nodiscard]]
+        const Optional<Array<api::Music>>& ratingCatalog() const noexcept;
+
+        [[nodiscard]]
         const Optional<api::PlayOptions>& playOptions() const noexcept;
 
         [[nodiscard]]
@@ -63,8 +67,10 @@ namespace xlair::app::flows {
         void updateRegistrationConfirmation();
         void updateCreditIncrement(credits::CreditPool& credit_pool);
         void updateRecordFetch();
+        void updateCatalogFetch();
         void updateOptionsFetch(credits::CreditPool& credit_pool);
         void startRecordFetch();
+        void startCatalogFetch();
         void startOptionsFetch();
         void continueWithCredit(credits::CreditPool& credit_pool);
         void acceptUser(const api::User& user);
@@ -76,9 +82,11 @@ namespace xlair::app::flows {
         api::Request<api::User> m_user_request;
         api::Request<uint32> m_credit_request;
         api::Request<Array<api::UserRecord>> m_records_request;
+        api::Request<Array<api::Music>> m_catalog_request;
         api::Request<api::PlayOptions> m_options_request;
         Optional<api::User> m_user;
         Array<api::UserRecord> m_records;
+        Optional<Array<api::Music>> m_rating_catalog;
         Optional<api::PlayOptions> m_play_options;
         Optional<api::ApiError> m_error;
         Optional<api::ApiError> m_registration_error;

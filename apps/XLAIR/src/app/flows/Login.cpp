@@ -73,6 +73,10 @@ namespace xlair::app::flows {
                 updateRecordFetch();
                 break;
 
+            case State::FetchingCatalog:
+                updateCatalogFetch();
+                break;
+
             case State::FetchingOptions:
                 updateOptionsFetch(credit_pool);
                 break;
@@ -106,6 +110,9 @@ namespace xlair::app::flows {
         if (m_records_request) {
             m_records_request->cancel();
         }
+        if (m_catalog_request) {
+            m_catalog_request->cancel();
+        }
         if (m_options_request) {
             m_options_request->cancel();
         }
@@ -114,9 +121,11 @@ namespace xlair::app::flows {
         m_user_request.reset();
         m_credit_request.reset();
         m_records_request.reset();
+        m_catalog_request.reset();
         m_options_request.reset();
         m_user.reset();
         m_records.clear();
+        m_rating_catalog.reset();
         m_play_options.reset();
         m_error.reset();
         m_registration_error.reset();
@@ -139,6 +148,10 @@ namespace xlair::app::flows {
 
     const Array<api::UserRecord>& Login::records() const noexcept {
         return m_records;
+    }
+
+    const Optional<Array<api::Music>>& Login::ratingCatalog() const noexcept {
+        return m_rating_catalog;
     }
 
     const Optional<api::PlayOptions>& Login::playOptions() const noexcept {
@@ -274,11 +287,27 @@ namespace xlair::app::flows {
         if (const auto* records = std::get_if<Array<api::UserRecord>>(&*result)) {
             m_records = *records;
             m_records_request.reset();
-            startOptionsFetch();
+            startCatalogFetch();
         } else {
             fail(std::get<api::ApiError>(*result));
             m_records_request.reset();
         }
+    }
+
+    void Login::updateCatalogFetch() {
+        m_catalog_request->update();
+        const auto& result = m_catalog_request->result();
+        if (!result) {
+            return;
+        }
+
+        if (const auto* catalog = std::get_if<Array<api::Music>>(&*result)) {
+            m_rating_catalog = *catalog;
+        } else {
+            Logger << U"[Login] Rating catalog unavailable: " + std::get<api::ApiError>(*result).message;
+        }
+        m_catalog_request.reset();
+        startOptionsFetch();
     }
 
     void Login::updateOptionsFetch(credits::CreditPool& credit_pool) {
@@ -326,6 +355,17 @@ namespace xlair::app::flows {
             return;
         }
         m_state = State::FetchingRecords;
+    }
+
+    void Login::startCatalogFetch() {
+        m_rating_catalog.reset();
+        m_catalog_request = m_client->fetchCatalog();
+        if (!m_catalog_request) {
+            Logger << U"[Login] The API client did not create a rating catalog request.";
+            startOptionsFetch();
+            return;
+        }
+        m_state = State::FetchingCatalog;
     }
 
     void Login::startOptionsFetch() {

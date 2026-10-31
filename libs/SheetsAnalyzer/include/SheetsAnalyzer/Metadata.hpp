@@ -27,5 +27,6 @@ namespace xlair::sheets {
         double demo_start_seconds = 0.0;
         double bpm = 120.0;
         s3d::Array<Difficulty> difficulties;
+        bool is_test = false;
     };
 }

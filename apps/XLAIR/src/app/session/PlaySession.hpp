@@ -56,6 +56,7 @@ namespace xlair::app::session {
         const Array<PlayResult>& playedResults() const noexcept;
 
         void setRecords(Array<api::UserRecord> records);
+        void setRatingCatalog(const Array<api::Music>& catalog);
 
         void setPlayOptions(api::PlayOptions options) noexcept;
 
@@ -79,8 +80,16 @@ namespace xlair::app::session {
             bool autoplay = false;
         };
 
+        struct RatingSheet {
+            double level = 0.0;
+            bool is_test = false;
+        };
+
+        void updateRating();
+
         Optional<api::User> m_user;
         HashTable<String, api::UserRecord> m_records;
+        HashTable<String, RatingSheet> m_rating_sheets;
         Array<PlayResult> m_played_results;
         Optional<ActivePlay> m_active_play;
         api::PlayOptions m_play_options;

@@ -171,6 +171,7 @@ namespace xlair::ui::scenes {
 
     void Game::processJudgements(const std::span<const core::judgement::JudgementEvent> events) {
         m_sound_player.update(m_current_sample, *m_judge_engine, events, m_judge_engine->flickContacts());
+        m_playfield_renderer.addJudgements(*getData().game_loader.chart(), events);
         if (!events.empty()) {
             m_last_judgement = events.back();
             m_judgement_display_seconds = 0.0;
@@ -191,7 +192,9 @@ namespace xlair::ui::scenes {
 
         if (data.game_selection) {
             const auto& selection = *data.game_selection;
-            if (!data.application->playSession().completePlay(
+            auto& session = data.application->playSession();
+            const Optional<uint32> previous_rating = session.user() ? Optional{ session.user()->rating } : none;
+            if (!session.completePlay(
                     selection.play_id,
                     selection.difficulty.id,
                     m_judge_engine->score(),
@@ -203,6 +206,8 @@ namespace xlair::ui::scenes {
                 .selection = selection,
                 .score = m_judge_engine->score(),
                 .total_combo = data.game_loader.chart()->total_combo,
+                .previous_rating = previous_rating,
+                .rating = session.user() ? Optional{ session.user()->rating } : none,
             };
         }
         changeScene(SceneState::Result, 500, CrossFade::No);

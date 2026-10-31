@@ -1,5 +1,6 @@
 #include "app/flows/Title.hpp"
 
+#include <cmath>
 #include <utility>
 
 namespace xlair::app::flows {
@@ -12,7 +13,12 @@ namespace xlair::app::flows {
     void Title::start() {
         cancel();
         m_card.reset();
+        startScan();
+    }
+
+    void Title::startScan() {
         m_error.reset();
+        m_retry_elapsed = 0.0;
 
         m_scan = m_card_reader.scan();
         if (!m_scan) {
@@ -28,7 +34,16 @@ namespace xlair::app::flows {
         m_state = State::WaitingForCard;
     }
 
-    void Title::update() {
+    void Title::update(const double delta_seconds) {
+        if (m_state == State::Failed) {
+            if (std::isfinite(delta_seconds) && delta_seconds > 0.0) {
+                m_retry_elapsed += delta_seconds;
+            }
+            if (m_retry_elapsed >= RetryDelaySeconds) {
+                startScan();
+            }
+            return;
+        }
         if (m_state != State::WaitingForCard || !m_scan) {
             return;
         }
@@ -54,6 +69,7 @@ namespace xlair::app::flows {
             m_scan.reset();
         }
         m_state = State::Idle;
+        m_retry_elapsed = 0.0;
     }
 
     Title::State Title::state() const noexcept {
@@ -70,6 +86,7 @@ namespace xlair::app::flows {
 
     void Title::fail(card::Error error) {
         m_error = std::move(error);
+        m_retry_elapsed = 0.0;
         m_state = State::Failed;
     }
 }

@@ -2,6 +2,7 @@
 
 #include "app/flows/Title.hpp"
 #include "ui/Scene.hpp"
+#include "ui/components/ErrorPopup.hpp"
 #include "ui/components/TitleBackground.hpp"
 
 namespace xlair::ui::scenes {
@@ -15,9 +16,11 @@ namespace xlair::ui::scenes {
         void drawFadeOut(double t) const override;
 
     private:
-        void reportState() const;
+        void reportState();
 
         components::TitleBackground m_background;
+        components::ErrorPopup m_error_popup;
+        Optional<app::card::Error> m_notified_error;
         double m_elapsed = 0.0;
         std::unique_ptr<app::flows::Title> m_title_flow;
     };

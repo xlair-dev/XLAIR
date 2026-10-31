@@ -9,6 +9,7 @@
 #include "ui/components/ResultPanel.hpp"
 #include "ui/components/UserNameplate.hpp"
 #include "ui/localization/Localization.hpp"
+#include "ui/presentation/ResultRating.hpp"
 #include "ui/theme/Palette.hpp"
 
 #include <utility>
@@ -16,10 +17,12 @@
 namespace xlair::ui::scenes {
     namespace {
         constexpr double InputWaitSeconds = 2.0;
+        constexpr double AutoContinueSeconds = 20.0;
         constexpr Duration MusicFadeOut{ 0.25 };
     }
 
-    Result::Result(const InitData& init) : SceneBase{ init }, m_result{ std::move(getData().game_result) } {
+    Result::Result(const InitData& init)
+        : SceneBase{ init }, m_result{ std::move(getData().game_result) }, m_auto_continue{ AutoContinueSeconds } {
         getData().game_result.reset();
         m_slider_mappings = {
             {
@@ -39,23 +42,37 @@ namespace xlair::ui::scenes {
     }
 
     void Result::update() {
+        if (m_leaving) {
+            return;
+        }
         m_elapsed += Scene::DeltaTime();
+        const bool timed_out = m_auto_continue.update(true, Scene::DeltaTime());
         const auto* controller = getData().application->controller();
         constexpr std::array MenuKeys{ KeyEnter };
         m_menu_input.update(controller, MenuKeys, Scene::DeltaTime(), m_elapsed >= InputWaitSeconds);
         if (m_elapsed < InputWaitSeconds) {
             return;
         }
-        if (m_menu_input.keyDown(KeyEnter) || m_menu_input.touchDown(0, 16)) {
-            audio::PlaySoundEffect(audio::SoundEffect::Finish);
-            if (getData().application->playSession().finished()) {
-                m_continue_music = changeScene(SceneState::FinalResult, 500, CrossFade::No);
-            } else {
-                AudioAsset{ assets::bgm::Result }.stop(MusicFadeOut);
-                getData().returning_from_game = true;
-                changeScene(SceneState::MusicSelect, 500, CrossFade::No);
-            }
+        if (timed_out || m_menu_input.keyDown(KeyEnter) || m_menu_input.touchDown(0, 16)) {
+            continueToNext();
         }
+    }
+
+    void Result::continueToNext() {
+        auto& data = getData();
+        const bool finished = data.application->playSession().finished();
+        if (!changeScene(finished ? SceneState::FinalResult : SceneState::MusicSelect, 500, CrossFade::No)) {
+            return;
+        }
+        m_leaving = true;
+        m_continue_music = finished;
+        if (!finished) {
+            const auto& config = data.application->config();
+            data.ensureMusicSelectContext().resetTimer(config ? config->system.menu_timer_seconds : 0.0);
+            AudioAsset{ assets::bgm::Result }.stop(MusicFadeOut);
+            data.returning_from_game = true;
+        }
+        audio::PlaySoundEffect(audio::SoundEffect::Finish);
     }
 
     void Result::draw() const {
@@ -77,10 +94,11 @@ namespace xlair::ui::scenes {
         const auto& session = getData().application->playSession();
         if (const auto* user = session.user()) {
             const auto level = core::user::CalculateLevelProgress(user->xp);
+            const auto rating = presentation::ResultRatingAt(result.previous_rating, result.rating, m_elapsed);
             components::DrawUserNameplate(
                 {
                     .display_name = user->display_name,
-                    .rating = user->rating,
+                    .rating = rating.value_or(user->rating),
                     .level = level.level,
                     .level_progress = level.progress,
                 },
@@ -109,7 +127,8 @@ namespace xlair::ui::scenes {
             {
                 .score = score,
                 .total_combo = result.total_combo,
-                .rating = session.user() ? Optional<uint32>{ session.user()->rating } : none,
+                .previous_rating = result.previous_rating,
+                .rating = result.rating,
             },
             Point{ DesignSize.x / 2 - 700, 200 },
             m_elapsed

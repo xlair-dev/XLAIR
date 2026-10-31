@@ -68,7 +68,8 @@ namespace xlair::sheets::chart {
         const s3d::int64 start_sample,
         const s3d::int64 end_sample,
         const s3d::int64 sample_rate,
-        const s3d::Array<TempoChange>& tempo_changes
+        const s3d::Array<TempoChange>& tempo_changes,
+        const std::span<const s3d::int64> visible_samples
     ) {
         if (end_sample <= start_sample) {
             return Result<s3d::Array<s3d::int64>>::makeError(U"A Hold End point must be placed after its Start point.");
@@ -78,11 +79,21 @@ namespace xlair::sheets::chart {
                 U"Hold judgement generation requires at least one tempo definition."
             );
         }
+        if (!std::is_sorted(visible_samples.begin(), visible_samples.end()) ||
+            (!visible_samples.empty() &&
+             (visible_samples.front() < start_sample || visible_samples.back() > end_sample))) {
+            return Result<s3d::Array<s3d::int64>>::makeError(U"Visible checkpoints must be ordered within the hold.");
+        }
 
         s3d::Array<s3d::int64> samples = { start_sample };
         s3d::int64 current_sample = start_sample;
+        auto visible = std::upper_bound(visible_samples.begin(), visible_samples.end(), current_sample);
         while (true) {
-            const s3d::int64 next_sample = NextJudgeSample(current_sample, sample_rate, tempo_changes);
+            s3d::int64 next_sample = NextJudgeSample(current_sample, sample_rate, tempo_changes);
+            // A visible checkpoint starts a new periodic sequence; hidden path points do not.
+            if (visible != visible_samples.end() && *visible < next_sample) {
+                next_sample = *visible;
+            }
             if (next_sample <= current_sample) {
                 return Result<s3d::Array<s3d::int64>>::makeError(
                     U"A Hold judgement interval is shorter than one audio sample."
@@ -97,6 +108,9 @@ namespace xlair::sheets::chart {
                 return Result<s3d::Array<s3d::int64>>::makeError(U"A Hold requires too many judgement points.");
             }
             current_sample = next_sample;
+            while (visible != visible_samples.end() && *visible <= current_sample) {
+                ++visible;
+            }
         }
         samples.push_back(end_sample);
         return Result<s3d::Array<s3d::int64>>{ std::move(samples) };

@@ -1,7 +1,9 @@
 #include "PlaySession.hpp"
 
 #include "core/scoring/ClearType.hpp"
+#include "core/user/Rating.hpp"
 
+#include <cmath>
 #include <utility>
 
 namespace xlair::app::session {
@@ -47,6 +49,7 @@ namespace xlair::app::session {
     void PlaySession::reset() {
         m_user.reset();
         m_records.clear();
+        m_rating_sheets.clear();
         m_played_results.clear();
         m_active_play.reset();
         m_play_options = {};
@@ -114,6 +117,7 @@ namespace xlair::app::session {
             if (ClearRank(result.clear_type) > ClearRank(best.clear_type)) {
                 best.clear_type = result.clear_type;
             }
+            updateRating();
         }
 
         --m_remaining_plays;
@@ -137,6 +141,33 @@ namespace xlair::app::session {
         for (auto& record : records) {
             m_records[record.sheet_id] = std::move(record);
         }
+    }
+
+    void PlaySession::setRatingCatalog(const Array<api::Music>& catalog) {
+        m_rating_sheets.clear();
+        for (const auto& music : catalog) {
+            for (const auto& sheet : music.sheets) {
+                if (sheet.id.isEmpty() || !std::isfinite(sheet.level) || sheet.level < 1.0 || sheet.level > 99.9 ||
+                    !m_rating_sheets.emplace(sheet.id, RatingSheet{ sheet.level, music.is_test }).second) {
+                    m_rating_sheets.clear();
+                    return;
+                }
+            }
+        }
+    }
+
+    void PlaySession::updateRating() {
+        Array<core::user::RatingRecord> records;
+        records.reserve(m_records.size());
+        for (const auto& [sheet_id, record] : m_records) {
+            const auto sheet = m_rating_sheets.find(sheet_id);
+            // Keep the server's rating if any past sheet is missing instead of treating it as zero.
+            if (sheet == m_rating_sheets.end()) {
+                return;
+            }
+            records.push_back({ sheet->second.level, record.score, sheet->second.is_test });
+        }
+        m_user->rating = core::user::CalculateUserRating(records);
     }
 
     void PlaySession::setPlayOptions(const api::PlayOptions options) noexcept {

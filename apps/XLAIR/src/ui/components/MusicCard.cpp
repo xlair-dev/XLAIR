@@ -1,10 +1,10 @@
 #include "MusicCard.hpp"
 
+#include "DifficultyLevel.hpp"
 #include "ui/assets/Assets.hpp"
 #include "ui/components/ScrollingText.hpp"
 #include "ui/localization/Localization.hpp"
 #include "ui/primitives/Sparkle.hpp"
-#include <Siv3D/Math.hpp>
 
 namespace xlair::ui::components {
     MusicCard::MusicCard() : m_render_texture{ CardSize } {}
@@ -63,9 +63,8 @@ namespace xlair::ui::components {
             FontAsset{ assets::font::Label }(U"LEVEL").draw(23, Vec2{ -505, 50 }, difficulty_theme.accent);
         }
 
-        const int32 level = static_cast<int32>(Math::Round(data.level));
-        const double level_x = level < 10 ? 90 : 80;
-        FontAsset{ assets::font::Text }(level).drawBase(87, level_x, 503, difficulty_theme.text);
+        const double level_x = data.level < 10.0 ? 90.0 : 80.0;
+        DrawDifficultyLevel(data.level, Vec2{ level_x, 503 }, 170.0 - level_x, difficulty_theme.text);
     }
 
     void MusicCard::drawMetadata(

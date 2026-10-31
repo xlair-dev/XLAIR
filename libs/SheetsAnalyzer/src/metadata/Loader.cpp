@@ -95,6 +95,7 @@ namespace xlair::sheets::metadata {
             ReadValue(json, U"music_offset", metadata.music_offset_seconds);
             ReadValue(json, U"demo_start", metadata.demo_start_seconds);
             ReadValue(json, U"bpm", metadata.bpm);
+            ReadValue(json, U"is_test", metadata.is_test);
 
             s3d::FilePath music;
             s3d::FilePath jacket;
@@ -152,6 +153,7 @@ namespace xlair::sheets::metadata {
             ReadValue(toml, U"music_offset", metadata.music_offset_seconds);
             ReadValue(toml, U"demo_start", metadata.demo_start_seconds);
             ReadValue(toml, U"bpm", metadata.bpm);
+            ReadValue(toml, U"is_test", metadata.is_test);
 
             s3d::FilePath music;
             s3d::FilePath jacket;

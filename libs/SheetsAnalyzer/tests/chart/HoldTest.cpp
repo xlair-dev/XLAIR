@@ -6,6 +6,7 @@
 #include <SheetsAnalyzer/SliderHoldPath.hpp>
 
 #include <algorithm>
+#include <cmath>
 
 namespace sheets = xlair::sheets;
 namespace compiler = sheets::chart;
@@ -39,7 +40,10 @@ TEST_CASE("Normalized hold paths retain their points without resampling or extra
     }
 }
 
-TEST_CASE("Off-grid visible anchors get a judgement independently of rendering density", "[SheetsAnalyzer][IR][Hold]") {
+TEST_CASE(
+    "Visible anchors restart periodic judgements independently of rendering density",
+    "[SheetsAnalyzer][IR][Hold]"
+) {
     const auto hold = compiler::detail::CompileSliderHold(
         {
             { .kind = sheets::SliderHoldPointKind::Start, .sample = 0, .lane = { 0, 2 } },
@@ -59,6 +63,38 @@ TEST_CASE("Off-grid visible anchors get a judgement independently of rendering d
     CHECK(visible->lane.start == 4);
     CHECK(visible->lane.width == 2);
     CHECK(hold->points[1].timeline == 1);
+    const s3d::Array<s3d::int64> expected{ 0, 25, 50, 67, 92, 117, 142, 167, 192, 200 };
+    for (std::size_t index = 0; index < expected.size(); ++index) {
+        CHECK(hold->judge_points[index].sample == expected[index]);
+    }
+}
+
+TEST_CASE("Hold judgement density follows BPM thresholds", "[SheetsAnalyzer][IR][Hold]") {
+    const auto bpm = GENERATE(60.0, 119.0, 120.0, 239.0, 240.0, 480.0);
+    const auto samples = compiler::detail::GenerateHoldJudgeSamples(100, 2000, 480, { { .sample = 0, .bpm = bpm } });
+    REQUIRE(samples);
+    REQUIRE(samples->size() > 2);
+    const double beats = bpm < 120.0 ? 0.25 : (bpm < 240.0 ? 0.5 : 1.0);
+    CHECK((*samples)[1] == 100 + static_cast<s3d::int64>(std::round(480.0 * 60.0 / bpm * beats)));
+    CHECK(samples->back() == 2000);
+}
+
+TEST_CASE("Staggered holds align their periodic judgements at a shared visible anchor", "[SheetsAnalyzer][IR][Hold]") {
+    const s3d::Array<sheets::TempoChange> tempos{ { .sample = 0, .bpm = 120.0 } };
+    const s3d::Array<s3d::int64> anchors{ 167, 167, 192 };
+    const auto first = compiler::detail::GenerateHoldJudgeSamples(0, 300, 100, tempos, anchors);
+    const auto second = compiler::detail::GenerateHoldJudgeSamples(12, 300, 100, tempos, anchors);
+    REQUIRE(first);
+    REQUIRE(second);
+    CHECK((*first)[1] == 25);
+    CHECK((*second)[1] == 37);
+    const s3d::Array<s3d::int64> expected_tail{ 167, 192, 217, 242, 267, 292, 300 };
+    const auto first_anchor = std::find(first->begin(), first->end(), 167);
+    const auto second_anchor = std::find(second->begin(), second->end(), 167);
+    CHECK(s3d::Array<s3d::int64>(first_anchor, first->end()) == expected_tail);
+    CHECK(s3d::Array<s3d::int64>(second_anchor, second->end()) == expected_tail);
+    CHECK_FALSE(compiler::detail::GenerateHoldJudgeSamples(0, 300, 100, tempos, s3d::Array<s3d::int64>{ 200, 100 }));
+    CHECK_FALSE(compiler::detail::GenerateHoldJudgeSamples(0, 300, 100, tempos, s3d::Array<s3d::int64>{ 301 }));
 }
 
 TEST_CASE("Hidden path points retain their timeline without adding checkpoints", "[SheetsAnalyzer][IR][Hold]") {

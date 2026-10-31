@@ -1,5 +1,7 @@
 [title]
 touch_to_start = "カードをタッチして始める"
+card_read_error = "カード読み取りエラー"
+card_read_retry = "カードを離して、もう一度タッチしてください"
 
 [login]
 prompt = "ログイン"

@@ -25,6 +25,10 @@ namespace xlair::ui::audio {
                     return { assets::sound::CoinInsert, UISound };
                 case SoundEffect::LoginComplete:
                     return { assets::sound::LoginComplete, UISound };
+                case SoundEffect::PopupError:
+                    return { assets::sound::PopupError, UISound };
+                case SoundEffect::TimerNormal:
+                    return { assets::sound::TimerNormal, UISound };
             }
 
             throw Error{ U"Unknown sound effect." };

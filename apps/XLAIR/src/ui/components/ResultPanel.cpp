@@ -1,6 +1,7 @@
 #include "ResultPanel.hpp"
 
 #include "ui/assets/Assets.hpp"
+#include "ui/presentation/ResultRating.hpp"
 #include "ui/presentation/ScoringText.hpp"
 #include "ui/theme/Palette.hpp"
 
@@ -15,13 +16,21 @@ namespace xlair::ui::components {
             return Easing::Cubic(Clamp((elapsed - start) / duration, 0.0, 1.0));
         }
 
-        void DrawFrame(const double opacity) {
-            Rect{ PanelSize }.draw(ColorF{ 1.0, 0.7 * opacity });
+        void DrawFrame(const double opacity, const double progress) {
+            const double width = PanelSize.x * progress;
+            const double left = (PanelSize.x - width) / 2.0;
+            const double right = left + width;
+            RectF{ left, 0, width, PanelSize.y }.draw(ColorF{ 1.0, 0.7 * opacity });
             constexpr std::array widths{ 16, 8, 4 };
             constexpr std::array offsets{ 0, 24, 40 };
             for (std::size_t index = 0; index < widths.size(); ++index) {
-                Rect{ offsets[index], 0, widths[index], PanelSize.y }.draw(theme::Palette::Cyan.withA(opacity));
-                Rect{ PanelSize.x - offsets[index] - widths[index], 0, widths[index], PanelSize.y }.draw(
+                // Clip each side to its own half while the frame is narrow.
+                const double stroke_width = Min<double>(widths[index], Max(0.0, width / 2.0 - offsets[index]));
+                if (stroke_width <= 0.0) {
+                    continue;
+                }
+                RectF{ left + offsets[index], 0, stroke_width, PanelSize.y }.draw(theme::Palette::Cyan.withA(opacity));
+                RectF{ right - offsets[index] - stroke_width, 0, stroke_width, PanelSize.y }.draw(
                     theme::Palette::Cyan.withA(opacity)
                 );
             }
@@ -76,18 +85,20 @@ namespace xlair::ui::components {
 
     void DrawResultPanel(const ResultPanelData& data, const Point& position, const double elapsed) {
         const ScopedViewport2D viewport{ position, PanelSize };
-        const double frame_opacity = Reveal(elapsed, 0.25, 0.25);
-        const double value_opacity = Reveal(elapsed, 0.5, 0.25);
-        const double score_progress = Reveal(elapsed, 0.5, 0.5);
+        const double frame_opacity = Reveal(elapsed, 0.25, 0.2);
+        const double frame_progress = EaseOutCubic(Clamp((elapsed - 0.25) / 0.45, 0.0, 1.0));
+        const double label_opacity = Reveal(elapsed, 0.65, 0.2);
+        const double value_opacity = Reveal(elapsed, 0.75, 0.25);
+        const double score_progress = Reveal(elapsed, 0.75, 0.5);
         const double grade_opacity = Reveal(elapsed, 1.0, 0.25);
         const auto display = FontAsset{ assets::font::Display };
         const auto text = FontAsset{ assets::font::Text };
 
-        DrawFrame(frame_opacity);
-        display(U"SCORE").draw(40, Vec2{ 137, 42 }, ColorF{ 0.0, frame_opacity });
+        DrawFrame(frame_opacity, frame_progress);
+        display(U"SCORE").draw(40, Vec2{ 137, 42 }, ColorF{ 0.0, label_opacity });
         DrawScore(data.score.score, value_opacity, score_progress);
-        DrawJudgements(data.score, frame_opacity, value_opacity);
-        DrawGrade(data.score.score, frame_opacity, grade_opacity);
+        DrawJudgements(data.score, label_opacity, value_opacity);
+        DrawGrade(data.score.score, label_opacity, grade_opacity);
 
         const auto clear_type = core::scoring::ClearTypeForScore(data.score, data.total_combo);
         const ColorF clear_color = clear_type == core::scoring::ClearType::Failed  ? theme::Palette::Gray
@@ -96,12 +107,18 @@ namespace xlair::ui::components {
         display(presentation::ClearStatusLabel(clear_type))
             .drawAt(24, Vec2{ 1050, 290 }, clear_color.withA(value_opacity));
 
-        display(U"COMBO").drawAt(40, Vec2{ 700, 410 }, ColorF{ 0.0, frame_opacity });
+        display(U"COMBO").drawAt(40, Vec2{ 700, 410 }, ColorF{ 0.0, label_opacity });
         text(data.score.max_combo).drawAt(80, Vec2{ 700, 500 }, theme::Palette::Pink.withA(value_opacity));
 
-        Circle{ 1100, 500, 70 }.drawFrame(5, 0, theme::Palette::Purple.withA(0.7 * frame_opacity));
-        display(U"RATE").drawAt(40, Vec2{ 1100, 410 }, ColorF{ 0.0, frame_opacity });
-        const String rating = data.rating ? Format(*data.rating) : U"-";
-        display(rating).drawAt(70, Vec2{ 1100, 500 }, ColorF{ 0.0, frame_opacity });
+        Circle{ 1100, 500, 70 }.drawFrame(5, 0, theme::Palette::Purple.withA(0.7 * label_opacity));
+        display(U"RATE").drawAt(40, Vec2{ 1100, 410 }, ColorF{ 0.0, label_opacity });
+        const auto rating = presentation::ResultRatingAt(data.previous_rating, data.rating, elapsed);
+        display(rating ? Format(*rating) : U"-").drawAt(70, Vec2{ 1100, 500 }, ColorF{ 0.0, label_opacity });
+        if (data.rating && data.previous_rating && data.previous_rating != data.rating) {
+            const int64 difference = static_cast<int64>(*data.rating) - *data.previous_rating;
+            const auto label = text(U"{:+}"_fmt(difference));
+            const double font_size = Min(24.0, 24.0 * 140.0 / Max(1.0, label.region(24).w));
+            label.drawAt(font_size, Vec2{ 1100, 610 }, theme::Palette::Purple.withA(Reveal(elapsed, 1.0, 0.25)));
+        }
     }
 }

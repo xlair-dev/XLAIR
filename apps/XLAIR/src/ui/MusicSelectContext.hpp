@@ -1,18 +1,24 @@
 #pragma once
 
 #include "app/flows/MusicSelect.hpp"
+#include "ui/audio/MenuTimerSoundPlayer.hpp"
 #include "ui/audio/MusicPreviewPlayer.hpp"
 
 namespace xlair::ui {
     class MusicSelectContext {
     public:
-        MusicSelectContext(const Array<sheets::Metadata>& catalog, double remaining_seconds);
+        MusicSelectContext(
+            const Array<sheets::Metadata>& catalog,
+            double remaining_seconds,
+            bool include_test_music = true
+        );
 
         // Main updates this once per frame, including while Settings is active.
         void update(double delta_seconds);
 
         void pause();
         void resume() noexcept;
+        void resetTimer(double seconds);
 
         [[nodiscard]]
         app::flows::MusicSelect& flow() noexcept;
@@ -24,6 +30,9 @@ namespace xlair::ui {
         double remainingSeconds() const noexcept;
 
         [[nodiscard]]
+        bool timerExpired() const noexcept;
+
+        [[nodiscard]]
         std::size_t selectedSettingIndex() const noexcept;
 
         void setSelectedSettingIndex(std::size_t index) noexcept;
@@ -31,6 +40,7 @@ namespace xlair::ui {
     private:
         app::flows::MusicSelect m_flow;
         audio::MusicPreviewPlayer m_preview_player;
+        audio::MenuTimerSoundPlayer m_timer_sound_player;
         double m_remaining_seconds = 0.0;
         std::size_t m_selected_setting_index = 0;
         bool m_paused = false;

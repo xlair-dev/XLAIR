@@ -6,6 +6,7 @@
 #include "ui/components/SliderMappingGuide.hpp"
 #include "ui/input/MenuInput.hpp"
 #include "ui/presentation/LoginCompletion.hpp"
+#include "ui/presentation/SceneTimeout.hpp"
 #include "ui/transitions/CardTransition.hpp"
 
 namespace xlair::ui::scenes {
@@ -62,6 +63,7 @@ namespace xlair::ui::scenes {
         components::NameEntryPanel m_name_panel;
         components::CardCarousel m_visibility_carousel;
         presentation::LoginCompletion m_completion;
+        presentation::SceneTimeout m_credit_wait_timeout;
         RegistrationStep m_step = RegistrationStep::Name;
         Optional<RegistrationStep> m_previous_step;
         std::size_t m_visibility_index = 0;

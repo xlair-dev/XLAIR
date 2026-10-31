@@ -1,6 +1,7 @@
 version = 1
 id = "toml-song"
 title = "TOML Song"
+is_test = true
 
 [[difficulties]]
 id = "advanced"

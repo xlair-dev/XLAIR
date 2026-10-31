@@ -5,12 +5,15 @@
 #include "SheetsAnalyzer/Chart.hpp"
 #include "SheetsAnalyzer/Result.hpp"
 
+#include <span>
+
 namespace xlair::sheets::chart::detail {
     [[nodiscard]]
     Result<s3d::Array<s3d::int64>> GenerateHoldJudgeSamples(
         s3d::int64 start_sample,
         s3d::int64 end_sample,
         s3d::int64 sample_rate,
-        const s3d::Array<TempoChange>& tempo_changes
+        const s3d::Array<TempoChange>& tempo_changes,
+        std::span<const s3d::int64> visible_samples = {}
     );
 }

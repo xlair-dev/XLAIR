@@ -4,6 +4,7 @@
 #include "ui/components/GameScoreBar.hpp"
 #include "ui/components/SliderMappingGuide.hpp"
 #include "ui/input/MenuInput.hpp"
+#include "ui/presentation/SceneTimeout.hpp"
 
 namespace xlair::ui::scenes {
     class Result final : public SceneBase {
@@ -19,6 +20,7 @@ namespace xlair::ui::scenes {
         void drawFadeOut(double t) const override;
 
     private:
+        void continueToNext();
         void drawResult(const GameResult& result) const;
         void drawFadeOverlay(double opacity) const;
 
@@ -26,7 +28,9 @@ namespace xlair::ui::scenes {
         input::MenuInput m_menu_input;
         Array<components::SliderMapping> m_slider_mappings;
         mutable components::GameScoreBar m_score_bar;
+        presentation::SceneTimeout m_auto_continue;
         double m_elapsed = 0.0;
         bool m_continue_music = false;
+        bool m_leaving = false;
     };
 }

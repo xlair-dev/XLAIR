@@ -13,9 +13,8 @@ namespace xlair::core::judgement {
         constexpr uint8 SliderLaneCount = 16;
         constexpr uint8 TouchZoneCount = SliderLaneCount * 2;
         constexpr uint8 SideButtonCount = 4;
-        // Community tests suggest adjacent-lane presses do not count as a FLICK.
-        // Allow two lanes beyond the note so narrow FLICKs can still be swiped.
-        constexpr uint8 FlickMinimumLaneTravel = 2;
+        // Distances use the 16 columns, not the two electrodes within each column.
+        constexpr uint8 FlickMinimumLaneTravel = 1;
         constexpr uint8 FlickOuterLaneAllowance = 2;
 
         [[nodiscard]]
@@ -81,8 +80,8 @@ namespace xlair::core::judgement {
         m_perfect_window = static_cast<int64>(std::llround(chart.sample_rate / 30.0));
         m_great_window = static_cast<int64>(std::llround(chart.sample_rate / 15.0));
         m_good_window = static_cast<int64>(std::llround(chart.sample_rate / 10.0));
-        // Provisional values from player measurements: contact +/-83 ms, slide +/-167 ms.
-        m_flick_tap_window = static_cast<int64>(std::llround(chart.sample_rate / 12.0));
+        // Contact uses the full tap window; gesture completion keeps its existing deadline.
+        m_flick_tap_window = m_good_window;
         m_flick_slide_window = static_cast<int64>(std::llround(chart.sample_rate / 6.0));
 
         m_notes.reserve(
@@ -206,10 +205,40 @@ namespace xlair::core::judgement {
         m_order.stable_sort_by([this](const std::size_t left, const std::size_t right) {
             return m_notes[left].sample < m_notes[right].sample;
         });
+        linkXTapStarts();
         for (const std::size_t index : m_order) {
             const auto& note = m_notes[index];
             if (note.note_kind == NoteKind::Slider && note.slider_kind == sheets::SliderNoteKind::Flick) {
                 m_flick_order.push_back(index);
+            }
+        }
+    }
+
+    void JudgeEngine::linkXTapStarts() {
+        for (auto& start : m_notes) {
+            if (start.note_kind != NoteKind::SliderHold && start.note_kind != NoteKind::SideHold) {
+                continue;
+            }
+            const auto first = std::lower_bound(
+                m_order.begin(),
+                m_order.end(),
+                start.sample,
+                [this](const std::size_t index, const int64 sample) {
+                    return m_notes[index].sample < sample;
+                }
+            );
+            for (auto it = first; it != m_order.end() && m_notes[*it].sample == start.sample; ++it) {
+                const auto& note = m_notes[*it];
+                if (!note.isXTap()) {
+                    continue;
+                }
+                const bool linked = start.note_kind == NoteKind::SliderHold
+                                        ? note.note_kind == NoteKind::Slider && Overlaps(start.lane, note.lane)
+                                        : note.note_kind == NoteKind::Side && start.side_button == note.side_button;
+                if (linked) {
+                    start.linked_xtap = *it;
+                    break;
+                }
             }
         }
     }
@@ -223,13 +252,21 @@ namespace xlair::core::judgement {
     ) {
         Array<JudgementEvent> events;
         m_flick_contacts.clear();
+        uint32 flick_pressed = m_previous_slider_pressed;
 
         for (const auto& touch : touches) {
             if (touch.zone >= TouchZoneCount || touch.sample > current_sample) {
                 continue;
             }
 
-            processFlickTouch(touch, slider_pressed, events);
+            // Replay supplied edges so a pair that is pressed and released in one
+            // update can be recognized without treating the final snapshot as its history.
+            if (touch.phase == TouchEvent::Phase::Down) {
+                flick_pressed |= uint32{ 1 } << touch.zone;
+            } else {
+                flick_pressed &= ~(uint32{ 1 } << touch.zone);
+            }
+            processFlickTouch(touch, flick_pressed, events);
             if (touch.phase == TouchEvent::Phase::Up) {
                 continue;
             }
@@ -473,12 +510,20 @@ namespace xlair::core::judgement {
                 gesture.motion_zone.reset();
                 gesture.preheld_motion = false;
             }
+            if (touch.phase == TouchEvent::Phase::Down && Contains(note.lane, touch.zone / 2)) {
+                armEdgeFlick(note, touch.sample, slider_pressed);
+            }
 
-            bool eligible = false;
+            // Edge FLICKs need two different columns at once, then release of the
+            // edge column. Pressing both electrodes of one column is only a tap.
+            bool eligible = touch.phase == TouchEvent::Phase::Up && gesture.edge_lane &&
+                            touch.zone / 2 == *gesture.edge_lane &&
+                            !PressedInSpan(slider_pressed, { .start = *gesture.edge_lane }) &&
+                            (static_cast<long double>(touch.sample) - gesture.edge_sample) <= m_flick_tap_window;
             if (touch.phase == TouchEvent::Phase::Down && !gesture.motion_zone) {
                 eligible = FlickMotionInReach(note.lane, gesture.contact_zone, touch.zone) &&
                            (static_cast<long double>(touch.sample) - gesture.contact_sample) <= m_flick_slide_window;
-            } else if (touch.phase == TouchEvent::Phase::Up && gesture.motion_zone) {
+            } else if (!eligible && touch.phase == TouchEvent::Phase::Up && gesture.motion_zone) {
                 eligible = touch.zone == gesture.contact_zone ||
                            (!gesture.preheld_motion && touch.zone == *gesture.motion_zone);
                 eligible = eligible && touch.sample >= gesture.motion_sample &&
@@ -497,10 +542,10 @@ namespace xlair::core::judgement {
                 gesture.motion_zone = touch.zone;
                 gesture.motion_sample = touch.sample;
                 if (!PressedZone(slider_pressed, gesture.contact_zone)) {
-                    record(*active, flickGrade(*active), gesture.contact_sample, events);
+                    record(*active, Grade::Perfect, gesture.contact_sample, events);
                 }
             } else {
-                record(*active, flickGrade(*active), gesture.contact_sample, events);
+                record(*active, Grade::Perfect, gesture.contact_sample, events);
             }
         }
 
@@ -520,8 +565,7 @@ namespace xlair::core::judgement {
                 !Contains(note.lane, touch.zone / 2)) {
                 continue;
             }
-            const Grade grade = distance <= m_perfect_window ? Grade::Perfect : Grade::Great;
-            if (distance < closest_distance && acceptsBoundary(note, touch.zone / 2, touch.sample, grade)) {
+            if (distance < closest_distance && acceptsBoundary(note, touch.zone / 2, touch.sample, Grade::Perfect)) {
                 contact = &note;
                 closest_distance = distance;
             }
@@ -531,6 +575,7 @@ namespace xlair::core::judgement {
         }
 
         contact->flick_gesture = FlickGesture{ .contact_zone = touch.zone, .contact_sample = touch.sample };
+        armEdgeFlick(*contact, touch.sample, slider_pressed);
         m_flick_contacts.push_back(contact->chart_index);
         // An already-held lane can be the other half of a two-point FLICK.
         // The newly touched lane must still be released to complete it.
@@ -545,12 +590,19 @@ namespace xlair::core::judgement {
         }
     }
 
-    Grade JudgeEngine::flickGrade(const Note& note) const {
-        const auto& gesture = *note.flick_gesture;
-        const long double contact_distance = std::abs(static_cast<long double>(gesture.contact_sample) - note.sample);
-        const long double motion_distance = std::abs(static_cast<long double>(gesture.motion_sample) - note.sample);
-        return contact_distance <= m_perfect_window && motion_distance <= m_flick_tap_window ? Grade::Perfect
-                                                                                             : Grade::Great;
+    void JudgeEngine::armEdgeFlick(Note& note, const int64 sample, const uint32 slider_pressed) {
+        for (const uint8 edge : { uint8{ 0 }, static_cast<uint8>(SliderLaneCount - 1) }) {
+            if (!Contains(note.lane, edge) || !PressedInSpan(slider_pressed, { .start = edge })) {
+                continue;
+            }
+            for (uint8 lane = note.lane.start; lane < note.lane.start + note.lane.width; ++lane) {
+                if (lane != edge && PressedInSpan(slider_pressed, { .start = lane })) {
+                    note.flick_gesture->edge_lane = edge;
+                    note.flick_gesture->edge_sample = sample;
+                    return;
+                }
+            }
+        }
     }
 
     NoteState JudgeEngine::noteState(const std::size_t slider_note_index) const {
@@ -665,7 +717,7 @@ namespace xlair::core::judgement {
 
     Grade JudgeEngine::gradeFor(const Note& note, const int64 sample) const {
         const long double distance = std::abs(static_cast<long double>(sample) - note.sample);
-        if (distance <= m_perfect_window || (note.isXTap() && distance <= m_good_window)) {
+        if (distance <= m_perfect_window || ((note.isXTap() || note.linked_xtap) && distance <= m_good_window)) {
             return Grade::Perfect;
         }
         if (distance <= m_great_window) {
@@ -714,6 +766,12 @@ namespace xlair::core::judgement {
         Array<JudgementEvent>& events,
         const bool linked_start
     ) {
+        // Selecting the hold start must have the same result as selecting its XTap.
+        if (!linked_start && grade != Grade::Miss && note.linked_xtap &&
+            m_notes[*note.linked_xtap].state == NoteState::Pending) {
+            record(m_notes[*note.linked_xtap], grade, sample, events);
+            return;
+        }
         note.state = grade == Grade::Miss ? NoteState::Missed : NoteState::Hit;
         if (note.note_kind == NoteKind::SliderHold || note.note_kind == NoteKind::SideHold) {
             auto& hold = (note.note_kind == NoteKind::SideHold ? m_side_holds : m_slider_holds)[note.chart_index];
@@ -735,7 +793,7 @@ namespace xlair::core::judgement {
             return;
         }
 
-        // A co-located XTap also starts the hold. Both still count towards combo,
+        // A simultaneous overlapping XTap also starts the hold. Both count towards combo,
         // but the linked event lets audio avoid playing two start sounds.
         const auto first = std::lower_bound(
             m_order.begin(),
@@ -747,10 +805,8 @@ namespace xlair::core::judgement {
         );
         for (auto it = first; it != m_order.end() && m_notes[*it].sample == note.sample; ++it) {
             auto& start = m_notes[*it];
-            const bool linked = note.note_kind == NoteKind::Slider
-                                    ? start.note_kind == NoteKind::SliderHold && start.lane.start == note.lane.start &&
-                                          start.lane.width == note.lane.width
-                                    : start.note_kind == NoteKind::SideHold && start.side_button == note.side_button;
+            const bool linked =
+                start.linked_xtap && *start.linked_xtap == static_cast<std::size_t>(&note - m_notes.data());
             if (linked && start.state == NoteState::Pending) {
                 record(start, grade, sample, events, true);
             }

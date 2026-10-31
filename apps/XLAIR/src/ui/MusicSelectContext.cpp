@@ -1,8 +1,12 @@
 #include "MusicSelectContext.hpp"
 
 namespace xlair::ui {
-    MusicSelectContext::MusicSelectContext(const Array<sheets::Metadata>& catalog, const double remaining_seconds)
-        : m_flow{ catalog }, m_remaining_seconds{ Max(0.0, remaining_seconds) } {}
+    MusicSelectContext::MusicSelectContext(
+        const Array<sheets::Metadata>& catalog,
+        const double remaining_seconds,
+        const bool include_test_music
+    )
+        : m_flow{ catalog, include_test_music }, m_remaining_seconds{ Max(0.0, remaining_seconds) } {}
 
     void MusicSelectContext::update(const double delta_seconds) {
         if (m_paused) {
@@ -10,6 +14,7 @@ namespace xlair::ui {
         }
 
         m_remaining_seconds = Max(0.0, m_remaining_seconds - delta_seconds);
+        m_timer_sound_player.update(m_remaining_seconds);
 
         if (const auto* music = m_flow.selectedMusic()) {
             m_preview_player.update(music->music, music->demo_start_seconds);
@@ -20,11 +25,17 @@ namespace xlair::ui {
 
     void MusicSelectContext::pause() {
         m_paused = true;
+        m_timer_sound_player.stop();
         m_preview_player.stop(SecondsF{ 0.25 });
     }
 
     void MusicSelectContext::resume() noexcept {
         m_paused = false;
+    }
+
+    void MusicSelectContext::resetTimer(const double seconds) {
+        m_timer_sound_player.stop();
+        m_remaining_seconds = Max(0.0, seconds);
     }
 
     app::flows::MusicSelect& MusicSelectContext::flow() noexcept {
@@ -37,6 +48,10 @@ namespace xlair::ui {
 
     double MusicSelectContext::remainingSeconds() const noexcept {
         return m_remaining_seconds;
+    }
+
+    bool MusicSelectContext::timerExpired() const noexcept {
+        return m_remaining_seconds <= 0.0;
     }
 
     std::size_t MusicSelectContext::selectedSettingIndex() const noexcept {

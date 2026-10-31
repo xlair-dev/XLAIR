@@ -1,4 +1,6 @@
 X(TitleTouchToStart, U"title.touch_to_start")
+X(TitleCardReadError, U"title.card_read_error")
+X(TitleCardReadRetry, U"title.card_read_retry")
 X(LoginPrompt, U"login.prompt")
 X(LoginNamePrompt, U"login.name_prompt")
 X(LoginVisibilityPrompt, U"login.visibility_prompt")

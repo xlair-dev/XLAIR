@@ -22,6 +22,7 @@ TEST_CASE("Metadata has stable defaults", "[SheetsAnalyzer][Metadata]") {
     CHECK(metadata.artist == U"Unknown Artist");
     CHECK(metadata.genre == U"Unspecified");
     CHECK(metadata.bpm == 120.0);
+    CHECK_FALSE(metadata.is_test);
     CHECK(metadata.difficulties.isEmpty());
 }
 
@@ -47,6 +48,7 @@ TEST_CASE("LoadMetadata reads JSON metadata and resolves asset paths", "[SheetsA
     CHECK(result->music_offset_seconds == -0.125);
     CHECK(result->demo_start_seconds == 12.5);
     CHECK(result->bpm == 175.0);
+    CHECK(result->is_test);
 
     REQUIRE(result->difficulties.size() == 2);
     CHECK(result->difficulties[0].index == 0);
@@ -66,6 +68,7 @@ TEST_CASE("LoadMetadata reads TOML metadata and version 1 difficulty keys", "[Sh
     CHECK(result->title == U"TOML Song");
     CHECK(result->artist == U"Unknown Artist");
     CHECK(result->bpm == 120.0);
+    CHECK(result->is_test);
     REQUIRE(result->difficulties.size() == 1);
     CHECK(result->difficulties.front().index == 1);
     CHECK(result->difficulties.front().id == U"advanced");
@@ -77,6 +80,7 @@ TEST_CASE("LoadMetadata applies version 1 difficulty indices", "[SheetsAnalyzer]
 
     INFO(FirstDiagnostic(result));
     REQUIRE(result);
+    CHECK_FALSE(result->is_test);
     REQUIRE(result->difficulties.size() == 3);
     CHECK(result->difficulties[0].index == 0);
     CHECK(result->difficulties[0].id == U"default-index");

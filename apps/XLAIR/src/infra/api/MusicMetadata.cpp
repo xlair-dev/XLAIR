@@ -28,6 +28,7 @@ namespace xlair::infra::api {
         result[U"jacket"] = LocalPath(music[U"jacket"]);
         result[U"music_offset"] = 0.0;
         result[U"demo_start"] = 0.0;
+        result[U"is_test"] = music.hasElement(U"isTest") && music[U"isTest"].getOr<bool>(false);
         result[U"difficulties"] = s3d::JSON::Parse(U"[]");
         for (const auto& entry : music[U"sheets"]) {
             const auto& sheet = entry.value;

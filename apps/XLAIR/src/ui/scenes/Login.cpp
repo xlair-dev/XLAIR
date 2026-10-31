@@ -6,6 +6,7 @@
 #include "ui/audio/AudioBus.hpp"
 #include "ui/audio/SoundEffect.hpp"
 #include "ui/components/MenuHeader.hpp"
+#include "ui/components/MenuTimerPlate.hpp"
 #include "ui/components/UserNameplate.hpp"
 #include "ui/localization/Localization.hpp"
 #include "ui/theme/Palette.hpp"
@@ -17,6 +18,7 @@ namespace xlair::ui::scenes {
         using SideButton = app::controller::SideButton;
         using LoginState = app::flows::Login::State;
         constexpr auto CancelButton = app::controller::MaintenanceButton::Button2;
+        constexpr double CreditWaitSeconds = 30.0;
         constexpr std::array MenuKeys{ KeyLeft, KeyRight, KeySpace, KeyDown, KeyUp };
         constexpr double StepTransitionSeconds = transitions::CardTransitionMillisec / 1000.0;
         constexpr RectF SummaryRegion{ 460, 340, 1000, 370 };
@@ -54,7 +56,8 @@ namespace xlair::ui::scenes {
 
     Login::Login(const InitData& init)
         : SceneBase{ init }, m_visibility_carousel{ SizeF{ 530, 340 }, Vec2{ DesignSize.x / 2.0, 570 }, DesignSize.x },
-          m_completion{ AudioAsset{ assets::sound::LoginComplete }.lengthSec() } {
+          m_completion{ AudioAsset{ assets::sound::LoginComplete }.lengthSec() },
+          m_credit_wait_timeout{ CreditWaitSeconds } {
         ClearPrint();
         AudioAsset{ assets::bgm::Login }.play(audio::Music);
 
@@ -89,6 +92,10 @@ namespace xlair::ui::scenes {
 
         const auto previous = m_login_flow.state();
         m_login_flow.update(getData().application->creditPool());
+        if (m_credit_wait_timeout.update(m_login_flow.state() == LoginState::WaitingForCredit, Scene::DeltaTime())) {
+            returnToTitle();
+            return;
+        }
         if (m_login_flow.state() != previous) {
             m_menu_input = {};
             m_repeat_action = RepeatAction::None;
@@ -306,6 +313,9 @@ namespace xlair::ui::scenes {
         const uint32 max_plays = config ? static_cast<uint32>(Max(0, config->system.playable)) : 0;
         data.application->playSession().start(*m_login_flow.user(), max_plays);
         data.application->playSession().setRecords(m_login_flow.records());
+        if (const auto& catalog = m_login_flow.ratingCatalog()) {
+            data.application->playSession().setRatingCatalog(*catalog);
+        }
         data.application->playSession().setPlayOptions(*m_login_flow.playOptions());
         AudioAsset{ assets::bgm::Login }.stop(Duration{ 0.3 });
         m_leaving = changeScene(SceneState::MusicSelect, transitions::CardTransitionMillisec, CrossFade::No);
@@ -359,6 +369,12 @@ namespace xlair::ui::scenes {
         }
 
         components::DrawMenuHeader(Assets::Header);
+        if (m_login_flow.state() == LoginState::WaitingForCredit && !m_leaving) {
+            components::DrawMenuTimerPlate(
+                { .remaining_seconds = static_cast<int32>(Ceil(m_credit_wait_timeout.remainingSeconds())) },
+                Point{ 1599, 72 }
+            );
+        }
         if (const auto& user = m_login_flow.user()) {
             const auto level = core::user::CalculateLevelProgress(user->xp);
             components::DrawUserNameplate(
