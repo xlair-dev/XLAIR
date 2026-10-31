@@ -1,5 +1,7 @@
 #include "ViewerSession.hpp"
 
+#include <Audio.hpp>
+
 #include <algorithm>
 #include <cmath>
 #include <limits>
@@ -149,15 +151,11 @@ namespace xlair::sheets_viewer {
         m_jacket_loading = false;
 
         if (!m_metadata->music.isEmpty()) {
-            if (AudioAsset::Register(MusicAssetName, m_metadata->music)) {
-                m_music_loading = true;
-                AudioAsset::LoadAsync(MusicAssetName);
-            } else {
-                addAssetWarning(
-                    U"Failed to register the music file. Manual transport will be used.",
-                    m_metadata->music
-                );
-            }
+            const FilePath music_path = m_metadata->music;
+            m_music_task = AsyncTask<Audio>{ [music_path]() {
+                return ::xlair::audio::LoadMusic(music_path);
+            } };
+            m_music_loading = true;
         }
 
         if (!m_metadata->jacket.isEmpty()) {
@@ -173,11 +171,16 @@ namespace xlair::sheets_viewer {
     }
 
     void ViewerSession::updateAssetLoading() {
-        if (m_music_loading && AudioAsset::IsReady(MusicAssetName)) {
-            Audio audio = AudioAsset{ MusicAssetName };
-            if (audio) {
-                m_audio = std::move(audio);
-            } else {
+        if (m_music_loading && m_music_task.isReady()) {
+            try {
+                Audio loaded = m_music_task.get();
+                if (loaded) {
+                    m_audio = std::move(loaded);
+                }
+            } catch (...) {
+                // A failed decode/conversion still permits silent chart inspection.
+            }
+            if (!m_audio) {
                 addAssetWarning(U"Failed to load the music file. Manual transport will be used.", m_metadata->music);
             }
             m_music_loading = false;
@@ -258,7 +261,7 @@ namespace xlair::sheets_viewer {
         }
 
         const FilePath source_path = difficulty.src;
-        const int64 sample_rate = m_audio ? m_audio->sampleRate() : 44'100;
+        const int64 sample_rate = m_audio ? m_audio->sampleRate() : ::xlair::audio::PlaybackSampleRate;
         const double offset_seconds = m_metadata->music_offset_seconds;
         m_selected_difficulty_position = position;
         m_state = State::LoadingChart;
@@ -357,6 +360,7 @@ namespace xlair::sheets_viewer {
     void ViewerSession::clear() {
         waitForTasks();
         releaseAssets();
+        m_music_task = AsyncTask<Audio>{};
 
         m_state = State::Empty;
         m_pending_difficulty_id.reset();
@@ -456,15 +460,15 @@ namespace xlair::sheets_viewer {
         if (m_metadata_task.isValid()) {
             m_metadata_task.wait();
         }
+        if (m_music_task.isValid()) {
+            m_music_task.wait();
+        }
         if (m_chart_task.isValid()) {
             m_chart_task.wait();
         }
     }
 
     void ViewerSession::releaseAssets() {
-        if (m_music_loading && AudioAsset::IsRegistered(MusicAssetName)) {
-            AudioAsset::Wait(MusicAssetName);
-        }
         if (m_jacket_loading && TextureAsset::IsRegistered(JacketAssetName)) {
             TextureAsset::Wait(JacketAssetName);
         }
@@ -475,9 +479,6 @@ namespace xlair::sheets_viewer {
         m_audio.reset();
         m_jacket.reset();
 
-        if (AudioAsset::IsRegistered(MusicAssetName)) {
-            AudioAsset::Unregister(MusicAssetName);
-        }
         if (TextureAsset::IsRegistered(JacketAssetName)) {
             TextureAsset::Unregister(JacketAssetName);
         }

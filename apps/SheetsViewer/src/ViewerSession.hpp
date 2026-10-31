@@ -93,7 +93,6 @@ namespace xlair::sheets_viewer {
         bool isPlaying() const;
 
     private:
-        inline static constexpr StringView MusicAssetName = U"SheetsViewer.Music";
         inline static constexpr StringView JacketAssetName = U"SheetsViewer.Jacket";
 
         [[nodiscard]]
@@ -117,6 +116,7 @@ namespace xlair::sheets_viewer {
 
         State m_state = State::Empty;
         AsyncTask<sheets::Result<sheets::Metadata>> m_metadata_task;
+        AsyncTask<Audio> m_music_task;
         AsyncTask<sheets::Result<sheets::Chart>> m_chart_task;
         Optional<String> m_pending_difficulty_id;
         bool m_music_loading = false;

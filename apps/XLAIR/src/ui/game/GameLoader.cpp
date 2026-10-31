@@ -2,17 +2,12 @@
 
 #include "core/chart/Mirror.hpp"
 
+#include <Audio.hpp>
+
 #include <algorithm>
 #include <utility>
 
 namespace xlair::ui::game {
-    namespace {
-        [[nodiscard]]
-        Audio LoadAudio(const FilePath& path) {
-            return Audio{ Audio::Stream, path };
-        }
-    }
-
     GameLoader::~GameLoader() {
         cancel();
         if (m_audio_task.isValid()) {
@@ -48,7 +43,7 @@ namespace xlair::ui::game {
 
         const FilePath audio_path = selection.music_path;
         m_audio_task = AsyncTask<Audio>{ [audio_path]() {
-            return LoadAudio(audio_path);
+            return ::xlair::audio::LoadMusic(audio_path);
         } };
         m_state = State::LoadingAudio;
     }

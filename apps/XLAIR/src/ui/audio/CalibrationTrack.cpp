@@ -2,13 +2,15 @@
 
 #include "app/flows/LatencyCalibration.hpp"
 
+#include <Audio.hpp>
+
 #include <cmath>
 #include <utility>
 
 namespace xlair::ui::audio {
     Audio CreateCalibrationTrack() {
         using Calibration = app::flows::LatencyCalibration;
-        constexpr uint32 SampleRate = 48000;
+        constexpr uint32 SampleRate = ::xlair::audio::PlaybackSampleRate;
         const auto first = static_cast<std::size_t>(Calibration::FirstBeatMs * SampleRate / 1000.0);
         const auto interval = static_cast<std::size_t>(Calibration::BeatIntervalMs * SampleRate / 1000.0);
         Wave wave{ first + interval, WaveSample{ 0.0f }, Arg::sampleRate = SampleRate };
