@@ -263,7 +263,7 @@ namespace xlair::ui::scenes {
 
     void Login::insertCharacter() {
         if (m_name_entry.appendSelected()) {
-            audio::PlaySoundEffect(audio::SoundEffect::Confirm);
+            audio::PlaySoundEffect(audio::SoundEffect::TextInput);
         }
     }
 
@@ -285,24 +285,25 @@ namespace xlair::ui::scenes {
             m_login_flow.registerUser(m_name_entry.value(), m_visibility_index == 1);
             m_menu_input = {};
             m_repeat_action = RepeatAction::None;
-            audio::PlaySoundEffect(audio::SoundEffect::Confirm);
+            audio::PlaySoundEffect(audio::SoundEffect::Next);
         }
     }
 
     void Login::setStep(const RegistrationStep step) {
+        const bool forward = step > m_step;
         m_previous_step = m_step;
         m_step = step;
         m_step_elapsed = 0.0;
         m_menu_input = {};
         m_repeat_action = RepeatAction::None;
-        audio::PlaySoundEffect(audio::SoundEffect::Navigate);
+        audio::PlaySoundEffect(forward ? audio::SoundEffect::Next : audio::SoundEffect::Back);
     }
 
     void Login::returnToTitle() {
         if (!m_login_flow.canCancel() || m_login_flow.state() == LoginState::UserFound) {
             return;
         }
-        audio::PlaySoundEffect(audio::SoundEffect::Navigate);
+        audio::PlaySoundEffect(audio::SoundEffect::Back);
         AudioAsset{ assets::bgm::Login }.stop(Duration{ 0.3 });
         m_leaving = changeScene(SceneState::Title, transitions::CardTransitionMillisec, CrossFade::No);
     }

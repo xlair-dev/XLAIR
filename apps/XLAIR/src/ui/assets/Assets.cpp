@@ -143,6 +143,24 @@ namespace xlair::ui::assets {
             Require(AudioAsset::Load(sound::Confirm), U"Failed to load the confirmation sound.");
 
             Require(
+                AudioAsset::Register(sound::TextInput, Resource(U"ui/sounds/se/yes.wav")),
+                U"Failed to register the text input sound."
+            );
+            Require(AudioAsset::Load(sound::TextInput), U"Failed to load the text input sound.");
+
+            Require(
+                AudioAsset::Register(sound::Next, Resource(U"ui/sounds/se/select_next.wav")),
+                U"Failed to register the next-step sound."
+            );
+            Require(AudioAsset::Load(sound::Next), U"Failed to load the next-step sound.");
+
+            Require(
+                AudioAsset::Register(sound::Back, Resource(U"ui/sounds/se/select_back.wav")),
+                U"Failed to register the back sound."
+            );
+            Require(AudioAsset::Load(sound::Back), U"Failed to load the back sound.");
+
+            Require(
                 AudioAsset::Register(sound::Finish, Resource(U"ui/sounds/se/finish.opus")),
                 U"Failed to register the finish sound."
             );
