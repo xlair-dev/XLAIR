@@ -5,6 +5,7 @@
 #include "ui/assets/Assets.hpp"
 #include "ui/audio/AudioBus.hpp"
 #include "ui/components/GameMusicPlate.hpp"
+#include "ui/components/GameStart.hpp"
 #include "ui/components/UserNameplate.hpp"
 #include "ui/theme/Palette.hpp"
 
@@ -22,6 +23,7 @@ namespace xlair::ui::scenes {
         constexpr double JudgementPopDuration = 0.10;
         constexpr double JudgementFadeDuration = 0.20;
         constexpr double JudgementPopScale = 0.05;
+        constexpr double AudioStartTimeout = 2.0;
         constexpr std::array SideButtonMapping{
             sheets::SideButton::LeftUpper,
             sheets::SideButton::LeftLower,
@@ -34,6 +36,20 @@ namespace xlair::ui::scenes {
             const long double samples = static_cast<long double>(offset_seconds) * sample_rate;
             constexpr long double limit = static_cast<long double>(std::numeric_limits<int64>::max() / 2);
             return static_cast<int64>(std::round(Clamp(samples, -limit, limit)));
+        }
+
+        [[nodiscard]]
+        int64 JudgedSample(const int64 sample, const int64 offset) {
+            const long double adjusted = static_cast<long double>(sample) - offset;
+            constexpr auto Minimum = static_cast<long double>(std::numeric_limits<int64>::min());
+            constexpr auto Maximum = static_cast<long double>(std::numeric_limits<int64>::max());
+            if (adjusted <= Minimum) {
+                return std::numeric_limits<int64>::min();
+            }
+            if (adjusted >= Maximum) {
+                return std::numeric_limits<int64>::max();
+            }
+            return static_cast<int64>(adjusted);
         }
 
         [[nodiscard]]
@@ -77,15 +93,12 @@ namespace xlair::ui::scenes {
     }
 
     void Game::update() {
-        m_elapsed += Scene::DeltaTime();
-        m_judgement_display_seconds += Scene::DeltaTime();
+        const double delta_seconds = Scene::DeltaTime();
+        m_elapsed += delta_seconds;
+        m_phase_elapsed += delta_seconds;
+        m_judgement_display_seconds += delta_seconds;
         const auto* controller = getData().application->controller();
         const auto& music = getData().game_loader.audio();
-        const bool music_playing = m_playback_started && !m_playback_finished && music.isPlaying();
-        if (music_playing) {
-            m_current_sample = music.posSample();
-        }
-        readInput(controller, m_current_sample - m_judgment_offset_samples);
         const bool cancel = controller && controller->maintenanceButton(CancelButton).down();
         if (cancel || KeyEscape.pressedDuration() >= SecondsF{ 1.5 }) {
             m_sound_player.stop();
@@ -102,38 +115,84 @@ namespace xlair::ui::scenes {
             return;
         }
 
-        if (!m_playback_started) {
-            const auto& application = *getData().application;
-            const double latency = application.config() ? application.config()->input.latency_offset_seconds : 0.0;
-            const double judgment = application.playSession().playOptions().judgment_offset_ms / 1'000.0;
-            m_judgment_offset_samples = JudgmentOffsetSamples(latency + judgment, loader.chart()->sample_rate);
-            m_judge_engine = std::make_unique<core::judgement::JudgeEngine>(*loader.chart());
-            m_sound_player.start(*loader.chart());
-            music.play(audio::Music);
-            m_playback_started = true;
+        if (m_phase == Phase::Intro) {
+            if (m_phase_elapsed >= components::GameStartMinimumDuration) {
+                preparePlayback();
+            }
             return;
         }
-
-        if (!m_playback_finished) {
-            if (music_playing) {
-                // A positive offset compensates late input; it moves touch time earlier, not the visual chart.
-                const int64 judged_sample = m_current_sample - m_judgment_offset_samples;
-                if (m_autoplay) {
-                    const auto events = m_judge_engine->advanceAuto(m_current_sample);
-                    processJudgements(events);
-                    return;
-                }
-                const auto events = m_judge_engine->advance(
-                    judged_sample,
-                    std::span{ m_input.touches.data(), m_input.touch_count },
-                    std::span{ m_input.side_down.data(), m_input.side_count },
-                    m_input.pressed.slider_pressed,
-                    m_input.pressed.side_pressed
-                );
-                processJudgements(events);
-            } else {
-                finishPlayback();
+        if (m_phase == Phase::Reveal) {
+            if (m_phase_elapsed >= components::GameStartRevealDuration) {
+                m_phase = Phase::LeadIn;
+                m_phase_elapsed = 0.0;
+                m_input = {};
             }
+            return;
+        }
+        if (m_phase != Phase::Finished && m_phase != Phase::Failed) {
+            updatePlayback(controller, delta_seconds);
+        }
+    }
+
+    void Game::preparePlayback() {
+        const auto& application = *getData().application;
+        const auto& chart = *getData().game_loader.chart();
+        const double latency = application.config() ? application.config()->input.latency_offset_seconds : 0.0;
+        const double judgment = application.playSession().playOptions().judgment_offset_ms / 1'000.0;
+        m_judgment_offset_samples = JudgmentOffsetSamples(latency + judgment, chart.sample_rate);
+        m_judge_engine = std::make_unique<core::judgement::JudgeEngine>(chart);
+        m_sound_player.start(chart);
+        m_lead_in.emplace(chart, m_judgment_offset_samples);
+        m_current_sample = m_lead_in->sample();
+        m_phase = Phase::Reveal;
+        m_phase_elapsed = 0.0;
+    }
+
+    void Game::updatePlayback(const app::controller::Controller* controller, const double delta_seconds) {
+        const auto& music = getData().game_loader.audio();
+        if (m_phase == Phase::LeadIn) {
+            m_lead_in->update(delta_seconds);
+            m_current_sample = m_lead_in->sample();
+            if (m_lead_in->finished()) {
+                // Discard lead-in overshoot; the audio clock takes over at sample zero.
+                music.play(audio::Music);
+                m_phase = Phase::Starting;
+                m_phase_elapsed = 0.0;
+            }
+        } else if (m_phase == Phase::Starting) {
+            if (music.isPlaying() || music.posSample() > 0) {
+                m_current_sample = Max<int64>(0, music.posSample());
+                m_phase = Phase::Playing;
+                m_phase_elapsed = 0.0;
+            } else if (m_phase_elapsed >= AudioStartTimeout) {
+                music.stop();
+                m_sound_player.stop();
+                m_start_error = U"Failed to start the selected audio file.";
+                m_phase = Phase::Failed;
+                Logger << U"[Game] " + m_start_error;
+                return;
+            }
+        } else {
+            if (!music.isPlaying()) {
+                finishPlayback();
+                return;
+            }
+            m_current_sample = music.posSample();
+        }
+
+        // A positive offset compensates late input, without moving the visual chart.
+        const int64 judged_sample = JudgedSample(m_current_sample, m_judgment_offset_samples);
+        readInput(controller, judged_sample);
+        if (m_autoplay) {
+            processJudgements(m_judge_engine->advanceAuto(m_current_sample));
+        } else {
+            processJudgements(m_judge_engine->advance(
+                judged_sample,
+                std::span{ m_input.touches.data(), m_input.touch_count },
+                std::span{ m_input.side_down.data(), m_input.side_count },
+                m_input.pressed.slider_pressed,
+                m_input.pressed.side_pressed
+            ));
         }
     }
 
@@ -192,7 +251,7 @@ namespace xlair::ui::scenes {
         events.append(m_judge_engine->finish());
         processJudgements(events);
         m_sound_player.finish();
-        m_playback_finished = true;
+        m_phase = Phase::Finished;
 
         if (data.game_selection) {
             const auto& selection = *data.game_selection;
@@ -219,12 +278,35 @@ namespace xlair::ui::scenes {
 
     void Game::draw() const {
         const auto& loader = getData().game_loader;
-        if (loader.state() == game::GameLoader::State::Ready && loader.chart() && loader.projection()) {
-            Scene::Rect().draw(theme::Palette::White);
-            drawReady();
-        } else if (loader.state() == game::GameLoader::State::Failed) {
+        if (loader.state() == game::GameLoader::State::Failed || m_phase == Phase::Failed) {
             Scene::Rect().draw(theme::Palette::White);
             drawFailure();
+        } else if (m_phase == Phase::Intro) {
+            drawIntro(0.0);
+        } else if (loader.state() == game::GameLoader::State::Ready && loader.chart() && loader.projection()) {
+            Scene::Rect().draw(theme::Palette::White);
+            drawReady();
+            if (m_phase == Phase::Reveal) {
+                drawIntro(Clamp(m_phase_elapsed / components::GameStartRevealDuration, 0.0, 1.0));
+            }
+        } else {
+            Scene::Rect().draw(Palette::Black);
+        }
+    }
+
+    void Game::drawIntro(const double reveal) const {
+        if (const auto& selection = getData().game_selection) {
+            components::DrawGameStart(
+                {
+                    .title = selection->title,
+                    .artist = selection->artist,
+                    .designer = selection->difficulty.designer,
+                    .jacket = getData().jackets.get(selection->music_id),
+                    .difficulty_index = selection->difficulty.index,
+                },
+                m_elapsed,
+                reveal
+            );
         } else {
             Scene::Rect().draw(Palette::Black);
         }
@@ -334,7 +416,8 @@ namespace xlair::ui::scenes {
 
     void Game::drawFailure() const {
         const Vec2 center{ DesignSize.x / 2.0, DesignSize.y / 2.0 };
-        FontAsset{ assets::font::Text }(getData().game_loader.error()).drawAt(24, center, theme::Palette::Gray);
+        const auto& error = m_start_error.isEmpty() ? getData().game_loader.error() : m_start_error;
+        FontAsset{ assets::font::Text }(error).drawAt(24, center, theme::Palette::Gray);
     }
 
     void Game::drawFadeIn(const double t) const {
