@@ -3,6 +3,7 @@
 #include "HoldProjection.hpp"
 #include "ScrollTimeline.hpp"
 
+#include <limits>
 #include <span>
 
 namespace xlair::playfield {
@@ -29,7 +30,13 @@ namespace xlair::playfield {
             std::span<const PreparedHoldSpan> sideHoldSpans(std::size_t index) const;
 
             // Use a span from this projection. The output retains its allocated storage.
-            void holdSections(const PreparedHoldSpan& span, s3d::Array<HoldSection>& sections) const;
+            // Spans known to be entirely outside the distance range are omitted.
+            void holdSections(
+                const PreparedHoldSpan& span,
+                s3d::Array<HoldSection>& sections,
+                long double minimum_distance = -std::numeric_limits<long double>::infinity(),
+                long double maximum_distance = std::numeric_limits<long double>::infinity()
+            ) const;
 
         private:
             friend class ChartProjection;
