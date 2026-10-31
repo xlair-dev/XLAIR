@@ -1,8 +1,110 @@
 #include <Playfield/ChartProjection.hpp>
 
+#include <algorithm>
 #include <stdexcept>
+#include <utility>
 
 namespace xlair::playfield {
+    namespace {
+        [[nodiscard]]
+        double ColorProgress(const s3d::int64 sample, const s3d::int64 first_sample, const double duration) {
+            return duration > 0.0 ? s3d::Clamp((static_cast<double>(sample) - first_sample) / duration, 0.0, 1.0) : 0.0;
+        }
+
+        template <class Point>
+        [[nodiscard]]
+        PreparedHoldPoint PrepareHoldPoint(
+            const ChartProjection& projection,
+            const Point& before,
+            const Point& after,
+            const s3d::int64 sample,
+            const sheets::TimelineIndex timeline,
+            const s3d::int64 first_sample,
+            const double duration
+        ) {
+            PreparedHoldPoint point{
+                .sample = sample,
+                .timeline = timeline,
+                .position = projection.positionAt(timeline, sample),
+                .color_progress = ColorProgress(sample, first_sample, duration),
+            };
+            if constexpr (requires {
+                              before.lane;
+                              after.lane;
+                          }) {
+                const double ratio = static_cast<double>(
+                    (static_cast<long double>(sample) - before.sample) /
+                    (static_cast<long double>(after.sample) - before.sample)
+                );
+                point.lane_start = s3d::Math::Lerp(
+                    static_cast<double>(before.lane.start),
+                    static_cast<double>(after.lane.start),
+                    ratio
+                );
+                point.lane_width = s3d::Math::Lerp(
+                    static_cast<double>(before.lane.width),
+                    static_cast<double>(after.lane.width),
+                    ratio
+                );
+            }
+            return point;
+        }
+
+        template <class Point>
+        [[nodiscard]]
+        s3d::Array<PreparedHoldSpan>
+        PrepareHoldSpans(const ChartProjection& projection, const s3d::Array<Point>& points) {
+            s3d::Array<PreparedHoldSpan> spans;
+            if (points.size() < 2) {
+                return spans;
+            }
+            spans.reserve(points.size() - 1);
+            const s3d::int64 first_sample = points.front().sample;
+            const double duration = static_cast<double>(points.back().sample) - static_cast<double>(first_sample);
+            s3d::Array<s3d::int64> samples;
+            for (std::size_t index = 1; index < points.size(); ++index) {
+                const auto& before = points[index - 1];
+                const auto& after = points[index];
+                PreparedHoldSpan span{
+                    .before = { .sample = before.sample, .timeline = before.timeline },
+                    .after = { .sample = after.sample, .timeline = after.timeline },
+                    .first_sample = first_sample,
+                    .duration = duration,
+                };
+                if (before.sample < after.sample) {
+                    span.before = PrepareHoldPoint(
+                        projection,
+                        before,
+                        after,
+                        before.sample,
+                        before.timeline,
+                        first_sample,
+                        duration
+                    );
+                    span.after = PrepareHoldPoint(
+                        projection,
+                        before,
+                        after,
+                        after.sample,
+                        after.timeline,
+                        first_sample,
+                        duration
+                    );
+                    projection
+                        .noteDistanceBreakpoints(before.timeline, before.sample, before.sample, after.sample, samples);
+                    span.breakpoints.reserve(samples.size());
+                    for (const auto sample : samples) {
+                        span.breakpoints.push_back(
+                            PrepareHoldPoint(projection, before, after, sample, before.timeline, first_sample, duration)
+                        );
+                    }
+                }
+                spans.push_back(std::move(span));
+            }
+            return spans;
+        }
+    }
+
     ChartProjection::Frame::Frame(
         const ChartProjection& projection,
         const s3d::int64 current_sample,
@@ -28,6 +130,78 @@ namespace xlair::playfield {
         m_projection.noteDistanceBreakpoints(timeline, m_current_sample, from_sample, to_sample, samples);
     }
 
+    std::span<const PreparedHoldSpan> ChartProjection::Frame::sliderHoldSpans(const std::size_t index) const {
+        const auto& spans = m_projection.m_slider_hold_spans.at(index);
+        return { spans.data(), spans.size() };
+    }
+
+    std::span<const PreparedHoldSpan> ChartProjection::Frame::sideHoldSpans(const std::size_t index) const {
+        const auto& spans = m_projection.m_side_hold_spans.at(index);
+        return { spans.data(), spans.size() };
+    }
+
+    void ChartProjection::Frame::holdSections(const PreparedHoldSpan& span, s3d::Array<HoldSection>& sections) const {
+        sections.clear();
+        if (span.before.sample >= span.after.sample) {
+            return;
+        }
+        const auto distance = [this](const PreparedHoldPoint& point) {
+            if (point.sample < m_current_sample) {
+                return m_projection.noteDistance(point.timeline, m_current_sample, point.sample);
+            }
+            if (point.timeline >= m_current_positions.size()) {
+                throw std::out_of_range{ "The timeline index is outside the chart projection." };
+            }
+            return point.position - m_current_positions[point.timeline];
+        };
+        PreparedHoldPoint previous = span.before;
+        long double previous_distance = distance(previous);
+        const auto append = [&](const PreparedHoldPoint& point) {
+            const long double point_distance = distance(point);
+            sections.push_back(
+                {
+                    .before = previous,
+                    .after = point,
+                    .before_distance = previous_distance,
+                    .after_distance = point_distance,
+                }
+            );
+            previous = point;
+            previous_distance = point_distance;
+        };
+        if (span.before.sample < m_current_sample && m_current_sample < span.after.sample) {
+            if (span.before.timeline >= m_current_positions.size()) {
+                throw std::out_of_range{ "The timeline index is outside the chart projection." };
+            }
+            const double ratio = static_cast<double>(
+                (static_cast<long double>(m_current_sample) - span.before.sample) /
+                (static_cast<long double>(span.after.sample) - span.before.sample)
+            );
+            append(
+                {
+                    .sample = m_current_sample,
+                    .timeline = span.before.timeline,
+                    .position = m_current_positions[span.before.timeline],
+                    .lane_start = s3d::Math::Lerp(span.before.lane_start, span.after.lane_start, ratio),
+                    .lane_width = s3d::Math::Lerp(span.before.lane_width, span.after.lane_width, ratio),
+                    .color_progress = ColorProgress(m_current_sample, span.first_sample, span.duration),
+                }
+            );
+        }
+        const auto first = std::upper_bound(
+            span.breakpoints.begin(),
+            span.breakpoints.end(),
+            std::max(span.before.sample, m_current_sample),
+            [](const s3d::int64 sample, const PreparedHoldPoint& point) {
+                return sample < point.sample;
+            }
+        );
+        for (auto point = first; point != span.breakpoints.end(); ++point) {
+            append(*point);
+        }
+        append(span.after);
+    }
+
     ChartProjection::ChartProjection(const sheets::Chart& chart) {
         m_timelines.reserve(chart.timelines.size());
         for (const auto& timeline : chart.timelines) {
@@ -36,6 +210,15 @@ namespace xlair::playfield {
 
         if (m_timelines.isEmpty()) {
             m_timelines.emplace_back(sheets::Timeline{}, chart.sample_rate);
+        }
+
+        m_slider_hold_spans.reserve(chart.slider_holds.size());
+        for (const auto& hold : chart.slider_holds) {
+            m_slider_hold_spans.push_back(PrepareHoldSpans(*this, hold.points));
+        }
+        m_side_hold_spans.reserve(chart.side_holds.size());
+        for (const auto& hold : chart.side_holds) {
+            m_side_hold_spans.push_back(PrepareHoldSpans(*this, hold.points));
         }
     }
 

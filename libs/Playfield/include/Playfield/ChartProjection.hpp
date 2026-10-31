@@ -1,5 +1,6 @@
 #pragma once
 
+#include "HoldProjection.hpp"
 #include "ScrollTimeline.hpp"
 
 #include <span>
@@ -21,6 +22,15 @@ namespace xlair::playfield {
                 s3d::Array<s3d::int64>& samples
             ) const;
 
+            [[nodiscard]]
+            std::span<const PreparedHoldSpan> sliderHoldSpans(std::size_t index) const;
+
+            [[nodiscard]]
+            std::span<const PreparedHoldSpan> sideHoldSpans(std::size_t index) const;
+
+            // Use a span from this projection. The output retains its allocated storage.
+            void holdSections(const PreparedHoldSpan& span, s3d::Array<HoldSection>& sections) const;
+
         private:
             friend class ChartProjection;
 
@@ -35,6 +45,7 @@ namespace xlair::playfield {
             std::span<const long double> m_current_positions;
         };
 
+        // Owns a snapshot; rebuild after changing timelines or hold paths.
         explicit ChartProjection(const sheets::Chart& chart);
 
         [[nodiscard]]
@@ -75,5 +86,7 @@ namespace xlair::playfield {
 
     private:
         s3d::Array<ScrollTimeline> m_timelines;
+        s3d::Array<s3d::Array<PreparedHoldSpan>> m_slider_hold_spans;
+        s3d::Array<s3d::Array<PreparedHoldSpan>> m_side_hold_spans;
     };
 }
