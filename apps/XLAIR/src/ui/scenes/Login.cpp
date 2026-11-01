@@ -319,7 +319,14 @@ namespace xlair::ui::scenes {
         }
         data.application->playSession().setPlayOptions(*m_login_flow.playOptions());
         AudioAsset{ assets::bgm::Login }.stop(Duration{ 0.3 });
-        m_leaving = changeScene(SceneState::MusicSelect, transitions::CardTransitionMillisec, CrossFade::No);
+        const auto destination = m_login_flow.newlyRegistered() ? SceneState::Tutorial : SceneState::MusicSelect;
+        data.login_to_tutorial_wipe = destination == SceneState::Tutorial;
+        const auto duration =
+            data.login_to_tutorial_wipe ? transitions::ScreenWipeMillisec : transitions::CardTransitionMillisec;
+        m_leaving = changeScene(destination, duration, CrossFade::No);
+        if (!m_leaving) {
+            data.login_to_tutorial_wipe = false;
+        }
     }
 
     void Login::draw() const {
@@ -345,7 +352,12 @@ namespace xlair::ui::scenes {
     }
 
     void Login::drawFadeOut(const double t) const {
-        drawScene(transitions::CardFadeOut(t));
+        if (getData().login_to_tutorial_wipe) {
+            drawScene({});
+            transitions::DrawScreenWipe(Clamp(t, 0.0, 1.0) * 0.5);
+        } else {
+            drawScene(transitions::CardFadeOut(t));
+        }
     }
 
     void Login::drawScene(const transitions::CardTransition& transition) const {

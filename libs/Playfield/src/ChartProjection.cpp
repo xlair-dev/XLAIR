@@ -113,12 +113,17 @@ namespace xlair::playfield {
         : m_projection{ projection }, m_current_sample{ current_sample }, m_current_positions{ current_positions } {}
 
     long double
+    ChartProjection::Frame::scrollDistance(const sheets::TimelineIndex timeline, const s3d::int64 sample) const {
+        const long double position = m_projection.positionAt(timeline, sample);
+        return position - m_current_positions[timeline];
+    }
+
+    long double
     ChartProjection::Frame::noteDistance(const sheets::TimelineIndex timeline, const s3d::int64 note_sample) const {
         if (note_sample < m_current_sample) {
             return m_projection.noteDistance(timeline, m_current_sample, note_sample);
         }
-        const long double position = m_projection.positionAt(timeline, note_sample);
-        return position - m_current_positions[timeline];
+        return scrollDistance(timeline, note_sample);
     }
 
     void ChartProjection::Frame::noteDistanceBreakpoints(

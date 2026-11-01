@@ -47,9 +47,9 @@ namespace xlair::ui::game {
         const ColorF SideUpperNoteLightColor{ U"#504160" };
         const ColorF SideUpperNoteDarkColor{ U"#20172E" };
         const ColorF SideUpperNoteOutlineColor{ U"#100C19" };
-        const ColorF SideLowerNoteLightColor{ U"#F060D8" };
-        const ColorF SideLowerNoteDarkColor{ U"#BC269F" };
-        const ColorF SideLowerNoteOutlineColor{ U"#661953" };
+        const ColorF SideLowerNoteLightColor{ U"#FF7D8D" };
+        const ColorF SideLowerNoteDarkColor{ U"#E43F5B" };
+        const ColorF SideLowerNoteOutlineColor{ U"#7F1832" };
         // At 1.0x, map 100 px/s in the 880 px reference viewport to the 3D field length.
         constexpr double WorldUnitsPerSecond = FieldLength * 100.0 / 880.0;
 
@@ -117,6 +117,12 @@ namespace xlair::ui::game {
         }
 
         [[nodiscard]]
+        Vec2 ScreenPoint(const BasicCamera3D& camera, const Vec3& point) {
+            const auto projected = camera.worldToScreenPoint(Float3{ point });
+            return { projected.x, projected.y };
+        }
+
+        [[nodiscard]]
         double WorldZ(
             const playfield::ChartProjection::Frame& projection,
             const sheets::TimelineIndex timeline,
@@ -135,7 +141,7 @@ namespace xlair::ui::game {
         ) {
             depths.clear();
             for (const auto& line : chart.measure_lines) {
-                const double z = WorldZ(projection, chart.main_timeline, line.sample, note_speed);
+                const double z = WorldZ(projection.scrollDistance(chart.main_timeline, line.sample), note_speed);
                 if (std::isfinite(z) && LowerNear <= z && z <= FieldFar) {
                     depths.push_back(z);
                 }
@@ -906,6 +912,54 @@ namespace xlair::ui::game {
         );
     }
 
+    Quad PlayfieldRenderer3D::sliderRegion(
+        const BasicCamera3D& camera,
+        const double lane_start,
+        const double lane_width,
+        const long double near_distance,
+        const long double far_distance,
+        const double note_speed
+    ) {
+        const double left = -FieldWidth * 0.5 + StageLeft + lane_start * LaneWidth;
+        const double right = left + lane_width * LaneWidth;
+        const double near_z = WorldZ(near_distance, note_speed);
+        const double far_z = WorldZ(far_distance, note_speed);
+        return {
+            ScreenPoint(camera, { left, 0.02, near_z }),
+            ScreenPoint(camera, { right, 0.02, near_z }),
+            ScreenPoint(camera, { right, 0.02, far_z }),
+            ScreenPoint(camera, { left, 0.02, far_z }),
+        };
+    }
+
+    Quad PlayfieldRenderer3D::sideRegion(
+        const BasicCamera3D& camera,
+        const sheets::SideButton button,
+        const long double near_distance,
+        const long double far_distance,
+        const double note_speed
+    ) {
+        const bool left = button == sheets::SideButton::LeftUpper || button == sheets::SideButton::LeftLower;
+        const bool upper = button == sheets::SideButton::LeftUpper || button == sheets::SideButton::RightUpper;
+        const double side = left ? -1.0 : 1.0;
+        const Vec3 center =
+            upper ? Vec3{ side * (SideUpperX - 0.12), SideUpperY, 0.0 } : SideLowerPosition(side, 0.0, 0.12);
+        const Quaternion rotation =
+            Quaternion::RotateZ(upper ? (side > 0.0 ? 90_deg : -90_deg) : side * SideLowerAngle);
+        const double width = upper ? SideUpperHeight : LowerWidth;
+        const Vec3 half_width{ rotation * Float3{ static_cast<float>(width * 0.5), 0.0f, 0.0f } };
+        const Vec3 start = center - half_width;
+        const Vec3 end = center + half_width;
+        const double near_z = WorldZ(near_distance, note_speed);
+        const double far_z = WorldZ(far_distance, note_speed);
+        return {
+            ScreenPoint(camera, { start.x, start.y, near_z }),
+            ScreenPoint(camera, { end.x, end.y, near_z }),
+            ScreenPoint(camera, { end.x, end.y, far_z }),
+            ScreenPoint(camera, { start.x, start.y, far_z }),
+        };
+    }
+
     void PlayfieldRenderer3D::addJudgements(
         const sheets::Chart& chart,
         const std::span<const core::judgement::JudgementEvent> events
@@ -919,7 +973,7 @@ namespace xlair::ui::game {
         }
     }
 
-    void PlayfieldRenderer3D::draw(
+    const MSRenderTexture& PlayfieldRenderer3D::render(
         const BasicCamera3D& camera,
         const sheets::Chart& chart,
         const playfield::ChartProjection& projection,
@@ -936,6 +990,15 @@ namespace xlair::ui::game {
         m_hold_glows.clear();
         {
             const ScopedRenderTarget2D target{ m_field_surface.clear(ColorF{ 0.0, 0.0 }) };
+            const Transformer2D local{ Mat3x2::Identity(), Transformer2D::Target::SetLocal };
+            const Transformer2D view{ Mat3x2::Identity(), Transformer2D::Target::SetCamera };
+            const ScopedColorMul2D color_mul{ 1.0 };
+            const ScopedColorAdd2D color_add{ 0.0 };
+            const ScopedRenderStates2D states{ BlendState::Default2D, RasterizerState::Default2D };
+            const auto scissor = Graphics2D::GetScissorRect();
+            const ScopeGuard restore_scissor{ [scissor] {
+                Graphics2D::SetScissorRect(scissor);
+            } };
             DrawFieldSurface(
                 combo,
                 chart,
@@ -985,6 +1048,32 @@ namespace xlair::ui::game {
         }
         Graphics3D::Flush();
         m_render_texture.resolve();
-        Shader::LinearToScreen(m_render_texture);
+        return m_render_texture;
+    }
+
+    void PlayfieldRenderer3D::draw(
+        const BasicCamera3D& camera,
+        const sheets::Chart& chart,
+        const playfield::ChartProjection& projection,
+        const int64 current_sample,
+        const double note_speed,
+        const uint32 combo,
+        const bool show_depth_guides,
+        const core::judgement::JudgeEngine* judge_engine,
+        const uint32 slider_pressed,
+        const uint8 side_pressed
+    ) const {
+        Shader::LinearToScreen(render(
+            camera,
+            chart,
+            projection,
+            current_sample,
+            note_speed,
+            combo,
+            show_depth_guides,
+            judge_engine,
+            slider_pressed,
+            side_pressed
+        ));
     }
 }

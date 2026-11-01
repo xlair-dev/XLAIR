@@ -7,13 +7,12 @@
 #include "ui/components/GameMusicPlate.hpp"
 #include "ui/components/GameStart.hpp"
 #include "ui/components/UserNameplate.hpp"
+#include "ui/game/JudgementClock.hpp"
 #include "ui/theme/Palette.hpp"
 
 #include <SheetsAnalyzer/SliderHoldPath.hpp>
 
-#include <array>
 #include <cmath>
-#include <limits>
 #include <span>
 
 namespace xlair::ui::scenes {
@@ -24,33 +23,6 @@ namespace xlair::ui::scenes {
         constexpr double JudgementFadeDuration = 0.20;
         constexpr double JudgementPopScale = 0.05;
         constexpr double AudioStartTimeout = 2.0;
-        constexpr std::array SideButtonMapping{
-            sheets::SideButton::LeftUpper,
-            sheets::SideButton::LeftLower,
-            sheets::SideButton::RightUpper,
-            sheets::SideButton::RightLower,
-        };
-
-        [[nodiscard]]
-        int64 JudgmentOffsetSamples(const double offset_seconds, const int64 sample_rate) {
-            const long double samples = static_cast<long double>(offset_seconds) * sample_rate;
-            constexpr long double limit = static_cast<long double>(std::numeric_limits<int64>::max() / 2);
-            return static_cast<int64>(std::round(Clamp(samples, -limit, limit)));
-        }
-
-        [[nodiscard]]
-        int64 JudgedSample(const int64 sample, const int64 offset) {
-            const long double adjusted = static_cast<long double>(sample) - offset;
-            constexpr auto Minimum = static_cast<long double>(std::numeric_limits<int64>::min());
-            constexpr auto Maximum = static_cast<long double>(std::numeric_limits<int64>::max());
-            if (adjusted <= Minimum) {
-                return std::numeric_limits<int64>::min();
-            }
-            if (adjusted >= Maximum) {
-                return std::numeric_limits<int64>::max();
-            }
-            return static_cast<int64>(adjusted);
-        }
 
         [[nodiscard]]
         AssetNameView JudgmentTexture(const core::judgement::Grade grade) {
@@ -148,7 +120,7 @@ namespace xlair::ui::scenes {
         const auto& chart = *getData().game_loader.chart();
         const double latency = application.config() ? application.config()->input.latency_offset_seconds : 0.0;
         const double judgment = application.playSession().playOptions().judgment_offset_ms / 1'000.0;
-        m_judgment_offset_samples = JudgmentOffsetSamples(latency + judgment, chart.sample_rate);
+        m_judgment_offset_samples = game::JudgmentOffsetSamples(latency + judgment, chart.sample_rate);
         m_judge_engine = std::make_unique<core::judgement::JudgeEngine>(chart);
         m_sound_player.start(chart);
         m_lead_in.emplace(chart, m_judgment_offset_samples);
@@ -190,8 +162,8 @@ namespace xlair::ui::scenes {
         }
 
         // A positive offset compensates late input, without moving the visual chart.
-        const int64 judged_sample = JudgedSample(m_current_sample, m_judgment_offset_samples);
-        readInput(controller, judged_sample);
+        const int64 judged_sample = game::JudgedSample(m_current_sample, m_judgment_offset_samples);
+        m_input.read(controller, judged_sample);
         if (m_autoplay) {
             processJudgements(m_judge_engine->advanceAuto(m_current_sample));
         } else {
@@ -202,42 +174,6 @@ namespace xlair::ui::scenes {
                 m_input.pressed.slider_pressed,
                 m_input.pressed.side_pressed
             ));
-        }
-    }
-
-    void Game::readInput(const app::controller::Controller* controller, const int64 judged_sample) {
-        m_input = {};
-        if (!controller) {
-            return;
-        }
-        for (std::size_t zone = 0; zone < app::controller::TouchZoneCount; ++zone) {
-            const auto& state = controller->touchZone(zone);
-            if (state.pressed()) {
-                m_input.pressed.slider_pressed |= uint32{ 1 } << zone;
-            }
-            if (state.up()) {
-                m_input.touches[m_input.touch_count++] = {
-                    .zone = static_cast<uint8>(zone),
-                    .sample = judged_sample,
-                    .phase = core::judgement::TouchEvent::Phase::Up,
-                };
-            }
-        }
-        // Releases precede presses so a swipe across sensors in one frame can complete a FLICK.
-        for (std::size_t zone = 0; zone < app::controller::TouchZoneCount; ++zone) {
-            if (controller->touchZone(zone).down()) {
-                m_input.touches[m_input.touch_count++] = { .zone = static_cast<uint8>(zone), .sample = judged_sample };
-            }
-        }
-        for (std::size_t button = 0; button < app::controller::SideButtonCount; ++button) {
-            const auto& state = controller->sideButton(static_cast<app::controller::SideButton>(button));
-            if (state.pressed()) {
-                m_input.pressed.side_pressed |= uint8{ 1 } << static_cast<uint8>(SideButtonMapping[button]);
-            }
-            if (state.down()) {
-                m_input.side_down[m_input.side_count++] = { .button = SideButtonMapping[button],
-                                                            .sample = judged_sample };
-            }
         }
     }
 

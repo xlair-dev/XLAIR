@@ -13,6 +13,11 @@ namespace xlair::playfield {
         // and until that buffer is modified or reused by frameAt().
         class Frame {
         public:
+            // Grid markings follow the scroll integral, without a passed-note 1.0x tail.
+            [[nodiscard]]
+            long double scrollDistance(sheets::TimelineIndex timeline, s3d::int64 sample) const;
+
+            // Notes keep scrolling at 1.0x after their sample time.
             [[nodiscard]]
             long double noteDistance(sheets::TimelineIndex timeline, s3d::int64 note_sample) const;
 

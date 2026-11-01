@@ -38,6 +38,9 @@ namespace xlair::app::flows {
         bool canCancel() const noexcept;
 
         [[nodiscard]]
+        bool newlyRegistered() const noexcept;
+
+        [[nodiscard]]
         State state() const noexcept;
 
         [[nodiscard]]
@@ -90,6 +93,7 @@ namespace xlair::app::flows {
         Optional<api::PlayOptions> m_play_options;
         Optional<api::ApiError> m_error;
         Optional<api::ApiError> m_registration_error;
+        bool m_newly_registered = false;
         AccountState m_account_state = AccountState::Unknown;
         State m_state = State::Idle;
     };

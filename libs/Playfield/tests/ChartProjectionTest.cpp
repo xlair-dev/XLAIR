@@ -39,9 +39,11 @@ TEST_CASE("ChartProjection frames exactly match uncached distances", "[Playfield
         for (std::size_t timeline = 0; timeline < projection.timelineCount(); ++timeline) {
             CAPTURE(current, timeline);
             CHECK(current_positions[timeline] == projection.positionAt(timeline, current));
+            CHECK(frame.scrollDistance(timeline, current) == 0.0L);
             CHECK(frame.noteDistance(timeline, current) == projection.noteDistance(timeline, current, current));
             for (const auto note : note_samples) {
                 CAPTURE(note);
+                CHECK(frame.scrollDistance(timeline, note) == projection.distanceBetween(timeline, current, note));
                 CHECK(frame.noteDistance(timeline, note) == projection.noteDistance(timeline, current, note));
             }
         }
@@ -76,6 +78,9 @@ TEST_CASE("ChartProjection frames share breakpoint and invalid-index semantics",
     check_range(100, 200);
     check_range(200, 100);
     check_range(100, 100);
+    CHECK_THROWS_AS(frame.scrollDistance(1, 99), std::out_of_range);
+    CHECK_THROWS_AS(frame.scrollDistance(1, 100), std::out_of_range);
+    CHECK_THROWS_AS(frame.scrollDistance(1, 101), std::out_of_range);
     CHECK_THROWS_AS(frame.noteDistance(1, 99), std::out_of_range);
     CHECK_THROWS_AS(frame.noteDistance(1, 100), std::out_of_range);
     CHECK_THROWS_AS(frame.noteDistance(1, 101), std::out_of_range);
@@ -107,6 +112,9 @@ TEST_CASE("ChartProjection frames reuse storage after switching projections", "[
         CHECK(current_positions.size() == projection.timelineCount());
         CHECK(current_positions.capacity() == capacity);
         for (std::size_t timeline = 0; timeline < projection.timelineCount(); ++timeline) {
+            CHECK(frame.scrollDistance(timeline, -1000) == projection.distanceBetween(timeline, current, -1000));
+            CHECK(frame.scrollDistance(timeline, current) == 0.0L);
+            CHECK(frame.scrollDistance(timeline, 1000) == projection.distanceBetween(timeline, current, 1000));
             CHECK(frame.noteDistance(timeline, -1000) == projection.noteDistance(timeline, current, -1000));
             CHECK(frame.noteDistance(timeline, current) == projection.noteDistance(timeline, current, current));
             CHECK(frame.noteDistance(timeline, 1000) == projection.noteDistance(timeline, current, 1000));
@@ -212,16 +220,37 @@ TEST_CASE("Measure lines use the main timeline through stops and reverse scroll"
         .measure_lines = { { .measure = 1, .sample = 1500 }, { .measure = 2, .sample = 2500 } },
     };
     const xlair::playfield::ChartProjection projection{ chart };
+    s3d::Array<long double> current_positions;
     const auto distance = [&](const s3d::int64 now, const std::size_t index) {
-        return static_cast<double>(
-            projection.noteDistance(chart.main_timeline, now, chart.measure_lines[index].sample)
-        );
+        const auto frame = projection.frameAt(now, current_positions);
+        const auto sample = chart.measure_lines[index].sample;
+        const auto scroll_distance = frame.scrollDistance(chart.main_timeline, sample);
+        CHECK(scroll_distance == projection.distanceBetween(chart.main_timeline, now, sample));
+        return static_cast<double>(scroll_distance);
     };
     CHECK(distance(500, 0) == Approx(0.5));
+    for (const s3d::int64 now : { 1000, 1250, 1499, 1500, 1501, 1750, 1999, 2000 }) {
+        CAPTURE(now);
+        CHECK(distance(now, 0) == Approx(0.0));
+    }
     CHECK(distance(1000, 1) == Approx(-0.5));
     CHECK(distance(1500, 1) == Approx(-0.5));
     CHECK(distance(2500, 1) == Approx(0.0));
-    // Passed lines use the same fixed 1.0x tail as passed notes.
-    CHECK(distance(3000, 1) == Approx(-0.5));
+    CHECK(distance(3000, 1) == Approx(0.5));
+    CHECK(distance(3500, 1) == Approx(0.0));
+    CHECK(distance(4000, 1) == Approx(-0.5));
+    CHECK(distance(3000, 0) == Approx(1.0));
+    CHECK(distance(3500, 0) == Approx(0.5));
+    CHECK(distance(4000, 0) == Approx(0.0));
+    CHECK(distance(4500, 0) == Approx(-0.5));
+
+    const auto stopped = projection.frameAt(1750, current_positions);
+    CHECK(
+        static_cast<double>(stopped.noteDistance(chart.main_timeline, chart.measure_lines[0].sample)) == Approx(-0.25)
+    );
+    const auto reversed = projection.frameAt(3000, current_positions);
+    CHECK(
+        static_cast<double>(reversed.noteDistance(chart.main_timeline, chart.measure_lines[1].sample)) == Approx(-0.5)
+    );
     CHECK(static_cast<double>(projection.noteDistance(0, 500, chart.measure_lines[0].sample)) == Approx(2.0));
 }

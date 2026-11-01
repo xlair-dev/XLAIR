@@ -9,22 +9,41 @@
 #include "ui/theme/Palette.hpp"
 
 namespace xlair::ui::components {
+    namespace {
+        void DrawPlateText(
+            const GameMusicPlateLabelData& data,
+            const Rect& title_region,
+            const Point& position,
+            const double elapsed,
+            const ColorF& accent,
+            const ColorF& title_color
+        ) {
+            Line{ title_region.x, 76, 413, 76 }.draw(2, accent);
+            FontAsset{ assets::font::Text }(data.heading)
+                .draw(32, Arg::bottomLeft = Vec2{ title_region.x, 77 }, accent);
+            DrawScrollingText(
+                FontAsset{ assets::font::Text },
+                data.title,
+                30,
+                title_region.movedBy(position),
+                elapsed,
+                title_color
+            );
+        }
+    }
+
     void DrawGameMusicPlate(const GameMusicPlateData& data, const Point& position, const double elapsed) {
         const ScopedViewport2D viewport{ position, 430, 112 };
         const auto difficulty = presentation::DifficultyLabel(data.difficulty_index).uppercased();
         const auto colors = theme::GetDifficultyTheme(data.difficulty_index);
 
         Rect{ 0, 0, 112, 112 }(data.jacket).draw();
-        Line{ 123, 76, 413, 76 }.draw(2, colors.accent);
-        FontAsset{ assets::font::Text }(difficulty).draw(32, Arg::bottomLeft = Vec2{ 123, 77 }, colors.accent);
-
-        constexpr Rect TitleRegion{ 123, 76, 260, 43 };
-        DrawScrollingText(
-            FontAsset{ assets::font::Text },
-            data.title,
-            30,
-            TitleRegion.movedBy(position),
+        DrawPlateText(
+            { .heading = difficulty, .title = data.title },
+            Rect{ 123, 76, 260, 43 },
+            position,
             elapsed,
+            colors.accent,
             colors.secondary_text
         );
 
@@ -40,5 +59,10 @@ namespace xlair::ui::components {
             const ColorF color = index < data.remaining_plays ? theme::Palette::Cyan : theme::Palette::Gray;
             primitives::DrawEighthNote(Vec2{ 123 + index * 20.0, 0 }, 0.675, color);
         }
+    }
+
+    void DrawGameMusicPlate(const GameMusicPlateLabelData& data, const Point& position, const double elapsed) {
+        const ScopedViewport2D viewport{ position, 430, 112 };
+        DrawPlateText(data, Rect{ 0, 76, 413, 43 }, position, elapsed, theme::Palette::Cyan, theme::Palette::LightGray);
     }
 }

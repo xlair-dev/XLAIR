@@ -23,7 +23,7 @@ namespace xlair::api {
     };
 
     struct PlayOptions {
-        double note_speed = 3.0;
+        double note_speed = 2.0;
         s3d::int32 judgment_offset_ms = 0;
     };
 

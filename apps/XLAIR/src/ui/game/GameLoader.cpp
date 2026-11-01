@@ -42,6 +42,7 @@ namespace xlair::ui::game {
         }
 
         const FilePath audio_path = selection.music_path;
+        Logger << U"[Game] Loading audio: " + audio_path;
         m_audio_task = AsyncTask<Audio>{ [audio_path]() {
             return ::xlair::audio::LoadMusic(audio_path);
         } };
@@ -126,6 +127,7 @@ namespace xlair::ui::game {
         const int64 sample_rate = m_audio.sampleRate();
         const double offset_seconds = m_offset_seconds;
         const bool mirror = m_mirror;
+        Logger << U"[Game] Audio loaded; loading chart: " + chart_path;
         m_chart_task = AsyncTask<sheets::Result<sheets::Chart>>{ [chart_path, sample_rate, offset_seconds, mirror]() {
             auto result = sheets::LoadChart(
                 chart_path,
@@ -167,6 +169,7 @@ namespace xlair::ui::game {
                 return;
             }
             m_chart = std::move(*result);
+            Logger << U"[Game] Chart loaded; preparing playfield projection.";
             m_projection.emplace(*m_chart);
             m_state = State::Ready;
             Logger << U"[Game] Loaded chart: {} notes at {} Hz."_fmt(m_chart->total_combo, m_chart->sample_rate);
