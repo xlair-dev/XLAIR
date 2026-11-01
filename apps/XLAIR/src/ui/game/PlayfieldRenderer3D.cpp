@@ -919,7 +919,7 @@ namespace xlair::ui::game {
         }
     }
 
-    void PlayfieldRenderer3D::draw(
+    const MSRenderTexture& PlayfieldRenderer3D::render(
         const BasicCamera3D& camera,
         const sheets::Chart& chart,
         const playfield::ChartProjection& projection,
@@ -936,6 +936,15 @@ namespace xlair::ui::game {
         m_hold_glows.clear();
         {
             const ScopedRenderTarget2D target{ m_field_surface.clear(ColorF{ 0.0, 0.0 }) };
+            const Transformer2D local{ Mat3x2::Identity(), Transformer2D::Target::SetLocal };
+            const Transformer2D view{ Mat3x2::Identity(), Transformer2D::Target::SetCamera };
+            const ScopedColorMul2D color_mul{ 1.0 };
+            const ScopedColorAdd2D color_add{ 0.0 };
+            const ScopedRenderStates2D states{ BlendState::Default2D, RasterizerState::Default2D };
+            const auto scissor = Graphics2D::GetScissorRect();
+            const ScopeGuard restore_scissor{ [scissor] {
+                Graphics2D::SetScissorRect(scissor);
+            } };
             DrawFieldSurface(
                 combo,
                 chart,
@@ -985,6 +994,32 @@ namespace xlair::ui::game {
         }
         Graphics3D::Flush();
         m_render_texture.resolve();
-        Shader::LinearToScreen(m_render_texture);
+        return m_render_texture;
+    }
+
+    void PlayfieldRenderer3D::draw(
+        const BasicCamera3D& camera,
+        const sheets::Chart& chart,
+        const playfield::ChartProjection& projection,
+        const int64 current_sample,
+        const double note_speed,
+        const uint32 combo,
+        const bool show_depth_guides,
+        const core::judgement::JudgeEngine* judge_engine,
+        const uint32 slider_pressed,
+        const uint8 side_pressed
+    ) const {
+        Shader::LinearToScreen(render(
+            camera,
+            chart,
+            projection,
+            current_sample,
+            note_speed,
+            combo,
+            show_depth_guides,
+            judge_engine,
+            slider_pressed,
+            side_pressed
+        ));
     }
 }

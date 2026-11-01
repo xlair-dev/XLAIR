@@ -3,6 +3,7 @@
 #include "ui/Scene.hpp"
 #include "ui/components/CardCarousel.hpp"
 #include "ui/components/SettingCard.hpp"
+#include "ui/components/NoteSpeedPreview.hpp"
 #include "ui/components/SliderMappingGuide.hpp"
 #include "ui/transitions/CardTransition.hpp"
 #include "ui/input/MenuInput.hpp"
@@ -35,6 +36,7 @@ namespace xlair::ui::scenes {
         void updateCardValues();
         void drawScene(const transitions::CardTransition& transition) const;
         void drawCards(const transitions::CardTransition& transition) const;
+        void drawSpeedPreview(const transitions::CardTransition& transition) const;
         void drawCard(std::size_t index, const RectF& region, const transitions::CardTransition& transition) const;
 
         struct Assets {
@@ -44,6 +46,10 @@ namespace xlair::ui::scenes {
         components::CardCarousel m_card_carousel;
         input::MenuInput m_menu_input;
         mutable components::SettingCard m_setting_card;
+        components::NoteSpeedPreview m_speed_preview;
+        RectF m_preview_region;
+        double m_preview_opacity = 0.0;
+        double m_preview_alignment = 0.0;
         Array<components::SettingCardData> m_setting_cards;
         Array<components::SliderMapping> m_slider_mappings;
         std::size_t m_selected_index = 0;

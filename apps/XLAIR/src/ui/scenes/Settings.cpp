@@ -15,6 +15,9 @@
 namespace xlair::ui::scenes {
     namespace {
         constexpr double CardY = 553.0;
+        constexpr SizeF SpeedPreviewSize{ components::NoteSpeedPreview::size() };
+        constexpr double SpeedPreviewGap = 80.0;
+        constexpr double SpeedPreviewFadeDuration = 0.15;
 
         // Provisional bounds for the UI prototype, not the final game-option constraints.
         constexpr double MinimumSpeed = 0.25;
@@ -117,7 +120,32 @@ namespace xlair::ui::scenes {
     }
 
     void Settings::updatePresentation() {
-        m_card_carousel.update(Scene::DeltaTime());
+        const double delta_seconds = Scene::DeltaTime();
+        m_card_carousel.update(delta_seconds);
+        m_speed_preview.update(delta_seconds);
+        const bool show_preview = m_selected_index == static_cast<std::size_t>(SettingItem::Speed);
+        const double fade = delta_seconds / SpeedPreviewFadeDuration;
+        m_preview_opacity = show_preview ? Min(1.0, m_preview_opacity + fade) : Max(0.0, m_preview_opacity - fade);
+        if (show_preview) {
+            for (const auto& placement : m_card_carousel.layout(m_selected_index, m_setting_cards.size())) {
+                if (!placement.selected) {
+                    continue;
+                }
+                const double scale = placement.region.w / components::SettingCard::size().x;
+                const SizeF preview_size = SpeedPreviewSize * scale;
+                m_preview_region = RectF{
+                    placement.region.x - SpeedPreviewGap * scale - preview_size.x,
+                    placement.region.center().y - preview_size.y * 0.5,
+                    preview_size,
+                };
+                m_preview_alignment = Clamp(
+                    1.0 - Abs(placement.region.center().x - DesignSize.x / 2.0) / Max(placement.region.w, 1.0),
+                    0.0,
+                    1.0
+                );
+                break;
+            }
+        }
     }
 
     void Settings::handleInput() {
@@ -240,6 +268,7 @@ namespace xlair::ui::scenes {
         Scene::Rect().draw(theme::Palette::White);
 
         if (transition.opacity > 0.0 && transition.scale > 0.0) {
+            drawSpeedPreview(transition);
             drawCards(transition);
             m_card_carousel.drawArrows(
                 m_selected_index,
@@ -278,6 +307,19 @@ namespace xlair::ui::scenes {
             },
             Point{ 1599, 72 }
         );
+    }
+
+    void Settings::drawSpeedPreview(const transitions::CardTransition& transition) const {
+        const double opacity = m_preview_opacity * m_preview_alignment * transition.opacity;
+        if (opacity <= 0.0 || !m_preview_region.hasArea()) {
+            return;
+        }
+        const Vec2 center{ DesignSize.x / 2.0, CardY };
+        const RectF region{
+            Arg::center = center + (m_preview_region.center() - center) * transition.scale,
+            m_preview_region.size * transition.scale,
+        };
+        m_speed_preview.draw(region, m_note_speed, opacity);
     }
 
     void Settings::drawCards(const transitions::CardTransition& transition) const {
