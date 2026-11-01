@@ -79,7 +79,7 @@ namespace xlair::ui::scenes {
         Optional<core::judgement::JudgementEvent> m_last_judgement;
         double m_elapsed = 0.0;
         double m_judgement_display_seconds = 0.0;
-        double m_note_speed = 3.0;
+        double m_note_speed = 2.0;
         bool m_autoplay = false;
     };
 }
