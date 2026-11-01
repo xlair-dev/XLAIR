@@ -124,7 +124,7 @@ namespace xlair::ui::scenes {
 
     void MusicSelect::drawFadeOut(const double t) const {
         if (m_fade_to_game) {
-            drawScene({});
+            drawGameTransitionBackground();
             components::DrawGameStartBackground(0.0, 0.0, EaseOutCubic(Clamp(t, 0.0, 1.0)));
             if (const auto& transition = getData().music_start) {
                 transition->draw(Clamp(t, 0.0, 1.0) * 0.5);
@@ -132,6 +132,19 @@ namespace xlair::ui::scenes {
             return;
         }
         drawScene(transitions::CardFadeOut(t));
+    }
+
+    void MusicSelect::drawGameTransitionBackground() const {
+        if (!m_game_transition_background) {
+            m_game_transition_background = MSRenderTexture{ Scene::Size() };
+            {
+                const ScopedRenderTarget2D target{ m_game_transition_background };
+                drawScene({});
+            }
+            Graphics2D::Flush();
+            m_game_transition_background.resolve();
+        }
+        m_game_transition_background.draw();
     }
 
     void MusicSelect::drawScene(const transitions::CardTransition& transition) const {
