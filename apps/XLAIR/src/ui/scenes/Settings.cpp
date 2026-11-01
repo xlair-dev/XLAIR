@@ -320,6 +320,14 @@ namespace xlair::ui::scenes {
             m_preview_region.size * transition.scale,
         };
         m_speed_preview.draw(region, m_note_speed, opacity);
+        const double scale = region.w / SpeedPreviewSize.x;
+        const Vec2 arrow_center = region.rightCenter().movedBy(SpeedPreviewGap * 0.5 * scale, 0.0);
+        Triangle{
+            arrow_center.movedBy(-7.0 * scale, -9.0 * scale),
+            arrow_center.movedBy(7.0 * scale, 0.0),
+            arrow_center.movedBy(-7.0 * scale, 9.0 * scale),
+        }
+            .draw(theme::Palette::Pink.withA(opacity));
     }
 
     void Settings::drawCards(const transitions::CardTransition& transition) const {

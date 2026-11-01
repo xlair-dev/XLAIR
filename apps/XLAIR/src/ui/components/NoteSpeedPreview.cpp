@@ -2,6 +2,7 @@
 
 #include "ui/Design.hpp"
 #include "ui/game/PlayfieldCamera.hpp"
+#include "ui/theme/Palette.hpp"
 
 #include <cmath>
 
@@ -9,6 +10,7 @@ namespace xlair::ui::components {
     namespace {
         constexpr int64 SampleRate = 44'100;
         constexpr double NoteInterval = 1.0;
+        constexpr Size ImageSize = NoteSpeedPreview::size();
 
         [[nodiscard]]
         sheets::Chart MakePreviewChart() {
@@ -33,7 +35,7 @@ namespace xlair::ui::components {
     NoteSpeedPreview::NoteSpeedPreview()
         : m_camera{ DesignSize, game::PlayfieldCameraFOV, game::PlayfieldCameraEye, game::PlayfieldCameraFocus },
           m_chart{ MakePreviewChart() }, m_projection{ m_chart },
-          m_preview_texture{ size(), TextureFormat::R8G8B8A8_Unorm } {}
+          m_preview_texture{ ImageSize, TextureFormat::R8G8B8A8_Unorm } {}
 
     void NoteSpeedPreview::update(const double delta_seconds) {
         if (std::isfinite(delta_seconds) && delta_seconds > 0.0) {
@@ -60,8 +62,10 @@ namespace xlair::ui::components {
             Shader::LinearToScreen(field);
         }
         Graphics2D::Flush();
-        const double scale = Min(region.w / DesignSize.x, region.h / DesignSize.y);
-        const RectF destination{ Arg::center = region.center(), DesignSize * scale };
-        destination(m_preview_texture).draw(ColorF{ 1.0, Clamp(opacity, 0.0, 1.0) });
+        const double scale = Min(region.w / ImageSize.x, region.h / ImageSize.y);
+        const RectF destination{ Arg::center = region.center(), ImageSize * scale };
+        const double alpha = Clamp(opacity, 0.0, 1.0);
+        destination(m_preview_texture).draw(ColorF{ 1.0, alpha });
+        destination.drawFrame(2.0 * scale, theme::Palette::Pink.withA(alpha));
     }
 }
