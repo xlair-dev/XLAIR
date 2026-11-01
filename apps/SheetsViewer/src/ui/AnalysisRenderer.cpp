@@ -124,8 +124,8 @@ namespace xlair::sheets_viewer {
         }
 
         for (const auto& line : chart.measure_lines) {
-            const double y =
-                SampleY(projection, chart.main_timeline, current_sample, line.sample, judge_y, pixels_per_second);
+            const long double distance = projection.distanceBetween(chart.main_timeline, current_sample, line.sample);
+            const double y = judge_y - static_cast<double>(distance) * pixels_per_second;
             if (IsVisible(y, height)) {
                 Line{ stage_left, y, stage_left + stage_width, y }.draw(1.0, ColorF{ 0.60, 0.70, 0.78, 0.5 });
             }

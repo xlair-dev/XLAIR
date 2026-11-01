@@ -135,7 +135,7 @@ namespace xlair::ui::game {
         ) {
             depths.clear();
             for (const auto& line : chart.measure_lines) {
-                const double z = WorldZ(projection, chart.main_timeline, line.sample, note_speed);
+                const double z = WorldZ(projection.scrollDistance(chart.main_timeline, line.sample), note_speed);
                 if (std::isfinite(z) && LowerNear <= z && z <= FieldFar) {
                     depths.push_back(z);
                 }
