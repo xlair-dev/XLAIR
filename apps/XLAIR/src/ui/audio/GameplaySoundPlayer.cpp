@@ -7,12 +7,15 @@ namespace xlair::ui::audio {
         constexpr std::array<StringView, static_cast<std::size_t>(GameplaySoundKind::Count)> filenames{
             U"tap", U"slide-tap", U"x-tap", U"flick", U"side-tap", U"checkpoint", U"side-hold", U"slide-hold",
         };
+        // PCM WAV avoids the asynchronous Media Foundation MP3 reader on Windows.
         for (std::size_t i = 0; i < m_sounds.size(); ++i) {
-            const FilePath path = U"ui/sounds/judgments/{}.mp3"_fmt(filenames[i]);
+            const FilePath path = U"ui/sounds/judgments/{}.wav"_fmt(filenames[i]);
+            Logger << U"[Game] Loading gameplay sound: " + path;
             m_sounds[i] = Audio{ Resource(path) };
             if (!m_sounds[i]) {
                 throw Error{ U"Failed to load gameplay sound: " + path };
             }
+            Logger << U"[Game] Loaded gameplay sound: " + path;
         }
         for (const auto kind : { GameplaySoundKind::SideHold, GameplaySoundKind::SlideHold }) {
             const auto& sound = m_sounds[static_cast<std::size_t>(kind)];
