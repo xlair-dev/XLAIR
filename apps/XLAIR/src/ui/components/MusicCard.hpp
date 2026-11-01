@@ -26,8 +26,12 @@ namespace xlair::ui::components {
             const MusicCardData& data,
             const TextureRegion& jacket,
             const theme::DifficultyTheme& difficulty_theme,
-            double text_offset = 0.0
+            double text_offset = 0.0,
+            bool draw_jacket = true
         );
+
+        [[nodiscard]]
+        static RectF jacketRegion(const RectF& card_region) noexcept;
 
         [[nodiscard]]
         static constexpr Size size() noexcept {
@@ -35,7 +39,11 @@ namespace xlair::ui::components {
         }
 
     private:
-        void drawBackground(const TextureRegion& jacket, const theme::DifficultyTheme& difficulty_theme) const;
+        void drawBackground(
+            const TextureRegion& jacket,
+            const theme::DifficultyTheme& difficulty_theme,
+            bool draw_jacket
+        ) const;
         void drawDifficulty(const MusicCardData& data, const theme::DifficultyTheme& difficulty_theme) const;
         void drawMetadata(
             const MusicCardData& data,
@@ -46,6 +54,7 @@ namespace xlair::ui::components {
         void drawBadge(const Vec2& position, const Vec2& size, StringView text, const ColorF& color) const;
 
         static constexpr Size CardSize{ 416, 545 };
+        static constexpr RectF JacketRegion{ 64, 20, 332, 332 };
 
         MSRenderTexture m_render_texture;
     };

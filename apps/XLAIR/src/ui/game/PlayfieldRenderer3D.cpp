@@ -150,7 +150,18 @@ namespace xlair::ui::game {
             Array<playfield::HoldSection>& sections,
             DrawSection&& draw_section
         ) {
-            projection.holdSections(span, sections);
+            const double distance_scale = WorldUnitsPerSecond * note_speed;
+            if (distance_scale > 0.0) {
+                // Leave a small margin for rounding when converting the field bounds to scroll distances.
+                projection.holdSections(
+                    span,
+                    sections,
+                    (LowerNear - 0.01) / distance_scale,
+                    (FieldFar + 0.01) / distance_scale
+                );
+            } else {
+                projection.holdSections(span, sections);
+            }
             for (const auto& section : sections) {
                 const double before_z = WorldZ(section.before_distance, note_speed);
                 const double after_z = WorldZ(section.after_distance, note_speed);

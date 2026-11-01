@@ -8,6 +8,7 @@
 #include "ui/assets/JacketAssets.hpp"
 #include "ui/game/GameLoader.hpp"
 #include "ui/game/GameResult.hpp"
+#include "ui/transitions/MusicStart.hpp"
 
 #include <memory>
 #include <utility>
@@ -54,6 +55,7 @@ namespace xlair::ui {
         assets::JacketAssets jackets;
         std::unique_ptr<MusicSelectContext> music_select_context;
         Optional<GameSelection> game_selection;
+        Optional<transitions::MusicStart> music_start;
         Optional<GameResult> game_result;
         game::GameLoader game_loader;
         bool returning_from_game = false;

@@ -31,6 +31,9 @@ namespace xlair::ui::assets {
         inline constexpr AssetNameView Navigate{ U"XLAIR.UI.Sound.Navigate" };
         inline constexpr AssetNameView ChangeDifficulty{ U"XLAIR.UI.Sound.ChangeDifficulty" };
         inline constexpr AssetNameView Confirm{ U"XLAIR.UI.Sound.Confirm" };
+        inline constexpr AssetNameView TextInput{ U"XLAIR.UI.Sound.TextInput" };
+        inline constexpr AssetNameView Next{ U"XLAIR.UI.Sound.Next" };
+        inline constexpr AssetNameView Back{ U"XLAIR.UI.Sound.Back" };
         inline constexpr AssetNameView Finish{ U"XLAIR.UI.Sound.Finish" };
         inline constexpr AssetNameView CoinInsert{ U"XLAIR.UI.Sound.CoinInsert" };
         inline constexpr AssetNameView LoginComplete{ U"XLAIR.UI.Sound.LoginComplete" };

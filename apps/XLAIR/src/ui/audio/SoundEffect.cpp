@@ -19,6 +19,12 @@ namespace xlair::ui::audio {
                     return { assets::sound::ChangeDifficulty, UISound };
                 case SoundEffect::Confirm:
                     return { assets::sound::Confirm, UISound };
+                case SoundEffect::TextInput:
+                    return { assets::sound::TextInput, UISound };
+                case SoundEffect::Next:
+                    return { assets::sound::Next, UISound };
+                case SoundEffect::Back:
+                    return { assets::sound::Back, UISound };
                 case SoundEffect::Finish:
                     return { assets::sound::Finish, UISound };
                 case SoundEffect::CoinInsert:

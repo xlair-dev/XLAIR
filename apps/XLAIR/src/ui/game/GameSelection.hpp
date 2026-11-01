@@ -13,6 +13,7 @@ namespace xlair::ui {
         bool mirror = false;
         String music_id;
         String title;
+        String artist;
         FilePath music_path;
         double music_offset_seconds = 0.0;
         sheets::Difficulty difficulty;

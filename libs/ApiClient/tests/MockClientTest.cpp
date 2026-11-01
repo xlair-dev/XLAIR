@@ -137,7 +137,7 @@ TEST_CASE("Mock user registration creates an account with initial records and op
     auto records = client.fetchUserRecords(user.id);
     CHECK(std::get<Array<api::UserRecord>>(ResultOf(records)).isEmpty());
     auto options = client.fetchPlayOptions(user.id);
-    CHECK(std::get<api::PlayOptions>(ResultOf(options)).note_speed == 1.0);
+    CHECK(std::get<api::PlayOptions>(ResultOf(options)).note_speed == 3.0);
     CHECK(std::get<api::PlayOptions>(ResultOf(options)).judgment_offset_ms == 0);
     auto credits = client.incrementCredits(user.id);
     CHECK(std::get<uint32>(ResultOf(credits)) == 1);

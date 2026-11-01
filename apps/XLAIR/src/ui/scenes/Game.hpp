@@ -5,6 +5,7 @@
 #include "ui/Scene.hpp"
 #include "ui/audio/GameplaySoundPlayer.hpp"
 #include "ui/components/GameScoreBar.hpp"
+#include "ui/game/LeadIn.hpp"
 #include "ui/game/PlayfieldCamera.hpp"
 #include "ui/game/PlayfieldRenderer3D.hpp"
 
@@ -24,6 +25,16 @@ namespace xlair::ui::scenes {
         void drawFadeOut(double t) const override;
 
     private:
+        enum class Phase {
+            Intro,
+            Reveal,
+            LeadIn,
+            Starting,
+            Playing,
+            Finished,
+            Failed,
+        };
+
         struct PressedInput {
             uint32 slider_pressed = 0;
             uint8 side_pressed = 0;
@@ -37,12 +48,15 @@ namespace xlair::ui::scenes {
             PressedInput pressed;
         };
 
+        void preparePlayback();
+        void updatePlayback(const app::controller::Controller* controller, double delta_seconds);
         void readInput(const app::controller::Controller* controller, int64 judged_sample);
         [[nodiscard]]
         PressedInput pressedInputForDrawing() const;
         void processJudgements(std::span<const core::judgement::JudgementEvent> events);
         void finishPlayback();
         void drawReady() const;
+        void drawIntro(double elapsed, double reveal, bool draw_jacket = true) const;
         void drawFailure() const;
         void drawFadeOverlay(double opacity) const;
 
@@ -55,14 +69,17 @@ namespace xlair::ui::scenes {
         InputFrame m_input;
         std::unique_ptr<core::judgement::JudgeEngine> m_judge_engine;
         mutable components::GameScoreBar m_score_bar;
+        Texture m_start_jacket;
+        Optional<game::LeadIn> m_lead_in;
+        Phase m_phase = Phase::Intro;
+        double m_phase_elapsed = 0.0;
+        String m_start_error;
         int64 m_current_sample = 0;
         int64 m_judgment_offset_samples = 0;
         Optional<core::judgement::JudgementEvent> m_last_judgement;
         double m_elapsed = 0.0;
         double m_judgement_display_seconds = 0.0;
-        double m_note_speed = 1.0;
-        bool m_playback_started = false;
-        bool m_playback_finished = false;
+        double m_note_speed = 3.0;
         bool m_autoplay = false;
     };
 }

@@ -48,7 +48,7 @@ namespace xlair::ui::scenes {
         Array<components::SliderMapping> m_slider_mappings;
         std::size_t m_selected_index = 0;
 
-        double m_note_speed = 1.0;
+        double m_note_speed = 3.0;
         int32 m_judgment_offset_ms = 0;
         bool m_mirror = false;
     };
