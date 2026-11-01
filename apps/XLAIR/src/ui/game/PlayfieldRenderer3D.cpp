@@ -47,9 +47,9 @@ namespace xlair::ui::game {
         const ColorF SideUpperNoteLightColor{ U"#504160" };
         const ColorF SideUpperNoteDarkColor{ U"#20172E" };
         const ColorF SideUpperNoteOutlineColor{ U"#100C19" };
-        const ColorF SideLowerNoteLightColor{ U"#F060D8" };
-        const ColorF SideLowerNoteDarkColor{ U"#BC269F" };
-        const ColorF SideLowerNoteOutlineColor{ U"#661953" };
+        const ColorF SideLowerNoteLightColor{ U"#FF7D8D" };
+        const ColorF SideLowerNoteDarkColor{ U"#E43F5B" };
+        const ColorF SideLowerNoteOutlineColor{ U"#7F1832" };
         // At 1.0x, map 100 px/s in the 880 px reference viewport to the 3D field length.
         constexpr double WorldUnitsPerSecond = FieldLength * 100.0 / 880.0;
 
