@@ -12,5 +12,12 @@ namespace xlair::ui::components {
         uint32 remaining_plays = 0;
     };
 
+    struct GameMusicPlateLabelData {
+        StringView heading;
+        StringView title;
+    };
+
     void DrawGameMusicPlate(const GameMusicPlateData& data, const Point& position, double elapsed);
+
+    void DrawGameMusicPlate(const GameMusicPlateLabelData& data, const Point& position, double elapsed);
 }

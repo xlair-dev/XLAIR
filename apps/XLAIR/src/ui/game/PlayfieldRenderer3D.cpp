@@ -117,6 +117,12 @@ namespace xlair::ui::game {
         }
 
         [[nodiscard]]
+        Vec2 ScreenPoint(const BasicCamera3D& camera, const Vec3& point) {
+            const auto projected = camera.worldToScreenPoint(Float3{ point });
+            return { projected.x, projected.y };
+        }
+
+        [[nodiscard]]
         double WorldZ(
             const playfield::ChartProjection::Frame& projection,
             const sheets::TimelineIndex timeline,
@@ -904,6 +910,54 @@ namespace xlair::ui::game {
             SideLowerNoteOutlineColor,
             true
         );
+    }
+
+    Quad PlayfieldRenderer3D::sliderRegion(
+        const BasicCamera3D& camera,
+        const double lane_start,
+        const double lane_width,
+        const long double near_distance,
+        const long double far_distance,
+        const double note_speed
+    ) {
+        const double left = -FieldWidth * 0.5 + StageLeft + lane_start * LaneWidth;
+        const double right = left + lane_width * LaneWidth;
+        const double near_z = WorldZ(near_distance, note_speed);
+        const double far_z = WorldZ(far_distance, note_speed);
+        return {
+            ScreenPoint(camera, { left, 0.02, near_z }),
+            ScreenPoint(camera, { right, 0.02, near_z }),
+            ScreenPoint(camera, { right, 0.02, far_z }),
+            ScreenPoint(camera, { left, 0.02, far_z }),
+        };
+    }
+
+    Quad PlayfieldRenderer3D::sideRegion(
+        const BasicCamera3D& camera,
+        const sheets::SideButton button,
+        const long double near_distance,
+        const long double far_distance,
+        const double note_speed
+    ) {
+        const bool left = button == sheets::SideButton::LeftUpper || button == sheets::SideButton::LeftLower;
+        const bool upper = button == sheets::SideButton::LeftUpper || button == sheets::SideButton::RightUpper;
+        const double side = left ? -1.0 : 1.0;
+        const Vec3 center =
+            upper ? Vec3{ side * (SideUpperX - 0.12), SideUpperY, 0.0 } : SideLowerPosition(side, 0.0, 0.12);
+        const Quaternion rotation =
+            Quaternion::RotateZ(upper ? (side > 0.0 ? 90_deg : -90_deg) : side * SideLowerAngle);
+        const double width = upper ? SideUpperHeight : LowerWidth;
+        const Vec3 half_width{ rotation * Float3{ static_cast<float>(width * 0.5), 0.0f, 0.0f } };
+        const Vec3 start = center - half_width;
+        const Vec3 end = center + half_width;
+        const double near_z = WorldZ(near_distance, note_speed);
+        const double far_z = WorldZ(far_distance, note_speed);
+        return {
+            ScreenPoint(camera, { start.x, start.y, near_z }),
+            ScreenPoint(camera, { end.x, end.y, near_z }),
+            ScreenPoint(camera, { end.x, end.y, far_z }),
+            ScreenPoint(camera, { start.x, start.y, far_z }),
+        };
     }
 
     void PlayfieldRenderer3D::addJudgements(
