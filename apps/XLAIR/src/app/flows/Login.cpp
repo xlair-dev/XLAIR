@@ -129,6 +129,7 @@ namespace xlair::app::flows {
         m_play_options.reset();
         m_error.reset();
         m_registration_error.reset();
+        m_newly_registered = false;
         m_account_state = AccountState::Unknown;
         m_state = State::Idle;
     }
@@ -136,6 +137,10 @@ namespace xlair::app::flows {
     bool Login::canCancel() const noexcept {
         return m_state != State::RegisteringUser && m_state != State::ConfirmingRegistration &&
                m_state != State::IncrementingCredits;
+    }
+
+    bool Login::newlyRegistered() const noexcept {
+        return m_newly_registered;
     }
 
     Login::State Login::state() const noexcept {
@@ -204,6 +209,7 @@ namespace xlair::app::flows {
         }
 
         if (const auto* user = std::get_if<api::User>(&*result)) {
+            m_newly_registered = true;
             acceptUser(*user);
             return;
         }
@@ -238,6 +244,7 @@ namespace xlair::app::flows {
 
         if (const auto* user = std::get_if<api::User>(&*result)) {
             m_registration_error.reset();
+            m_newly_registered = true;
             acceptUser(*user);
             return;
         }

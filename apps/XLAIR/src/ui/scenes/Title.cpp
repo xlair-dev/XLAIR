@@ -11,6 +11,7 @@
 namespace xlair::ui::scenes {
     Title::Title(const InitData& init) : SceneBase{ init } {
         getData().title_to_login_wipe = false;
+        getData().login_to_tutorial_wipe = false;
         getData().music_select_context.reset();
         getData().scanned_card.reset();
         getData().game_result.reset();

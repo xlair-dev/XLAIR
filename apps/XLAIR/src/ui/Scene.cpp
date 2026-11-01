@@ -6,7 +6,7 @@
 #include "scenes/Boot.hpp"
 #include "scenes/Title.hpp"
 #include "scenes/Login.hpp"
-// #include "scenes/Tutorial.hpp"
+#include "scenes/Tutorial.hpp"
 #include "scenes/MusicSelect.hpp"
 #include "scenes/Settings.hpp"
 #include "scenes/Game.hpp"
@@ -48,7 +48,8 @@ namespace xlair::ui {
     }
 
     void DrawSceneOverlay(const SceneData& data) {
-        if (data.current_scene == SceneState::Game || data.title_to_login_wipe || data.music_start) {
+        if (data.current_scene == SceneState::Game || data.title_to_login_wipe || data.login_to_tutorial_wipe ||
+            data.music_start) {
             return;
         }
 #ifndef NDEBUG
@@ -65,7 +66,7 @@ namespace xlair::ui {
         // Do not discard a completed session or interrupt its pending save via Maintenance.
         if (data->title_to_login_wipe || data->music_start || data->current_scene == SceneState::Boot ||
             data->current_scene == SceneState::Login || IsMaintenanceScene(data->current_scene) ||
-            data->current_scene == SceneState::FinalResult ||
+            data->current_scene == SceneState::Tutorial || data->current_scene == SceneState::FinalResult ||
             (data->current_scene == SceneState::Result && data->application->playSession().finished())) {
             return true;
         }
@@ -100,15 +101,17 @@ namespace xlair::ui {
         const std::shared_ptr<app::flows::Maintenance>& maintenance_flow
     ) {
         scenes::Login::RegisterAssets();
+        scenes::Tutorial::RegisterAssets();
         scenes::MusicSelect::RegisterAssets();
         scenes::Settings::RegisterAssets();
 
         SceneManager scene_manager{ std::make_shared<SceneData>(application, boot_flow, maintenance_flow) };
 
         scene_manager
-            .add<scenes::Boot>(SceneState::Boot)               // initialize game
-            .add<scenes::Title>(SceneState::Title)             // title; wait user, scan card
-            .add<scenes::Login>(SceneState::Login)             // login; cancel -> Title, ok -> MusicSelect
+            .add<scenes::Boot>(SceneState::Boot)   // initialize game
+            .add<scenes::Title>(SceneState::Title) // title; wait user, scan card
+            .add<scenes::Login>(SceneState::Login)
+            .add<scenes::Tutorial>(SceneState::Tutorial)
             .add<scenes::MusicSelect>(SceneState::MusicSelect) // music
             .add<scenes::Settings>(SceneState::Settings)       // settings
             .add<scenes::Game>(SceneState::Game)               // main game screen
