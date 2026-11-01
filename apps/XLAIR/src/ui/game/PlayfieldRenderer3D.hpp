@@ -20,6 +20,26 @@ namespace xlair::ui::game {
 
         PlayfieldRenderer3D();
 
+        // Distances use the same scroll-space seconds as ChartProjection::Frame::noteDistance().
+        [[nodiscard]]
+        static Quad sliderRegion(
+            const BasicCamera3D& camera,
+            double lane_start,
+            double lane_width,
+            long double near_distance,
+            long double far_distance,
+            double note_speed
+        );
+
+        [[nodiscard]]
+        static Quad sideRegion(
+            const BasicCamera3D& camera,
+            sheets::SideButton button,
+            long double near_distance,
+            long double far_distance,
+            double note_speed
+        );
+
         void addJudgements(const sheets::Chart& chart, std::span<const core::judgement::JudgementEvent> events);
 
         // The returned texture belongs to this renderer and is overwritten by the next render.

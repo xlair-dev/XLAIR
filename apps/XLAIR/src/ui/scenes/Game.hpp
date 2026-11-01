@@ -5,11 +5,11 @@
 #include "ui/Scene.hpp"
 #include "ui/audio/GameplaySoundPlayer.hpp"
 #include "ui/components/GameScoreBar.hpp"
+#include "ui/game/ControllerInput.hpp"
 #include "ui/game/LeadIn.hpp"
 #include "ui/game/PlayfieldCamera.hpp"
 #include "ui/game/PlayfieldRenderer3D.hpp"
 
-#include <array>
 #include <memory>
 #include <span>
 
@@ -35,22 +35,10 @@ namespace xlair::ui::scenes {
             Failed,
         };
 
-        struct PressedInput {
-            uint32 slider_pressed = 0;
-            uint8 side_pressed = 0;
-        };
-
-        struct InputFrame {
-            std::array<core::judgement::TouchEvent, app::controller::TouchZoneCount * 2> touches;
-            std::array<core::judgement::SideEvent, app::controller::SideButtonCount> side_down;
-            std::size_t touch_count = 0;
-            std::size_t side_count = 0;
-            PressedInput pressed;
-        };
+        using PressedInput = game::ControllerInput::Pressed;
 
         void preparePlayback();
         void updatePlayback(const app::controller::Controller* controller, double delta_seconds);
-        void readInput(const app::controller::Controller* controller, int64 judged_sample);
         [[nodiscard]]
         PressedInput pressedInputForDrawing() const;
         void processJudgements(std::span<const core::judgement::JudgementEvent> events);
@@ -66,7 +54,7 @@ namespace xlair::ui::scenes {
                                 game::PlayfieldCameraFocus };
         game::PlayfieldRenderer3D m_playfield_renderer;
         audio::GameplaySoundPlayer m_sound_player;
-        InputFrame m_input;
+        game::ControllerInput m_input;
         std::unique_ptr<core::judgement::JudgeEngine> m_judge_engine;
         mutable components::GameScoreBar m_score_bar;
         Texture m_start_jacket;

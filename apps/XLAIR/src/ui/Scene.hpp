@@ -18,6 +18,7 @@ namespace xlair::ui {
         Boot,
         Title,
         Login,
+        Tutorial,
         MusicSelect,
         Settings,
         Game,
@@ -60,6 +61,7 @@ namespace xlair::ui {
         game::GameLoader game_loader;
         bool returning_from_game = false;
         bool title_to_login_wipe = false;
+        bool login_to_tutorial_wipe = false;
         std::size_t maintenance_menu_index = 0;
         std::size_t maintenance_controller_index = 0;
         SceneState current_scene = SceneState::Boot;
