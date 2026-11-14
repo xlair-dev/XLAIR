@@ -26,9 +26,16 @@ namespace xlair::infra::controller {
     }
 
     app::controller::OperationResult IPad::initialize() {
+#if defined(__APPLE__) || defined(__linux__)
         disconnect();
         m_next_attempt = {};
         return {};
+#else
+        return app::controller::OperationResult::makeError(
+            app::controller::ErrorKind::Unavailable,
+            U"The iPad controller is not supported on this platform."
+        );
+#endif
     }
 
     app::controller::OperationResult IPad::update() {
