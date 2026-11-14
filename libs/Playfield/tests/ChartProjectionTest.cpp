@@ -254,3 +254,31 @@ TEST_CASE("Measure lines use the main timeline through stops and reverse scroll"
     );
     CHECK(static_cast<double>(projection.noteDistance(0, 500, chart.measure_lines[0].sample)) == Approx(2.0));
 }
+
+TEST_CASE("Prepared notes preserve distances across scroll changes", "[Playfield][ChartProjection]") {
+    const xlair::sheets::Chart chart{
+        .sample_rate = 100,
+        .timelines = {
+            { .speed_changes = { { .sample = 0, .multiplier = 2.0 },
+                                 { .sample = 100, .multiplier = 0.0 },
+                                 { .sample = 200, .multiplier = -1.0 },
+                                 { .sample = 300, .multiplier = 3.0 } } },
+            { .speed_changes = { { .sample = 0, .multiplier = 0.5 } } },
+        },
+        .slider_notes = { { .timeline = 0, .sample = 150 }, { .timeline = 1, .sample = 250 } },
+        .side_notes = { { .timeline = 0, .sample = 350 }, { .timeline = 1, .sample = 100 } },
+    };
+    const xlair::playfield::ChartProjection projection{ chart };
+    s3d::Array<long double> positions;
+    for (s3d::int64 current = -100; current <= 500; ++current) {
+        const auto frame = projection.frameAt(current, positions);
+        for (std::size_t i = 0; i < chart.slider_notes.size(); ++i) {
+            const auto& note = chart.slider_notes[i];
+            CHECK(frame.noteDistance(frame.sliderNote(i)) == frame.noteDistance(note.timeline, note.sample));
+        }
+        for (std::size_t i = 0; i < chart.side_notes.size(); ++i) {
+            const auto& note = chart.side_notes[i];
+            CHECK(frame.noteDistance(frame.sideNote(i)) == frame.noteDistance(note.timeline, note.sample));
+        }
+    }
+}

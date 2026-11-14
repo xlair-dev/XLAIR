@@ -9,6 +9,11 @@
 namespace xlair::playfield {
     class ChartProjection {
     public:
+        struct PreparedNote {
+            sheets::TimelineIndex timeline;
+            s3d::int64 sample;
+            long double position;
+        };
         // A non-owning view valid only while its projection and output buffer live,
         // and until that buffer is modified or reused by frameAt().
         class Frame {
@@ -21,12 +26,21 @@ namespace xlair::playfield {
             [[nodiscard]]
             long double noteDistance(sheets::TimelineIndex timeline, s3d::int64 note_sample) const;
 
+            [[nodiscard]]
+            long double noteDistance(const PreparedNote& note) const;
+
             void noteDistanceBreakpoints(
                 sheets::TimelineIndex timeline,
                 s3d::int64 from_sample,
                 s3d::int64 to_sample,
                 s3d::Array<s3d::int64>& samples
             ) const;
+
+            [[nodiscard]]
+            const PreparedNote& sliderNote(std::size_t index) const;
+
+            [[nodiscard]]
+            const PreparedNote& sideNote(std::size_t index) const;
 
             [[nodiscard]]
             std::span<const PreparedHoldSpan> sliderHoldSpans(std::size_t index) const;
@@ -94,10 +108,18 @@ namespace xlair::playfield {
         ) const;
 
         [[nodiscard]]
+        const PreparedNote& sliderNote(std::size_t index) const;
+
+        [[nodiscard]]
+        const PreparedNote& sideNote(std::size_t index) const;
+
+        [[nodiscard]]
         std::size_t timelineCount() const noexcept;
 
     private:
         s3d::Array<ScrollTimeline> m_timelines;
+        s3d::Array<PreparedNote> m_slider_notes;
+        s3d::Array<PreparedNote> m_side_notes;
         s3d::Array<s3d::Array<PreparedHoldSpan>> m_slider_hold_spans;
         s3d::Array<s3d::Array<PreparedHoldSpan>> m_side_hold_spans;
     };

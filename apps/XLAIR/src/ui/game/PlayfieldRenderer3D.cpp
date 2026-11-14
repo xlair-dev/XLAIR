@@ -419,7 +419,7 @@ namespace xlair::ui::game {
                     continue;
                 }
                 const auto& note = chart.slider_notes[index];
-                const double z = WorldZ(projection, note.timeline, note.sample, note_speed);
+                const double z = WorldZ(projection.noteDistance(projection.sliderNote(index)), note_speed);
                 if (!std::isfinite(z)) {
                     continue;
                 }
@@ -842,8 +842,11 @@ namespace xlair::ui::game {
                 const auto& note = chart.side_notes[index];
                 const bool lower =
                     note.button == sheets::SideButton::LeftLower || note.button == sheets::SideButton::RightLower;
-                const auto z =
-                    NoteDepth(projection, note.timeline, note.sample, note_speed, lower ? LowerNear : FieldNear);
+                const double depth = WorldZ(projection.noteDistance(projection.sideNote(index)), note_speed);
+                const Optional<double> z = std::isfinite(depth) && depth >= (lower ? LowerNear : FieldNear) - 2.0 &&
+                                                   depth <= FieldFar + 2.0
+                                               ? Optional<double>{ depth }
+                                               : none;
                 if (!z) {
                     continue;
                 }

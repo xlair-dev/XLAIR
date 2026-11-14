@@ -126,6 +126,13 @@ namespace xlair::playfield {
         return scrollDistance(timeline, note_sample);
     }
 
+    long double ChartProjection::Frame::noteDistance(const PreparedNote& note) const {
+        if (note.sample < m_current_sample) {
+            return m_projection.noteDistance(note.timeline, m_current_sample, note.sample);
+        }
+        return note.position - m_current_positions[note.timeline];
+    }
+
     void ChartProjection::Frame::noteDistanceBreakpoints(
         const sheets::TimelineIndex timeline,
         const s3d::int64 from_sample,
@@ -133,6 +140,14 @@ namespace xlair::playfield {
         s3d::Array<s3d::int64>& samples
     ) const {
         m_projection.noteDistanceBreakpoints(timeline, m_current_sample, from_sample, to_sample, samples);
+    }
+
+    const ChartProjection::PreparedNote& ChartProjection::Frame::sliderNote(const std::size_t index) const {
+        return m_projection.sliderNote(index);
+    }
+
+    const ChartProjection::PreparedNote& ChartProjection::Frame::sideNote(const std::size_t index) const {
+        return m_projection.sideNote(index);
     }
 
     std::span<const PreparedHoldSpan> ChartProjection::Frame::sliderHoldSpans(const std::size_t index) const {
@@ -234,6 +249,15 @@ namespace xlair::playfield {
             m_timelines.emplace_back(sheets::Timeline{}, chart.sample_rate);
         }
 
+        m_slider_notes.reserve(chart.slider_notes.size());
+        for (const auto& note : chart.slider_notes) {
+            m_slider_notes.push_back({ note.timeline, note.sample, positionAt(note.timeline, note.sample) });
+        }
+        m_side_notes.reserve(chart.side_notes.size());
+        for (const auto& note : chart.side_notes) {
+            m_side_notes.push_back({ note.timeline, note.sample, positionAt(note.timeline, note.sample) });
+        }
+
         m_slider_hold_spans.reserve(chart.slider_holds.size());
         for (const auto& hold : chart.slider_holds) {
             m_slider_hold_spans.push_back(PrepareHoldSpans(*this, hold.points));
@@ -307,6 +331,14 @@ namespace xlair::playfield {
             throw std::out_of_range{ "The timeline index is outside the chart projection." };
         }
         m_timelines[timeline].noteDistanceBreakpoints(current_sample, from_sample, to_sample, samples);
+    }
+
+    const ChartProjection::PreparedNote& ChartProjection::sliderNote(const std::size_t index) const {
+        return m_slider_notes.at(index);
+    }
+
+    const ChartProjection::PreparedNote& ChartProjection::sideNote(const std::size_t index) const {
+        return m_side_notes.at(index);
     }
 
     std::size_t ChartProjection::timelineCount() const noexcept {
