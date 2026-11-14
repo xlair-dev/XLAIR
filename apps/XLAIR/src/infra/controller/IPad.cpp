@@ -1,5 +1,7 @@
 #include "IPad.hpp"
 
+#include <Siv3D/Keyboard.hpp>
+
 #if defined(__APPLE__) || defined(__linux__)
 #include <arpa/inet.h>
 #include <fcntl.h>
@@ -79,6 +81,11 @@ namespace xlair::infra::controller {
             for (std::size_t i = 0; i < m_snapshot.side_buttons.size(); ++i) m_snapshot.side_buttons[i] = (side & (uint8{1} << i)) != 0;
         }
 #endif
+        // Keep the same maintenance controls as the keyboard device.
+        constexpr std::array<Input, app::controller::MaintenanceButtonCount> keys{ KeyF2, KeyF3, KeyF4, KeyF5 };
+        for (std::size_t i = 0; i < keys.size(); ++i) {
+            m_snapshot.maintenance_buttons[i] = keys[i].pressed();
+        }
         return {};
     }
     app::controller::OperationResult IPad::setLights(const app::controller::LightFrame&) { return {}; }
