@@ -25,7 +25,7 @@ latency_offset_seconds = 0.0
 directory = "data/sheets/sync"
 
 [controller]
-mode = "keyboard" # or ground_slider, v1
+mode = "keyboard" # or ground_slider, v1, ipad
 highlight_touch_threshold = false
 
 [controller.ground_slider]

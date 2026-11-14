@@ -170,6 +170,8 @@ namespace xlair::infra::config {
             if (config.controller.ground_slider.touch_threshold == 0) {
                 return MakeError(U"Config value 'controller.ground_slider.touch_threshold' must be positive.", m_path);
             }
+        } else if (controller_mode == U"ipad") {
+            config.controller.mode = app::Config::Controller::Mode::IPad;
         } else if (controller_mode == U"v1") {
             config.controller.mode = app::Config::Controller::Mode::V1;
             if (config.controller.v1.port.isEmpty()) {
@@ -182,7 +184,7 @@ namespace xlair::infra::config {
                 return MakeError(U"Config value 'controller.v1.touch_threshold' must be between 1 and 254.", m_path);
             }
         } else {
-            return MakeError(U"Config value 'controller.mode' must be 'keyboard', 'ground_slider', or 'v1'.", m_path);
+            return MakeError(U"Config value 'controller.mode' must be 'keyboard', 'ground_slider', 'v1', or 'ipad'.", m_path);
         }
 
         if (!std::isfinite(config.input.latency_offset_seconds)) {

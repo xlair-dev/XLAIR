@@ -89,6 +89,7 @@ namespace xlair::app {
                 Keyboard,
                 GroundSlider,
                 V1,
+                IPad,
             };
 
             Mode mode = Mode::Keyboard;

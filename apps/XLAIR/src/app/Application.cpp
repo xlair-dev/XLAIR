@@ -81,6 +81,7 @@ namespace xlair::app {
                 m_config->controller.v1.touch_threshold = *applied;
                 break;
             case Config::Controller::Mode::Keyboard:
+            case Config::Controller::Mode::IPad:
                 break;
         }
     }

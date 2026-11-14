@@ -76,6 +76,7 @@ namespace xlair::infra::config {
             const StringView controller_mode =
                 config.controller.mode == app::Config::Controller::Mode::Keyboard       ? U"keyboard"
                 : config.controller.mode == app::Config::Controller::Mode::GroundSlider ? U"ground_slider"
+                : config.controller.mode == app::Config::Controller::Mode::IPad         ? U"ipad"
                                                                                         : U"v1";
             const StringView card_reader_mode =
                 config.card_reader.mode == app::Config::CardReader::Mode::Mock ? U"mock" : U"pasori";
