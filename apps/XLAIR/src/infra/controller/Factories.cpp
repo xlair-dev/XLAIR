@@ -2,11 +2,15 @@
 
 #include "GroundSlider.hpp"
 #include "Keyboard.hpp"
+#include "IPad.hpp"
 #include "V1.hpp"
 
 namespace xlair::infra::controller {
     std::unique_ptr<app::interfaces::IControllerDevice> CreateDevice(const app::Config::Controller& config) {
         switch (config.mode) {
+            case app::Config::Controller::Mode::IPad:
+                return std::make_unique<IPad>();
+
             case app::Config::Controller::Mode::Keyboard:
                 return std::make_unique<Keyboard>();
 
