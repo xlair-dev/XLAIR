@@ -136,13 +136,17 @@ namespace xlair::ui::audio {
         }
         for (std::size_t index = 0; index < m_slider_holds.size(); ++index) {
             const auto& hold = m_slider_holds[index];
-            frame.slider_hold_active =
-                frame.slider_hold_active || (music_sample >= hold.start_sample && judge.sliderHoldActive(index));
+            if (music_sample >= hold.start_sample && judge.sliderHoldActive(index)) {
+                frame.slider_hold_active = true;
+                break;
+            }
         }
         for (std::size_t index = 0; index < m_side_holds.size(); ++index) {
             const auto& hold = m_side_holds[index];
-            frame.side_hold_active =
-                frame.side_hold_active || (music_sample >= hold.start_sample && judge.sideHoldActive(index));
+            if (music_sample >= hold.start_sample && judge.sideHoldActive(index)) {
+                frame.side_hold_active = true;
+                break;
+            }
         }
         return frame;
     }
