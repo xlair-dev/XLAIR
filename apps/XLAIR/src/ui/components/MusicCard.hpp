@@ -56,6 +56,26 @@ namespace xlair::ui::components {
         static constexpr Size CardSize{ 416, 545 };
         static constexpr RectF JacketRegion{ 64, 20, 332, 332 };
 
+        struct CacheKey {
+            String title;
+            String artist;
+            String difficulty;
+            double level;
+            String designer;
+            uint32 high_score;
+            String grade;
+            String clear_status;
+            bool available;
+            TextureRegion jacket;
+            theme::DifficultyTheme theme;
+            double text_offset;
+            bool draw_jacket;
+
+            bool matches(const MusicCardData& data, const TextureRegion& image,
+                         const theme::DifficultyTheme& colors, double offset, bool show_jacket) const;
+        };
+
         MSRenderTexture m_render_texture;
+        Optional<CacheKey> m_cache;
     };
 }

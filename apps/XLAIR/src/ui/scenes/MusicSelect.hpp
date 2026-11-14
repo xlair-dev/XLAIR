@@ -36,13 +36,14 @@ namespace xlair::ui::scenes {
             std::size_t music_index,
             const RectF& region,
             double text_elapsed,
-            const transitions::CardTransition& transition
+            const transitions::CardTransition& transition,
+            std::size_t slot
         ) const;
         void drawEmptyCatalog() const;
 
         components::CardCarousel m_card_carousel;
         input::MenuInput m_menu_input;
-        mutable components::MusicCard m_music_card;
+        mutable Array<std::unique_ptr<components::MusicCard>> m_music_cards;
         mutable MSRenderTexture m_game_transition_background;
         Array<components::SliderMapping> m_slider_mappings;
         double m_text_elapsed = 0.0;

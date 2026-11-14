@@ -14,6 +14,8 @@
 namespace xlair::ui::game {
     namespace {
         constexpr Size FieldSurfaceSize{ 1000, 4000 };
+        constexpr double FieldSurfaceScale = 0.75;
+        constexpr Size FieldTextureSize{ 750, 3000 };
         constexpr Size SideNoteSurfaceSize{ 512, 64 };
         constexpr double NotePlateHeight = 32.0;
         constexpr double NoteVisibilityMargin = 64.0;
@@ -297,7 +299,9 @@ namespace xlair::ui::game {
                 ColorF color;
             };
 
-            Graphics2D::SetScissorRect(Rect{ 0, 0, FieldSurfaceSize.x, static_cast<int32>(SourceJudgeY) });
+            Graphics2D::SetScissorRect(
+                Rect{ 0, 0, FieldTextureSize.x, static_cast<int32>(SourceJudgeY * FieldSurfaceScale) }
+            );
             RasterizerState clipped = RasterizerState::Default2D;
             clipped.scissorEnable = true;
 
@@ -862,7 +866,7 @@ namespace xlair::ui::game {
     }
 
     PlayfieldRenderer3D::PlayfieldRenderer3D()
-        : m_field_surface{ FieldSurfaceSize, TextureFormat::R8G8B8A8_Unorm_SRGB },
+        : m_field_surface{ FieldTextureSize, TextureFormat::R8G8B8A8_Unorm_SRGB },
           m_render_texture{ DesignSize, TextureFormat::R8G8B8A8_Unorm_SRGB, HasDepth::Yes },
           m_side_upper_note_surface{ SideNoteSurfaceSize, TextureFormat::R8G8B8A8_Unorm_SRGB },
           m_side_lower_note_surface{ SideNoteSurfaceSize, TextureFormat::R8G8B8A8_Unorm_SRGB },
@@ -993,7 +997,7 @@ namespace xlair::ui::game {
         m_hold_glows.clear();
         {
             const ScopedRenderTarget2D target{ m_field_surface.clear(ColorF{ 0.0, 0.0 }) };
-            const Transformer2D local{ Mat3x2::Identity(), Transformer2D::Target::SetLocal };
+            const Transformer2D local{ Mat3x2::Scale(FieldSurfaceScale), Transformer2D::Target::SetLocal };
             const Transformer2D view{ Mat3x2::Identity(), Transformer2D::Target::SetCamera };
             const ScopedColorMul2D color_mul{ 1.0 };
             const ScopedColorAdd2D color_add{ 0.0 };

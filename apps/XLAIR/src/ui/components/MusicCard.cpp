@@ -7,15 +7,45 @@
 #include "ui/primitives/Sparkle.hpp"
 
 namespace xlair::ui::components {
+    bool MusicCard::CacheKey::matches(
+        const MusicCardData& data,
+        const TextureRegion& image,
+        const theme::DifficultyTheme& colors,
+        const double offset,
+        const bool show_jacket
+    ) const {
+        return title == data.title && artist == data.artist && difficulty == data.difficulty && level == data.level &&
+               designer == data.designer && high_score == data.high_score && grade == data.grade &&
+               clear_status == data.clear_status && available == data.available && jacket.texture == image.texture &&
+               jacket.uvRect.left == image.uvRect.left && jacket.uvRect.top == image.uvRect.top &&
+               jacket.uvRect.right == image.uvRect.right && jacket.uvRect.bottom == image.uvRect.bottom &&
+               jacket.size == image.size && theme.accent == colors.accent &&
+               theme.secondary == colors.secondary && theme.text == colors.text &&
+               theme.secondary_text == colors.secondary_text && text_offset == offset && draw_jacket == show_jacket;
+    }
+
     MusicCard::MusicCard() : m_render_texture{ CardSize } {}
 
     const MSRenderTexture& MusicCard::render(
         const MusicCardData& data,
         const TextureRegion& jacket,
         const theme::DifficultyTheme& difficulty_theme,
-        const double text_offset,
+        double text_offset,
         const bool draw_jacket
     ) {
+        // Elapsed time only affects cards with text wider than the scrolling viewport.
+        const Font font = FontAsset{ assets::font::Text };
+        if (font(data.title).region(36).w <= 338 && font(data.artist).region(24).w <= 338) {
+            text_offset = 0.0;
+        }
+        if (m_cache && m_cache->matches(data, jacket, difficulty_theme, text_offset, draw_jacket)) {
+            return m_render_texture;
+        }
+        m_cache = CacheKey{
+            String{ data.title }, String{ data.artist }, String{ data.difficulty }, data.level,
+            String{ data.designer }, data.high_score, String{ data.grade }, String{ data.clear_status },
+            data.available, jacket, difficulty_theme, text_offset, draw_jacket
+        };
         m_render_texture.clear(Palette::White);
         {
             const ScopedRenderTarget2D target{ m_render_texture };

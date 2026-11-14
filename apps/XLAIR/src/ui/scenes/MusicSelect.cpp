@@ -311,9 +311,13 @@ namespace xlair::ui::scenes {
 
     void MusicSelect::drawCards(const transitions::CardTransition& transition) const {
         const auto& flow = getData().music_select_context->flow();
-        for (const auto& placement :
-             m_card_carousel.layout(flow.selectedIndex(), flow.musicCount(), transition.scale)) {
-            drawCard(placement.index, placement.region, placement.selected ? m_text_elapsed : 0.0, transition);
+        const auto placements = m_card_carousel.layout(flow.selectedIndex(), flow.musicCount(), transition.scale);
+        while (m_music_cards.size() < placements.size()) {
+            m_music_cards.push_back(std::make_unique<components::MusicCard>());
+        }
+        for (std::size_t slot = 0; slot < placements.size(); ++slot) {
+            const auto& placement = placements[slot];
+            drawCard(placement.index, placement.region, placement.selected ? m_text_elapsed : 0.0, transition, slot);
         }
     }
 
@@ -321,7 +325,8 @@ namespace xlair::ui::scenes {
         const std::size_t music_index,
         const RectF& region,
         const double text_elapsed,
-        const transitions::CardTransition& transition
+        const transitions::CardTransition& transition,
+        const std::size_t slot
     ) const {
         const auto& flow = getData().music_select_context->flow();
         const auto* music = flow.musicAt(music_index);
@@ -357,7 +362,7 @@ namespace xlair::ui::scenes {
             ColorF{ 0, 0, 0, 0.22 * transition.opacity }
         );
         // Render at the card's native size; scale and opacity apply only to the finished texture.
-        region(m_music_card.render(
+        region(m_music_cards[slot]->render(
                    data,
                    getData().jackets.get(music->id),
                    theme::GetDifficultyTheme(difficulty->index),
